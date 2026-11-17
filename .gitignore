@@ -1,0 +1,41 @@
+# Godot 4 cache / generated
+.godot/
+/android/
+*.translation
+.mono/
+data_*/
+mono_crash.*.json
+
+# Export outputs (see build/README.md)
+build/*
+!build/README.md
+*.apk
+*.aab
+*.ipa
+*.pck
+*.zip
+
+# Signing material and secrets — never commit
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+*.mobileprovision
+export_credentials.cfg
+.env
+.env.*
+*credentials*.json
+google-services.json
+GoogleService-Info.plist
+
+# Blender backups
+*.blend1
+*.blend2
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.tmp
+.vscode/
+.idea/

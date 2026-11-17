@@ -1,0 +1,98 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" path="res://scripts/ui/safe_area_margin.gd" id="2_safe"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07, 0.06, 0.08, 1)
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_safe")
+
+[node name="Layout" type="VBoxContainer" parent="SafeArea"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TitleLabel" type="Label" parent="SafeArea/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.18, 0.16, 1)
+theme_override_font_sizes/font_size = 96
+text = "VANGUARD: BLOODLINE"
+
+[node name="SubtitleLabel" type="Label" parent="SafeArea/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.74, 1)
+theme_override_font_sizes/font_size = 32
+text = "PLACEHOLDER MAIN MENU — Milestone 0 (no gameplay yet)"
+
+[node name="Spacer" type="Control" parent="SafeArea/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Buttons" type="VBoxContainer" parent="SafeArea/Layout"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 20
+
+[node name="FightButton" type="Button" parent="SafeArea/Layout/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(640, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+disabled = true
+text = "Fight  (Milestone 1+)"
+
+[node name="TrainingButton" type="Button" parent="SafeArea/Layout/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(640, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+disabled = true
+text = "Training  (Milestone 4+)"
+
+[node name="SettingsButton" type="Button" parent="SafeArea/Layout/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(640, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+disabled = true
+text = "Settings  (Milestone 7)"
+
+[node name="QuitButton" type="Button" parent="SafeArea/Layout/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(640, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Quit"
+
+[node name="Spacer2" type="Control" parent="SafeArea/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InfoLabel" type="Label" parent="SafeArea/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.55, 1)
+theme_override_font_sizes/font_size = 24
+text = "build info"
