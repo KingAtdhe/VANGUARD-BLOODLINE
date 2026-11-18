@@ -40,3 +40,6 @@
 | KI-036 | M7 | Animations are still the M6 pose-to-pose set (stiff); arenas and UI have not had their quality pass yet. | Open — next |
 | KI-037 | M7 | Godot's glTF import leaves the first surface's vertex colours off; `ModelUtil.enable_vertex_colors` fixes it at load (tested). | Worked around |
 | KI-038 | M7 | Test APKs are signed with a fresh throwaway key per build, so a new build won't install over an old one: uninstall first (progress is lost). | Open — stable debug key needed |
+| KI-039 | M7 | Only Kairo is modelled to the approved art sheet. Drakon, Seraphina, Nox, Vexa and Ryuen still use old models; Sentinel/Warden keep the earlier construct look. | Open — next |
+| KI-040 | M7 | Kairo's 3D face is simpler than the art sheet; no textures (vertex colour only); sash is rigid cloth (no physics). | Open |
+| KI-041 | M7 | Provenance/rights of the owner-supplied art sheet are not recorded yet. | Open — owner |

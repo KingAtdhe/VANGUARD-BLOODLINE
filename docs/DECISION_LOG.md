@@ -291,6 +291,14 @@ per-vertex (materials only set roughness/metal/emission). Rigid skinning
 unchanged. Kairo, Sentinel and Warden use it; the five locked fighters still
 use the older builder until M8. **Accepted — pending owner review on device.**
 
+## D-046 — 2026-11-18 — Owner's art sheet is the design reference; cel-shaded look
+The owner supplied `docs/art/reference_roster_sheet.png` as the approved look
+for all six fighters. Models are built to match it, starting with Kairo
+(`kairo_v2_shells`). To match the 2D art, fighters render with toon lighting,
+a rim light and an inverted-hull ink outline (`ModelUtil.apply_toon_style`).
+My earlier vector concept sheets in `docs/art/` are superseded.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

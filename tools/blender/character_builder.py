@@ -31,7 +31,7 @@ REF_HEIGHT = 1.8
 # Palettes: (r, g, b) linear-ish; accent is emissive Origin energy.
 FIGHTERS = {
     "kairo": dict(
-        display="Kairo", height=1.80, shoulder=0.21, hip=0.105, build=1.0,
+        display="Kairo", height=1.80, shoulder=0.235, hip=0.105, build=1.0,
         chest=(0.205, 0.125), waist=(0.155, 0.105), pelvis=(0.17, 0.11),
         arm=(0.058, 0.05), leg=(0.088, 0.062), head=0.105,
         palette=dict(skin=(0.56, 0.37, 0.27), cloth=(0.05, 0.055, 0.07), cloth2=(0.14, 0.15, 0.19),

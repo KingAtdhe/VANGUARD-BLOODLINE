@@ -11,6 +11,8 @@
 - Art: three from-scratch arenas with lighting, fog, glow, particles and signage — Ascendant Arena, Forgotten Temple, Neon District.
 - 21 new tests (save/load, modes, navigation, results, settings, roster and arena budgets).
 - Quality pass (`tools/blender/hero_builder.py`): Kairo, Origin Sentinel and Origin Warden rebuilt sculpt-style — continuous smooth bodies with anatomy, a modelled face, layered clothing, smooth joint skinning, painted vertex colours with baked cavity shading (≈25–31k tris).
+- Kairo remodelled to the owner's approved art sheet (heroic build, fitted top with Origin line, forearm guards and gloves, torn red sash, knee guards, armoured boots, spiky hair with a red streak).
+- Cel-shaded fighters: toon lighting, rim light and inked outlines.
 ### Changed
 - Kairo blockout replaced by the new model; debug panel/hitboxes start hidden (F3/F4); training tools only in Training.
 ### Removed

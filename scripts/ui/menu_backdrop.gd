@@ -65,7 +65,7 @@ func show_fighter(id: StringName) -> void:
 	if def == null or def.model_scene == null:
 		return
 	_fighter = def.model_scene.instantiate() as Node3D
-	ModelUtil.enable_vertex_colors(_fighter)
+	ModelUtil.prepare(_fighter)
 	_fighter_pivot.add_child(_fighter)
 	_fighter.rotation_degrees.y = 28.0   # three-quarter view toward camera
 	var ap: AnimationPlayer = _fighter.find_child("AnimationPlayer", true, false) as AnimationPlayer
