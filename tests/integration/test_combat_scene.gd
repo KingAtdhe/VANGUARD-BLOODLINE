@@ -15,6 +15,13 @@ func _spawn_scene() -> Node:
 	return scene
 
 
+## Runs the "ROUND 1 / FIGHT!" intro so inputs reach the simulation.
+func _skip_intro(scene: Node) -> void:
+	var d: MatchDirector = scene.director
+	while d.phase == MatchDirector.Phase.INTRO:
+		_frames(scene, 1)
+
+
 ## Fails fast if the scene did not initialise (prevents false passes).
 func _ready_failures(scene: Node) -> Array[String]:
 	var f: Array[String] = []
@@ -61,6 +68,7 @@ func test_walk_to_left_wall_stays_visible() -> Array[String]:
 	if not f.is_empty():
 		scene.free()
 		return f
+	_skip_intro(scene)
 	Input.action_press(InputActions.MOVE_LEFT)
 	for step: int in 12:  # 6 s, checked every 0.5 s
 		_frames(scene, 30)
@@ -76,6 +84,7 @@ func test_push_dummy_to_right_wall_stays_visible() -> Array[String]:
 	if not f.is_empty():
 		scene.free()
 		return f
+	_skip_intro(scene)
 	Input.action_press(InputActions.MOVE_RIGHT)
 	for step: int in 12:
 		_frames(scene, 30)
@@ -98,16 +107,18 @@ func test_scene_same_result_at_30_and_144_fps() -> Array[String]:
 		if not not_ready.is_empty():
 			scene.free()
 			return not_ready
+		_skip_intro(scene)
+		var start_tick: int = (scene.simulation as CombatSimulation).tick
 		Input.action_press(InputActions.MOVE_LEFT)
 		_frames(scene, int(fps), 1.0 / fps)  # 1 s
 		Input.action_release(InputActions.MOVE_LEFT)
 		var sim: CombatSimulation = scene.simulation
-		# Normalise to exactly 60 ticks for comparison.
-		while sim.tick < 60:  # bounded: step() always increments tick
+		# Normalise to exactly 60 fight ticks for comparison.
+		while sim.tick - start_tick < 60:  # bounded: step() always increments tick
 			sim.step([FighterInputFrame.moving(-1), FighterInputFrame.neutral()])
-		if sim.tick > 61:
-			f.append("%d fps ran %d ticks in 1 s" % [int(fps), sim.tick])
-		results.append(sim.fighters[0].position_x if sim.tick == 60 else NAN)
+		if sim.tick - start_tick > 61:
+			f.append("%d fps ran %d ticks in 1 s" % [int(fps), sim.tick - start_tick])
+		results.append(sim.fighters[0].position_x if sim.tick - start_tick == 60 else NAN)
 		scene.free()
 	if is_nan(results[0]) or is_nan(results[1]):
 		return f
@@ -123,6 +134,7 @@ func test_scene_light_attack_hits_dummy_with_effects() -> Array[String]:
 		scene.free()
 		return f
 	var sim: CombatSimulation = scene.simulation
+	_skip_intro(scene)
 	# Walk into range.
 	Input.action_press(InputActions.MOVE_RIGHT)
 	for _i: int in 120:
@@ -147,9 +159,109 @@ func test_scene_light_attack_hits_dummy_with_effects() -> Array[String]:
 	var boxes: HitboxDebugView = scene.get_node("%HitboxDebugView")
 	if boxes.get_child_count() != 4:
 		f.append("hitbox debug view should hold 4 boxes, has %d" % boxes.get_child_count())
-	# Training reset restores health.
-	scene.reset_round()
+	# HUD health bar shows the simulation's health.
+	var hud: MatchHUD = scene.get_node("%MatchHUD")
+	if hud.health_bar_value(1) != sim.fighters[1].health:
+		f.append("HUD P2 bar %.0f != health %d" % [hud.health_bar_value(1), sim.fighters[1].health])
+	# Restart (debug R / pause menu) restores a clean match.
+	scene.start_match()
 	if sim.fighters[1].health != sim.definitions[1].base_health:
-		f.append("reset_round did not restore health")
+		f.append("start_match did not restore health")
+	scene.free()
+	return f
+
+
+
+func test_hud_timer_and_announcer() -> Array[String]:
+	var scene: Node = _spawn_scene()
+	var f: Array[String] = _ready_failures(scene)
+	if not f.is_empty():
+		scene.free()
+		return f
+	var hud: MatchHUD = scene.get_node("%MatchHUD")
+	var timer: Label = hud.get_node("%TimerLabel")
+	if timer.text != "90":
+		f.append("timer shows '%s' at start" % timer.text)
+	if hud.announce_text() != "ROUND 1":
+		f.append("announcer shows '%s' during intro" % hud.announce_text())
+	_skip_intro(scene)
+	_frames(scene, 1)
+	if hud.announce_text() != "FIGHT!":
+		f.append("announcer shows '%s' after intro" % hud.announce_text())
+	_frames(scene, 61)
+	if timer.text != "89":
+		f.append("timer shows '%s' after ~1 s of fight" % timer.text)
+	scene.free()
+	return f
+
+
+func test_pause_stops_simulation_and_resume_continues() -> Array[String]:
+	var scene: Node = _spawn_scene()
+	var f: Array[String] = _ready_failures(scene)
+	if not f.is_empty():
+		scene.free()
+		return f
+	_skip_intro(scene)
+	var sim: CombatSimulation = scene.simulation
+	var d: MatchDirector = scene.director
+	scene.pause()
+	var menu: PauseMenu = scene.get_node("%PauseMenu")
+	if not _tree().paused or not menu.visible:
+		f.append("pause() did not pause the tree / show the menu")
+	var tick: int = sim.tick
+	var timer: int = d.timer_ticks
+	_frames(scene, 120)
+	if sim.tick != tick or d.timer_ticks != timer:
+		f.append("simulation/timer advanced while paused")
+	scene.resume()
+	if _tree().paused or menu.visible:
+		f.append("resume() did not unpause / hide menu")
+	_frames(scene, 10)
+	if sim.tick <= tick:
+		f.append("simulation did not continue after resume")
+	# Backgrounding the app pauses automatically.
+	scene._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	if not _tree().paused:
+		f.append("app focus-out did not pause")
+	scene.resume()
+	_tree().paused = false
+	scene.free()
+	return f
+
+
+func test_match_end_results_and_rematch() -> Array[String]:
+	var scene: Node = _spawn_scene()
+	var f: Array[String] = _ready_failures(scene)
+	if not f.is_empty():
+		scene.free()
+		return f
+	var sim: CombatSimulation = scene.simulation
+	var d: MatchDirector = scene.director
+	# Fast-forward: each fight phase, knock P2 out directly through the rules.
+	var guard: int = 0
+	while not d.is_match_over() and guard < 5000:
+		if d.phase == MatchDirector.Phase.FIGHT:
+			sim.fighters[1].health = 1
+			sim.fighters[0].position_x = sim.fighters[1].position_x - 0.9
+			Input.action_press(InputActions.ATTACK_LIGHT)
+			_frames(scene, 1)
+			Input.action_release(InputActions.ATTACK_LIGHT)
+		_frames(scene, 1)
+		guard += 1
+	var results: MatchResults = scene.get_node("%MatchResults")
+	if not d.is_match_over() or not results.visible:
+		f.append("match did not end with results shown (phase %s)" % d.phase_name())
+	elif results.title_text() != "P1 WINS":
+		f.append("results title '%s'" % results.title_text())
+	# Pause is disabled on the results screen.
+	scene.pause()
+	if _tree().paused:
+		f.append("pause allowed after match end")
+		_tree().paused = false
+	# Rematch via the results button.
+	(results.get_node("%RematchButton") as Button).pressed.emit()
+	if results.visible or d.round_number != 1 or d.round_wins != [0, 0] \
+			or sim.fighters[1].health != sim.definitions[1].base_health:
+		f.append("rematch did not start a clean match")
 	scene.free()
 	return f

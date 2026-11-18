@@ -43,7 +43,7 @@ Acceptance:
       positions at 30/60/90/120/144 fps and jittery frame times
 - [ ] **On-device check (touch debug buttons, framing on a real phone) — NOT VERIFIED**
 
-## Milestone 2 — attacks and hit detection  ✅ implemented, awaiting approval
+## Milestone 2 — attacks and hit detection  ✅ approved
 - [x] Attack data model (`MoveData`, all spec §4.3 fields) + `FighterDefinition`
 - [x] Hurtbox and hitbox system (`HitboxSystem`), debug view (F4)
 - [x] Light, heavy and kick attacks (Kairo placeholder data, spec §4.4 values)
@@ -61,7 +61,23 @@ Acceptance:
 - [x] Hit detection is reproducible and debuggable — identical 1,200-tick combat logs across runs;
       hitbox debug view draws the exact simulation boxes; tick-stamped combat log
 - [ ] **On-device check — NOT VERIFIED**
-## Milestone 3 — match loop
+## Milestone 3 — match loop  ✅ implemented, awaiting approval
+- [x] Health bars (with damage trail)
+- [x] Timer (90 s, integer ticks, shown rounded up)
+- [x] Round counter + round-win pips, ROUND n / FINAL ROUND / FIGHT! / K.O. / TIME announcer
+- [x] Best-of-three logic (`MatchDirector`, `MatchRules` data)
+- [x] Win/lose/draw results screen with per-round reasons
+- [x] Rematch (results screen, pause menu "Restart match", debug R)
+- [x] Pause (Esc/P/Start, on-screen II, Android back, auto on app background)
+
+Acceptance:
+- [x] Match always reaches a valid end state — KO, time-out, all-draw, double-KO,
+      round-cap and 12 seeded random-mash matches all end; invariants checked every tick
+- [x] Timer and health cannot become invalid — per-tick invariant checks (0 ≤ health ≤ max,
+      0 ≤ timer ≤ 5,400, round wins ≤ target); timer ends at exactly 0
+- [x] Round transitions reset positions and state correctly — test compares every field after round 1
+- [x] Rematch starts a clean match — director + scene tests (round 1, 0–0, full health, empty log)
+- [ ] **On-device check (HUD layout on a real phone, pause on home/back) — NOT VERIFIED**
 ## Milestone 4 — combo and input systems (touch controls)
 ## Milestone 5 — AI
 ## Milestone 6 — Kairo vertical slice

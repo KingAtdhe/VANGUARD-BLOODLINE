@@ -129,6 +129,33 @@ P2 is driven by `TrainingDummyController` with STAND / BLOCK / JAB modes
 (T / F6 / on-screen button). Output depends only on the tick — no reactions,
 no reading P1. The real AI is Milestone 5. **Accepted.**
 
+## D-022 — 2026-11-18 — Match flow owned by MatchDirector
+A deterministic `MatchDirector` (RefCounted) wraps the simulation with phases
+INTRO → FIGHT → ROUND_END → (next INTRO | MATCH_END). Inputs reach the
+simulation only in FIGHT. Round timer is integer ticks (90 s = 5,400), never
+negative, counts every FIGHT tick (including hitstop). Rules live in
+`data/rules/standard_match.tres` (`MatchRules`). **Accepted.**
+
+## D-023 — 2026-11-18 — Draw and termination rules
+Time-out with equal health, or a double KO, is a draw round that awards both
+fighters a round win (`draw_awards_both`). If both reach the win target at
+once the match is a draw. A `max_rounds` cap (5) guarantees termination even
+if draws award nothing. No overtime rule yet (spec allows either). **Accepted —
+revisit with playtests.**
+
+## D-024 — 2026-11-18 — Pause via SceneTree.paused
+Pause freezes the whole combat scene (simulation, effects, camera); only the
+pause menu runs. No catch-up happens on resume. Auto-pause on app focus loss
+/ background. Android back opens/closes the pause menu (replaces the M1/M2
+"back to menu" behaviour). Pause is disabled once results are showing. Leaving
+the scene always unpauses the tree. **Accepted.**
+
+## D-025 — 2026-11-18 — Debug "Reset" becomes "Restart match"
+With rounds in place, a mid-match health reset would bypass match rules. R/F5
+now restarts the whole match (same as the pause menu). The on-screen Reset and
+Menu debug buttons are removed (pause menu covers them). A proper Training
+mode (infinite time, reset positions) is part of M4/M7. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

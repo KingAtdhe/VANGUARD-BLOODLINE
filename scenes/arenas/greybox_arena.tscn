@@ -52,7 +52,8 @@ surface_material_override/0 = SubResource("Mat_back")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -3.85)
 pixel_size = 0.01
 font_size = 64
-modulate = Color(1, 1, 1, 0.35)
+modulate = Color(1, 1, 1, 0.15)
+outline_size = 0
 text = "GREYBOX ARENA — PLACEHOLDER"
 
 [node name="ArenaBounds" type="Node3D" parent="."]

@@ -31,6 +31,8 @@ func _ready() -> void:
 	_material.roughness = 0.7
 	_body.material_override = _material
 	_label.text = label_text
+	# Empty label = hidden (the match HUD shows names).
+	_label.visible = not label_text.is_empty()
 	_fist_rest = _fist.position
 
 

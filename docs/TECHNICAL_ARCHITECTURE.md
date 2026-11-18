@@ -1,19 +1,24 @@
 # Technical Architecture
 
 Canonical source: `PRODUCTION_PACKAGE.md` §9. This file records what is
-actually implemented. Updated: Milestone 2.
+actually implemented. Updated: Milestone 3.
 
 ## Combat loop (per render frame)
 
 ```
 CombatScene._process(delta)
  ├─ ticks = CombatClock.advance(delta)        # 0..5 fixed 60 Hz ticks
+ ├─ (nothing if SceneTree.paused)
  ├─ repeat ticks:
  │    previous = simulation.snapshot()
- │    simulation.step([P1 input, P2 dummy input])   # deterministic
+ │    director.step(simulation, [P1 input, P2 dummy input])
+ │        INTRO/ROUND_END/MATCH_END → simulation.step(neutral inputs)
+ │        FIGHT → simulation.step(inputs), timer −1, check KO / time-out
  ├─ new CombatLog events → EffectsManager sparks, view flash, camera shake
  └─ render: views lerp(previous, current, clock.alpha())
-            HitboxDebugView (exact sim boxes), CameraRig, DebugOverlay
+            HitboxDebugView (exact sim boxes), CameraRig, MatchHUD, DebugOverlay
+Director signals → HUD announcer (round_started, fight_started, round_ended),
+MatchResults (match_ended).
 ```
 
 ## Simulation step phases (`CombatSimulation.step`)
@@ -56,3 +61,6 @@ P1 is always processed before P2 inside each phase.
 | TrainingDummyController | `scripts/combat/training_dummy_controller.gd` | P2 STAND/BLOCK/JAB |
 | HitboxDebugView | `scripts/combat/hitbox_debug_view.gd` | Draws sim boxes (F4) |
 | EffectsManager | `scripts/combat/effects_manager.gd` | Placeholder sparks |
+| MatchRules | `scripts/combat/match_rules.gd` | Rounds, time, intro/outro, draw rules (data) |
+| MatchDirector | `scripts/combat/match_director.gd` | Phases, timer, round results, match winner, rematch |
+| MatchHUD / PauseMenu / MatchResults | `scripts/ui/` | Presentation; read state, emit button signals |

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.4-m3] — 2026-11-18
+### Added
+- Best-of-three match loop: `MatchRules` data + deterministic `MatchDirector` (intro, fight, round end, match end).
+- 90 s round timer, KO / time-out / draw / double-KO results, round cap guaranteeing termination.
+- Match HUD: health bars with damage trail, timer, round label, round-win pips, announcer, pause button.
+- Pause menu (Resume / Restart match / Quit), auto-pause on app background, Android back toggles pause.
+- Results screen (winner or DRAW, score, per-round reason) with Rematch / Main menu.
+- 13 new tests incl. per-tick invariants over 12 seeded random matches; mutation-checked.
+### Changed
+- Debug R/F5 restarts the match; on-screen Reset/Menu debug buttons removed; 3D name labels hidden (HUD shows names).
+
 ## [0.0.3-m2] — 2026-11-18
 ### Added
 - Attack data model `MoveData` (all spec §4.3 fields) and `FighterDefinition`; Kairo light/heavy/kick data.

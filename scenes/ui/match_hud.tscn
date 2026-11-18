@@ -1,0 +1,222 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/match_hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/ui/safe_area_margin.gd" id="2_safe"]
+
+[sub_resource type="StyleBoxFlat" id="Bar_bg"]
+bg_color = Color(0.08, 0.08, 0.1, 0.85)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.85, 0.85, 0.9, 1)
+
+[sub_resource type="StyleBoxFlat" id="Bar_fill"]
+bg_color = Color(0.95, 0.75, 0.15, 1)
+
+[sub_resource type="StyleBoxFlat" id="Trail_bg"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="Trail_fill"]
+bg_color = Color(0.95, 0.25, 0.2, 1)
+
+[sub_resource type="StyleBoxEmpty" id="Empty"]
+
+[node name="MatchHUD" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_hud")
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_safe")
+minimum_margin = 36
+
+[node name="Root" type="Control" parent="SafeArea"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="TopRow" type="HBoxContainer" parent="SafeArea/Root"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 200.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 32
+
+[node name="P1Side" type="VBoxContainer" parent="SafeArea/Root/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="P1Name" type="Label" parent="SafeArea/Root/TopRow/P1Side"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+theme_override_constants/outline_size = 8
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "P1"
+horizontal_alignment = 0
+
+[node name="BarStack" type="Control" parent="SafeArea/Root/TopRow/P1Side"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="P1Trail" type="ProgressBar" parent="SafeArea/Root/TopRow/P1Side/BarStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("Bar_bg")
+theme_override_styles/fill = SubResource("Trail_fill")
+max_value = 1000.0
+step = 1.0
+value = 1000.0
+show_percentage = false
+
+[node name="P1Health" type="ProgressBar" parent="SafeArea/Root/TopRow/P1Side/BarStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("Empty")
+theme_override_styles/fill = SubResource("Bar_fill")
+max_value = 1000.0
+step = 1.0
+value = 1000.0
+show_percentage = false
+
+[node name="P1Pips" type="HBoxContainer" parent="SafeArea/Root/TopRow/P1Side"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 0
+
+[node name="Center" type="VBoxContainer" parent="SafeArea/Root/TopRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="TimerLabel" type="Label" parent="SafeArea/Root/TopRow/Center"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 92
+theme_override_constants/outline_size = 14
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "90"
+horizontal_alignment = 1
+
+[node name="RoundLabel" type="Label" parent="SafeArea/Root/TopRow/Center"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+theme_override_constants/outline_size = 8
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "ROUND 1"
+horizontal_alignment = 1
+
+[node name="PauseButton" type="Button" parent="SafeArea/Root/TopRow/Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 84)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_font_sizes/font_size = 40
+text = "II"
+
+[node name="P2Side" type="VBoxContainer" parent="SafeArea/Root/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="P2Name" type="Label" parent="SafeArea/Root/TopRow/P2Side"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+theme_override_constants/outline_size = 8
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "P2"
+horizontal_alignment = 2
+
+[node name="BarStack" type="Control" parent="SafeArea/Root/TopRow/P2Side"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="P2Trail" type="ProgressBar" parent="SafeArea/Root/TopRow/P2Side/BarStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("Bar_bg")
+theme_override_styles/fill = SubResource("Trail_fill")
+max_value = 1000.0
+step = 1.0
+value = 1000.0
+fill_mode = 1
+show_percentage = false
+
+[node name="P2Health" type="ProgressBar" parent="SafeArea/Root/TopRow/P2Side/BarStack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("Empty")
+theme_override_styles/fill = SubResource("Bar_fill")
+max_value = 1000.0
+step = 1.0
+value = 1000.0
+fill_mode = 1
+show_percentage = false
+
+[node name="P2Pips" type="HBoxContainer" parent="SafeArea/Root/TopRow/P2Side"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="AnnounceLabel" type="Label" parent="SafeArea/Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -110.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0, 0, 1)
+theme_override_constants/outline_size = 28
+theme_override_font_sizes/font_size = 150
+text = "FIGHT!"
+horizontal_alignment = 1
+vertical_alignment = 1

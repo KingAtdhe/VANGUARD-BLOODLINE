@@ -3,16 +3,16 @@
 Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 2.5D combat. *Working title — needs trademark and legal review before public use.*
 
-![Milestone 2 greybox: Kairo placeholder lands a kick, hitboxes shown](docs/images/m2_kick_hit.png)
+![Milestone 3: greybox match HUD in round 2](docs/images/m3_hud_round2.png)
 
 ## Current status
 
 | | |
 |---|---|
-| Version | `0.0.3-m2` |
-| Milestone | **2 — attacks and hit detection** (complete, awaiting approval) |
-| Next | Milestone 3 — match loop (health bars, timer, rounds, results, pause) |
-| Playable | Training-style greybox: Main menu → **Fight** → walk, light/heavy/kick and block against a dummy (stand/block/jab). No rounds yet. |
+| Version | `0.0.4-m3` |
+| Milestone | **3 — match loop** (complete, awaiting approval) |
+| Next | Milestone 4 — touch controls, input buffer, combos, training tools |
+| Playable | Main menu → **Fight** → best-of-three, 90 s rounds vs a scripted dummy (stand/block/jab), results + rematch, pause. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.
@@ -52,15 +52,15 @@ UI scales with `canvas_items` / `expand` stretch.
 | Light / Heavy / Kick | J / K / L | X / Y / A |
 | Block | Space | B |
 | Special / Ultimate | U / O | RB / RT |
-| Pause | Esc, P | Start |
+| Pause / resume | Esc, P (or on-screen **II**, Android back) | Start |
 | Debug overlay / hitboxes | F3 / F4 | — |
-| Training reset | R or F5 | — |
+| Restart match (debug) | R or F5 | — |
 | Cycle dummy mode | T or F6 | — |
 
 Actions are defined in `scripts/input/input_actions.gd`; bindings are generated
 by `tools/configure_input_map.gd`. Up/down, special, ultimate and pause do
 nothing yet. On a phone, use the labelled **DEBUG** buttons (temporary until
-Milestone 4 touch controls) plus **Hitboxes / Dummy / Reset / Menu** at the top.
+Milestone 4 touch controls) plus **Hitboxes / Dummy**; **II** pauses.
 
 ## How combat runs
 
@@ -73,6 +73,9 @@ Milestone 4 touch controls) plus **Hitboxes / Dummy / Reset / Menu** at the top.
   current frame-data table: [`docs/COMBAT_FRAME_DATA.md`](docs/COMBAT_FRAME_DATA.md).
 - Every hit, block, whiff and KO is logged with its tick number (on screen
   and in the console).
+- `MatchDirector` runs rounds on top of the simulation: best of three, 90 s,
+  draws award both fighters a round, hard cap of 5 rounds. Rules are data:
+  `data/rules/standard_match.tres`.
 
 ## Tests
 

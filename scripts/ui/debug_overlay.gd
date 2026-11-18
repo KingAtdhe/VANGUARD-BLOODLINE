@@ -7,16 +7,12 @@ extends CanvasLayer
 ## tried on a phone before real touch controls arrive in Milestone 4. They
 ## press the same logical actions as the keyboard, so no combat logic lives here.
 
-signal back_requested
-signal reset_requested
 signal dummy_cycle_requested
 signal hitboxes_toggle_requested
 
 @onready var _info: Label = %InfoLabel
 @onready var _log: Label = %LogLabel
 @onready var _panel: Control = %InfoPanel
-@onready var _back_button: Button = %BackButton
-@onready var _reset_button: Button = %ResetButton
 @onready var _dummy_button: Button = %DummyButton
 @onready var _hitbox_button: Button = %HitboxButton
 
@@ -28,8 +24,6 @@ func _ready() -> void:
 	_bind_hold(%DebugHeavyButton, InputActions.ATTACK_HEAVY)
 	_bind_hold(%DebugKickButton, InputActions.ATTACK_KICK)
 	_bind_hold(%DebugBlockButton, InputActions.BLOCK)
-	_back_button.pressed.connect(func() -> void: back_requested.emit())
-	_reset_button.pressed.connect(func() -> void: reset_requested.emit())
 	_dummy_button.pressed.connect(func() -> void: dummy_cycle_requested.emit())
 	_hitbox_button.pressed.connect(func() -> void: hitboxes_toggle_requested.emit())
 
