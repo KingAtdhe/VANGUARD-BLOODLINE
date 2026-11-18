@@ -43,7 +43,7 @@ func _check(scene: Node, label: String) -> Array[String]:
 	var sim: CombatSimulation = scene.simulation
 	var cam: Camera3D = (scene.get_node("%CameraRig") as CameraRig).camera
 	for i: int in 2:
-		var hw: float = sim.profiles[i].pushbox_half_width
+		var hw: float = sim.profile(i).pushbox_half_width
 		var x: float = sim.fighters[i].position_x
 		if x - hw < sim.arena.left_bound - 1e-5 or x + hw > sim.arena.right_bound + 1e-5:
 			f.append("%s: P%d outside arena (x=%.3f)" % [label, i + 1, x])
@@ -81,7 +81,7 @@ func test_push_dummy_to_right_wall_stays_visible() -> Array[String]:
 		_frames(scene, 30)
 		f.append_array(_check(scene, "right t=%.1fs" % ((step + 1) * 0.5)))
 	var sim: CombatSimulation = scene.simulation
-	var expected: float = sim.arena.right_bound - sim.profiles[1].pushbox_half_width
+	var expected: float = sim.arena.right_bound - sim.profile(1).pushbox_half_width
 	if absf(sim.fighters[1].position_x - expected) > 1e-4:
 		f.append("dummy not pushed to right wall (x=%.3f)" % sim.fighters[1].position_x)
 	Input.action_release(InputActions.MOVE_RIGHT)
@@ -113,4 +113,43 @@ func test_scene_same_result_at_30_and_144_fps() -> Array[String]:
 		return f
 	if results[0] != results[1]:
 		f.append("P1 position differs: 30fps=%.6f 144fps=%.6f" % results)
+	return f
+
+
+func test_scene_light_attack_hits_dummy_with_effects() -> Array[String]:
+	var scene: Node = _spawn_scene()
+	var f: Array[String] = _ready_failures(scene)
+	if not f.is_empty():
+		scene.free()
+		return f
+	var sim: CombatSimulation = scene.simulation
+	# Walk into range.
+	Input.action_press(InputActions.MOVE_RIGHT)
+	for _i: int in 120:
+		_frames(scene, 1)
+		if sim.separation() < 1.0:
+			break
+	Input.action_release(InputActions.MOVE_RIGHT)
+	_frames(scene, 2)
+	# Press light through the real input action.
+	Input.action_press(InputActions.ATTACK_LIGHT)
+	_frames(scene, 10)
+	Input.action_release(InputActions.ATTACK_LIGHT)
+	var hits: int = 0
+	for e: CombatEvent in sim.combat_log.all_events():
+		if e.type == CombatEvent.Type.HIT and e.actor == 0:
+			hits += 1
+	if hits != 1:
+		f.append("expected 1 P1 hit, log:\n%s" % sim.combat_log.to_text())
+	var fx: EffectsManager = scene.get_node("%EffectsManager")
+	if fx.get_child_count() == 0:
+		f.append("no hit spark spawned")
+	var boxes: HitboxDebugView = scene.get_node("%HitboxDebugView")
+	if boxes.get_child_count() != 4:
+		f.append("hitbox debug view should hold 4 boxes, has %d" % boxes.get_child_count())
+	# Training reset restores health.
+	scene.reset_round()
+	if sim.fighters[1].health != sim.definitions[1].base_health:
+		f.append("reset_round did not restore health")
+	scene.free()
 	return f

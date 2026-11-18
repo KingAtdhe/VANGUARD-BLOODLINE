@@ -7,8 +7,8 @@ extends RefCounted
 func _simulate(frame_deltas: Array[float], seconds: float) -> Array[float]:
 	var sim := CombatSimulation.new()
 	sim.setup(load("res://data/arenas/greybox_arena.tres"),
-		load("res://data/fighters/kairo_movement.tres"),
-		load("res://data/fighters/training_dummy_movement.tres"))
+		load("res://data/fighters/kairo.tres"),
+		load("res://data/fighters/training_dummy.tres"))
 	var clock := CombatClock.new()
 	var positions: Array[float] = []
 	var elapsed: float = 0.0

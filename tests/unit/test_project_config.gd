@@ -67,3 +67,17 @@ func test_pinned_engine_version() -> Array[String]:
 	if not AppInfo.is_pinned_engine():
 		f.append("running Godot %s, project pinned to %s" % [AppInfo.running_godot_version(), AppInfo.PINNED_GODOT_VERSION])
 	return f
+
+
+## Guards against debug/capture helpers leaking into the shipped project.
+func test_only_expected_autoloads() -> Array[String]:
+	var f: Array[String] = []
+	var expected: PackedStringArray = ["SceneRouter"]
+	for prop: Dictionary in ProjectSettings.get_property_list():
+		var name: String = prop.name
+		if not name.begins_with("autoload/"):
+			continue
+		var autoload: String = name.trim_prefix("autoload/")
+		if not expected.has(autoload):
+			f.append("unexpected autoload '%s' = %s" % [autoload, ProjectSettings.get_setting(name)])
+	return f

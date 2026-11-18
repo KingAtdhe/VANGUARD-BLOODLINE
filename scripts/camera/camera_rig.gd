@@ -18,6 +18,12 @@ extends Node3D
 ## Smoothing rates (higher = snappier). Frame-rate independent.
 @export var follow_rate: float = 8.0
 @export var zoom_rate: float = 4.0
+## Impact shake. 0 disables it (accessibility setting "reduced camera shake"
+## will drive this from M7). Shake moves only the Camera node, never the rig,
+## and is too small to push a fighter out of frame (< edge_margin).
+@export_range(0.0, 1.0) var shake_scale: float = 1.0
+@export var shake_decay: float = 14.0
+const MAX_SHAKE: float = 0.08
 
 ## Body half-width used when the frame is pinned at an arena wall. Fighters
 ## never pass walls, so near a wall only their body needs to stay in frame.
@@ -31,6 +37,8 @@ var _arena: ArenaConfig
 var _center_x: float = 0.0
 var _distance: float = 6.0
 var _initialised: bool = false
+var _shake: float = 0.0
+var _shake_time: float = 0.0
 
 
 func configure(arena: ArenaConfig) -> void:
@@ -63,6 +71,20 @@ func follow(p1_x: float, p2_x: float, delta: float) -> void:
 	_center_x = _clamp_to_arena(_center_x, half_w, p1_x, p2_x)
 
 	position = Vector3(_center_x, height, _distance)
+	_apply_shake(delta)
+
+
+## Adds an impact shake impulse (metres of offset, capped at MAX_SHAKE).
+func add_shake(amount: float) -> void:
+	_shake = minf(MAX_SHAKE, _shake + amount * shake_scale)
+
+
+func _apply_shake(delta: float) -> void:
+	_shake_time += delta
+	_shake *= exp(-shake_decay * delta)
+	if _shake < 0.0005:
+		_shake = 0.0
+	camera.position = Vector3(sin(_shake_time * 71.0), cos(_shake_time * 53.0), 0.0) * _shake
 
 
 ## Distance needed to show both fighters with margins (clamped to zoom range).

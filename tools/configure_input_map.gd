@@ -26,6 +26,9 @@ func _initialize() -> void:
 	_set_action(InputActions.ULTIMATE, [_key(KEY_O), _joy_axis(JOY_AXIS_TRIGGER_RIGHT, 1.0)])
 	_set_action(InputActions.PAUSE, [_key(KEY_ESCAPE), _key(KEY_P), _joy_button(JOY_BUTTON_START)])
 	_set_action(InputActions.DEBUG_TOGGLE_OVERLAY, [_key(KEY_F3)])
+	_set_action(InputActions.DEBUG_TOGGLE_HITBOXES, [_key(KEY_F4)])
+	_set_action(InputActions.DEBUG_RESET, [_key(KEY_F5), _key(KEY_R)])
+	_set_action(InputActions.DEBUG_CYCLE_DUMMY, [_key(KEY_F6), _key(KEY_T)])
 
 	var err: Error = ProjectSettings.save()
 	if err != OK:

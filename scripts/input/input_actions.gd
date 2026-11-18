@@ -18,6 +18,9 @@ const SPECIAL: StringName = &"special"
 const ULTIMATE: StringName = &"ultimate"
 const PAUSE: StringName = &"pause"
 const DEBUG_TOGGLE_OVERLAY: StringName = &"debug_toggle_overlay"
+const DEBUG_TOGGLE_HITBOXES: StringName = &"debug_toggle_hitboxes"
+const DEBUG_RESET: StringName = &"debug_reset"
+const DEBUG_CYCLE_DUMMY: StringName = &"debug_cycle_dummy"
 
 ## Every gameplay action that must exist in the input map.
 const ALL: Array[StringName] = [
@@ -25,4 +28,5 @@ const ALL: Array[StringName] = [
 	ATTACK_LIGHT, ATTACK_HEAVY, ATTACK_KICK,
 	BLOCK, SPECIAL, ULTIMATE,
 	PAUSE, DEBUG_TOGGLE_OVERLAY,
+	DEBUG_TOGGLE_HITBOXES, DEBUG_RESET, DEBUG_CYCLE_DUMMY,
 ]

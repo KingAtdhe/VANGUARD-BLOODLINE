@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_view.gd" id="1_view"]
 
@@ -6,24 +6,44 @@
 radius = 0.35
 height = 1.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_nose"]
-size = Vector3(0.3, 0.14, 0.22)
+[sub_resource type="BoxMesh" id="BoxMesh_fist"]
+size = Vector3(0.22, 0.16, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_shield"]
+size = Vector3(0.06, 1.1, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat_shield"]
+transparency = 1
+albedo_color = Color(0.45, 0.75, 1, 0.45)
+emission_enabled = true
+emission = Color(0.3, 0.55, 1, 1)
 
 [node name="PlaceholderFighter" type="Node3D"]
 script = ExtResource("1_view")
 
-[node name="Body" type="MeshInstance3D" parent="."]
+[node name="BodyPivot" type="Node3D" parent="."]
+unique_name_in_owner = true
+
+[node name="Body" type="MeshInstance3D" parent="BodyPivot"]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 mesh = SubResource("CapsuleMesh_body")
 
-[node name="FacingMarker" type="Node3D" parent="."]
+[node name="FacingMarker" type="Node3D" parent="BodyPivot"]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
-[node name="Nose" type="MeshInstance3D" parent="FacingMarker"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0, 0)
-mesh = SubResource("BoxMesh_nose")
+[node name="Fist" type="MeshInstance3D" parent="BodyPivot/FacingMarker"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38, -0.1, 0)
+mesh = SubResource("BoxMesh_fist")
+
+[node name="Shield" type="MeshInstance3D" parent="BodyPivot/FacingMarker"]
+unique_name_in_owner = true
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.35, 0)
+mesh = SubResource("BoxMesh_shield")
+surface_material_override/0 = SubResource("Mat_shield")
 
 [node name="NameLabel" type="Label3D" parent="."]
 unique_name_in_owner = true

@@ -99,8 +99,36 @@ real scenes to a live tree. Because GDScript can't catch runtime script errors,
 CI also fails if `SCRIPT ERROR`/`ERROR` appears in the log, and integration
 tests assert that the scene initialised before checking anything. **Accepted.**
 
+## D-017 — 2026-11-18 — Per-tick hitbox overlap sampling
+Hitboxes/hurtboxes are axis-aligned rectangles on the fighting plane, tested
+once per tick after movement. No tunnelling is possible at current speeds
+(< 0.05 m/tick, fighter-relative boxes, ≥ 1 active tick). Swept tests will be
+added only for fast projectiles. Resolves the M2 open decision. **Accepted.**
+
+## D-018 — 2026-11-18 — Frame-data convention
+Startup includes the first active frame (fighting-game standard); stun N =
+N ticks without control; advantage formulas in `docs/COMBAT_FRAME_DATA.md`.
+Spec §4.4 numbers are read with this convention. **Accepted.**
+
+## D-019 — 2026-11-18 — Combat rules for M2
+Block = hold BLOCK button (not hold-back), standing block covers high/mid;
+chip can KO; simultaneous hits trade; getting hit interrupts attacks; global
+hitstop; corner pushback transfers to the attacker; only neutral fighters turn;
+attack button priority Heavy > Kick > Light. **Accepted — revisit in playtests.**
+
+## D-020 — 2026-11-18 — FighterDefinition resource
+`FighterDefinition` (health, movement profile, hurtbox, move list) replaces
+passing movement profiles directly. Moves are found by `input_pattern`.
+Spec §4.3 fields are all present on `MoveData`; cancel tags, meter, knockdown,
+launch, airborne and cooldown are stored but not simulated until their
+milestones. Kairo heavy pushback set to 0.2 m so it stays punishable on block
+at close range. **Accepted.**
+
+## D-021 — 2026-11-18 — Training dummy modes (not AI)
+P2 is driven by `TrainingDummyController` with STAND / BLOCK / JAB modes
+(T / F6 / on-screen button). Output depends only on the tick — no reactions,
+no reading P1. The real AI is Milestone 5. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
-- **M2:** Hitbox sampling — per-tick overlap vs swept. Recommendation: per-tick
-  with sweep only for fast projectiles.
 - **M7:** Final title, logo and package name (legal review).

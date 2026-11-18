@@ -1,19 +1,21 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/combat_scene.gd" id="1_combat"]
 [ext_resource type="Resource" path="res://data/arenas/greybox_arena.tres" id="2_arena_cfg"]
-[ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="3_p1"]
-[ext_resource type="Resource" path="res://data/fighters/training_dummy_movement.tres" id="4_p2"]
+[ext_resource type="Resource" path="res://data/fighters/kairo.tres" id="3_p1"]
+[ext_resource type="Resource" path="res://data/fighters/training_dummy.tres" id="4_p2"]
 [ext_resource type="PackedScene" path="res://scenes/arenas/greybox_arena.tscn" id="5_arena"]
 [ext_resource type="PackedScene" path="res://scenes/fighters/placeholder_fighter.tscn" id="6_fighter"]
 [ext_resource type="Script" path="res://scripts/camera/camera_rig.gd" id="7_cam"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="8_overlay"]
+[ext_resource type="Script" path="res://scripts/combat/hitbox_debug_view.gd" id="9_boxes"]
+[ext_resource type="Script" path="res://scripts/combat/effects_manager.gd" id="10_fx"]
 
 [node name="CombatScene" type="Node"]
 script = ExtResource("1_combat")
 arena_config = ExtResource("2_arena_cfg")
-p1_profile = ExtResource("3_p1")
-p2_profile = ExtResource("4_p2")
+p1_definition = ExtResource("3_p1")
+p2_definition = ExtResource("4_p2")
 
 [node name="ArenaRoot" parent="." instance=ExtResource("5_arena")]
 
@@ -35,6 +37,14 @@ label_text = "P1"
 unique_name_in_owner = true
 body_color = Color(0.2, 0.42, 0.9, 1)
 label_text = "P2"
+
+[node name="HitboxDebugView" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("9_boxes")
+
+[node name="EffectsManager" type="Node3D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("10_fx")
 
 [node name="DebugOverlay" parent="." instance=ExtResource("8_overlay")]
 unique_name_in_owner = true

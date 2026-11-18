@@ -1,7 +1,7 @@
 # Technical Architecture
 
 Canonical source: `PRODUCTION_PACKAGE.md` §9. This file records what is
-actually implemented. Updated: Milestone 1.
+actually implemented. Updated: Milestone 2.
 
 ## Combat loop (per render frame)
 
@@ -10,24 +10,31 @@ CombatScene._process(delta)
  ├─ ticks = CombatClock.advance(delta)        # 0..5 fixed 60 Hz ticks
  ├─ repeat ticks:
  │    previous = simulation.snapshot()
- │    simulation.step([P1 input, P2 input])   # deterministic
+ │    simulation.step([P1 input, P2 dummy input])   # deterministic
+ ├─ new CombatLog events → EffectsManager sparks, view flash, camera shake
  └─ render: views lerp(previous, current, clock.alpha())
-            CameraRig.follow(rendered positions)
-            DebugOverlay text
+            HitboxDebugView (exact sim boxes), CameraRig, DebugOverlay
 ```
 
 ## Simulation step phases (`CombatSimulation.step`)
 
-1. Intent — store `move_x` (−1/0/+1, world space) per fighter.
-2. Integrate — forward speed if moving toward the facing side, else backward.
-3. Max separation — pull back only the fighter(s) that moved away.
-4. Pushbox resolve — split overlap 50/50; a wall-blocked fighter pushes the
-   other one fully.
-5. Wall clamp — pushbox edge stays inside `[left_bound, right_bound]`.
-6. Facing — both fighters face each other (unchanged if centres coincide).
+0. Hitstop — if active: count down, latch new button presses, freeze all.
+1. State/input — advance attack frame / stun timers; detect presses
+   (held vs previous tick); neutral fighters start an attack (Heavy > Kick >
+   Light), hold block, or walk.
+2. Integrate — walking (forward/back speed relative to facing) and pushback.
+3. Spacing — corner pushback transfer, max separation, pushbox resolve, walls.
+4. Facing — only neutral fighters turn toward the opponent.
+5. Hits — `HitboxSystem.find_contacts` on post-movement boxes, then
+   `HitResolver.resolve` judges all contacts on the pre-resolution state
+   (trades), applies damage/chip, stun, pushback, hitstop, KO, and logs events.
 
-P1 is always processed before P2. Later milestones add phases (attacks, hit
-resolution, hitstop, match rules) — insert them here and document the order.
+P1 is always processed before P2 inside each phase.
+
+## Fighter states
+
+`IDLE`, `WALK`, `BLOCK` (neutral, can act) · `ATTACK` (move + 1-based frame) ·
+`HITSTUN`, `BLOCKSTUN` (stun countdown) · `KO`.
 
 ## Responsibilities
 
@@ -42,3 +49,10 @@ resolution, hitstop, match rules) — insert them here and document the order.
 | CameraRig | `scripts/camera/camera_rig.gd` | Framing; presentation only |
 | CombatScene | `scripts/combat/combat_scene.gd` | Wires clock, sim, input, views |
 | ArenaConfig / FighterMovementProfile | `scripts/combat/arena_config.gd`, `scripts/fighters/fighter_movement_profile.gd` | Typed data (D-010) |
+| FighterDefinition / MoveData | `scripts/fighters/fighter_definition.gd`, `scripts/combat/move_data.gd` | Fighter + attack data (D-020) |
+| HitboxSystem | `scripts/combat/hitbox_system.gd` | Box geometry, contact detection |
+| HitResolver | `scripts/combat/hit_resolver.gd` | Hit/block/damage/stun/pushback/hitstop/KO |
+| CombatLog / CombatEvent | `scripts/combat/combat_log.gd`, `combat_event.gd` | Tick-stamped event history (300 max) |
+| TrainingDummyController | `scripts/combat/training_dummy_controller.gd` | P2 STAND/BLOCK/JAB |
+| HitboxDebugView | `scripts/combat/hitbox_debug_view.gd` | Draws sim boxes (F4) |
+| EffectsManager | `scripts/combat/effects_manager.gd` | Placeholder sparks |

@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_kick"
+display_name = "Kick"
+input_pattern = &"KICK"
+animation = &"KAIRO_KICK_01"
+startup_frames = 9
+active_frames = 4
+recovery_frames = 15
+hitstun_frames = 20
+blockstun_frames = 15
+hitstop_frames = 8
+damage = 60
+chip_damage = 4
+pushback = 0.4
+hit_level = 1
+hitbox_center = Vector2(0.8, 0.9)
+hitbox_size = Vector2(0.7, 0.35)

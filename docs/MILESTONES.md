@@ -24,7 +24,7 @@ Acceptance:
 - [x] No missing resource errors — verified headless
 - [x] Git repository clean after milestone commit
 
-## Milestone 1 — greybox arena and fighters  ✅ implemented, awaiting approval
+## Milestone 1 — greybox arena and fighters  ✅ approved
 - [x] Greybox stage (`scenes/arenas/greybox_arena.tscn`)
 - [x] Two capsule/primitive fighters (P1 Kairo placeholder, P2 idle training dummy)
 - [x] Camera rig (midpoint tracking, bounded zoom, visibility guarantee)
@@ -43,7 +43,24 @@ Acceptance:
       positions at 30/60/90/120/144 fps and jittery frame times
 - [ ] **On-device check (touch debug buttons, framing on a real phone) — NOT VERIFIED**
 
-## Milestone 2 — attacks and hit detection
+## Milestone 2 — attacks and hit detection  ✅ implemented, awaiting approval
+- [x] Attack data model (`MoveData`, all spec §4.3 fields) + `FighterDefinition`
+- [x] Hurtbox and hitbox system (`HitboxSystem`), debug view (F4)
+- [x] Light, heavy and kick attacks (Kairo placeholder data, spec §4.4 values)
+- [x] Block (hold BLOCK), blockstun, chip
+- [x] Damage and hit reaction (hitstun, lean, flash), KO
+- [x] Global hit-stop and basic effects (sparks, camera shake, hitstop shake)
+- [x] Combat log (tick-stamped events, on-screen + stdout)
+- [x] Training dummy modes STAND / BLOCK / JAB, training reset
+
+Acceptance:
+- [x] Active hitboxes only exist during active frames — frame-by-frame test for all 3 moves
+- [x] One attack cannot hit the same opponent repeatedly — test (held button, 80 ticks in range)
+- [x] Blocking and damage rules are consistent — tests: damage, chip, stun lengths,
+      frame advantage measured in the sim equals the data formula, punish, trade, attacking-can't-block
+- [x] Hit detection is reproducible and debuggable — identical 1,200-tick combat logs across runs;
+      hitbox debug view draws the exact simulation boxes; tick-stamped combat log
+- [ ] **On-device check — NOT VERIFIED**
 ## Milestone 3 — match loop
 ## Milestone 4 — combo and input systems (touch controls)
 ## Milestone 5 — AI

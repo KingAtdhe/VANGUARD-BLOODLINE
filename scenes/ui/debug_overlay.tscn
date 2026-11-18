@@ -23,26 +23,68 @@ mouse_filter = 2
 [node name="InfoPanel" type="PanelContainer" parent="SafeArea/Root"]
 unique_name_in_owner = true
 layout_mode = 0
-offset_right = 1100.0
-offset_bottom = 260.0
+offset_right = 1150.0
+offset_bottom = 300.0
 mouse_filter = 2
 
-[node name="InfoLabel" type="Label" parent="SafeArea/Root/InfoPanel"]
+[node name="Text" type="VBoxContainer" parent="SafeArea/Root/InfoPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="InfoLabel" type="Label" parent="SafeArea/Root/InfoPanel/Text"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "debug"
 
-[node name="BackButton" type="Button" parent="SafeArea/Root"]
+[node name="LogLabel" type="Label" parent="SafeArea/Root/InfoPanel/Text"]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 22
+text = "log"
+
+[node name="TopButtons" type="HBoxContainer" parent="SafeArea/Root"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -300.0
-offset_bottom = 100.0
+offset_left = -1000.0
+offset_bottom = 90.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 36
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="HitboxButton" type="Button" parent="SafeArea/Root/TopButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 90)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 30
+text = "Hitboxes"
+
+[node name="DummyButton" type="Button" parent="SafeArea/Root/TopButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(300, 90)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 30
+text = "Dummy: STAND"
+
+[node name="ResetButton" type="Button" parent="SafeArea/Root/TopButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 90)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 30
+text = "Reset"
+
+[node name="BackButton" type="Button" parent="SafeArea/Root/TopButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 90)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 30
 text = "Menu"
 
 [node name="DebugMoveButtons" type="HBoxContainer" parent="SafeArea/Root"]
@@ -61,8 +103,7 @@ custom_minimum_size = Vector2(240, 180)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 40
-text = "DEBUG
-◀"
+text = "DEBUG\n◀"
 
 [node name="DebugRightButton" type="Button" parent="SafeArea/Root/DebugMoveButtons"]
 unique_name_in_owner = true
@@ -70,5 +111,51 @@ custom_minimum_size = Vector2(240, 180)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 40
-text = "DEBUG
-▶"
+text = "DEBUG\n▶"
+
+[node name="DebugActionButtons" type="GridContainer" parent="SafeArea/Root"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -440.0
+offset_top = -320.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 24
+columns = 2
+
+[node name="DebugLightButton" type="Button" parent="SafeArea/Root/DebugActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+text = "DEBUG\nLIGHT"
+
+[node name="DebugHeavyButton" type="Button" parent="SafeArea/Root/DebugActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+text = "DEBUG\nHEAVY"
+
+[node name="DebugKickButton" type="Button" parent="SafeArea/Root/DebugActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+text = "DEBUG\nKICK"
+
+[node name="DebugBlockButton" type="Button" parent="SafeArea/Root/DebugActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+text = "DEBUG\nBLOCK"

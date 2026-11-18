@@ -2,8 +2,8 @@ extends RefCounted
 ## Milestone 1: movement, facing, walls, pushboxes, max separation.
 
 const ARENA_PATH: String = "res://data/arenas/greybox_arena.tres"
-const P1_PATH: String = "res://data/fighters/kairo_movement.tres"
-const P2_PATH: String = "res://data/fighters/training_dummy_movement.tres"
+const P1_PATH: String = "res://data/fighters/kairo.tres"
+const P2_PATH: String = "res://data/fighters/training_dummy.tres"
 const EPS: float = 1e-5
 
 
@@ -24,8 +24,8 @@ func test_data_resources_valid() -> Array[String]:
 	for p: String in arena.validate():
 		f.append("arena: " + p)
 	for path: String in [P1_PATH, P2_PATH]:
-		var prof: FighterMovementProfile = load(path)
-		for p: String in prof.validate():
+		var def: FighterDefinition = load(path)
+		for p: String in def.validate():
 			f.append("%s: %s" % [path, p])
 	return f
 
@@ -45,12 +45,12 @@ func test_walk_speed_forward_and_backward() -> Array[String]:
 	var sim := _new_sim()
 	var start: float = sim.fighters[0].position_x
 	_run(sim, 1, 0, 30)  # 0.5 s toward opponent
-	var expected: float = start + sim.profiles[0].walk_forward_speed * 0.5
+	var expected: float = start + sim.profile(0).walk_forward_speed * 0.5
 	if absf(sim.fighters[0].position_x - expected) > 1e-4:
 		f.append("forward walk: got %.5f expected %.5f" % [sim.fighters[0].position_x, expected])
 	sim = _new_sim()
 	_run(sim, -1, 0, 30)  # 0.5 s away from opponent
-	expected = start - sim.profiles[0].walk_backward_speed * 0.5
+	expected = start - sim.profile(0).walk_backward_speed * 0.5
 	if absf(sim.fighters[0].position_x - expected) > 1e-4:
 		f.append("backward walk: got %.5f expected %.5f" % [sim.fighters[0].position_x, expected])
 	return f
@@ -63,20 +63,20 @@ func test_fighters_stay_inside_walls() -> Array[String]:
 	# so also test each wall with the opponent pinned near it.
 	_run(sim, -1, 1, 600)
 	for i: int in 2:
-		var hw: float = sim.profiles[i].pushbox_half_width
+		var hw: float = sim.profile(i).pushbox_half_width
 		var x: float = sim.fighters[i].position_x
 		if x - hw < sim.arena.left_bound - EPS or x + hw > sim.arena.right_bound + EPS:
 			f.append("P%d left the arena at x=%.4f" % [i + 1, x])
 	# Push P2 into the right wall: P1 walks right for 20 s.
 	sim = _new_sim()
 	_run(sim, 1, 1, 1200)
-	var p2_max: float = sim.arena.right_bound - sim.profiles[1].pushbox_half_width
+	var p2_max: float = sim.arena.right_bound - sim.profile(1).pushbox_half_width
 	if absf(sim.fighters[1].position_x - p2_max) > EPS:
 		f.append("P2 should rest against right wall, x=%.4f" % sim.fighters[1].position_x)
 	# Left wall.
 	sim = _new_sim()
 	_run(sim, -1, -1, 1200)
-	var p1_min: float = sim.arena.left_bound + sim.profiles[0].pushbox_half_width
+	var p1_min: float = sim.arena.left_bound + sim.profile(0).pushbox_half_width
 	if absf(sim.fighters[0].position_x - p1_min) > EPS:
 		f.append("P1 should rest against left wall, x=%.4f" % sim.fighters[0].position_x)
 	return f
@@ -85,7 +85,7 @@ func test_fighters_stay_inside_walls() -> Array[String]:
 func test_pushboxes_never_overlap() -> Array[String]:
 	var f: Array[String] = []
 	var sim := _new_sim()
-	var min_dist: float = sim.profiles[0].pushbox_half_width + sim.profiles[1].pushbox_half_width
+	var min_dist: float = sim.profile(0).pushbox_half_width + sim.profile(1).pushbox_half_width
 	for t: int in 600:
 		sim.step([FighterInputFrame.moving(1), FighterInputFrame.moving(-1)])
 		if sim.separation() < min_dist - EPS:

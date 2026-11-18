@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
+[ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
+[ext_resource type="Resource" path="res://data/moves/kairo_light_punch.tres" id="3_l"]
+[ext_resource type="Resource" path="res://data/moves/kairo_heavy_punch.tres" id="4_h"]
+[ext_resource type="Resource" path="res://data/moves/kairo_kick.tres" id="5_k"]
+
+[resource]
+script = ExtResource("1_def")
+fighter_id = &"kairo"
+display_name = "Kairo (placeholder)"
+base_health = 1000
+movement = ExtResource("2_move")
+hurtbox_half_width = 0.3
+hurtbox_height = 1.8
+moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k")])
