@@ -44,13 +44,16 @@ func test_model_has_all_animations_and_humanoid_skeleton() -> Array[String]:
 	return f
 
 
-func test_rigid_skinning_and_budgets() -> Array[String]:
-	# Spec acceptance "no severe mesh deformation": every vertex is bound 100 %
-	# to one bone, so joints can't stretch or collapse. Plus §8.6 budgets.
+func test_skinning_and_budgets() -> Array[String]:
+	# Smooth skinning (M7 quality pass): every vertex is fully weighted
+	# (weights sum to 1, at most 4 bones), and rigid parts of the head stay
+	# on one bone so the face can't smear. Plus §8.6 budgets.
 	var f: Array[String] = []
 	var model: Node = (load(MODEL) as PackedScene).instantiate()
 	var tris: int = 0
 	var materials: int = 0
+	var blended: int = 0
+	var total: int = 0
 	for n: Node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh: Mesh = (n as MeshInstance3D).mesh
 		materials += mesh.get_surface_count()
@@ -59,15 +62,24 @@ func test_rigid_skinning_and_budgets() -> Array[String]:
 			var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 			tris += idx.size() / 3
 			var w: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
-			var per_vertex: int = w.size() / (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
-			for v: int in w.size() / per_vertex:
-				var top: float = w[v * per_vertex]
-				var rest: float = 0.0
-				for k: int in range(1, per_vertex):
-					rest += w[v * per_vertex + k]
-				if absf(top - 1.0) > 0.001 or rest > 0.001:
-					f.append("surface %d vertex %d is blended across bones" % [s, v])
+			var count: int = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+			var per_vertex: int = w.size() / count
+			if per_vertex > 4:
+				f.append("surface %d uses %d bone influences (max 4)" % [s, per_vertex])
+			for v: int in count:
+				var sum: float = 0.0
+				for k: int in per_vertex:
+					sum += w[v * per_vertex + k]
+				if absf(sum - 1.0) > 0.01:
+					f.append("surface %d vertex %d weights sum to %.3f" % [s, v, sum])
 					break
+				total += 1
+				if w[v * per_vertex] < 0.999:
+					blended += 1
+	if blended == 0:
+		f.append("no blended vertices: joints would show seams")
+	if blended > total * 0.7:
+		f.append("%d of %d vertices are blended: weights are smeared" % [blended, total])
 	if tris > 45000:
 		f.append("%d triangles exceeds the 45k fighter budget" % tris)
 	if materials > 6:

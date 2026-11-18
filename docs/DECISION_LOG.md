@@ -281,6 +281,16 @@ class rather than an autoload (the single-autoload rule stays). **Accepted.**
 backdrop, Back contract). Menus are built in GDScript rather than large
 `.tscn` files so layout stays consistent and testable. **Accepted.**
 
+## D-045 — 2026-11-18 — Sculpt-style hero pipeline with smooth skinning
+After owner feedback that the roster looked toy-like, `hero_builder.py`
+builds fighters as layered shells: overlapping anatomical forms are
+voxel-remeshed into one surface, smoothed, decimated, then skin weights and
+paint colours are transferred from the source forms and blurred. Colour is
+per-vertex (materials only set roughness/metal/emission). Rigid skinning
+(D-039) is superseded for these fighters; the rig and animations are
+unchanged. Kairo, Sentinel and Warden use it; the five locked fighters still
+use the older builder until M8. **Accepted — pending owner review on device.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

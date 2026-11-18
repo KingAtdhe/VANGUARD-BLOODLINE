@@ -36,3 +36,7 @@
 | KI-032 | M7 | Menu 3D backdrops render a second 3D world; cost on low-end phones unmeasured. "Reduce arena effects" only disables particles. | Open — needs device |
 | KI-033 | M7 | No music yet, so there is no music volume setting. | Open — needs audio |
 | KI-034 | M7 | Story text and character names are placeholders pending writing/legal review. | Open |
+| KI-035 | M7 | Drakon, Seraphina, Nox, Vexa, Ryuen still use the older toy-like models (fighter select only); they move to the hero pipeline with their movesets in M8. | Open |
+| KI-036 | M7 | Animations are still the M6 pose-to-pose set (stiff); arenas and UI have not had their quality pass yet. | Open — next |
+| KI-037 | M7 | Godot's glTF import leaves the first surface's vertex colours off; `ModelUtil.enable_vertex_colors` fixes it at load (tested). | Worked around |
+| KI-038 | M7 | Test APKs are signed with a fresh throwaway key per build, so a new build won't install over an old one: uninstall first (progress is lost). | Open — stable debug key needed |

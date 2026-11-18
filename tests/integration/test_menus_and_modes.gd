@@ -226,6 +226,14 @@ func test_roster_models_and_arenas() -> Array[String]:
 			f.append("%s has no model" % id)
 			continue
 		var model: Node = def.model_scene.instantiate()
+		ModelUtil.enable_vertex_colors(model)
+		for n: Node in model.find_children("*", "MeshInstance3D", true, false):
+			var painted: Mesh = (n as MeshInstance3D).mesh
+			for s: int in painted.get_surface_count():
+				var pm := painted.surface_get_material(s) as StandardMaterial3D
+				var cols: Variant = painted.surface_get_arrays(s)[Mesh.ARRAY_COLOR]
+				if pm != null and cols != null and (cols as PackedColorArray).size() > 0 and not pm.vertex_color_use_as_albedo:
+					f.append("%s surface %d ignores its vertex colours (would render white)" % [id, s])
 		var ap: AnimationPlayer = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		for anim: StringName in def.required_animations():
 			if ap == null or not ap.has_animation(anim):

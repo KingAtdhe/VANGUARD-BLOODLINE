@@ -84,3 +84,13 @@ python tools/blender/arena_builder.py --out assets/arenas
 - Arenas: one mesh per arena, ≤8 materials, emissive trims; lights, fog,
   glow, particles and text are in `scenes/arenas/*.tscn`.
 - After a rebuild, keep `animation/fps=60` in each `.glb.import`.
+
+## Hero pipeline (quality pass)
+
+```
+python tools/blender/hero_builder.py --fighter kairo --moves /tmp/kairo_moves.json --out assets/characters
+```
+Fighters in `HEROES` (kairo, sentinel, warden) are built as layered shells:
+forms → voxel remesh → smooth → decimate → weight/colour transfer. Colour is
+vertex paint (`Col`); slots keep the `<ID>_<Slot>` names. Smooth skinning,
+max 4 influences.

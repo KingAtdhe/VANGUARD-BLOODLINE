@@ -63,6 +63,7 @@ func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 	if not recolor_accent:
 		accent_color = def.accent_color
 	model = def.model_scene.instantiate() as Node3D
+	ModelUtil.enable_vertex_colors(model)
 	_model_root.add_child(model)
 	for n: Node in model.find_children("*", "Skeleton3D", true, false):
 		skeleton = n as Skeleton3D

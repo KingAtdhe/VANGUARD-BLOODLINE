@@ -10,6 +10,7 @@
 - Art: parametric from-scratch character builder — Kairo, Drakon, Seraphina, Nox, Vexa, Ryuen, Origin Sentinel, Origin Warden (≈4.5–6k tris, 6 materials, shared rig + 17 animations each).
 - Art: three from-scratch arenas with lighting, fog, glow, particles and signage — Ascendant Arena, Forgotten Temple, Neon District.
 - 21 new tests (save/load, modes, navigation, results, settings, roster and arena budgets).
+- Quality pass (`tools/blender/hero_builder.py`): Kairo, Origin Sentinel and Origin Warden rebuilt sculpt-style — continuous smooth bodies with anatomy, a modelled face, layered clothing, smooth joint skinning, painted vertex colours with baked cavity shading (≈25–31k tris).
 ### Changed
 - Kairo blockout replaced by the new model; debug panel/hitboxes start hidden (F3/F4); training tools only in Training.
 ### Removed
