@@ -6,8 +6,8 @@ pipeline.
 
 ## What exists now
 
-`tools/blender/build_kairo_blockout.py` builds Kairo **from scratch** (no
-base mesh, no external assets) and exports `assets/characters/kairo/kairo_blockout.glb`:
+`tools/blender/character_builder.py` builds Kairo **from scratch** (no
+base mesh, no external assets) and exports `assets/characters/<id>/<id>.glb`:
 
 - stylized blockout mesh from primitives — 1,638 triangles, 6 materials
   (`BLOCKOUT_*`), red Origin-energy accents;
@@ -24,7 +24,7 @@ It is a **placeholder** — clearly labelled, to be replaced by final art.
 # 1. Export current move timings from the game data
 godot --headless --path . --script res://tools/blender/export_move_timing.gd -- /tmp/kairo_moves.json
 # 2. Build + export (Blender 5.x; works as `pip install bpy` or `blender -b -P`)
-python tools/blender/build_kairo_blockout.py --output assets/characters/kairo/kairo_blockout.glb --moves /tmp/kairo_moves.json
+python tools/blender/character_builder.py --fighter kairo --moves /tmp/kairo_moves.json --out assets/characters
 # 3. Re-import and run tests (hitbox alignment will fail if anything drifted)
 godot --headless --path . --import && godot --headless --path . --script res://tests/run_tests.gd
 ```
@@ -70,3 +70,17 @@ accent per player.
 | Special 1 (Origin Palm), special 2 (Rift Break), ultimate (Origin Break) | ✅ + Surge activation |
 | Victory, defeat | ✅ |
 | Idle variation, dash F/B, crouch idle/transition, jump start/air/land, block low, throw start/receive | ⏳ not needed until those mechanics exist |
+
+
+## Milestone 7: roster and arenas
+
+```
+python tools/blender/character_builder.py --all --moves /tmp/kairo_moves.json --out assets/characters
+python tools/blender/arena_builder.py --out assets/arenas
+```
+- Each fighter: one parametric body (proportions, outfit pieces, hair, palette)
+  on the shared rig; materials `<ID>_Skin/Cloth/Cloth2/Accent/Hair/Gear`
+  (`_Accent` is recoloured for mirror matches). Clips are `<ID>_*`.
+- Arenas: one mesh per arena, ≤8 materials, emissive trims; lights, fog,
+  glow, particles and text are in `scenes/arenas/*.tscn`.
+- After a rebuild, keep `animation/fps=60` in each `.glb.import`.

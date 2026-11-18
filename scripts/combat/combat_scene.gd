@@ -13,6 +13,11 @@ extends Node
 ##   4. Views interpolate between previous and current tick by clock.alpha().
 ## Gameplay never reads render delta directly.
 ##
+## Milestone 7: when ModeFlow.setup is set (menus, Story/Arcade/Survival),
+## it overrides the exported fighters, arena, rules and CPU difficulty, and
+## the arena scene is instanced from the ArenaConfig. Player settings
+## (SaveManager) are applied to touch controls, camera, audio and ambience.
+##
 ## Pause uses SceneTree.paused: this scene stops processing entirely, the
 ## PauseMenu keeps running (PROCESS_MODE_ALWAYS). Leaving the scene always
 ## unpauses the tree.
@@ -51,10 +56,16 @@ var director: MatchDirector
 var _previous: Array[FighterState] = []
 var _seen_events: int = 0
 var input_history := InputHistory.new()
+## The menu-built setup this match runs with (null = scene's exported data).
+var setup: MatchSetup = null
+var arena_view: Node3D = null
+var outcome: ModeFlow.Outcome = null
 
 
 func _ready() -> void:
 	var problems: Array[String] = []
+	if ModeFlow.setup != null and ModeFlow.setup.is_training() == (match_rules != null and match_rules.training):
+		problems.append_array(_apply_setup(ModeFlow.setup))
 	if arena_config == null or p1_definition == null or p2_definition == null \
 			or match_rules == null or combat_tuning == null:
 		problems.append("missing arena, fighter, match or tuning data")
@@ -69,13 +80,23 @@ func _ready() -> void:
 		set_process(false)
 		return
 
+	_spawn_arena()
+	_apply_player_settings()
 	simulation.combat_log.echo_to_stdout = print_combat_log
 	simulation.setup(arena_config, p1_definition, p2_definition, combat_tuning)
-	_fighter_views[0].setup(p1_definition)
-	_fighter_views[1].setup(p2_definition)
+	# Fighters keep their own Origin colour; a mirror match recolours P2.
+	_fighter_views[0].setup(p1_definition, false)
+	_fighter_views[1].setup(p2_definition, p2_definition.model_scene == p1_definition.model_scene)
 	director = MatchDirector.new(match_rules)
+	if setup != null:
+		director.opening_health = [setup.p1_opening_health, -1]
 	director.round_started.connect(_on_round_started)
-	p2_mode = P2Mode.DUMMY_STAND if match_rules.training else (SessionSettings.ai_difficulty as P2Mode)
+	if match_rules.training:
+		p2_mode = P2Mode.DUMMY_STAND
+	elif setup != null:
+		p2_mode = setup.ai_difficulty as P2Mode
+	else:
+		p2_mode = SessionSettings.ai_difficulty as P2Mode
 	director.fight_started.connect(_on_fight_started)
 	director.round_ended.connect(_on_round_ended)
 	director.match_ended.connect(_on_match_ended)
@@ -85,7 +106,10 @@ func _ready() -> void:
 	_hud.setup(simulation.definitions, match_rules.rounds_to_win, training)
 	_training_panel.visible = training
 	_training_panel.reset_requested.connect(reset_positions)
-	_overlay.set_panel_visible(not training)  # F3 still toggles it
+	# Player-facing build: debug panel and hitboxes start hidden (F3 / F4).
+	_overlay.set_panel_visible(false)
+	_overlay.set_tools_visible(training)
+	_hitbox_view.visible = false
 	_pause_menu.set_training(training)
 	_pause_menu.set_left_handed(_touch.left_handed)
 	_pause_menu.handedness_toggled.connect(toggle_handedness)
@@ -96,6 +120,9 @@ func _ready() -> void:
 	_pause_menu.quit_requested.connect(_return_to_menu)
 	_results.rematch_requested.connect(start_match)
 	_results.menu_requested.connect(_return_to_menu)
+	_results.continue_requested.connect(_continue_after_match)
+	if setup != null:
+		_hud.set_banner(setup.banner)
 	_overlay.dummy_cycle_requested.connect(cycle_dummy_mode)
 	_overlay.hitboxes_toggle_requested.connect(func() -> void: _hitbox_view.visible = not _hitbox_view.visible)
 	start_match()
@@ -160,6 +187,8 @@ func start_match() -> void:
 	input_history.clear()
 	_training_panel.clear()
 	_matches_started += 1
+	outcome = null
+	ModeFlow.note_match_start()
 	_apply_p2_mode()
 	clock.reset()
 	director.start_match(simulation)
@@ -190,6 +219,7 @@ func reset_positions() -> void:
 
 func toggle_handedness() -> void:
 	_touch.set_left_handed(not _touch.left_handed)
+	SaveManager.set_setting("left_handed", _touch.left_handed)
 	_pause_menu.set_left_handed(_touch.left_handed)
 
 
@@ -242,7 +272,10 @@ func _apply_p2_mode() -> void:
 		dummy.mode = (p2_mode - P2Mode.DUMMY_STAND) as TrainingDummyController.Mode
 	_overlay.set_dummy_mode(p2_mode_name())
 	var cpu: String = "CPU %s" % SessionSettings.AI_DIFFICULTY_NAMES[p2_mode] if ai != null else "Dummy"
-	_hud.set_fighter_name(1, "%s — %s" % [p2_definition.display_name, cpu])
+	if setup != null and setup.p2_display_name != "":
+		_hud.set_fighter_name(1, "%s — %s" % [setup.p2_display_name, cpu])
+	else:
+		_hud.set_fighter_name(1, "%s — %s" % [p2_definition.display_name, cpu])
 
 
 func _on_round_started(round_number: int) -> void:
@@ -278,6 +311,9 @@ func _on_round_ended(result: MatchDirector.RoundResult) -> void:
 		if l.animator != null and result.reason == MatchDirector.Reason.TIME_OUT:
 			l.animator.set_override(simulation.definitions[1 - result.winner].anim_defeat)
 	_audio.play(&"ko" if result.reason != MatchDirector.Reason.TIME_OUT else &"round")
+	if result.winner >= 0:
+		ModeFlow.note_round(result.winner, simulation.fighters[result.winner].health,
+			simulation.definitions[result.winner].base_health)
 	var text: String
 	match result.reason:
 		MatchDirector.Reason.KO:
@@ -291,10 +327,13 @@ func _on_round_ended(result: MatchDirector.RoundResult) -> void:
 	_hud.announce(text, true)
 
 
-func _on_match_ended(_winner: int) -> void:
+func _on_match_ended(winner: int) -> void:
 	_hud.clear_announce()
 	_touch.release_all()
-	_results.show_results(director, simulation.definitions)
+	if setup != null:
+		outcome = ModeFlow.on_match_end(winner, director.round_wins[0], simulation.fighters[0].health,
+			simulation.definitions[0].base_health, director.timer_seconds())
+	_results.show_results(director, simulation.definitions, outcome)
 
 
 # --- per-frame -------------------------------------------------------------------
@@ -405,4 +444,77 @@ func _log_text() -> String:
 
 func _return_to_menu() -> void:
 	get_tree().paused = false
-	SceneRouter.goto(ScenePaths.MAIN_MENU)
+	SceneRouter.goto(_quit_scene())
+
+
+## Where "quit"/"menu" leads: the mode's own screen during a run.
+func _quit_scene() -> String:
+	if outcome != null:
+		return outcome.quit_scene
+	if setup == null:
+		return ScenePaths.MAIN_MENU
+	match setup.mode:
+		MatchSetup.Mode.STORY:
+			return ScenePaths.STORY
+		MatchSetup.Mode.ARCADE:
+			return ScenePaths.ARCADE
+		MatchSetup.Mode.SURVIVAL:
+			return ScenePaths.SURVIVAL
+	return ScenePaths.MAIN_MENU
+
+
+func _continue_after_match() -> void:
+	get_tree().paused = false
+	if outcome != null and outcome.continue_scene != "":
+		SceneRouter.goto(outcome.continue_scene)
+	else:
+		SceneRouter.goto(_quit_scene())
+
+
+# --- setup, arena, settings ------------------------------------------------------
+
+func _apply_setup(s: MatchSetup) -> Array[String]:
+	var problems: Array[String] = s.validate()
+	if not problems.is_empty():
+		return problems
+	setup = s
+	p1_definition = Catalog.fighter(s.p1_id)
+	p2_definition = Catalog.fighter(s.p2_id)
+	arena_config = Catalog.arena(s.arena_id)
+	match_rules = load(s.rules_path) as MatchRules
+	return problems
+
+
+## Replaces the placeholder ArenaRoot with the config's arena scene.
+func _spawn_arena() -> void:
+	var old: Node = get_node_or_null("ArenaRoot")
+	if arena_config.scene_path == "" or not ResourceLoader.exists(arena_config.scene_path):
+		arena_view = old as Node3D
+		return
+	var packed: PackedScene = load(arena_config.scene_path)
+	var inst: Node3D = packed.instantiate() as Node3D
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	inst.name = "ArenaRoot"
+	add_child(inst)
+	move_child(inst, 0)
+	arena_view = inst
+
+
+func _apply_player_settings() -> void:
+	_touch.left_handed = bool(SaveManager.setting("left_handed"))
+	_touch.scale_factor = float(SaveManager.setting("controls_scale"))
+	_touch.opacity = float(SaveManager.setting("controls_opacity"))
+	match int(SaveManager.setting("touch_controls")):
+		1:
+			_touch.show_without_touchscreen = true
+		2:
+			_touch.visible = false
+			_touch.show_without_touchscreen = false
+	_camera_rig.shake_scale = 0.3 if bool(SaveManager.setting("reduced_shake")) else 1.0
+	_camera_rig.cinematics_enabled = bool(SaveManager.setting("cinematics"))
+	_audio.volume = float(SaveManager.setting("sfx_volume"))
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(0.0001, float(SaveManager.setting("master_volume")))))
+	if arena_view is ArenaView:
+		(arena_view as ArenaView).set_ambient_effects(not bool(SaveManager.setting("reduced_effects")))

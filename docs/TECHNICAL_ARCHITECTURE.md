@@ -78,4 +78,9 @@ P1 is always processed before P2 inside each phase.
 | FighterAnimator | `scripts/fighters/fighter_animator.gd` | Sim-driven animation choice and seeking |
 | AnimationSampler | `scripts/fighters/animation_sampler.gd` | Exact-time pose sampling for tests/tools |
 | CombatAudio | `scripts/combat/combat_audio.gd` | Event-driven SFX (8 voices) |
-| Blockout build | `tools/blender/build_kairo_blockout.py` | Scripted Blender source asset → GLB |
+| Roster build | `tools/blender/character_builder.py` | Scripted fighters → GLB |
+| Arena build | `tools/blender/arena_builder.py` | Scripted arenas → GLB |
+| Save | `scripts/save/save_manager.gd` | Versioned JSON save, settings |
+| Modes | `scripts/modes/mode_flow.gd`, `match_setup.gd` | Menu routing, Story/Arcade/Survival runs, rewards |
+| Menus | `scripts/ui/menu_screen.gd` + screens | Themed screens, 3D backdrop, Back contract |
+| Progression | `scripts/app/progression.gd`, `catalog.gd` | XP, mastery, Shards, titles, unlocks; content lookup |

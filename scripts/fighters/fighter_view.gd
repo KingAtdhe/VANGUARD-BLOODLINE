@@ -2,8 +2,8 @@ class_name FighterView
 extends Node3D
 ## Visual representation of one fighter. Reads FighterState, never writes it.
 ##
-## With a FighterDefinition that has a model_scene (Milestone 6: Kairo
-## blockout), the model is instanced under ModelRoot and animated by
+## With a FighterDefinition that has a model_scene (Milestone 7: the
+## from-scratch roster models), the model is instanced under ModelRoot and animated by
 ## FighterAnimator from simulation state. Without one, the M1 placeholder
 ## capsule is shown (fist extension, lean).
 ## Both show: block shield, hit flash, hitstop shake, Origin Surge aura.
@@ -54,9 +54,14 @@ func _ready() -> void:
 
 
 ## Instances the definition's model (if any). Call once after _ready.
-func setup(def: FighterDefinition) -> void:
+## [param recolor_accent]: recolour the model's accent material to this
+## view's accent_color (used to tell a mirror match apart); otherwise the
+## fighter keeps its own Origin colour.
+func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 	if def == null or def.model_scene == null:
 		return
+	if not recolor_accent:
+		accent_color = def.accent_color
 	model = def.model_scene.instantiate() as Node3D
 	_model_root.add_child(model)
 	for n: Node in model.find_children("*", "Skeleton3D", true, false):
@@ -70,10 +75,11 @@ func setup(def: FighterDefinition) -> void:
 		# Per-fighter accent: duplicate the Origin-energy material and recolour.
 		for surf: int in mi.mesh.get_surface_count():
 			var mat := mi.get_active_material(surf) as StandardMaterial3D
-			if mat != null and mat.resource_name.contains("OriginRed"):
+			if mat != null and (mat.resource_name.contains("OriginRed") or mat.resource_name.ends_with("_Accent")):
 				var m2 := mat.duplicate() as StandardMaterial3D
-				m2.albedo_color = accent_color.darkened(0.25)
-				m2.emission = accent_color
+				if recolor_accent:
+					m2.albedo_color = accent_color.darkened(0.25)
+					m2.emission = accent_color
 				mi.set_surface_override_material(surf, m2)
 				_accent_materials.append(m2)
 	# The capsule placeholder hides; the shield stays as a block indicator.

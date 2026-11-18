@@ -1,7 +1,7 @@
 extends RefCounted
 ## Milestone 6 acceptance on the real imported model (kairo_blockout.glb).
 
-const MODEL: String = "res://assets/characters/kairo/kairo_blockout.glb"
+const MODEL: String = "res://assets/characters/kairo/kairo.glb"
 ## Godot SkeletonProfileHumanoid names used by the rig.
 const HUMANOID_BONES: Array[String] = ["Hips", "Spine", "Chest", "Neck", "Head",
 	"LeftUpperArm", "LeftLowerArm", "LeftHand", "RightUpperArm", "RightLowerArm", "RightHand",

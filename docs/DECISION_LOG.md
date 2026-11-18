@@ -246,6 +246,41 @@ effects (no samples, deterministic). No voice placeholders — voice needs a
 performer. Headless runs record sounds without playing them. **Accepted —
 replace before release.**
 
+## D-039 — 2026-11-18 — One parametric character builder for the whole roster
+`tools/blender/character_builder.py` replaces the Kairo blockout script. Every
+fighter is generated from scratch (lofted sections, ellipsoids, bevelled
+blocks; no base mesh) on one shared 18-bone humanoid rig with the same
+data-timed animation set, so hitbox alignment holds for all. Rigid
+per-part skinning ("action figure" style) is kept. **Accepted.**
+
+## D-040 — 2026-11-18 — Borrowed movesets via `anim_prefix`
+Until M8 gives each fighter its own moves, Sentinel/Warden use Kairo's move
+data; `FighterDefinition.anim_prefix` maps `KAIRO_*` clip names to the
+fighter's own clips. Drakon–Ryuen are visible but `playable = false`.
+**Accepted.**
+
+## D-041 — 2026-11-18 — Story/Arcade opponents are Origin Sentinels; boss is the Origin Warden
+Original in-world constructs that copy Kairo's style, so story and arcade are
+fully playable before M8. The Warden has 1150 health (data, `warden.tres`)
+and Expert AI — the only balance difference. **Accepted — revisit in M8.**
+
+## D-042 — 2026-11-18 — Arenas share the greybox gameplay bounds
+All arenas use walls ±6 m and 6 m max separation; arena choice is visual only,
+so balance and AI don't change per stage. Geometry is Blender-built; lights,
+fog, glow, particles and signage live in Godot scenes (mobile-tunable). The
+arena scene is instanced from `ArenaConfig.scene_path` at match start.
+**Accepted.**
+
+## D-043 — 2026-11-18 — Save system: static `SaveManager`, versioned JSON
+One `user://save.json`, atomic temp-file rename, per-field sanitising against
+defaults, step migrations, corrupt files kept as `save.corrupt.json`. Static
+class rather than an autoload (the single-autoload rule stays). **Accepted.**
+
+## D-044 — 2026-11-18 — Menu flow in `ModeFlow`, menus built in code
+`ModeFlow` owns run state and routing; screens extend `MenuScreen` (theme,
+backdrop, Back contract). Menus are built in GDScript rather than large
+`.tscn` files so layout stays consistent and testable. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

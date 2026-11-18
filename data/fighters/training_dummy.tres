@@ -9,7 +9,7 @@
 [ext_resource type="Resource" path="res://data/moves/kairo_rift_break.tres" id="7_rift"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_break.tres" id="9_break"]
-[ext_resource type="PackedScene" path="res://assets/characters/kairo/kairo_blockout.glb" id="10_model"]
+[ext_resource type="PackedScene" path="res://assets/characters/sentinel/sentinel.glb" id="10_model"]
 
 [resource]
 script = ExtResource("1_def")
@@ -34,3 +34,6 @@ anim_knockdown = &"KAIRO_KNOCKDOWN"
 anim_getup = &"KAIRO_GETUP"
 anim_victory = &"KAIRO_VICTORY"
 anim_defeat = &"KAIRO_DEFEAT"
+anim_prefix = &"SENTINEL"
+accent_color = Color(0.2, 0.9, 1, 1)
+playable = false

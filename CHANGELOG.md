@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.0.8-m7] — 2026-11-18
+### Added
+- Menus: main menu, fighter select, arena select, Story, Arcade, Survival, Profile, Settings — shared themed `MenuScreen` base with live 3D backdrops, Back/Android-back everywhere.
+- Modes: Story (6 data-driven chapters with dialogue, unique Origin Warden boss), Arcade (5-stage ladder ending in the boss, score), Survival (one-round fights, health carry-over with 15% recovery, boss every 5th), Versus CPU, Training via the new flow.
+- `MatchSetup` + `ModeFlow`: mode routing, run state, results options (Retry / Next stage / Continue / Change fighter).
+- `SaveManager`: versioned JSON save (atomic write, per-field validation, migration, corrupt-file recovery); settings applied to touch controls, camera, audio, ambience.
+- Progression: account level, fighter mastery, Shards currency, earnable titles, arena unlocks, statistics. No purchases, no energy.
+- Art: parametric from-scratch character builder — Kairo, Drakon, Seraphina, Nox, Vexa, Ryuen, Origin Sentinel, Origin Warden (≈4.5–6k tris, 6 materials, shared rig + 17 animations each).
+- Art: three from-scratch arenas with lighting, fog, glow, particles and signage — Ascendant Arena, Forgotten Temple, Neon District.
+- 21 new tests (save/load, modes, navigation, results, settings, roster and arena budgets).
+### Changed
+- Kairo blockout replaced by the new model; debug panel/hitboxes start hidden (F3/F4); training tools only in Training.
+### Removed
+- `tools/blender/build_kairo_blockout.py`, `kairo_blockout.glb` (superseded; no remaining references).
+
 ## [0.0.7-m6] — 2026-11-18
 ### Added
 - Kairo blockout model built from scratch in Blender by script (18-bone humanoid rig, rigid skin, 17 animations at 60 fps), exported to GLB and used in game for both fighters (P2 recoloured).

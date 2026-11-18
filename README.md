@@ -3,16 +3,18 @@
 Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 2.5D combat. *Working title — needs trademark and legal review before public use.*
 
-![Milestone 6: Kairo blockout — Origin Break ultimate with the camera push-in](docs/images/m6_ultimate_cinematic.png)
+![Milestone 7: Kairo vs an Origin Sentinel in the Forgotten Temple](docs/images/m7_fight_temple.png)
+
+![Main menu](docs/images/m7_menu.png)
 
 ## Current status
 
 | | |
 |---|---|
-| Version | `0.0.7-m6` |
-| Milestone | **6 — Kairo vertical slice** (complete with blockout art, awaiting approval) |
-| Next | Milestone 7 — UI, menus and modes (fighter select, story/arcade/survival, settings, save/load) |
-| Playable | **Fight**: best-of-three vs the CPU (pick Beginner/Standard/Expert on the menu). **Training**: dummy, ∞ time, combo/frame data, input history. Touch controls on phones. |
+| Version | `0.0.8-m7` |
+| Milestone | **7 — UI, menus and modes** (implemented, awaiting approval) |
+| Next | Milestone 8 — remaining fighters' movesets and arena polish |
+| Playable | Main menu → **Story** (6 chapters, boss), **Arcade** (5-stage ladder), **Versus CPU**, **Training**, **Survival**, Profile, Settings. Kairo is playable; Drakon, Seraphina, Nox, Vexa and Ryuen are viewable in fighter select (movesets in M8). Three arenas: Ascendant Arena, Forgotten Temple, Neon District (unlockable). Progress and settings persist. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.
@@ -125,8 +127,9 @@ docs/     specification, decisions, milestones, pipeline docs
 
 ## Art pipeline
 
-Kairo is currently a **from-scratch scripted blockout** (Blender 5,
-`tools/blender/build_kairo_blockout.py` → `assets/characters/kairo/kairo_blockout.glb`).
+All fighters and arenas are **built from scratch by script** (Blender 5,
+`tools/blender/character_builder.py` → `assets/characters/<id>/<id>.glb`,
+`tools/blender/arena_builder.py` → `assets/arenas/<id>/<id>_arena.glb`); no base meshes.
 Final art must follow [`docs/BLENDER_PIPELINE.md`](docs/BLENDER_PIPELINE.md);
 tests check animation lengths and that strikes line up with hitboxes.
 

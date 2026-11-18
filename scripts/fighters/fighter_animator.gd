@@ -33,7 +33,8 @@ var _override: StringName = &""
 func _init(anim_player: AnimationPlayer, definition: FighterDefinition) -> void:
 	player = anim_player
 	def = definition
-	for anim_name: StringName in [def.anim_idle, def.anim_walk_forward, def.anim_walk_backward]:
+	for a: StringName in [def.anim_idle, def.anim_walk_forward, def.anim_walk_backward]:
+		var anim_name: StringName = def.resolve_anim(a)
 		if player.has_animation(anim_name):
 			player.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 
@@ -91,12 +92,15 @@ func _advance_if_same(anim: StringName, dt: float) -> float:
 	return _time + dt if current == anim else 0.0
 
 
-func _show(anim: StringName, blend: float, t: float, loop: bool) -> void:
+func _show(logical: StringName, blend: float, t: float, loop: bool) -> void:
+	# Definitions and moves name clips logically; the model may use its own
+	# fighter token (see FighterDefinition.anim_prefix).
+	var anim: StringName = def.resolve_anim(logical)
 	if anim == &"" or not player.has_animation(anim):
 		return
 	var length: float = player.get_animation(anim).length
 	_time = fposmod(t, length) if loop and length > 0.0 else clampf(t, 0.0, length)
-	if anim != current:
+	if logical != current:
 		player.play(anim, blend)
-		current = anim
+		current = logical
 	player.seek(_time, true)

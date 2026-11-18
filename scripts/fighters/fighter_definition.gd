@@ -13,6 +13,10 @@ extends Resource
 ## Move list. Each move is selected by its input_pattern (several moves may
 ## share a pattern when their meter/surge conditions differ, e.g. ULTIMATE).
 @export var moves: Array[MoveData] = []
+## False = shown in fighter select but not selectable yet.
+@export var playable: bool = true
+## Why a fighter is locked (shown in fighter select).
+@export var locked_note: String = ""
 
 @export_group("Presentation")
 ## Character model (glTF scene with Skeleton3D + AnimationPlayer). Null =
@@ -29,6 +33,14 @@ extends Resource
 @export var anim_getup: StringName = &""
 @export var anim_victory: StringName = &""
 @export var anim_defeat: StringName = &""
+## When set, every animation name above and in the moves is looked up with
+## its fighter token replaced (KAIRO_ATTACK_LIGHT_01 -> SENTINEL_ATTACK_LIGHT_01),
+## so a fighter can borrow a moveset while keeping its own model and clips.
+@export var anim_prefix: StringName = &""
+## The fighter's own Origin-energy colour (aura, accents, menus).
+@export var accent_color: Color = Color(1.0, 0.08, 0.06)
+## Short line shown in fighter select.
+@export_multiline var tagline: String = ""
 
 @export_group("Origin Surge")
 ## Duration of the enhanced state; the meter drains from full to 0 over it.
@@ -61,13 +73,24 @@ func move_for_id(id: StringName) -> MoveData:
 	return null
 
 
-## Every animation name this fighter needs (reactions + all moves).
+## Animation clip name for [param anim] in this fighter's model.
+func resolve_anim(anim: StringName) -> StringName:
+	if anim_prefix == &"" or anim == &"":
+		return anim
+	var s: String = String(anim)
+	var cut: int = s.find("_")
+	return StringName(String(anim_prefix) + (s.substr(cut) if cut >= 0 else "_" + s))
+
+
+## Every animation clip this fighter needs (reactions + all moves), resolved.
 func required_animations() -> Array[StringName]:
-	var out: Array[StringName] = [anim_idle, anim_walk_forward, anim_walk_backward, anim_block,
-		anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]
+	var out: Array[StringName] = []
+	for a: StringName in [anim_idle, anim_walk_forward, anim_walk_backward, anim_block,
+			anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]:
+		out.append(resolve_anim(a))
 	for m: MoveData in moves:
 		if m != null:
-			out.append(m.animation)
+			out.append(resolve_anim(m.animation))
 	return out
 
 

@@ -1,0 +1,117 @@
+{
+	"title": "Bloodline",
+	"chapters": [
+		{
+			"id": "ch1",
+			"title": "Chapter 1 — The Invitation",
+			"arena": "temple",
+			"opponent": "sentinel",
+			"opponent_name": "Sentinel Initiate",
+			"ai": 0,
+			"intro": [
+				["Ryuen", "The seal on the temple door broke at dawn. Something inside answered your blood, Kairo."],
+				["Kairo", "Then I'll find out what it wants."],
+				["Ryuen", "It wants to test you. The Ascendant Order sends its Sentinels before its letters."],
+				["Sentinel", "HEIR DETECTED. TRIAL ONE: BEGIN."]
+			],
+			"outro": [
+				["Kairo", "It fought like me. Every guard, every step."],
+				["Ryuen", "Sentinels copy the strongest fighter they have seen. Today, that was you."],
+				["Ryuen", "An invitation lies in its core. The Ascendant Championship has called your name."]
+			],
+			"reward": {"xp": 300, "currency": 100, "title": "Heir of Origin"}
+		},
+		{
+			"id": "ch2",
+			"title": "Chapter 2 — Proving Ground",
+			"arena": "ascendant",
+			"opponent": "sentinel",
+			"opponent_name": "Sentinel Vanguard",
+			"ai": 1,
+			"intro": [
+				["Announcer", "Ladies and gentlemen — an unseeded entrant. From the Forgotten Temple… Kairo!"],
+				["Kairo", "No crowd at the temple. I could get used to this."],
+				["Ryuen", "Do not. The lights are there to make you careless."]
+			],
+			"outro": [
+				["Announcer", "An upset in the qualifiers! The Sentinel is down!"],
+				["Kairo", "The Order is watching from the top box. They didn't clap."]
+			],
+			"reward": {"xp": 350, "currency": 120}
+		},
+		{
+			"id": "ch3",
+			"title": "Chapter 3 — Rain Over Neon",
+			"arena": "neon",
+			"opponent": "sentinel",
+			"opponent_name": "Rogue Sentinel",
+			"ai": 1,
+			"intro": [
+				["Kairo", "A Sentinel loose in the district, no tournament, no referee."],
+				["Ryuen", "Someone pulled it out of the trials. Stop it before it learns the streets."],
+				["Sentinel", "UNSANCTIONED TRIAL. NO RULES APPLY."]
+			],
+			"outro": [
+				["Kairo", "Its core was rewritten. Someone wants the trials to draw blood."],
+				["Ryuen", "Then the Order has a traitor. Or the Order is the traitor."]
+			],
+			"reward": {"xp": 400, "currency": 150, "arena": "neon", "title": "Street Legend"}
+		},
+		{
+			"id": "ch4",
+			"title": "Chapter 4 — Echoes in Stone",
+			"arena": "temple",
+			"opponent": "sentinel",
+			"opponent_name": "Sentinel Adept",
+			"ai": 2,
+			"intro": [
+				["Ryuen", "The inscription above the door: 'The first blood remembers.' It is about you."],
+				["Kairo", "And the Sentinel guarding it?"],
+				["Ryuen", "Learned from the last heir. Your mother. Fight it like she taught you — patiently."]
+			],
+			"outro": [
+				["Kairo", "She was faster than I thought."],
+				["Ryuen", "She was faster than anyone thought. That is why the Order feared her."]
+			],
+			"reward": {"xp": 450, "currency": 180}
+		},
+		{
+			"id": "ch5",
+			"title": "Chapter 5 — The Rift Opens",
+			"arena": "ascendant",
+			"opponent": "sentinel",
+			"opponent_name": "Sentinel Executor",
+			"ai": 2,
+			"intro": [
+				["Announcer", "The semi-final! The Order has sent its Executor to face the challenger!"],
+				["Kairo", "No more trials. They want me to lose in front of everyone."],
+				["Ryuen", "Then win in front of everyone."]
+			],
+			"outro": [
+				["Announcer", "Kairo advances to the final! And — the Warden himself is stepping into the ring!"],
+				["Kairo", "Finally. The one who sends the machines."]
+			],
+			"reward": {"xp": 500, "currency": 200, "title": "Riftbreaker"}
+		},
+		{
+			"id": "ch6",
+			"title": "Chapter 6 — Bloodline",
+			"arena": "ascendant",
+			"opponent": "warden",
+			"opponent_name": "Origin Warden",
+			"ai": 2,
+			"boss": true,
+			"intro": [
+				["Origin Warden", "Every Sentinel was built from a fighter worth copying. I was built from the first heir."],
+				["Kairo", "Then you know how this ends."],
+				["Origin Warden", "I know how it began. Show me if the bloodline still remembers."]
+			],
+			"outro": [
+				["Origin Warden", "…It remembers."],
+				["Ryuen", "The Order's machines are silent. The championship is yours, Kairo."],
+				["Kairo", "Not yours, not the Order's. The trials are open to everyone now."]
+			],
+			"reward": {"xp": 800, "currency": 400, "title": "Ascendant Champion"}
+		}
+	]
+}

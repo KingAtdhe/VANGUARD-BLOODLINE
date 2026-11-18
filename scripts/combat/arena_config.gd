@@ -15,6 +15,15 @@ extends Resource
 @export var p1_spawn_x: float = -1.5
 @export var p2_spawn_x: float = 1.5
 
+@export_group("Presentation")
+## Arena scene (root = ArenaView). Stored as a path so the scene can hold a
+## reference back to this config without a load cycle.
+@export_file("*.tscn") var scene_path: String = ""
+## One line for the arena select screen.
+@export var tagline: String = ""
+## Unlocked from the start (false = earned through Story/Arcade).
+@export var unlocked_by_default: bool = true
+
 
 func width() -> float:
 	return right_bound - left_bound

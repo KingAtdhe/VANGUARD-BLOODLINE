@@ -131,6 +131,18 @@ Acceptance:
 - [x] No severe mesh deformation — rigid skin, every vertex 100 % one bone (test)
 - [x] Hitboxes align with attacks — limb inside hitbox on every active frame, both facings (test, mutation-checked)
 - [ ] **Performance meets agreed device target — NOT VERIFIED** (no device; blockout is 1,638 tris × 2 fighters, 6 materials each)
-## Milestone 7 — UI, menus and modes
+## Milestone 7 — UI, menus and modes  ✅ implemented, awaiting approval
+- [x] Main menu (Story, Arcade, Versus CPU, Training, Survival, Profile, Settings, Quit)
+- [x] Fighter select (six launch fighters; five locked until M8) and arena select
+- [x] Story mode flow — 6 chapters, dialogue scenes, unique boss, rewards
+- [x] Arcade — 5-stage ladder, boss, score, rewards
+- [x] Training — via fighter/arena select (tools from M4)
+- [x] Survival — rising difficulty, limited recovery, score/rewards
+- [x] Results screen with mode-specific options and rewards
+- [x] Settings (controls, audio, camera shake, cinematics, effects, CPU level, reset)
+- [x] Save/load — versioned, validated, corrupt-safe
+- [x] Art pass: from-scratch roster models and three arenas
+- [x] Acceptance tests: navigation (no dead ends), persistence after restart, settings, mode flows
+- [ ] **On-device check of menus/arenas — NOT VERIFIED** (no device)
 ## Milestone 8 — remaining fighters and arenas
 ## Milestone 9 — release preparation

@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
+[ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
+[ext_resource type="Resource" path="res://data/moves/kairo_light_punch.tres" id="3_l"]
+[ext_resource type="Resource" path="res://data/moves/kairo_heavy_punch.tres" id="4_h"]
+[ext_resource type="Resource" path="res://data/moves/kairo_kick.tres" id="5_k"]
+[ext_resource type="Resource" path="res://data/moves/kairo_origin_palm.tres" id="6_palm"]
+[ext_resource type="Resource" path="res://data/moves/kairo_rift_break.tres" id="7_rift"]
+[ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
+[ext_resource type="Resource" path="res://data/moves/kairo_origin_break.tres" id="9_break"]
+[ext_resource type="PackedScene" path="res://assets/characters/nox/nox.glb" id="10_model"]
+
+[resource]
+script = ExtResource("1_def")
+fighter_id = &"nox"
+display_name = "Nox"
+base_health = 1000
+movement = ExtResource("2_move")
+hurtbox_half_width = 0.3
+hurtbox_height = 1.8
+moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break")])
+surge_duration_ticks = 300
+surge_damage_percent = 115
+surge_free_specials = true
+model_scene = ExtResource("10_model")
+anim_idle = &"KAIRO_IDLE_A"
+anim_walk_forward = &"KAIRO_WALK_FORWARD"
+anim_walk_backward = &"KAIRO_WALK_BACKWARD"
+anim_block = &"KAIRO_BLOCK_HIGH"
+anim_hit_light = &"KAIRO_HIT_LIGHT"
+anim_hit_heavy = &"KAIRO_HIT_HEAVY"
+anim_knockdown = &"KAIRO_KNOCKDOWN"
+anim_getup = &"KAIRO_GETUP"
+anim_victory = &"KAIRO_VICTORY"
+anim_defeat = &"KAIRO_DEFEAT"
+anim_prefix = &"NOX"
+playable = false
+locked_note = "Moveset arrives in Milestone 8"
+accent_color = Color(0.62, 0.2, 1.0, 1)
+tagline = "Shadow assassin. Feints, mix-ups and misdirection."

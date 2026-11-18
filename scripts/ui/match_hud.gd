@@ -120,6 +120,26 @@ func announce_text() -> String:
 	return _announce.text if _announce.visible else ""
 
 
+## Mode banner under the timer ("ARCADE  STAGE 2/5"); empty hides it.
+func set_banner(text: String) -> void:
+	var b: Label = get_node_or_null("ModeBanner") as Label
+	if b == null:
+		b = Label.new()
+		b.name = "ModeBanner"
+		b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+		b.offset_top = 300.0
+		b.offset_left = -600.0
+		b.offset_right = 600.0
+		b.add_theme_font_size_override("font_size", 30)
+		b.add_theme_color_override("font_color", Color(1.0, 0.82, 0.45))
+		b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+		b.add_theme_constant_override("outline_size", 8)
+		add_child(b)
+	b.text = text
+	b.visible = text != ""
+
+
 func set_fighter_name(i: int, text: String) -> void:
 	_names[i].text = text
 

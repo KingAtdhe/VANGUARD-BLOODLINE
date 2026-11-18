@@ -6,8 +6,8 @@ final Blender/original assets.
 | File | Replaces | Planned milestone |
 |---|---|---|
 | `res://icon.svg` | Final app icon / logo (after legal review) | M7–M9 |
-| Main menu / boot text styling | Final UI art | M7 |
-| `assets/characters/kairo/kairo_blockout.glb` | Final Kairo model, rig, animations (same conventions) | Art production |
-| P2 recoloured Kairo | Other fighters | M8 |
+| Code-built menu theme (default font) | Final UI art / font | Art production |
+| `assets/characters/*/*.glb` (script-built stylized models) | Final sculpted/skinned models (same rig conventions) | Art production |
+| Sentinel/Warden using Kairo's moveset; locked roster | Unique movesets | M8 |
 | `audio/sfx/placeholder_*.wav` | Final SFX + voice | Audio production |
-| Greybox arena | Ascendant Arena etc. | M8 |
+| Script-built arenas (greybox kept as dev stage) | Final arena art; Origin Chamber | M8 / art production |

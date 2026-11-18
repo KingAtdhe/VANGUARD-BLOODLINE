@@ -36,5 +36,11 @@ func set_dummy_mode(mode_name: String) -> void:
 	_dummy_button.text = "P2: %s" % mode_name
 
 
+## The Hitboxes / P2 buttons are training tools; hidden in other modes.
+func set_tools_visible(value: bool) -> void:
+	_dummy_button.visible = value
+	_hitbox_button.visible = value
+
+
 func set_panel_visible(value: bool) -> void:
 	_panel.visible = value

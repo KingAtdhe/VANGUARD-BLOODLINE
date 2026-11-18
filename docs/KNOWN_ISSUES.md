@@ -22,11 +22,17 @@
 | KI-018 | M4 | Touch controls show in debug builds even without a touchscreen (handy for desktop testing; a setting will control this in M7). | Open |
 | KI-019 | M4 | Tap feel, thumb reach and button spacing are unverified on real phones; layout constants are in `touch_controls.gd`. | Open — needs device test |
 | KI-020 | M5 | AI difficulty is tuned machine-vs-machine only; Standard loses to frame-perfect L, L, K pressure scripts and may feel easy to strong players. Needs human playtests. | Open |
-| KI-021 | M5 | AI difficulty choice is session-only (resets on app restart) until the M7 save system. | Open |
+| KI-021 | M5 | AI difficulty choice is session-only (resets on app restart) until the M7 save system. | Fixed in M7 (saved setting) |
 | KI-022 | M5 | P2 in versus uses the "Training Dummy" fighter data (a Kairo copy) until more fighters exist (M8); HUD labels it "— CPU <level>". | Open — by design |
-| KI-023 | M6 | Kairo is a scripted blockout (labelled BLOCKOUT), not final art; P2 is the same model recoloured blue. | Open — needs artist |
+| KI-023 | M6 | Kairo is a scripted blockout (labelled BLOCKOUT), not final art; P2 is the same model recoloured blue. | Superseded in M7 by the roster builder (still stylized, script-made) |
 | KI-024 | M6 | Placeholder synthesized SFX only; no voice. | Open — needs audio |
 | KI-025 | M6 | Meter economy tuned machine-vs-machine: a dominant player rarely reaches Surge in a 2–0; even matches do. Needs playtests. | Open |
 | KI-026 | M6 | Quitting the app while a sound is playing can print "resources still in use at exit" (engine exit-time audio race; harmless; headless CI unaffected). | Open |
 | KI-027 | M6 | Device performance unmeasured; spec target 60 FPS on chosen devices. | Open — needs device |
 | KI-028 | M6 | P2 AI may still log "sees … → BLOCK" while knocked down (no effect; cosmetic in the AI log). | Open |
+| KI-029 | M7 | Drakon, Seraphina, Nox, Vexa, Ryuen are viewable but locked: their movesets are Milestone 8. | Open — by design |
+| KI-030 | M7 | Fighter models use rigid per-part skinning; joints show seams up close (menus). | Open — needs artist/skinning pass |
+| KI-031 | M7 | Visual review was done with the desktop GL Compatibility renderer under xvfb; the Mobile (Vulkan) renderer on a phone may differ (glow/fog strength). | Open — needs device |
+| KI-032 | M7 | Menu 3D backdrops render a second 3D world; cost on low-end phones unmeasured. "Reduce arena effects" only disables particles. | Open — needs device |
+| KI-033 | M7 | No music yet, so there is no music volume setting. | Open — needs audio |
+| KI-034 | M7 | Story text and character names are placeholders pending writing/legal review. | Open |

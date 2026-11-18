@@ -1,0 +1,169 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/arenas/arena_view.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://assets/arenas/ascendant/ascendant_arena.glb" id="2_geo"]
+[ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
+[ext_resource type="Resource" path="res://data/arenas/ascendant_arena.tres" id="4_cfg"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
+sky_top_color = Color(0.01, 0.012, 0.03, 1)
+sky_horizon_color = Color(0.04, 0.05, 0.1, 1)
+ground_bottom_color = Color(0.01, 0.01, 0.02, 1)
+ground_horizon_color = Color(0.04, 0.05, 0.1, 1)
+sun_angle_max = 30.0
+energy_multiplier = 1.0
+
+[sub_resource type="Sky" id="Sky"]
+sky_material = SubResource("SkyMat")
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 2
+sky = SubResource("Sky")
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.5, 0.7, 1)
+ambient_light_energy = 0.55
+tonemap_mode = 3
+tonemap_exposure = 1.0
+glow_enabled = true
+glow_intensity = 0.9
+glow_bloom = 0.05
+glow_hdr_threshold = 1.1
+glow_blend_mode = 1
+fog_enabled = true
+fog_light_color = Color(0.05, 0.07, 0.14, 1)
+fog_density = 0.012
+fog_sky_affect = 0.4
+adjustment_enabled = true
+adjustment_contrast = 1.08
+adjustment_saturation = 1.1
+
+[sub_resource type="ParticleProcessMaterial" id="MotesMat"]
+emission_shape = 3
+emission_box_extents = Vector3(14, 5, 10)
+direction = Vector3(0, 1, 0)
+spread = 40
+initial_velocity_min = 0.05
+initial_velocity_max = 0.25
+gravity = Vector3(0, 0.02, 0)
+scale_min = 0.6
+scale_max = 1.2
+color = Color(1, 0.75, 0.35, 0.9)
+turbulence_enabled = true
+turbulence_noise_strength = 0.4
+turbulence_noise_scale = 3.0
+
+[sub_resource type="StandardMaterial3D" id="MoteMat"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 1)
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="MoteQuad"]
+material = SubResource("MoteMat")
+size = Vector2(0.06, 0.06)
+
+[node name="AscendantArena" type="Node3D"]
+script = ExtResource("1_view")
+config = ExtResource("4_cfg")
+
+[node name="Geometry" parent="." instance=ExtResource("2_geo")]
+
+[node name="Lighting" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
+environment = SubResource("Env")
+
+[node name="Ambience" type="Node3D" parent="."]
+
+[node name="Signage" type="Node3D" parent="."]
+
+[node name="KeyLight" type="DirectionalLight3D" parent="Lighting"]
+transform = Transform3D(0.96593, 0.19827, -0.16637, 0, 0.64279, 0.76604, 0.25882, -0.73994, 0.62089, 0, 12, 8)
+light_color = Color(0.85, 0.88, 1.0, 1)
+light_energy = 1.1
+shadow_enabled = true
+directional_shadow_max_distance = 30.0
+
+[node name="StageSpotL" type="SpotLight3D" parent="Lighting"]
+transform = Transform3D(0.86603, 0.44147, -0.23474, 0, 0.46947, 0.88295, 0.5, -0.76466, 0.40657, -5, 9, 4)
+light_color = Color(1.0, 0.8, 0.5, 1)
+light_energy = 9.0
+spot_range = 22.0
+spot_angle = 28.0
+spot_attenuation = 0.6
+
+[node name="StageSpotR" type="SpotLight3D" parent="Lighting"]
+transform = Transform3D(0.86603, -0.44147, 0.23474, 0, 0.46947, 0.88295, -0.5, -0.76466, 0.40657, 5, 9, 4)
+light_color = Color(0.55, 0.75, 1.0, 1)
+light_energy = 9.0
+spot_range = 22.0
+spot_angle = 28.0
+spot_attenuation = 0.6
+
+[node name="RimBlue" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -6)
+light_color = Color(0.25, 0.5, 1.0, 1)
+light_energy = 3.0
+omni_range = 16.0
+
+[node name="ScreenGlow" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -20)
+light_color = Color(0.3, 0.5, 1.0, 1)
+light_energy = 4.0
+omni_range = 22.0
+
+[node name="GoldMotes" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -3)
+amount = 140
+lifetime = 8.0
+preprocess = 8.0
+visibility_aabb = AABB(-40, -10, -40, 80, 40, 80)
+process_material = SubResource("MotesMat")
+draw_pass_1 = SubResource("MoteQuad")
+
+[node name="Banner" type="Label3D" parent="Signage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13.5, -23.7)
+pixel_size = 0.04
+modulate = Color(1, 0.82, 0.45, 1)
+outline_modulate = Color(0.3, 0.15, 0, 0.8)
+outline_size = 12
+font_size = 96
+shaded = false
+double_sided = false
+text = "ASCENDANT CHAMPIONSHIP"
+
+[node name="ScreenL" type="Label3D" parent="Signage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 10, -23.7)
+pixel_size = 0.022
+modulate = Color(0.7, 0.85, 1, 1)
+outline_modulate = Color(0, 0, 0, 0.0)
+outline_size = 0
+font_size = 96
+shaded = false
+double_sided = false
+text = "ROUND OF THE BLOODLINE"
+
+[node name="ScreenR" type="Label3D" parent="Signage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 10, -23.7)
+pixel_size = 0.022
+modulate = Color(0.7, 0.85, 1, 1)
+outline_modulate = Color(0, 0, 0, 0.0)
+outline_size = 0
+font_size = 96
+shaded = false
+double_sided = false
+text = "LIVE  //  WORLD FEED"
+
+[node name="FloorMark" type="Label3D" parent="Signage"]
+transform = Transform3D(1, -0, 0, 0, 6.1232e-17, 1, 0, -1, 6.1232e-17, 0, 0.01, 2.6)
+pixel_size = 0.03
+modulate = Color(1, 0.8, 0.4, 0.18)
+outline_modulate = Color(0, 0, 0, 0.0)
+outline_size = 0
+font_size = 96
+shaded = false
+double_sided = false
+text = "VANGUARD"

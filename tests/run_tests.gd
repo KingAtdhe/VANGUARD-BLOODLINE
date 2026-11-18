@@ -13,6 +13,8 @@ extends SceneTree
 ## "SCRIPT ERROR" appears in the output — always check the log, not just PASS.
 
 const TEST_DIRS: Array[String] = ["res://tests/unit", "res://tests/integration"]
+## Tests never touch the player's real save.
+const TEST_SAVE: String = "user://test_save.json"
 
 
 var _done: bool = false
@@ -40,6 +42,7 @@ func _run_all() -> void:
 				var name: String = method.name
 				if not name.begins_with("test_"):
 					continue
+				_fresh_state()
 				var failures: Array = suite.call(name)
 				if failures.is_empty():
 					print("PASS  %s::%s" % [file_name, name])
@@ -49,6 +52,7 @@ func _run_all() -> void:
 					for f: Variant in failures:
 						print("        - %s" % f)
 					failed += 1
+	_fresh_state()
 	print("\n%d passed, %d failed" % [passed, failed])
 	quit(0 if failed == 0 else 1)
 
@@ -63,3 +67,19 @@ func _list_test_files(dir_path: String) -> PackedStringArray:
 			result.append(f)
 	result.sort()
 	return result
+
+
+## Every test starts from a clean save file and no pending mode run.
+func _fresh_state() -> void:
+	SaveManager.path = TEST_SAVE
+	for suffix: String in ["", ".tmp"]:
+		if FileAccess.file_exists(TEST_SAVE + suffix):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(TEST_SAVE + suffix))
+	var corrupt: String = TEST_SAVE.get_basename() + ".corrupt.json"
+	if FileAccess.file_exists(corrupt):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(corrupt))
+	SaveManager.unload()
+	ModeFlow.setup = null
+	ModeFlow.mode = MatchSetup.Mode.VERSUS
+	ModeFlow.p1_id = &"kairo"
+	SessionSettings.ai_difficulty = 1

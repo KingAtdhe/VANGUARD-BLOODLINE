@@ -56,18 +56,35 @@ theme_override_font_sizes/font_size = 32
 text = "detail"
 horizontal_alignment = 1
 
-[node name="RematchButton" type="Button" parent="Center/Panel/List"]
+[node name="RewardLines" type="Label" parent="Center/Panel/List"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(620, 110)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 42
+theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
+theme_override_font_sizes/font_size = 34
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Panel/List"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 28
+
+[node name="RematchButton" type="Button" parent="Center/Panel/List/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(440, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
 text = "Rematch"
 
-[node name="MenuButton" type="Button" parent="Center/Panel/List"]
+[node name="ContinueButton" type="Button" parent="Center/Panel/List/Buttons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(620, 110)
+custom_minimum_size = Vector2(440, 110)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 40
+text = "Continue"
+
+[node name="MenuButton" type="Button" parent="Center/Panel/List/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(440, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
 text = "Main menu"

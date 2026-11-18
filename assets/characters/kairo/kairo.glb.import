@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dsb2fbj41ncp4"
-path="res://.godot/imported/kairo_blockout.glb-a5a63ad2fcd88c760fb5513f77b403e5.scn"
+uid="uid://ga4p36vhawdm"
+path="res://.godot/imported/kairo.glb-636de0b9d991ccf27b23b919deadda74.scn"
 
 [deps]
 
-source_file="res://assets/characters/kairo/kairo_blockout.glb"
-dest_files=["res://.godot/imported/kairo_blockout.glb-a5a63ad2fcd88c760fb5513f77b403e5.scn"]
+source_file="res://assets/characters/kairo/kairo.glb"
+dest_files=["res://.godot/imported/kairo.glb-636de0b9d991ccf27b23b919deadda74.scn"]
 
 [params]
 

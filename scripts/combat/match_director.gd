@@ -55,6 +55,9 @@ var phase_ticks: int = 0
 var results: Array[RoundResult] = []
 ## Match winner (0/1) or -1 for a draw. Valid only in MATCH_END.
 var match_winner: int = -1
+## Health each fighter starts round 1 with; -1 = full. Survival carries the
+## player's health between matches this way (spec §6.1 "limited recovery").
+var opening_health: Array[int] = [-1, -1]
 
 
 func _init(match_rules: MatchRules) -> void:
@@ -134,6 +137,8 @@ func _start_round(sim: CombatSimulation) -> void:
 	sim.reset()
 	for i: int in 2:
 		sim.fighters[i].meter = carried[i]
+		if round_number == 1 and opening_health[i] > 0:
+			sim.fighters[i].health = mini(opening_health[i], sim.definitions[i].base_health)
 	_set_phase(Phase.FIGHT if rules.training else Phase.INTRO)
 	round_started.emit(round_number)
 	if rules.training:
