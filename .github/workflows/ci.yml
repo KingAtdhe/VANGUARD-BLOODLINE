@@ -21,9 +21,18 @@ jobs:
       - name: Import project
         run: ./godot --headless --path . --import
       - name: Run tests
-        run: ./godot --headless --path . --script res://tests/run_tests.gd
+        run: |
+          ./godot --headless --path . --script res://tests/run_tests.gd 2>&1 | tee tests.log
+          test "${PIPESTATUS[0]}" -eq 0
+          # GDScript runtime errors can't be caught by the runner; fail on any.
+          ! grep -E "SCRIPT ERROR|^ERROR" tests.log
       - name: Run main scene (smoke)
         run: |
           ./godot --headless --path . --fixed-fps 60 --quit-after 240 2>&1 | tee run.log
           grep -q "SceneRouter\] -> res://scenes/menus/main_menu.tscn" run.log
           ! grep -E "^(SCRIPT )?ERROR" run.log
+      - name: Run greybox combat scene (smoke)
+        run: |
+          ./godot --headless --path . res://scenes/combat/combat_greybox.tscn --fixed-fps 60 --quit-after 300 2>&1 | tee combat.log
+          grep -q "\[Combat\] greybox ready" combat.log
+          ! grep -E "SCRIPT ERROR|^ERROR" combat.log

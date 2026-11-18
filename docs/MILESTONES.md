@@ -3,7 +3,7 @@
 Acceptance criteria are defined in `PRODUCTION_PACKAGE.md` §12. One milestone at
 a time; each completed milestone is tagged in Git (`m0`, `m1`, …).
 
-## Milestone 0 — repository and project setup  ✅ implemented, awaiting approval
+## Milestone 0 — repository and project setup  ✅ approved
 
 - [x] Repository created (`KingAtdhe/VANGUARD-BLOODLINE`)
 - [x] `CLAUDE.md` added
@@ -24,14 +24,24 @@ Acceptance:
 - [x] No missing resource errors — verified headless
 - [x] Git repository clean after milestone commit
 
-## Milestone 1 — greybox arena and fighters
-- [ ] Greybox stage
-- [ ] Two capsule/primitive fighters
-- [ ] Camera rig
-- [ ] Spawn points
-- [ ] Arena boundaries
-- [ ] Movement and facing (fixed 60 Hz tick)
-- [ ] Basic debug display
+## Milestone 1 — greybox arena and fighters  ✅ implemented, awaiting approval
+- [x] Greybox stage (`scenes/arenas/greybox_arena.tscn`)
+- [x] Two capsule/primitive fighters (P1 Kairo placeholder, P2 idle training dummy)
+- [x] Camera rig (midpoint tracking, bounded zoom, visibility guarantee)
+- [x] Spawn points (from `data/arenas/greybox_arena.tres`)
+- [x] Arena boundaries (walls placed from the same data)
+- [x] Movement and facing on a fixed 60 Hz tick, pushboxes, max separation
+- [x] Basic debug display (F3) + temporary debug touch buttons
+- [x] Main menu "Fight" opens the greybox scene; Menu/back returns
+
+Acceptance:
+- [x] Both fighters remain within the arena — unit + integration tests
+- [x] They face each other correctly — unit + integration tests
+- [x] Camera keeps both fighters visible — integration test (frustum check at
+      feet/centre/head while walking to both walls) + visual capture
+- [x] Movement works at different render frame rates — identical per-tick
+      positions at 30/60/90/120/144 fps and jittery frame times
+- [ ] **On-device check (touch debug buttons, framing on a real phone) — NOT VERIFIED**
 
 ## Milestone 2 — attacks and hit detection
 ## Milestone 3 — match loop

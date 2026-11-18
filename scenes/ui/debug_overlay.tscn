@@ -1,0 +1,74 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/debug_overlay.gd" id="1_overlay"]
+[ext_resource type="Script" path="res://scripts/ui/safe_area_margin.gd" id="2_safe"]
+
+[node name="DebugOverlay" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_overlay")
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+[node name="Root" type="Control" parent="SafeArea"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="InfoPanel" type="PanelContainer" parent="SafeArea/Root"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 1100.0
+offset_bottom = 260.0
+mouse_filter = 2
+
+[node name="InfoLabel" type="Label" parent="SafeArea/Root/InfoPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "debug"
+
+[node name="BackButton" type="Button" parent="SafeArea/Root"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_bottom = 100.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 36
+text = "Menu"
+
+[node name="DebugMoveButtons" type="HBoxContainer" parent="SafeArea/Root"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -180.0
+offset_right = 520.0
+grow_vertical = 0
+theme_override_constants/separation = 40
+
+[node name="DebugLeftButton" type="Button" parent="SafeArea/Root/DebugMoveButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 180)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 40
+text = "DEBUG
+◀"
+
+[node name="DebugRightButton" type="Button" parent="SafeArea/Root/DebugMoveButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 180)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 40
+text = "DEBUG
+▶"

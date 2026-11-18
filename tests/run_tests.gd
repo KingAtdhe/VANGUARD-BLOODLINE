@@ -6,11 +6,26 @@ extends SceneTree
 ##
 ## Each test file in TEST_DIRS extends RefCounted and exposes methods named
 ## test_*() that return an Array[String] of failure messages (empty = pass).
+##
+## Tests run on the first idle frame (not in _initialize) so the scene tree is
+## live and integration tests can add scenes whose _ready() actually runs.
+## GDScript cannot catch runtime script errors, so CI also fails the run if
+## "SCRIPT ERROR" appears in the output — always check the log, not just PASS.
 
 const TEST_DIRS: Array[String] = ["res://tests/unit", "res://tests/integration"]
 
 
-func _initialize() -> void:
+var _done: bool = false
+
+
+func _process(_delta: float) -> bool:
+	if not _done:
+		_done = true
+		_run_all()
+	return false
+
+
+func _run_all() -> void:
 	var passed: int = 0
 	var failed: int = 0
 	for dir_path: String in TEST_DIRS:

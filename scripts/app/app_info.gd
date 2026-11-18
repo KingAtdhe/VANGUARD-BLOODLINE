@@ -3,7 +3,7 @@ extends RefCounted
 ## Static build/version information.
 
 const GAME_TITLE: String = "VANGUARD: BLOODLINE"
-const BUILD_LABEL: String = "Prototype — Milestone 0"
+const BUILD_LABEL: String = "Prototype — Milestone 1"
 
 ## Engine version this project is pinned to. Must match README.md.
 const PINNED_GODOT_VERSION: String = "4.7.2"

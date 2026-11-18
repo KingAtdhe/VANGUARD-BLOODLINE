@@ -3,16 +3,16 @@
 Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 2.5D combat. *Working title — needs trademark and legal review before public use.*
 
-![Milestone 0 main menu placeholder](docs/images/m0_main_menu.png)
+![Milestone 1 greybox: two placeholder fighters at max separation](docs/images/m1_greybox_max_separation.png)
 
 ## Current status
 
 | | |
 |---|---|
-| Version | `0.0.1-m0` |
-| Milestone | **0 — repository and project setup** (complete, awaiting approval) |
-| Next | Milestone 1 — greybox arena and two primitive fighters |
-| Playable | No. Boot screen → placeholder main menu only. |
+| Version | `0.0.2-m1` |
+| Milestone | **1 — greybox arena and fighters** (complete, awaiting approval) |
+| Next | Milestone 2 — attacks and hit detection |
+| Playable | Movement only: Main menu → **Fight** → walk P1 (red) against an idle dummy (blue). No attacks yet. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.
@@ -56,7 +56,19 @@ UI scales with `canvas_items` / `expand` stretch.
 | Debug overlay | F3 | — |
 
 Actions are defined in `scripts/input/input_actions.gd`; bindings are generated
-by `tools/configure_input_map.gd`. No gameplay uses them yet.
+by `tools/configure_input_map.gd`. In Milestone 1 only left/right and F3 do
+anything. On a phone, use the labelled **DEBUG ◀ ▶** buttons (temporary until
+Milestone 4 touch controls) and **Menu** / the back gesture to leave.
+
+## How combat runs (Milestone 1)
+
+- `CombatClock` turns render time into fixed **60 Hz ticks**; rendering
+  interpolates between ticks. Gameplay is identical at any refresh rate.
+- `CombatSimulation` (no nodes, fully deterministic) owns positions, facing,
+  pushboxes, walls and max separation. Scenes only display it.
+- Tuning lives in `data/` as typed resources — e.g. walk speeds in
+  `data/fighters/kairo_movement.tres`, walls/spawns in
+  `data/arenas/greybox_arena.tres`.
 
 ## Tests
 

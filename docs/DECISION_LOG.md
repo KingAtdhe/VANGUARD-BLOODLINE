@@ -49,10 +49,58 @@ review before any store upload. arm64-v8a only for now. **Provisional.**
 Single autoload guards against overlapping transitions (spec §9.3). Scene paths
 are listed in `scripts/app/scene_paths.gd`. **Accepted.**
 
+## D-010 — 2026-11-18 — Typed Resources are the canonical gameplay data format
+Gameplay data uses typed custom `Resource` scripts saved as `.tres` in `data/`
+(e.g. `ArenaConfig`, `FighterMovementProfile`). Gives editor validation and
+typed access; each type has a `validate()` method used at scene start and in
+tests. No parallel JSON copies (spec §9.5). Resolves the M1/M2 open decision.
+**Accepted.**
+
+## D-011 — 2026-11-18 — Own kinematic simulation, not the physics engine
+Fighters are simulated by `CombatSimulation` (plain `RefCounted`, no nodes)
+moving along X only, instead of `CharacterBody3D`/physics. Reasons: exact
+determinism, explicit phase ordering, testable without a scene tree, and no
+physics-engine behaviour tied to frame timing. Scene nodes are views only
+(`FighterView`). The spec's fighter scene tree is adapted accordingly
+(§9.2 allows node changes if responsibilities stay clear). **Accepted.**
+
+## D-012 — 2026-11-18 — Fixed 60 Hz tick with render interpolation
+`CombatClock` accumulates render delta and returns whole 60 Hz ticks; max 5
+catch-up ticks per frame, excess time is dropped (no spiral of death). Views
+interpolate between the previous and current tick (`alpha`). Tests prove the
+same per-tick positions at 30/60/90/120/144 fps and jittery frame times.
+**Accepted.**
+
+## D-013 — 2026-11-18 — Movement rules and step order
+Step phases: intent → integrate (forward/back speed relative to facing) → max
+separation → pushbox resolve (walls win) → wall clamp → facing. Always P1
+before P2. Fighters face each other every tick; walking cannot cross the
+opponent (side switches arrive with jumps/throws later). Max separation 6 m
+keeps both fighters framable. Starting tuning: forward 2.6 m/s, back 2.0 m/s,
+pushbox half-width 0.35 m, arena walls ±6 m. **Accepted — tune in playtests.**
+
+## D-014 — 2026-11-18 — Camera framing
+Side-on, fixed pitch −5°, no rotation. FOV 30° vertical, distance 6.5–14 m,
+1.5 m edge margin, exponential smoothing with a hard visibility guarantee
+(fighters can never leave the frame, even while smoothing lags). Near walls
+the frame may show at most 0.5 m beyond the wall. Max distance covers 4:3
+tablets at max separation. **Accepted.**
+
+## D-015 — 2026-11-18 — Temporary debug touch buttons
+The greybox overlay has labelled "DEBUG ◀ ▶" buttons that press the same
+logical actions as the keyboard, so movement can be tried on a phone before
+Milestone 4 touch controls. They will be removed when the real touch layout
+lands. Android back gesture / "Menu" button return to the main menu until the
+pause menu (M3). **Accepted — temporary.**
+
+## D-016 — 2026-11-18 — Test runner runs on first frame
+Tests execute on the runner's first idle frame so integration tests can add
+real scenes to a live tree. Because GDScript can't catch runtime script errors,
+CI also fails if `SCRIPT ERROR`/`ERROR` appears in the log, and integration
+tests assert that the scene initialised before checking anything. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
-- **M1/M2:** Canonical move-data format — typed Godot `Resource` (`.tres`) vs
-  JSON. Recommendation: typed Resources for editor validation.
 - **M2:** Hitbox sampling — per-tick overlap vs swept. Recommendation: per-tick
   with sweep only for fast projectiles.
 - **M7:** Final title, logo and package name (legal review).
