@@ -35,6 +35,7 @@ extends Node
 @onready var _results: MatchResults = %MatchResults
 @onready var _touch: TouchControls = %TouchControls
 @onready var _training_panel: TrainingPanel = %TrainingPanel
+@onready var _audio: CombatAudio = %CombatAudio
 
 var simulation := CombatSimulation.new()
 var clock := CombatClock.new()
@@ -43,6 +44,8 @@ var dummy := TrainingDummyController.new()
 enum P2Mode { AI_BEGINNER, AI_STANDARD, AI_EXPERT, DUMMY_STAND, DUMMY_BLOCK, DUMMY_JAB }
 var p2_mode: P2Mode = P2Mode.AI_STANDARD
 var ai: AIController = null
+## Optional CPU for P1 (demo / attract mode, automated full-match tests).
+var p1_ai: AIController = null
 var _matches_started: int = 0
 var director: MatchDirector
 var _previous: Array[FighterState] = []
@@ -68,6 +71,8 @@ func _ready() -> void:
 
 	simulation.combat_log.echo_to_stdout = print_combat_log
 	simulation.setup(arena_config, p1_definition, p2_definition, combat_tuning)
+	_fighter_views[0].setup(p1_definition)
+	_fighter_views[1].setup(p2_definition)
 	director = MatchDirector.new(match_rules)
 	director.round_started.connect(_on_round_started)
 	p2_mode = P2Mode.DUMMY_STAND if match_rules.training else (SessionSettings.ai_difficulty as P2Mode)
@@ -84,6 +89,7 @@ func _ready() -> void:
 	_pause_menu.set_training(training)
 	_pause_menu.set_left_handed(_touch.left_handed)
 	_pause_menu.handedness_toggled.connect(toggle_handedness)
+	_touch.touched.connect(_skip_cinematic)
 	_hud.pause_pressed.connect(toggle_pause)
 	_pause_menu.resume_requested.connect(resume)
 	_pause_menu.restart_requested.connect(func() -> void: resume(); restart())
@@ -121,6 +127,8 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _camera_rig.in_cinematic() and event.is_pressed() and not event.is_echo():
+		_skip_cinematic()
 	if event.is_action_pressed(InputActions.PAUSE):
 		toggle_pause()
 	elif event.is_action_pressed(InputActions.DEBUG_RESET):
@@ -158,6 +166,12 @@ func start_match() -> void:
 	_previous = simulation.snapshot()
 	_seen_events = simulation.combat_log.total_count()
 	_render(0.0)
+
+
+## Ultimate cinematic is presentation-only: skipping just returns the camera.
+func _skip_cinematic() -> void:
+	if _camera_rig.in_cinematic():
+		_camera_rig.skip_cinematic()
 
 
 ## Debug R / pause-menu restart: training resets positions, versus restarts.
@@ -234,8 +248,13 @@ func _apply_p2_mode() -> void:
 func _on_round_started(round_number: int) -> void:
 	# The simulation was reset: don't interpolate from last round's positions.
 	_previous = simulation.snapshot()
+	for v: FighterView in _fighter_views:
+		if v.animator != null:
+			v.animator.set_override(&"")
 	if ai != null:
 		ai.reset()
+	if p1_ai != null:
+		p1_ai.reset()
 	if match_rules.training:
 		return
 	var final_round: bool = director.round_wins[0] == match_rules.rounds_to_win - 1 \
@@ -246,9 +265,19 @@ func _on_round_started(round_number: int) -> void:
 func _on_fight_started(_round_number: int) -> void:
 	if not match_rules.training:
 		_hud.announce("FIGHT!")
+		_audio.play(&"round")
 
 
 func _on_round_ended(result: MatchDirector.RoundResult) -> void:
+	# Victory pose for the winner; a time-out loser slumps (a KO'd one stays down).
+	if result.winner >= 0:
+		var w: FighterView = _fighter_views[result.winner]
+		if w.animator != null:
+			w.animator.set_override(simulation.definitions[result.winner].anim_victory)
+		var l: FighterView = _fighter_views[1 - result.winner]
+		if l.animator != null and result.reason == MatchDirector.Reason.TIME_OUT:
+			l.animator.set_override(simulation.definitions[1 - result.winner].anim_defeat)
+	_audio.play(&"ko" if result.reason != MatchDirector.Reason.TIME_OUT else &"round")
 	var text: String
 	match result.reason:
 		MatchDirector.Reason.KO:
@@ -279,7 +308,13 @@ func _gather_inputs() -> Array[FighterInputFrame]:
 		p2 = ai.next_input()
 	else:
 		p2 = dummy.input_for_tick(simulation.tick + 1)
-	return [LocalInputReader.read(), p2]
+	var p1: FighterInputFrame
+	if p1_ai != null:
+		p1_ai.observe(AIObservation.from_sim(simulation))
+		p1 = p1_ai.next_input()
+	else:
+		p1 = LocalInputReader.read()
+	return [p1, p2]
 
 
 func _present_new_events() -> void:
@@ -287,11 +322,16 @@ func _present_new_events() -> void:
 	for ev: CombatEvent in combat_log.events_since(_seen_events):
 		if match_rules.training:
 			_training_panel.on_event(ev, simulation)
+		_audio.on_event(ev, simulation)
 		match ev.type:
 			CombatEvent.Type.HIT:
 				_effects.spawn_for(ev)
 				_fighter_views[ev.target].flash()
 				_camera_rig.add_shake(0.015 + ev.damage / 2500.0)
+				var m: MoveData = simulation.definitions[ev.actor].move_for_id(ev.move_id)
+				if m != null and m.tags.has("ultimate"):
+					var mid: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5
+					_camera_rig.start_cinematic(mid, float(m.hitstop_frames) / CombatConstants.TICK_RATE)
 			CombatEvent.Type.BLOCK:
 				_effects.spawn_for(ev)
 				_camera_rig.add_shake(0.008)
@@ -308,9 +348,19 @@ func _render(delta: float) -> void:
 	_hitbox_view.show_boxes(simulation, xs)
 	_camera_rig.follow(xs[0], xs[1], delta)
 	_hud.refresh(simulation, director, delta)
+	_touch.set_action_enabled(InputActions.ULTIMATE, _ultimate_available(0))
 	if match_rules.training:
 		_training_panel.refresh(simulation, input_history)
 	_overlay.set_text(_debug_text(), _log_text())
+
+
+## True if P1 could use Surge or the ultimate right now (drives the ULT button).
+func _ultimate_available(i: int) -> bool:
+	var f: FighterState = simulation.fighters[i]
+	for m: MoveData in simulation.definitions[i].moves_for(&"ULTIMATE"):
+		if OriginMeter.can_use(f, simulation.definitions[i], m, simulation.tuning):
+			return true
+	return false
 
 
 func _debug_text() -> String:

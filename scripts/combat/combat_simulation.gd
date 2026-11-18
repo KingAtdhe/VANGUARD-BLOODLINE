@@ -9,7 +9,8 @@ extends RefCounted
 ##
 ## Scope so far: walking, facing, pushboxes, walls, max separation (M1);
 ## attacks, hitboxes, block, damage, stun, pushback, hitstop, KO (M2);
-## input buffer, cancel routes, combo counter and damage scaling (M4).
+## input buffer, cancel routes, combo counter and damage scaling (M4);
+## specials, moving attacks, Origin meter/Surge, ultimate, knockdown (M6).
 
 var arena: ArenaConfig
 var definitions: Array[FighterDefinition] = []
@@ -29,11 +30,16 @@ const _BUFFER_ORDER: Array[int] = [
 	FighterInputFrame.BUTTON_LIGHT,
 	FighterInputFrame.BUTTON_KICK,
 	FighterInputFrame.BUTTON_HEAVY,
+	FighterInputFrame.BUTTON_SPECIAL,
+	FighterInputFrame.BUTTON_ULTIMATE,
 ]
 const _PATTERNS: Dictionary = {
 	FighterInputFrame.BUTTON_LIGHT: &"LIGHT",
 	FighterInputFrame.BUTTON_KICK: &"KICK",
 	FighterInputFrame.BUTTON_HEAVY: &"HEAVY",
+	FighterInputFrame.BUTTON_SPECIAL: &"SPECIAL",
+	FighterInputFrame.CMD_FORWARD_SPECIAL: &"FORWARD_SPECIAL",
+	FighterInputFrame.BUTTON_ULTIMATE: &"ULTIMATE",
 }
 
 
@@ -95,7 +101,7 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 		hitstop_remaining -= 1
 		for i: int in 2:
 			var f: FighterState = fighters[i]
-			_register_presses(f, inputs[i].buttons if inputs[i] != null else 0)
+			_register_presses(f, inputs[i])
 			f.last_displacement = 0.0
 		return
 
@@ -110,6 +116,8 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 	var pushback_applied: Array[float] = [0.0, 0.0]
 	for i: int in 2:
 		var f: FighterState = fighters[i]
+		if f.action == FighterState.Action.ATTACK and f.move != null and f.move.moves_on_frame(f.move_frame):
+			f.position_x += f.facing * f.move.move_step()
 		if f.action == FighterState.Action.WALK and f.move_x != 0:
 			var speed: float = profile(i).walk_forward_speed if f.is_moving_forward() \
 					else profile(i).walk_backward_speed
@@ -163,7 +171,9 @@ func describe() -> String:
 
 func _update_state(i: int, input: FighterInputFrame) -> void:
 	var f: FighterState = fighters[i]
-	_register_presses(f, input.buttons)
+	_register_presses(f, input)
+	if OriginMeter.tick_surge(f, definitions[i], tuning):
+		_log_simple(CombatEvent.Type.SURGE_END, i)
 
 	match f.action:
 		FighterState.Action.KO:
@@ -174,7 +184,14 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 			f.move_frame += 1
 			if f.move_frame > f.move.total_frames():
 				_end_attack(i)
-		FighterState.Action.HITSTUN, FighterState.Action.BLOCKSTUN:
+		FighterState.Action.KNOCKDOWN:
+			# On the ground (no hurtbox), then get up.
+			if f.stun_remaining <= 0:
+				f.action = FighterState.Action.WAKEUP
+				f.stun_remaining = tuning.wakeup_ticks
+			else:
+				f.stun_remaining -= 1
+		FighterState.Action.WAKEUP, FighterState.Action.HITSTUN, FighterState.Action.BLOCKSTUN:
 			# Actionable on the tick after stun reaches 0 (N ticks of no control).
 			if f.stun_remaining <= 0:
 				_recover(f)
@@ -211,12 +228,19 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 
 
 ## Adds attack buttons pressed this tick (held now, not held last tick).
-func _register_presses(f: FighterState, held: int) -> void:
+## SPECIAL pressed while holding toward the opponent is buffered as the
+## FORWARD_SPECIAL command (direction is judged at the moment of the press).
+func _register_presses(f: FighterState, input: FighterInputFrame) -> void:
+	var held: int = input.buttons if input != null else 0
+	var move_x: int = input.move_x if input != null else 0
 	var pressed: int = held & ~f.held_buttons
 	f.held_buttons = held
 	for button: int in _BUFFER_ORDER:
 		if pressed & button:
-			f.buffer.append(Vector2i(button, 0))
+			var code: int = button
+			if button == FighterInputFrame.BUTTON_SPECIAL and move_x != 0 and move_x == f.facing:
+				code = FighterInputFrame.CMD_FORWARD_SPECIAL
+			f.buffer.append(Vector2i(code, 0))
 
 
 ## Advances buffer ages by one tick and drops expired presses.
@@ -235,10 +259,11 @@ func _age_buffer(f: FighterState) -> void:
 func _take_buffered(i: int, accept: Callable) -> MoveData:
 	var f: FighterState = fighters[i]
 	for k: int in range(f.buffer.size() - 1, -1, -1):
-		var move: MoveData = definitions[i].move_for(_PATTERNS.get(f.buffer[k].x, &""))
-		if move != null and accept.call(move):
-			f.buffer.remove_at(k)
-			return move
+		for move: MoveData in definitions[i].moves_for(_PATTERNS.get(f.buffer[k].x, &"")):
+			# Meter/Surge conditions first: an unaffordable move stays buffered.
+			if OriginMeter.can_use(f, definitions[i], move, tuning) and accept.call(move):
+				f.buffer.remove_at(k)
+				return move
 	return null
 
 
@@ -280,10 +305,18 @@ func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
 	ev.move_id = move.id
 	ev.cancel_from = from_id
 	combat_log.add(ev)
+	# Pay after logging the start, so an ultimate reads "starts … / surge ends".
+	if OriginMeter.pay(f, definitions[i], move):
+		_log_simple(CombatEvent.Type.SURGE_END, i)
 
 
 func _end_attack(i: int) -> void:
 	var f: FighterState = fighters[i]
+	if f.move.activates_surge:
+		OriginMeter.start_surge(f, definitions[i], tuning)
+		_log_simple(CombatEvent.Type.SURGE_START, i)
+		_to_idle(f)
+		return
 	if not f.move_connected:
 		var ev := CombatEvent.new()
 		ev.tick = tick
@@ -294,7 +327,15 @@ func _end_attack(i: int) -> void:
 	_to_idle(f)
 
 
-## Back to neutral from hitstun/blockstun: any combo on this fighter ends.
+func _log_simple(type: CombatEvent.Type, actor: int) -> void:
+	var ev := CombatEvent.new()
+	ev.tick = tick
+	ev.type = type
+	ev.actor = actor
+	combat_log.add(ev)
+
+
+## Back to neutral from hitstun/blockstun/wake-up: any combo on this fighter ends.
 func _recover(f: FighterState) -> void:
 	_to_idle(f)
 	f.combo_hits = 0

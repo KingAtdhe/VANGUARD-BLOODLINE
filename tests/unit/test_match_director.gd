@@ -262,3 +262,26 @@ func test_random_matches_always_end_validly() -> Array[String]:
 	if outcomes.size() < 2:
 		f.append("random matches all had the same outcome %s — scenario too weak" % [outcomes])
 	return f
+
+
+func test_meter_carries_between_rounds_not_matches() -> Array[String]:
+	var f: Array[String] = []
+	var s: Array = _setup()
+	var sim: CombatSimulation = s[0]
+	var d: MatchDirector = s[1]
+	var guard: int = 0
+	var aggressor: Callable = _p1_aggressor(sim)
+	var meter_at_ko: int = -1
+	while d.round_number < 2 and guard < 20000:
+		d.step(sim, [aggressor.call(guard), FighterInputFrame.neutral()])
+		if d.phase == MatchDirector.Phase.ROUND_END and meter_at_ko < 0:
+			meter_at_ko = sim.fighters[0].meter
+		guard += 1
+	if meter_at_ko <= 0:
+		return ["setup: P1 built no meter in round 1"]
+	if sim.fighters[0].meter != meter_at_ko:
+		f.append("meter not carried into round 2 (%d -> %d)" % [meter_at_ko, sim.fighters[0].meter])
+	d.start_match(sim)
+	if sim.fighters[0].meter != 0 or sim.fighters[1].meter != 0:
+		f.append("a new match must start with empty meters")
+	return f

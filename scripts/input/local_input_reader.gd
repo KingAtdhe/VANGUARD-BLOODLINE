@@ -17,4 +17,8 @@ static func read() -> FighterInputFrame:
 		frame.buttons |= FighterInputFrame.BUTTON_KICK
 	if Input.is_action_pressed(InputActions.BLOCK):
 		frame.buttons |= FighterInputFrame.BUTTON_BLOCK
+	if Input.is_action_pressed(InputActions.SPECIAL):
+		frame.buttons |= FighterInputFrame.BUTTON_SPECIAL
+	if Input.is_action_pressed(InputActions.ULTIMATE):
+		frame.buttons |= FighterInputFrame.BUTTON_ULTIMATE
 	return frame

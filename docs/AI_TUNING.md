@@ -50,6 +50,10 @@ reaches), **MID** (Kick/Heavy reach), **FAR**.
 | Mash Light out of stun | 0 % | 60 % | 60 % |
 | Style | predictable walk-in → attack → back-off cycle | balanced | adaptive (guards more vs aggressive opponents, attacks less into blockers) |
 | Anti-idle after (ticks) | 90 | 60 | 45 |
+| Special / forward-special weights | 1 / 1 | 1.5 / 1.5 | 2 / 1.5 |
+| Combo route | L, L, K | L, L, K, Palm | L, L, K, Palm |
+| Save meter for Surge above | never | 80 | 60 |
+| Surge / ultimate chance per decision | 20 % / 10 % | 40 % / 30 % | 70 % / 60 % |
 
 What the reaction delays mean with Kairo's moves: Expert (5) can block a
 kick (9f) or heavy (12f) on reaction, Standard (10) only the heavy, Beginner

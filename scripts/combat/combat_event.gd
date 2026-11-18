@@ -2,7 +2,7 @@ class_name CombatEvent
 extends RefCounted
 ## One entry in the combat log, stamped with the simulation tick.
 
-enum Type { ATTACK_START, HIT, BLOCK, WHIFF, KO, RESET }
+enum Type { ATTACK_START, HIT, BLOCK, WHIFF, KO, RESET, SURGE_START, SURGE_END, KNOCKDOWN }
 
 var tick: int = 0
 var type: Type = Type.HIT
@@ -45,6 +45,12 @@ func to_text() -> String:
 			return "t%d %s %s whiffed" % [tick, who, move_id]
 		Type.KO:
 			return "t%d P%d KO" % [tick, target + 1]
+		Type.SURGE_START:
+			return "t%d %s ORIGIN SURGE" % [tick, who]
+		Type.SURGE_END:
+			return "t%d %s surge ends" % [tick, who]
+		Type.KNOCKDOWN:
+			return "t%d P%d knocked down" % [tick, target + 1]
 		Type.RESET:
 			return "t%d reset" % tick
 	return "t%d %s" % [tick, type_name()]

@@ -26,8 +26,11 @@ const L: int = FighterInputFrame.BUTTON_LIGHT
 const H: int = FighterInputFrame.BUTTON_HEAVY
 const K: int = FighterInputFrame.BUTTON_KICK
 const B: int = FighterInputFrame.BUTTON_BLOCK
-const _BUTTON_FOR: Dictionary = {&"LIGHT": L, &"HEAVY": H, &"KICK": K}
-const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY"]
+const S: int = FighterInputFrame.BUTTON_SPECIAL
+const U: int = FighterInputFrame.BUTTON_ULTIMATE
+const _BUTTON_FOR: Dictionary = {&"LIGHT": L, &"HEAVY": H, &"KICK": K,
+	&"SPECIAL": S, &"FORWARD_SPECIAL": S, &"ULTIMATE": U}
+const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL", &"FORWARD_SPECIAL"]
 ## Extra distance at which a visible attack is treated as a threat.
 const THREAT_MARGIN: float = 0.35
 
@@ -62,6 +65,9 @@ var _last_opp_attack_tick: int = -100000
 var _opp_aggr: float = 0.0     # adaptive: how often the opponent attacks
 var _opp_block: float = 0.0    # adaptive: how often the opponent blocks
 var _tick: int = 0
+var _toward: int = 1
+## Own fighter as last seen (meter/surge decide which moves are affordable).
+var _me: AIObservation.Seen = null
 
 
 func _init(ai_profile: AIProfile, fighter_index: int, my_definition: FighterDefinition,
@@ -132,6 +138,8 @@ func next_input() -> FighterInputFrame:
 		opp_x += velocity * profile.reaction_delay_ticks * profile.anticipation
 	var dist: float = absf(opp_x - me.x)
 	var toward: int = 1 if opp_x > me.x else -1
+	_toward = toward
+	_me = me
 
 	match me.action:
 		FighterState.Action.KO:
@@ -193,6 +201,15 @@ func next_input() -> FighterInputFrame:
 		_set_state(State.BLOCK, "guarding")
 		return _emit(0, B)
 
+	# --- Origin Surge / ultimate (meter visible on the HUD) ---------------
+	if me.meter >= 100 and not me.in_surge and _decide_cooldown <= 1 and _rng.randf() < profile.surge_chance:
+		_set_state(State.ATTACK, "meter full")
+		return _tap(&"ULTIMATE", "activate Origin Surge", 0)
+	if me.in_surge and _decide_cooldown <= 1 and _move_in_range(&"ULTIMATE", dist, true) \
+			and _rng.randf() < profile.ultimate_chance:
+		_set_state(State.ATTACK, "Surge, in range")
+		return _tap(&"ULTIMATE", "ultimate Origin Break", 0)
+
 	# --- periodic neutral decision ----------------------------------------
 	_decide_cooldown -= 1
 	if _decide_cooldown <= 0:
@@ -227,6 +244,9 @@ func _attacking(latest: AIObservation, me: AIObservation.Seen) -> FighterInputFr
 		_route_pressed_for = attack_key
 		_route_pos += 1
 		var next: StringName = StringName(profile.combo_route[_route_pos])
+		if not _affordable(next):
+			_route_commit = false
+			return _emit(0, 0)
 		return _tap(next, "combo %d/%d" % [_route_pos + 1, profile.combo_route.size()], 0)
 	return _emit(0, 0)
 
@@ -334,11 +354,42 @@ static func _reach(m: MoveData, target: FighterDefinition) -> float:
 
 func _moves_in_range(dist: float) -> Array[StringName]:
 	var out: Array[StringName] = []
-	for pattern: StringName in [&"LIGHT", &"KICK", &"HEAVY"]:
-		var m: MoveData = me_def.move_for(pattern)
-		if m != null and dist <= _reach(m, opp_def) - 0.05:
+	for pattern: StringName in _ALL_PATTERNS:
+		if _move_in_range(pattern, dist, false):
 			out.append(pattern)
 	return out
+
+
+## In range and affordable (meter/Surge as seen on the HUD).
+func _move_in_range(pattern: StringName, dist: float, surge_move: bool) -> bool:
+	for m: MoveData in me_def.moves_for(pattern):
+		if m.activates_surge or m.requires_surge != surge_move:
+			continue
+		var reach: float = _reach(m, opp_def) + m.move_distance
+		if dist <= reach - 0.05 and _affordable_move(m):
+			return true
+	return false
+
+
+func _affordable(pattern: StringName) -> bool:
+	for m: MoveData in me_def.moves_for(pattern):
+		if not m.activates_surge and not m.requires_surge and _affordable_move(m):
+			return true
+	return false
+
+
+func _affordable_move(m: MoveData) -> bool:
+	if _me == null:
+		return m.meter_cost == 0
+	if m.requires_surge and not _me.in_surge:
+		return false
+	var free: bool = _me.in_surge and me_def.surge_free_specials and m.tags.has("special")
+	if free:
+		return true
+	# Meter discipline: save a nearly-full meter for Origin Surge.
+	if m.meter_cost > 0 and not m.requires_surge and _me.meter >= profile.save_for_surge_above:
+		return false
+	return _me.meter >= m.meter_cost
 
 
 func band(dist: float) -> Band:
@@ -377,7 +428,8 @@ func _pick_punish(remaining: int, dist: float) -> StringName:
 	var best_damage: int = -1
 	for pattern: StringName in _ALL_PATTERNS:
 		var m: MoveData = me_def.move_for(pattern)
-		if m == null or m.startup_frames > remaining or dist > _reach(m, opp_def) - 0.05:
+		if m == null or m.startup_frames > remaining or dist > _reach(m, opp_def) + m.move_distance - 0.05 \
+				or not _affordable_move(m):
 			continue
 		if not profile.punish_optimally:
 			return pattern
@@ -410,6 +462,9 @@ func _set_state(s: State, reason: String) -> void:
 ## so the simulation always sees a fresh press.
 func _tap(pattern: StringName, reason: String, move_x: int) -> FighterInputFrame:
 	var button: int = _BUTTON_FOR.get(pattern, L)
+	# Specials are direction-sensitive: forward = toward the opponent.
+	if pattern == &"FORWARD_SPECIAL":
+		move_x = _toward
 	decision_log.add(_tick, State.keys()[state], "press %s (%s)" % [pattern, reason])
 	if _last_buttons & button:
 		_pending = button

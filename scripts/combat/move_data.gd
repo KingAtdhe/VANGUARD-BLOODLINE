@@ -53,13 +53,31 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## Empty = this move cannot be cancelled.
 @export var cancel_tags: PackedStringArray = PackedStringArray()
 
-@export_group("Reserved for later milestones")
-## Origin meter (M6).
+@export_group("Movement")
+## Distance (m) the attacker travels forward during the move, spread evenly
+## over frames move_start_frame..move_end_frame. Pushboxes still apply.
+@export var move_distance: float = 0.0
+@export var move_start_frame: int = 1
+@export var move_end_frame: int = 1
+
+@export_group("Origin meter")
 @export var meter_gain_on_hit: int = 0
 @export var meter_gain_on_block: int = 0
+## Meter spent when the move starts (minimum required when consumes_all_meter).
 @export var meter_cost: int = 0
-## Knockdown/launch states (M3+).
+## Ultimate: spends ALL remaining meter and ends Origin Surge.
+@export var consumes_all_meter: bool = false
+## Only usable while Origin Surge is active.
+@export var requires_surge: bool = false
+## Origin Surge activation (needs a full meter, has no hitbox).
+@export var activates_surge: bool = false
+
+@export_group("Reaction")
+## On hit (not block): defender is knocked down, then gets up (both
+## invulnerable), ending any combo.
 @export var knockdown: bool = false
+
+@export_group("Reserved for later milestones")
 @export var launch: bool = false
 @export var airborne_allowed: bool = false
 ## Only if the move design genuinely needs one (0 = none).
@@ -73,6 +91,15 @@ func total_frames() -> int:
 ## True when [param frame] (1-based frame of the move) has an active hitbox.
 func is_active_frame(frame: int) -> bool:
 	return frame >= startup_frames and frame < startup_frames + active_frames
+
+
+func moves_on_frame(frame: int) -> bool:
+	return move_distance > 0.0 and frame >= move_start_frame and frame <= move_end_frame
+
+
+## Forward distance per moving frame.
+func move_step() -> float:
+	return move_distance / float(move_end_frame - move_start_frame + 1)
 
 
 ## True if [param target] may cancel this move (tag match only; timing and
@@ -111,12 +138,16 @@ func validate() -> Array[String]:
 		p.append("%s: invalid frame counts" % id)
 	if hitstun_frames < 1 or blockstun_frames < 1 or hitstop_frames < 0:
 		p.append("%s: invalid stun/hitstop frames" % id)
-	if damage < 0 or chip_damage < 0 or chip_damage > damage:
+	if damage < 0 or chip_damage < 0 or chip_damage > damage or meter_cost < 0:
 		p.append("%s: invalid damage/chip" % id)
 	if pushback < 0.0:
 		p.append("%s: pushback must be >= 0" % id)
 	if tags.is_empty():
 		p.append("%s: tags is empty" % id)
-	if hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0:
+	if not activates_surge and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
 		p.append("%s: hitbox_size must be positive" % id)
+	if move_distance < 0.0 or move_end_frame < move_start_frame:
+		p.append("%s: invalid movement" % id)
+	if activates_surge and requires_surge:
+		p.append("%s: cannot both activate and require surge" % id)
 	return p

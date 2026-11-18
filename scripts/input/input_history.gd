@@ -52,4 +52,8 @@ static func _button_text(b: int) -> String:
 		s += "K"
 	if b & FighterInputFrame.BUTTON_BLOCK:
 		s += "B"
+	if b & FighterInputFrame.BUTTON_SPECIAL:
+		s += "S"
+	if b & FighterInputFrame.BUTTON_ULTIMATE:
+		s += "U"
 	return s if not s.is_empty() else "-"

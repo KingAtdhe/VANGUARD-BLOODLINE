@@ -20,6 +20,9 @@ const PIP_OFF := Color(0.25, 0.25, 0.28)
 @onready var _announce: Label = %AnnounceLabel
 @onready var _pause_button: Button = %PauseButton
 @onready var _combo_labels: Array[Label] = [%P1Combo, %P2Combo]
+@onready var _meters: Array[ProgressBar] = [%P1Meter, %P2Meter]
+@onready var _meter_labels: Array[Label] = [%P1MeterLabel, %P2MeterLabel]
+var _accents: Array[Color] = [Color(1.0, 0.15, 0.1), Color(0.25, 0.6, 1.0)]
 
 var _announce_left: float = 0.0
 var _hold_announce: bool = false
@@ -65,6 +68,21 @@ func refresh(sim: CombatSimulation, director: MatchDirector, delta: float) -> vo
 		var pips: Array[Node] = _pips[i].get_children()
 		for p: int in pips.size():
 			(pips[p] as ColorRect).color = PIP_ON if p < director.round_wins[i] else PIP_OFF
+	# Origin meter: label "MAX" when full, "SURGE" (pulsing) while active.
+	for i: int in 2:
+		var f: FighterState = sim.fighters[i]
+		_meters[i].max_value = sim.tuning.meter_max
+		_meters[i].value = f.meter
+		var col: Color = _accents[i]
+		if f.in_surge():
+			_meter_labels[i].text = "SURGE"
+			col = col.lightened(0.35 + 0.25 * sin(Time.get_ticks_msec() * 0.015))
+		elif f.meter >= sim.tuning.meter_max:
+			_meter_labels[i].text = "MAX"
+			col = col.lightened(0.3)
+		else:
+			_meter_labels[i].text = "ORIGIN %d" % f.meter
+		_meters[i].modulate = col
 	# Combo counter on the ATTACKER's side, counted on the defender.
 	for i: int in 2:
 		var hits: int = sim.fighters[1 - i].combo_hits
@@ -108,6 +126,14 @@ func set_fighter_name(i: int, text: String) -> void:
 
 func fighter_name(i: int) -> String:
 	return _names[i].text
+
+
+func meter_value(i: int) -> float:
+	return _meters[i].value
+
+
+func meter_text(i: int) -> String:
+	return _meter_labels[i].text
 
 
 func combo_text(i: int) -> String:

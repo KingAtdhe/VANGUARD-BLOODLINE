@@ -15,6 +15,8 @@ extends RefCounted
 ##   - KO: the other fighter wins the round. Both KO on the same tick = draw.
 ##   - Time-out: more health wins; equal health = draw.
 ##   - Draw: both fighters get the round if rules.draw_awards_both.
+## Origin meter carries over between rounds of a match (Surge does not); a new
+## match starts at 0.
 ## The match ends as soon as a fighter reaches rounds_to_win (both at once =
 ## match draw) or after rules.max_rounds, so it always reaches an end state.
 ##
@@ -122,9 +124,16 @@ func last_result() -> RoundResult:
 # --- internals ----------------------------------------------------------------
 
 func _start_round(sim: CombatSimulation) -> void:
+	var carried: Array[int] = [0, 0]
+	if round_number > 0:
+		for i: int in 2:
+			# An active Surge's draining meter is not carried; a stored one is.
+			carried[i] = 0 if sim.fighters[i].in_surge() else sim.fighters[i].meter
 	round_number += 1
 	timer_ticks = rules.round_ticks()
 	sim.reset()
+	for i: int in 2:
+		sim.fighters[i].meter = carried[i]
 	_set_phase(Phase.FIGHT if rules.training else Phase.INTRO)
 	round_started.emit(round_number)
 	if rules.training:
@@ -136,6 +145,9 @@ func _training_refill(sim: CombatSimulation) -> void:
 		var f: FighterState = sim.fighters[i]
 		if f.is_neutral() and f.combo_hits == 0 and f.health < sim.definitions[i].base_health:
 			f.health = sim.definitions[i].base_health
+		# Training: meter refills too (outside Surge) so specials can be practised.
+		if f.is_neutral() and not f.in_surge() and f.meter < sim.tuning.meter_max:
+			f.meter = sim.tuning.meter_max
 
 
 func _check_round_end(sim: CombatSimulation) -> void:

@@ -13,7 +13,8 @@ var _sparks: Array[Dictionary] = []
 
 func spawn_for(event: CombatEvent) -> void:
 	var is_hit: bool = event.type == CombatEvent.Type.HIT
-	var size: float = (0.25 + event.damage / 250.0) if is_hit else 0.22
+	# Capped so even an ultimate never hides the fighters (spec §4.7).
+	var size: float = minf(0.55, 0.25 + event.damage / 250.0) if is_hit else 0.22
 	var mi := MeshInstance3D.new()
 	var mesh := SphereMesh.new()
 	mesh.radius = 0.5

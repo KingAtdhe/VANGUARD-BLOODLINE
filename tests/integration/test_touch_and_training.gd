@@ -95,7 +95,8 @@ func test_touch_left_handed_mirrors_layout() -> Array[String]:
 		f.append("stick not mirrored")
 	# Buttons stay inside the screen and away from the edges.
 	var h: float = tc.get_viewport().get_visible_rect().size.y
-	for a: StringName in [InputActions.ATTACK_LIGHT, InputActions.ATTACK_HEAVY, InputActions.ATTACK_KICK, InputActions.BLOCK]:
+	for a: StringName in [InputActions.ATTACK_LIGHT, InputActions.ATTACK_HEAVY, InputActions.ATTACK_KICK,
+			InputActions.BLOCK, InputActions.SPECIAL, InputActions.ULTIMATE]:
 		var c: Vector2 = tc.button_center(a)
 		if c.x < 100 or c.x > w - 100 or c.y < 100 or c.y > h - 100:
 			f.append("%s too close to the screen edge at %s" % [a, c])

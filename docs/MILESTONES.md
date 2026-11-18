@@ -96,7 +96,7 @@ Acceptance:
 - [x] No infinite combo possible in the tested move set — exhaustive 363-route × 4-situation
       search; max 3 hits; defender always recovers
 - [ ] **On-device check (touch feel, thumb reach, multi-touch on a real phone) — NOT VERIFIED**
-## Milestone 5 — AI  ✅ implemented, awaiting approval
+## Milestone 5 — AI  ✅ approved
 - [x] AI state machine (spec states) — `AIController`
 - [x] Distance evaluation (bands from the fighter's own move ranges, spacing projection)
 - [x] Attack selection (weighted, in-range, close-range Light bias, combo route)
@@ -115,7 +115,22 @@ Acceptance:
       Beginner/Standard; Expert takes hits; every level beats a passive opponent; idle
       streak bounded
 - [ ] **Feel vs a human on a phone — NOT VERIFIED (needs playtests)**
-## Milestone 6 — Kairo vertical slice
+## Milestone 6 — Kairo vertical slice  ✅ implemented (blockout art), awaiting approval
+- [~] Create final Kairo model in Blender — **blockout** built from scratch by script; final art pending an artist
+- [x] Rig and skin — humanoid skeleton (Godot profile names), rigid skin
+- [x] Export to GLB / import into Godot (60 fps import)
+- [x] Animation state machine — `FighterAnimator`, simulation-driven
+- [x] Base animation set for the current mechanics (17 animations; dash/crouch/jump/throw wait for their mechanics)
+- [x] Two special moves — Origin Palm, Rift Break
+- [x] Origin Surge and ultimate (Origin Break) with meter, HUD, SP/ULT touch buttons, skippable cinematic
+- [~] Voice/sound — original synthesized SFX placeholders; voice and final audio pending
+
+Acceptance:
+- [x] Kairo can complete a full match — CPU-vs-CPU full match through the real scene, results + victory pose
+- [x] Animations transition cleanly — state-driven with cross-fades; attack poses reached before active frames
+- [x] No severe mesh deformation — rigid skin, every vertex 100 % one bone (test)
+- [x] Hitboxes align with attacks — limb inside hitbox on every active frame, both facings (test, mutation-checked)
+- [ ] **Performance meets agreed device target — NOT VERIFIED** (no device; blockout is 1,638 tris × 2 fighters, 6 materials each)
 ## Milestone 7 — UI, menus and modes
 ## Milestone 8 — remaining fighters and arenas
 ## Milestone 9 — release preparation

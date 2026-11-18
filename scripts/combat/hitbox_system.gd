@@ -11,7 +11,7 @@ extends RefCounted
 
 ## Standing hurtbox. Empty (no area) when the fighter cannot be hit (KO).
 static func hurtbox(def: FighterDefinition, s: FighterState) -> Rect2:
-	if s.action == FighterState.Action.KO:
+	if s.action == FighterState.Action.KO or s.is_downed():
 		return Rect2()
 	return Rect2(s.position_x - def.hurtbox_half_width, 0.0,
 		def.hurtbox_half_width * 2.0, def.hurtbox_height)
@@ -23,7 +23,7 @@ static func hurtbox(def: FighterDefinition, s: FighterState) -> Rect2:
 static func hitbox(s: FighterState) -> Rect2:
 	if s.action != FighterState.Action.ATTACK or s.move == null:
 		return Rect2()
-	if not s.move.is_active_frame(s.move_frame):
+	if s.move.activates_surge or not s.move.is_active_frame(s.move_frame):
 		return Rect2()
 	var c := Vector2(s.position_x + s.facing * s.move.hitbox_center.x, s.move.hitbox_center.y)
 	return Rect2(c - s.move.hitbox_size * 0.5, s.move.hitbox_size)

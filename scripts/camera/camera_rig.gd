@@ -39,6 +39,12 @@ var _distance: float = 6.0
 var _initialised: bool = false
 var _shake: float = 0.0
 var _shake_time: float = 0.0
+## Ultimate cinematic (presentation only — never changes the simulation).
+var _cine_left: float = 0.0
+var _cine_total: float = 0.0
+var _cine_x: float = 0.0
+## Reduced-motion/accessibility: disables cinematic moves (M7 settings).
+@export var cinematics_enabled: bool = true
 
 
 func configure(arena: ArenaConfig) -> void:
@@ -71,7 +77,40 @@ func follow(p1_x: float, p2_x: float, delta: float) -> void:
 	_center_x = _clamp_to_arena(_center_x, half_w, p1_x, p2_x)
 
 	position = Vector3(_center_x, height, _distance)
+	_apply_cinematic(delta)
 	_apply_shake(delta)
+
+
+## Short dramatic push-in toward [param focus_x] for [param seconds]. The
+## camera returns on its own; [method skip_cinematic] returns immediately.
+## Both fighters stay in frame (the push-in is bounded) and the HUD is
+## untouched, so no combat information is hidden (spec §4.7).
+func start_cinematic(focus_x: float, seconds: float) -> void:
+	if not cinematics_enabled:
+		return
+	_cine_left = seconds
+	_cine_total = seconds
+	_cine_x = focus_x
+
+
+func skip_cinematic() -> void:
+	_cine_left = 0.0
+
+
+func in_cinematic() -> bool:
+	return _cine_left > 0.0
+
+
+func _apply_cinematic(delta: float) -> void:
+	if _cine_left <= 0.0:
+		return
+	_cine_left = maxf(0.0, _cine_left - delta)
+	# Ease in, hold, ease out.
+	var t: float = 1.0 - _cine_left / maxf(_cine_total, 0.001)
+	var w: float = smoothstep(0.0, 0.15, t) * (1.0 - smoothstep(0.75, 1.0, t))
+	position.x = lerpf(position.x, _cine_x, 0.5 * w)
+	position.z = lerpf(position.z, maxf(min_distance * 0.72, 4.2), w)
+	position.y = lerpf(position.y, height - 0.25, w)
 
 
 ## Adds an impact shake impulse (metres of offset, capped at MAX_SHAKE).

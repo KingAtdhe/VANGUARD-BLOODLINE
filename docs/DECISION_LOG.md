@@ -211,6 +211,41 @@ dummy. T / the debug "P2:" button cycles AI Beginner/Standard/Expert and
 dummy STAND/BLOCK/JAB. HUD shows "… — CPU <level>" or "— Dummy". AI is
 re-seeded per match. **Accepted.**
 
+## D-034 — 2026-11-18 — Kairo is a scripted, from-scratch blockout
+No final model exists yet, so Kairo is built by `tools/blender/build_kairo_blockout.py`
+from primitives (no base mesh, no external assets), rigged to a Godot-humanoid
+skeleton with rigid skinning, animated with IK-placed key poses whose active
+frames come from the move data, and exported as GLB. Clearly labelled
+`BLOCKOUT`. Final art replaces it under the same conventions
+(`docs/BLENDER_PIPELINE.md`). **Accepted — placeholder.**
+
+## D-035 — 2026-11-18 — Animation follows the simulation
+`FighterAnimator` seeks attack animations to the move frame (frame N = tick
+N) and freezes reactions during hitstop; the AnimationPlayer is never the
+combat clock (spec §9.3). Tests sample the real model on every active frame
+and require the striking limb inside the hitbox. **Accepted.**
+
+## D-036 — 2026-11-18 — Specials, meter, Surge and ultimate model
+Special = Origin Palm (25 meter); toward+Special = Rift Break (free, moves,
+knockdown). Ultimate button: at full meter → Origin Surge (readable 20-frame
+activation, 5 s, meter drains, ×1.15 damage, free specials); during Surge →
+Origin Break (needs ≥ 30, spends all, ends Surge). Meter carries between
+rounds. Knockdown/get-up are invulnerable and end combos. **Accepted — tune
+in playtests.**
+
+## D-037 — 2026-11-18 — Ultimate cinematic is presentation-only
+The ultimate's 60-tick hitstop is the "cinematic"; the camera pushes in
+(bounded, fighters and HUD stay visible) and returns. Any touch/key skips
+the camera move without changing the simulation, so it stays deterministic
+and could later run online. `CameraRig.cinematics_enabled` is the hook for
+the reduced-motion setting. **Accepted.**
+
+## D-038 — 2026-11-18 — Placeholder audio is synthesized in-repo
+`tools/audio/generate_placeholder_sfx.py` creates original `placeholder_*.wav`
+effects (no samples, deterministic). No voice placeholders — voice needs a
+performer. Headless runs record sounds without playing them. **Accepted —
+replace before release.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

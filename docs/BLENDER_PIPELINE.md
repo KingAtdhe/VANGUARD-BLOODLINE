@@ -1,6 +1,72 @@
 # Blender Pipeline
 
-Status: placeholder — filled in at Milestone 6 (Kairo vertical slice).
+Canonical source: `PRODUCTION_PACKAGE.md` §8.2–§8.4. Implemented in
+Milestone 6 with a **scripted blockout**; final art plugs into the same
+pipeline.
 
-Canonical source: `PRODUCTION_PACKAGE.md` §8.2–§8.4. This file will only add
-implementation-level detail on top of it (see decision D-007).
+## What exists now
+
+`tools/blender/build_kairo_blockout.py` builds Kairo **from scratch** (no
+base mesh, no external assets) and exports `assets/characters/kairo/kairo_blockout.glb`:
+
+- stylized blockout mesh from primitives — 1,638 triangles, 6 materials
+  (`BLOCKOUT_*`), red Origin-energy accents;
+- humanoid skeleton (18 bones) named per Godot `SkeletonProfileHumanoid`;
+- rigid skinning (every vertex 100 % on one bone → no joint deformation);
+- 17 actions, 60 fps, named `FIGHTER_ACTION_VARIANT`.
+
+The script is the source asset: it is versioned, reviewable and reproducible.
+It is a **placeholder** — clearly labelled, to be replaced by final art.
+
+### Rebuild
+
+```bash
+# 1. Export current move timings from the game data
+godot --headless --path . --script res://tools/blender/export_move_timing.gd -- /tmp/kairo_moves.json
+# 2. Build + export (Blender 5.x; works as `pip install bpy` or `blender -b -P`)
+python tools/blender/build_kairo_blockout.py --output assets/characters/kairo/kairo_blockout.glb --moves /tmp/kairo_moves.json
+# 3. Re-import and run tests (hitbox alignment will fail if anything drifted)
+godot --headless --path . --import && godot --headless --path . --script res://tests/run_tests.gd
+```
+
+## Conventions (final art must keep these)
+
+| Item | Convention |
+|---|---|
+| Units / scale | Metres; Kairo ≈ 1.8 m tall; origin on the ground between the feet |
+| Orientation | Character faces **−Y** in Blender (+Z after glTF export); Z up |
+| Skeleton | Bone names: `Root, Hips, Spine, Chest, Neck, Head, Left/Right UpperArm, LowerArm, Hand, UpperLeg, LowerLeg, Foot`. Extra bones (fingers, cloth) may be added; these must not be renamed |
+| Root motion | **None.** Animations are in place; the simulation moves the fighter (e.g. Rift Break's 1.4 m travel) |
+| Frame rate | 60 fps. Frame N of an attack animation = combat tick N of the move |
+| Attack length | Animation frames = move `startup + active − 1 + recovery` (test enforced) |
+| Hit poses | On every active frame the striking hand/foot must sit inside the move's hitbox (`hitbox_center` ± size/2, 6 cm tolerance; test enforced, both facings) |
+| Names | `KAIRO_IDLE_A`, `KAIRO_WALK_FORWARD`, `KAIRO_WALK_BACKWARD`, `KAIRO_BLOCK_HIGH`, `KAIRO_HIT_LIGHT`, `KAIRO_HIT_HEAVY`, `KAIRO_KNOCKDOWN`, `KAIRO_GETUP`, `KAIRO_VICTORY`, `KAIRO_DEFEAT`, `KAIRO_ATTACK_LIGHT_01`, `KAIRO_ATTACK_HEAVY_01`, `KAIRO_KICK_01`, `KAIRO_SPECIAL_ORIGIN_PALM`, `KAIRO_SPECIAL_RIFT_BREAK`, `KAIRO_SURGE_ACTIVATE`, `KAIRO_ULTIMATE_ORIGIN_BREAK` |
+| Export | glTF 2.0 binary (`.glb`), skins on, animations as actions, force sampling, Y-up |
+| Godot import | `animation/fps = 60` in the `.glb.import` (Godot's default 30 drops keys) |
+| Budgets | ≤ 45k triangles, 3–6 material slots (test enforced) |
+| Source files | `.blend` sources go through Git LFS (`.gitattributes`); never overwrite the only copy |
+
+Skin weights for final art may blend across bones (unlike the rigid
+blockout); the rigid-skin test then becomes a visual deformation review at
+extreme poses.
+
+## How the game uses the model
+
+`FighterDefinition.model_scene` points at the `.glb`; reaction animations are
+mapped on the definition (`anim_idle`, `anim_hit_light`, …) and attacks via
+each `MoveData.animation`. `FighterAnimator` picks the animation from
+simulation state and **seeks** attacks to their move frame — the animation is
+never the combat clock. `FighterView` turns the model to face the opponent
+(78° yaw: profile, slightly toward the camera) and recolours the Origin
+accent per player.
+
+## Base animation list — status
+
+| Spec §8.4 item | Status |
+|---|---|
+| Idle loop / walk forward / walk backward | ✅ |
+| Light, heavy, kick, block high, hit light, hit heavy | ✅ |
+| Knockdown, get-up | ✅ |
+| Special 1 (Origin Palm), special 2 (Rift Break), ultimate (Origin Break) | ✅ + Surge activation |
+| Victory, defeat | ✅ |
+| Idle variation, dash F/B, crouch idle/transition, jump start/air/land, block low, throw start/receive | ⏳ not needed until those mechanics exist |

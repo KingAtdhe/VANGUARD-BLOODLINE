@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/combat_scene.gd" id="1_combat"]
 [ext_resource type="Resource" path="res://data/arenas/greybox_arena.tres" id="2_arena_cfg"]
@@ -17,6 +17,7 @@
 [ext_resource type="Resource" path="res://data/rules/combat_tuning.tres" id="15_tuning"]
 [ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="16_touch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/training_panel.tscn" id="17_training"]
+[ext_resource type="Script" path="res://scripts/combat/combat_audio.gd" id="18_audio"]
 
 [node name="CombatScene" type="Node"]
 script = ExtResource("1_combat")
@@ -45,6 +46,7 @@ label_text = ""
 [node name="Fighter2" parent="." instance=ExtResource("6_fighter")]
 unique_name_in_owner = true
 body_color = Color(0.2, 0.42, 0.9, 1)
+accent_color = Color(0.2, 0.55, 1, 1)
 label_text = ""
 
 [node name="HitboxDebugView" type="Node3D" parent="."]
@@ -60,6 +62,10 @@ unique_name_in_owner = true
 
 [node name="MatchHUD" parent="." instance=ExtResource("12_hud")]
 unique_name_in_owner = true
+
+[node name="CombatAudio" type="Node" parent="."]
+unique_name_in_owner = true
+script = ExtResource("18_audio")
 
 [node name="TrainingPanel" parent="." instance=ExtResource("17_training")]
 unique_name_in_owner = true

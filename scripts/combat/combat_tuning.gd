@@ -15,6 +15,19 @@ extends Resource
 ## (e.g. 2 → Light, Light is allowed, a third Light is not).
 @export var max_same_move_in_chain: int = 2
 
+@export_group("Origin meter")
+@export var meter_max: int = 100
+## Defender gains this percent of damage taken as meter.
+@export var meter_on_damage_taken_percent: int = 12
+## Defender gains this much meter per blocked attack.
+@export var meter_on_block_taken: int = 2
+
+@export_group("Knockdown")
+## Ticks on the ground after a knockdown hit, then ticks getting up. The
+## fighter has no hurtbox during both.
+@export var knockdown_ticks: int = 45
+@export var wakeup_ticks: int = 20
+
 @export_group("Combo scaling")
 ## Damage percent for the 1st, 2nd, 3rd… hit of a combo.
 @export var combo_scaling_percent: PackedInt32Array = PackedInt32Array([100, 100, 80, 70, 60, 50])
@@ -49,6 +62,10 @@ func validate() -> Array[String]:
 		if v < 1 or v > 100:
 			p.append("combo scaling percents must be 1..100")
 			break
+	if meter_max < 1 or meter_on_damage_taken_percent < 0 or meter_on_block_taken < 0:
+		p.append("invalid meter settings")
+	if knockdown_ticks < 1 or wakeup_ticks < 1:
+		p.append("knockdown/wakeup ticks must be >= 1")
 	if combo_scaling_floor_percent < 1 or combo_scaling_floor_percent > 100:
 		p.append("combo_scaling_floor_percent must be 1..100")
 	return p

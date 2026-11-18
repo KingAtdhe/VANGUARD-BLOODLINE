@@ -24,3 +24,9 @@
 | KI-020 | M5 | AI difficulty is tuned machine-vs-machine only; Standard loses to frame-perfect L, L, K pressure scripts and may feel easy to strong players. Needs human playtests. | Open |
 | KI-021 | M5 | AI difficulty choice is session-only (resets on app restart) until the M7 save system. | Open |
 | KI-022 | M5 | P2 in versus uses the "Training Dummy" fighter data (a Kairo copy) until more fighters exist (M8); HUD labels it "— CPU <level>". | Open — by design |
+| KI-023 | M6 | Kairo is a scripted blockout (labelled BLOCKOUT), not final art; P2 is the same model recoloured blue. | Open — needs artist |
+| KI-024 | M6 | Placeholder synthesized SFX only; no voice. | Open — needs audio |
+| KI-025 | M6 | Meter economy tuned machine-vs-machine: a dominant player rarely reaches Surge in a 2–0; even matches do. Needs playtests. | Open |
+| KI-026 | M6 | Quitting the app while a sound is playing can print "resources still in use at exit" (engine exit-time audio race; harmless; headless CI unaffected). | Open |
+| KI-027 | M6 | Device performance unmeasured; spec target 60 FPS on chosen devices. | Open — needs device |
+| KI-028 | M6 | P2 AI may still log "sees … → BLOCK" while knocked down (no effect; cosmetic in the AI log). | Open |

@@ -3,15 +3,15 @@
 Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 2.5D combat. *Working title — needs trademark and legal review before public use.*
 
-![Milestone 5: versus the Standard CPU — it blocks a kick and mashes a Light reversal](docs/images/m5_versus_ai_standard.png)
+![Milestone 6: Kairo blockout — Origin Break ultimate with the camera push-in](docs/images/m6_ultimate_cinematic.png)
 
 ## Current status
 
 | | |
 |---|---|
-| Version | `0.0.6-m5` |
-| Milestone | **5 — AI** (complete, awaiting approval) |
-| Next | Milestone 6 — Kairo vertical slice (Blender model, animations, specials, Origin Surge) |
+| Version | `0.0.7-m6` |
+| Milestone | **6 — Kairo vertical slice** (complete with blockout art, awaiting approval) |
+| Next | Milestone 7 — UI, menus and modes (fighter select, story/arcade/survival, settings, save/load) |
 | Playable | **Fight**: best-of-three vs the CPU (pick Beginner/Standard/Expert on the menu). **Training**: dummy, ∞ time, combo/frame data, input history. Touch controls on phones. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
@@ -51,6 +51,8 @@ UI scales with `canvas_items` / `expand` stretch.
 | Up (jump) / Down (crouch) | W / S, ↑ / ↓ | D-pad, left stick |
 | Light / Heavy / Kick | J / K / L | X / Y / A |
 | Block | Space | B |
+| Special (Origin Palm) / toward + Special (Rift Break) | U | RB |
+| Ultimate: Origin Surge at full meter, Origin Break during Surge | O | RT |
 | Special / Ultimate | U / O | RB / RT |
 | Pause / resume | Esc, P (or on-screen **II**, Android back) | Start |
 | Debug overlay / hitboxes | F3 / F4 | — |
@@ -65,10 +67,13 @@ nothing yet.
 
 - **Left side:** touch anywhere in the lower-left area and drag to walk
   (floating stick).
-- **Right side:** **L** light, **H** heavy, **K** kick, **BLOCK** (hold).
+- **Right side:** **L** light, **H** heavy, **K** kick, **BLOCK** (hold),
+  **SP** special (hold the stick toward the opponent for Rift Break), **ULT**
+  (lights up at full meter: Origin Surge, then Origin Break).
   Buttons fire on touch-down; walking and attacking work at the same time.
 - **II** pauses; the pause menu toggles **left-handed** controls.
-- Combo to try: **L, L, K** (tap each as soon as the previous one hits).
+- Combo to try: **L, L, K, SP** (tap each as soon as the previous one hits;
+  needs 25 meter for the Palm).
 
 ## How combat runs
 
@@ -117,6 +122,13 @@ tests/    unit/ integration/ device/
 tools/    editor/headless utility scripts
 docs/     specification, decisions, milestones, pipeline docs
 ```
+
+## Art pipeline
+
+Kairo is currently a **from-scratch scripted blockout** (Blender 5,
+`tools/blender/build_kairo_blockout.py` → `assets/characters/kairo/kairo_blockout.glb`).
+Final art must follow [`docs/BLENDER_PIPELINE.md`](docs/BLENDER_PIPELINE.md);
+tests check animation lengths and that strikes line up with hitboxes.
 
 ## Documentation
 

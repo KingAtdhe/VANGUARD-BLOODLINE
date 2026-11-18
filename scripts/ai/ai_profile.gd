@@ -30,6 +30,15 @@ extends Resource
 ## Combo route by input pattern (must be legal cancels for the fighter).
 @export var combo_route: PackedStringArray = PackedStringArray(["LIGHT", "LIGHT", "KICK"])
 
+@export_group("Origin meter")
+## Chance per decision to activate Origin Surge when the meter is full.
+@export_range(0.0, 1.0) var surge_chance: float = 0.3
+## Outside Surge, stop spending meter on specials once it reaches this
+## (saving for Origin Surge). 101+ = never saves.
+@export_range(0, 101) var save_for_surge_above: int = 80
+## Chance per decision to throw the ultimate when in Surge and in range.
+@export_range(0.0, 1.0) var ultimate_chance: float = 0.3
+
 @export_group("Defence")
 ## Chance to block an attack it SEES starting (subject to reaction delay).
 @export_range(0.0, 1.0) var block_reaction_chance: float = 0.6

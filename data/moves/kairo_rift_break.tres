@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_rift_break"
+display_name = "Rift Break"
+input_pattern = &"FORWARD_SPECIAL"
+animation = &"KAIRO_SPECIAL_RIFT_BREAK"
+startup_frames = 16
+active_frames = 4
+recovery_frames = 22
+hitstun_frames = 20
+blockstun_frames = 14
+hitstop_frames = 10
+damage = 90
+chip_damage = 10
+pushback = 0.8
+hit_level = 1
+hitbox_center = Vector2(0.8, 1.1)
+hitbox_size = Vector2(0.8, 0.7)
+tags = PackedStringArray("special")
+cancel_tags = PackedStringArray()
+move_distance = 1.4
+move_start_frame = 4
+move_end_frame = 16
+meter_gain_on_hit = 10
+meter_gain_on_block = 5
+knockdown = true

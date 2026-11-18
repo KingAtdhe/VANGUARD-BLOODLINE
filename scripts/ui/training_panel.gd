@@ -51,8 +51,9 @@ func refresh(sim: CombatSimulation, history: InputHistory) -> void:
 	var frame: String = "Move  -"
 	if _last_move != null:
 		var m: MoveData = _last_move
-		frame = "Move  %s  S%d A%d R%d  total %d\n      on hit %+d   on block %+d" % [
+		var on_hit: String = "KD" if m.knockdown else "%+d" % m.advantage_on_hit()
+		frame = "Move  %s  S%d A%d R%d  total %d\n      on hit %s   on block %+d%s" % [
 			m.id, m.startup_frames, m.active_frames, m.recovery_frames, m.total_frames(),
-			m.advantage_on_hit(), m.advantage_on_block()]
+			on_hit, m.advantage_on_block(), "   meter %d" % m.meter_cost if m.meter_cost > 0 else ""]
 	_stats.text = "TRAINING\n%s\nLast hit  %s\n%s" % [combo, _last_hit_text, frame]
 	_history.text = "P1 input (newest first)\n" + "\n".join(history.lines(10))

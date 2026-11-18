@@ -14,6 +14,12 @@ extends RefCounted
 ##   - Either way the attack is spent (one connection per attack) and the
 ##     defender slides back by `pushback` over PUSHBACK_TICKS ticks.
 ##   - Global hitstop = largest hitstop among this tick's contacts.
+##   - Attacker in Origin Surge: damage and chip x surge_damage_percent
+##     (before combo scaling).
+##   - Meter: attacker gains the move's meter_gain_on_hit/_on_block; the
+##     defender gains a percentage of damage taken / a flat amount on block.
+##   - A `knockdown` move that HITS knocks the defender down (no hurtbox while
+##     down and getting up), which ends the combo.
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
 ##     sim.ko_enabled == false (training) health stops at 1.
 ## All decisions are taken from the state BEFORE any contact is applied, so
@@ -47,10 +53,11 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		attacker.move_connected = true
 		hitstop = maxi(hitstop, move.hitstop_frames)
 
+		var attacker_def: FighterDefinition = sim.definitions[c.attacker]
 		var dmg: int
 		var percent: int = 100
 		if blocked[i]:
-			dmg = move.chip_damage
+			dmg = OriginMeter.surge_damage(move.chip_damage, attacker, attacker_def)
 			defender.combo_hits = 0
 			defender.combo_damage = 0
 		else:
@@ -58,13 +65,17 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			if not in_combo[i]:
 				defender.combo_damage = 0
 			percent = sim.tuning.scaling_percent(defender.combo_hits)
-			dmg = sim.tuning.scaled_damage(move.damage, defender.combo_hits)
+			dmg = sim.tuning.scaled_damage(
+				OriginMeter.surge_damage(move.damage, attacker, attacker_def), defender.combo_hits)
 		var floor_hp: int = 0 if sim.ko_enabled else 1
 		var before_hp: int = defender.health
 		defender.health = maxi(mini(floor_hp, before_hp), defender.health - dmg)
 		dmg = before_hp - defender.health
 		if not blocked[i]:
 			defender.combo_damage += dmg
+		OriginMeter.gain(attacker, move.meter_gain_on_block if blocked[i] else move.meter_gain_on_hit, sim.tuning)
+		OriginMeter.gain(defender, sim.tuning.meter_on_block_taken if blocked[i]
+			else dmg * sim.tuning.meter_on_damage_taken_percent / 100, sim.tuning)
 
 		var ev := CombatEvent.new()
 		ev.tick = sim.tick
@@ -94,6 +105,16 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		if blocked[i]:
 			defender.action = FighterState.Action.BLOCKSTUN
 			defender.stun_remaining = move.blockstun_frames
+		elif move.knockdown:
+			defender.action = FighterState.Action.KNOCKDOWN
+			defender.stun_remaining = sim.tuning.knockdown_ticks
+			var kd := CombatEvent.new()
+			kd.tick = sim.tick
+			kd.type = CombatEvent.Type.KNOCKDOWN
+			kd.actor = c.attacker
+			kd.target = c.defender
+			kd.move_id = move.id
+			sim.combat_log.add(kd)
 		else:
 			defender.action = FighterState.Action.HITSTUN
 			defender.stun_remaining = move.hitstun_frames

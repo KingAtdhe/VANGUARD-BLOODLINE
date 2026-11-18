@@ -1,7 +1,7 @@
 # Technical Architecture
 
 Canonical source: `PRODUCTION_PACKAGE.md` §9. This file records what is
-actually implemented. Updated: Milestone 5.
+actually implemented. Updated: Milestone 6.
 
 ## Combat loop (per render frame)
 
@@ -74,3 +74,8 @@ P1 is always processed before P2 inside each phase.
 | AIObservation | `scripts/ai/ai_observation.gd` | Human-visible snapshot (no inputs/buffers/stun counters) |
 | AIProfile / AIDecisionLog | `scripts/ai/ai_profile.gd`, `ai_decision_log.gd` | Difficulty data, decision log |
 | SessionSettings | `scripts/app/session_settings.gd` | Session-only choices (AI difficulty) |
+| OriginMeter | `scripts/combat/origin_meter.gd` | Meter costs/gains, Surge start/drain, ultimate rules |
+| FighterAnimator | `scripts/fighters/fighter_animator.gd` | Sim-driven animation choice and seeking |
+| AnimationSampler | `scripts/fighters/animation_sampler.gd` | Exact-time pose sampling for tests/tools |
+| CombatAudio | `scripts/combat/combat_audio.gd` | Event-driven SFX (8 voices) |
+| Blockout build | `tools/blender/build_kairo_blockout.py` | Scripted Blender source asset → GLB |

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.7-m6] — 2026-11-18
+### Added
+- Kairo blockout model built from scratch in Blender by script (18-bone humanoid rig, rigid skin, 17 animations at 60 fps), exported to GLB and used in game for both fighters (P2 recoloured).
+- Simulation-driven `FighterAnimator` (attacks seeked to move frames), victory/defeat poses.
+- Specials: Origin Palm (Special), Rift Break (toward + Special, moving, knockdown); knockdown/get-up.
+- Origin meter (gains, carry-over between rounds), Origin Surge, ultimate Origin Break; HUD meter bars; SP/ULT touch buttons.
+- Skippable presentation-only ultimate camera cinematic; Surge aura.
+- Original synthesized placeholder SFX and `CombatAudio`.
+- AI uses specials, Surge and ultimate within meter rules (meter discipline per difficulty).
+- 16 new tests incl. hitbox-vs-limb alignment on the real model, rigid-skin/budget checks, full CPU-vs-CPU match in the real scene, specials infinite-combo search; mutation-checked.
+- `docs/BLENDER_PIPELINE.md`, Blender/audio tools.
+### Fixed
+- Combat log now records an ultimate's start before the Surge ending it causes.
+
 ## [0.0.6-m5] — 2026-11-18
 ### Added
 - CPU opponent: finite-state-machine `AIController` with spec states, distance bands, weighted move selection, combo route, reaction-delayed blocking, guard, punish, mash-out reversals, spacing anticipation, anti-idle.

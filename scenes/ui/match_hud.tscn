@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/match_hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://scripts/ui/safe_area_margin.gd" id="2_safe"]
@@ -21,6 +21,17 @@ bg_color = Color(0, 0, 0, 0)
 bg_color = Color(0.95, 0.25, 0.2, 1)
 
 [sub_resource type="StyleBoxEmpty" id="Empty"]
+
+[sub_resource type="StyleBoxFlat" id="Meter_bg"]
+bg_color = Color(0.05, 0.05, 0.07, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.5, 0.55, 1)
+
+[sub_resource type="StyleBoxFlat" id="Meter_fill"]
+bg_color = Color(1, 1, 1, 1)
 
 [node name="MatchHUD" type="CanvasLayer"]
 layer = 5
@@ -100,6 +111,30 @@ max_value = 1000.0
 step = 1.0
 value = 1000.0
 show_percentage = false
+
+[node name="P1MeterRow" type="HBoxContainer" parent="SafeArea/Root/TopRow/P1Side"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 0
+
+[node name="P1Meter" type="ProgressBar" parent="SafeArea/Root/TopRow/P1Side/P1MeterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 22)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("Meter_bg")
+theme_override_styles/fill = SubResource("Meter_fill")
+step = 1.0
+show_percentage = false
+
+[node name="P1MeterLabel" type="Label" parent="SafeArea/Root/TopRow/P1Side/P1MeterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_constants/outline_size = 6
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "ORIGIN 0"
 
 [node name="P1Pips" type="HBoxContainer" parent="SafeArea/Root/TopRow/P1Side"]
 unique_name_in_owner = true
@@ -194,6 +229,31 @@ step = 1.0
 value = 1000.0
 fill_mode = 1
 show_percentage = false
+
+[node name="P2MeterRow" type="HBoxContainer" parent="SafeArea/Root/TopRow/P2Side"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="P2Meter" type="ProgressBar" parent="SafeArea/Root/TopRow/P2Side/P2MeterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 22)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("Meter_bg")
+theme_override_styles/fill = SubResource("Meter_fill")
+step = 1.0
+fill_mode = 1
+show_percentage = false
+
+[node name="P2MeterLabel" type="Label" parent="SafeArea/Root/TopRow/P2Side/P2MeterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_constants/outline_size = 6
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+text = "ORIGIN 0"
 
 [node name="P2Pips" type="HBoxContainer" parent="SafeArea/Root/TopRow/P2Side"]
 unique_name_in_owner = true

@@ -4,7 +4,7 @@ extends RefCounted
 ## Plain data only — no nodes — so it can be copied, compared and tested.
 
 ## High-level action state. Neutral states (IDLE, WALK, BLOCK) can act.
-enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO }
+enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP }
 
 ## Position of the fighter's centre on the fighting plane (metres).
 var position_x: float = 0.0
@@ -39,6 +39,10 @@ var buffer: Array[Vector2i] = []
 ## Move ids in the current cancel chain (for repeat limits).
 var chain: Array[StringName] = []
 
+## Origin meter (0..CombatTuning.meter_max) and remaining Origin Surge ticks.
+var meter: int = 0
+var surge_remaining: int = 0
+
 ## Combo being suffered by THIS fighter (as defender): hits and damage since
 ## it was last neutral. Reset when it recovers to neutral.
 var combo_hits: int = 0
@@ -64,6 +68,8 @@ func copy() -> FighterState:
 	s.held_buttons = held_buttons
 	s.buffer = buffer.duplicate()
 	s.chain = chain.duplicate()
+	s.meter = meter
+	s.surge_remaining = surge_remaining
 	s.combo_hits = combo_hits
 	s.combo_damage = combo_damage
 	s.pushback_remaining = pushback_remaining
@@ -73,6 +79,15 @@ func copy() -> FighterState:
 
 func is_neutral() -> bool:
 	return action == Action.IDLE or action == Action.WALK or action == Action.BLOCK
+
+
+func in_surge() -> bool:
+	return surge_remaining > 0
+
+
+## On the ground or getting up: cannot be hit.
+func is_downed() -> bool:
+	return action == Action.KNOCKDOWN or action == Action.WAKEUP
 
 
 func is_blocking() -> bool:
@@ -90,7 +105,7 @@ func action_name() -> String:
 
 ## Compact, exact text form — used for determinism checks and debugging.
 func describe() -> String:
-	return "%s x=%s f=%d hp=%d mv=%s:%d stun=%d push=%s buf=%s combo=%d/%d" % [
+	return "%s x=%s f=%d hp=%d mv=%s:%d stun=%d push=%s buf=%s combo=%d/%d meter=%d surge=%d" % [
 		action_name(), var_to_str(position_x), facing, health,
 		move.id if move != null else "-", move_frame, stun_remaining,
-		var_to_str(pushback_remaining), buffer, combo_hits, combo_damage]
+		var_to_str(pushback_remaining), buffer, combo_hits, combo_damage, meter, surge_remaining]

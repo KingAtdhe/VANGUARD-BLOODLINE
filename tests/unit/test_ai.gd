@@ -30,7 +30,7 @@ func _rushdown(sim: CombatSimulation, t: int, side: int) -> FighterInputFrame:
 
 ## Plays a match. Each side is an AIProfile name or "rushdown"/"idle".
 ## Returns {winner, rounds, log, inputs: [[p1 frames], [p2 frames]], max_idle: [a, b], sim}.
-func _play(p1: String, p2: String, seed: int, round_seconds: int = 30) -> Dictionary:
+func _play(p1: String, p2: String, seed: int, round_seconds: int = 30, start_meter: int = 0) -> Dictionary:
 	var sim := _sim()
 	var defs: Array[FighterDefinition] = _defs()
 	var rules: MatchRules = (load("res://data/rules/standard_match.tres") as MatchRules).duplicate()
@@ -42,9 +42,11 @@ func _play(p1: String, p2: String, seed: int, round_seconds: int = 30) -> Dictio
 		if NAMES.has(names[i]):
 			ais[i] = AIController.new(_profile(names[i]), i, defs[i], defs[1 - i], seed * (i + 3) + i)
 	d.round_started.connect(func(_r: int) -> void:
-		for a: Variant in ais:
-			if a != null:
-				(a as AIController).reset())
+		for i: int in 2:
+			if start_meter > 0:
+				sim.fighters[i].meter = start_meter
+			if ais[i] != null:
+				(ais[i] as AIController).reset())
 	d.start_match(sim)
 	var inputs: Array = [[], []]
 	var idle_run: Array[int] = [0, 0]
@@ -83,6 +85,8 @@ func test_profiles_valid_and_only_skill_knobs() -> Array[String]:
 		f.append_array(_profile(n).validate())
 	# Difficulty may not touch damage, health, speed or frame data (spec §5).
 	for prop: Dictionary in AIProfile.new().get_property_list():
+		if int(prop.usage) & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_CATEGORY):
+			continue  # inspector headings, not settings
 		var name: String = String(prop.name).to_lower()
 		for banned: String in ["damage", "health", "speed", "multiplier", "frames", "hitstun", "meter"]:
 			if name.contains(banned):
@@ -284,4 +288,37 @@ func test_ai_is_deterministic_and_logs_decisions() -> Array[String]:
 	for word: String in ["decide", "press", "APPROACH"]:
 		if not text.contains(word):
 			f.append("decision log has no '%s' entries" % word)
+	return f
+
+
+func test_ai_uses_specials_surge_and_ultimate_legally() -> Array[String]:
+	# Spec §5: "Respect meter and cooldown rules". The simulation enforces
+	# them; check the AI actually uses the meter features and that every use
+	# in the log is legal (ultimate only inside its own Surge window).
+	var f: Array[String] = []
+	var used: Dictionary = {}
+	for seed: int in 4:
+		# Rounds start with a full meter: this checks the AI USES the meter
+		# features legally; how fast meter builds is economy tuning.
+		var r: Dictionary = _play("expert", "standard", 700 + seed, 60, 100)
+		var in_surge: Array[bool] = [false, false]
+		for line: String in (r.log as String).split("\n"):
+			for p: int in 2:
+				var tag: String = "P%d " % (p + 1)
+				if line.contains(tag + "ORIGIN SURGE"):
+					in_surge[p] = true
+					used["surge"] = true
+				if line.contains(tag + "surge ends") or line.contains(tag + "starts kairo_origin_break") \
+						or line.contains("-> kairo_origin_break") and line.contains(tag):
+					if line.contains("kairo_origin_break"):
+						used["ultimate"] = true
+						if not in_surge[p]:
+							f.append("ultimate outside Surge: %s" % line)
+					in_surge[p] = false
+				if line.contains(tag) and (line.contains("kairo_origin_palm") or line.contains("kairo_rift_break")) \
+						and (line.contains("starts") or line.contains("cancels")):
+					used["special"] = true
+	for k: String in ["special", "surge", "ultimate"]:
+		if not used.has(k):
+			f.append("AI never used %s in 4 one-minute-round matches" % k)
 	return f

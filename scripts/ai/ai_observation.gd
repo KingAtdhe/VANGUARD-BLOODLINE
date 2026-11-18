@@ -19,6 +19,8 @@ class Seen:
 	var move_connected: bool   # hit spark / block flash visible
 	var health: int            # health bar
 	var combo_hits: int        # on-screen combo counter
+	var meter: int             # Origin meter bar
+	var in_surge: bool         # SURGE indicator / aura
 
 var tick: int = 0
 var in_hitstop: bool = false
@@ -39,5 +41,7 @@ static func from_sim(sim: CombatSimulation) -> AIObservation:
 		s.move_connected = f.move_connected
 		s.health = f.health
 		s.combo_hits = f.combo_hits
+		s.meter = f.meter
+		s.in_surge = f.in_surge()
 		o.fighters.append(s)
 	return o

@@ -7,6 +7,8 @@ extends CanvasLayer
 ##     jump/crouch actions (not used by gameplay yet).
 ##   - Action cluster: Light, Heavy, Kick, Block — fire on touch-DOWN, stay
 ##     held while that finger stays down (even if it slides off).
+##   - Special (SP; hold toward the opponent for the forward special) and
+##     Ultimate (ULT, only enabled when Origin Surge / the ultimate is usable).
 ##   - Every finger is tracked by its touch index, so walking and attacking
 ##     at the same time works.
 ##   - Left-handed layout mirrors stick and cluster.
@@ -39,6 +41,10 @@ var _buttons: Array[Dictionary] = []
 var _stick: Dictionary = {}
 var _held: Dictionary = {}   # action → true while we hold it
 var _font: Font
+var _disabled: Dictionary = {}  # action → true when greyed out
+
+## Emitted on every new touch (used to skip the ultimate cinematic).
+signal touched
 
 
 func _ready() -> void:
@@ -84,6 +90,25 @@ func release_all() -> void:
 
 
 ## Test/debug accessor: centre of a button by action, in viewport pixels.
+## Greys out a button and makes it ignore touches (e.g. ULT without meter).
+func set_action_enabled(action: StringName, enabled: bool) -> void:
+	var was: bool = not _disabled.has(action)
+	if enabled:
+		_disabled.erase(action)
+	else:
+		_disabled[action] = true
+		for b: Dictionary in _buttons:
+			if b.action == action and b.finger != -1:
+				b.finger = -1
+				_release(action)
+	if was != enabled and _canvas != null:
+		_canvas.queue_redraw()
+
+
+func is_action_enabled(action: StringName) -> bool:
+	return not _disabled.has(action)
+
+
 func button_center(action: StringName) -> Vector2:
 	for b: Dictionary in _buttons:
 		if b.action == action:
@@ -105,11 +130,14 @@ func _layout() -> void:
 	# Cluster centre: bottom corner on the action side, inside the safe area.
 	var cx: float = size.x - inset.size.x - margin - r - spacing
 	var cy: float = size.y - inset.size.y - margin - r - spacing * 0.9
+	var small: float = r * 0.75
 	var defs: Array = [
-		[InputActions.ATTACK_HEAVY, "H", Vector2(0, -spacing * 0.9), Color(0.95, 0.35, 0.25)],
-		[InputActions.ATTACK_LIGHT, "L", Vector2(-spacing, 0), Color(0.95, 0.8, 0.3)],
-		[InputActions.ATTACK_KICK, "K", Vector2(0, spacing * 0.9), Color(0.4, 0.85, 0.45)],
-		[InputActions.BLOCK, "BLOCK", Vector2(spacing, 0), Color(0.45, 0.7, 1.0)],
+		[InputActions.ATTACK_HEAVY, "H", Vector2(0, -spacing * 0.9), Color(0.95, 0.35, 0.25), r],
+		[InputActions.ATTACK_LIGHT, "L", Vector2(-spacing, 0), Color(0.95, 0.8, 0.3), r],
+		[InputActions.ATTACK_KICK, "K", Vector2(0, spacing * 0.9), Color(0.4, 0.85, 0.45), r],
+		[InputActions.BLOCK, "BLOCK", Vector2(spacing, 0), Color(0.45, 0.7, 1.0), r],
+		[InputActions.SPECIAL, "SP", Vector2(-spacing * 1.05, -spacing * 1.25), Color(1.0, 0.45, 0.2), small],
+		[InputActions.ULTIMATE, "ULT", Vector2(spacing * 1.05, -spacing * 1.25), Color(1.0, 0.15, 0.1), small],
 	]
 	var old_fingers: Dictionary = {}
 	for b: Dictionary in _buttons:
@@ -119,7 +147,7 @@ func _layout() -> void:
 		var c: Vector2 = Vector2(cx, cy) + (d[2] as Vector2)
 		if left_handed:
 			c.x = size.x - c.x
-		_buttons.append({"action": d[0], "label": d[1], "center": c, "radius": r,
+		_buttons.append({"action": d[0], "label": d[1], "center": c, "radius": d[4],
 			"color": d[3], "finger": old_fingers.get(d[0], -1)})
 	var stick_r: float = STICK_RADIUS * s
 	var rest := Vector2(inset.position.x + margin + stick_r * 1.4, size.y - inset.size.y - margin - stick_r * 1.4)
@@ -163,7 +191,10 @@ func _input(event: InputEvent) -> void:
 
 
 func _touch_down(index: int, pos: Vector2) -> bool:
+	touched.emit()
 	for b: Dictionary in _buttons:
+		if _disabled.has(b.action):
+			continue
 		if b.finger == -1 and pos.distance_to(b.center) <= b.radius * HIT_SLOP:
 			b.finger = index
 			_press(b.action)
@@ -254,6 +285,8 @@ func _draw_controls() -> void:
 	for b: Dictionary in _buttons:
 		var pressed: bool = b.finger != -1
 		var col: Color = b.color
+		if _disabled.has(b.action):
+			col = Color(0.35, 0.35, 0.38)
 		_canvas.draw_circle(b.center, b.radius, Color(col, (0.75 if pressed else 0.3) * a))
 		_canvas.draw_arc(b.center, b.radius, 0.0, TAU, 48, Color(col.lightened(0.3), 0.9 * a), 5.0)
 		var fs: int = int(b.radius * (0.38 if String(b.label).length() > 2 else 0.6))

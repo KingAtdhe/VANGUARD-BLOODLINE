@@ -12,12 +12,17 @@ aggression = 0.6
 attack_weights = {
 &"HEAVY": 2.0,
 &"KICK": 4.0,
+&"SPECIAL": 2.0,
+&"FORWARD_SPECIAL": 1.5,
 &"LIGHT": 4.0
 }
 close_light_bias = 3.0
 range_mistake_chance = 0.0
 combo_chance = 0.95
-combo_route = PackedStringArray("LIGHT", "LIGHT", "KICK")
+combo_route = PackedStringArray("LIGHT", "LIGHT", "KICK", "SPECIAL")
+surge_chance = 0.7
+save_for_surge_above = 60
+ultimate_chance = 0.6
 block_reaction_chance = 0.9
 guard_chance = 0.35
 guard_ticks = 18

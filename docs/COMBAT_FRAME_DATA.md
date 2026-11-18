@@ -1,7 +1,7 @@
 # Combat Frame Data
 
 Canonical design source: `PRODUCTION_PACKAGE.md` §4.3–§4.5. This file holds
-the implemented conventions and the current numbers. Updated: Milestone 4.
+the implemented conventions and the current numbers. Updated: Milestone 6.
 
 ## Conventions (decision D-018)
 
@@ -83,3 +83,26 @@ attempted, mid-screen and cornered, standing and walking forward (1,452
 runs). The longest combo found is 3 hits and the defender always recovers.
 Bounds come from: tag routes ending at Kick/Heavy, the 2-per-chain repeat
 limit, pushback, and no move being plus enough to link into itself.
+
+## Specials, Surge and ultimate (Milestone 6)
+
+| Move | Input | Startup | Active | Recovery | Total | Damage | Chip | On hit | On block | Meter | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Origin Palm | Special (neutral/back) | 14 | 5 | 24 | 42 | 105 | 15 | **+12** | −12 | 25 | Spec §4.4 values; links Heavy at close range; cancels into the ultimate |
+| Rift Break | toward + Special | 16 | 4 | 22 | 41 | 90 | 10 | KD | −11 | 0 | Travels 1.4 m (frames 4–16); knockdown |
+| Origin Surge | Ultimate at full meter | 20 | — | 10 | 30 | — | — | — | — | 100 | No hitbox; then 5 s Surge |
+| Origin Break | Ultimate during Surge | 7 | 4 | 45 | 55 | 320 | 40 | KD | −28 | ≥ 30, spends all | Ends Surge; 60-tick hitstop (camera cinematic, skippable) |
+
+- **Origin meter** 0–100: attacker gains per move (L 6/3, H 12/6, K 9/5,
+  Rift 10/5 on hit/block); defender gains 20 % of damage taken, 3 per
+  block. No gains during Surge. Never purchasable. Carries over between
+  rounds of a match; resets each match. Training refills it.
+- **Origin Surge (Kairo):** 300 ticks; meter drains to 0; damage ×1.15;
+  specials cost no meter; ultimate available.
+- **Knockdown:** 45 ticks down + 20 getting up, no hurtbox; ends the combo.
+- **Routes:** spec §4.5 starter route **L, L, K, Origin Palm = 4 hits**
+  (test enforced). Heavy follow-up after Palm only at close range. In Surge,
+  Palm → Origin Break.
+- **Infinite-combo guarantee (M6):** 3,120 runs — every 1–4 command route
+  from {L, K, H, Special, toward+Special}, mid-screen/corner, full meter and
+  free-special Surge — longest combo ≤ 5 hits, defender always recovers.
