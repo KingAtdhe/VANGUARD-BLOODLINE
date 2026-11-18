@@ -20,3 +20,5 @@ pushback = 0.2
 hit_level = 1
 hitbox_center = Vector2(0.7, 1.35)
 hitbox_size = Vector2(0.6, 0.4)
+tags = PackedStringArray("normal", "heavy")
+cancel_tags = PackedStringArray("special")

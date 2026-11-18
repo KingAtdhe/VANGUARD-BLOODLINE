@@ -19,9 +19,14 @@ const PIP_OFF := Color(0.25, 0.25, 0.28)
 @onready var _round: Label = %RoundLabel
 @onready var _announce: Label = %AnnounceLabel
 @onready var _pause_button: Button = %PauseButton
+@onready var _combo_labels: Array[Label] = [%P1Combo, %P2Combo]
 
 var _announce_left: float = 0.0
 var _hold_announce: bool = false
+var _training: bool = false
+## Seconds each side's "N HITS" stays up after the combo ends.
+const COMBO_LINGER: float = 1.0
+var _combo_linger: Array[float] = [0.0, 0.0]
 
 
 func _ready() -> void:
@@ -29,8 +34,11 @@ func _ready() -> void:
 	_announce.visible = false
 
 
-func setup(defs: Array[FighterDefinition], rounds_to_win: int) -> void:
+func setup(defs: Array[FighterDefinition], rounds_to_win: int, training: bool = false) -> void:
+	_training = training
 	for i: int in 2:
+		_combo_labels[i].visible = false
+		_pips[i].visible = not training
 		_names[i].text = defs[i].display_name
 		_bars[i].max_value = defs[i].base_health
 		_trails[i].max_value = defs[i].base_health
@@ -57,8 +65,19 @@ func refresh(sim: CombatSimulation, director: MatchDirector, delta: float) -> vo
 		var pips: Array[Node] = _pips[i].get_children()
 		for p: int in pips.size():
 			(pips[p] as ColorRect).color = PIP_ON if p < director.round_wins[i] else PIP_OFF
-	_timer.text = str(director.timer_seconds())
-	_round.text = "ROUND %d" % director.round_number
+	# Combo counter on the ATTACKER's side, counted on the defender.
+	for i: int in 2:
+		var hits: int = sim.fighters[1 - i].combo_hits
+		if hits >= 2:
+			_combo_labels[i].text = "%d HITS" % hits
+			_combo_labels[i].visible = true
+			_combo_linger[i] = COMBO_LINGER
+		elif _combo_linger[i] > 0.0:
+			_combo_linger[i] -= delta
+			if _combo_linger[i] <= 0.0:
+				_combo_labels[i].visible = false
+	_timer.text = "∞" if _training else str(director.timer_seconds())
+	_round.text = "TRAINING" if _training else "ROUND %d" % director.round_number
 	if not _hold_announce and _announce_left > 0.0:
 		_announce_left -= delta
 		if _announce_left <= 0.0:
@@ -81,6 +100,10 @@ func clear_announce() -> void:
 
 func announce_text() -> String:
 	return _announce.text if _announce.visible else ""
+
+
+func combo_text(i: int) -> String:
+	return _combo_labels[i].text if _combo_labels[i].visible else ""
 
 
 func health_bar_value(i: int) -> float:

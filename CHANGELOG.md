@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.5-m4] — 2026-11-18
+### Added
+- Multi-touch controls: floating stick + Light/Heavy/Kick/Block cluster, touch-down, per-finger tracking, left-handed toggle (pause menu).
+- 6-tick input buffer (frozen during hitstop) in the simulation; `CombatTuning` data.
+- Cancel routes via move `tags` / `cancel_tags`, cancel window and same-move repeat limit; Kairo L→L, L→K.
+- Combo counter and damage scaling (100/100/80/70/60/50/40 %); HUD "N HITS".
+- Training mode (main menu → Training): ∞ timer, no KO, health refill, Reset, combo/frame-data panel, input history.
+- 16 new tests incl. exhaustive infinite-combo search and two-finger touch tests; mutation-checked.
+### Changed
+- Temporary DEBUG on-screen buttons removed (replaced by real touch controls).
+- M2 hitstop press latch replaced by the input buffer.
+
 ## [0.0.4-m3] — 2026-11-18
 ### Added
 - Best-of-three match loop: `MatchRules` data + deterministic `MatchDirector` (intro, fight, round end, match end).

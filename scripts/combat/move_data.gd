@@ -46,9 +46,14 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var hitbox_center: Vector2 = Vector2(0.6, 1.45)
 @export var hitbox_size: Vector2 = Vector2(0.5, 0.3)
 
-@export_group("Reserved for later milestones")
-## Combo routes (M4).
+@export_group("Cancels")
+## What this move IS, e.g. ["normal", "light"].
+@export var tags: PackedStringArray = PackedStringArray()
+## Tags of moves this move may be cancelled INTO on contact (spec §4.5).
+## Empty = this move cannot be cancelled.
 @export var cancel_tags: PackedStringArray = PackedStringArray()
+
+@export_group("Reserved for later milestones")
 ## Origin meter (M6).
 @export var meter_gain_on_hit: int = 0
 @export var meter_gain_on_block: int = 0
@@ -68,6 +73,17 @@ func total_frames() -> int:
 ## True when [param frame] (1-based frame of the move) has an active hitbox.
 func is_active_frame(frame: int) -> bool:
 	return frame >= startup_frames and frame < startup_frames + active_frames
+
+
+## True if [param target] may cancel this move (tag match only; timing and
+## repeat limits are checked by the simulation).
+func can_cancel_into(target: MoveData) -> bool:
+	if target == null:
+		return false
+	for t: String in target.tags:
+		if cancel_tags.has(t):
+			return true
+	return false
 
 
 func advantage_on_hit() -> int:
@@ -99,6 +115,8 @@ func validate() -> Array[String]:
 		p.append("%s: invalid damage/chip" % id)
 	if pushback < 0.0:
 		p.append("%s: pushback must be >= 0" % id)
+	if tags.is_empty():
+		p.append("%s: tags is empty" % id)
 	if hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0:
 		p.append("%s: hitbox_size must be positive" % id)
 	return p

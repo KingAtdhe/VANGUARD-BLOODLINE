@@ -44,7 +44,7 @@ text = "VANGUARD: BLOODLINE"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.74, 1)
 theme_override_font_sizes/font_size = 32
-text = "PLACEHOLDER MAIN MENU — Milestone 3 (greybox best-of-three vs dummy)"
+text = "PLACEHOLDER MAIN MENU — Milestone 4 (greybox versus + training, touch controls)"
 
 [node name="Spacer" type="Control" parent="SafeArea/Layout"]
 layout_mode = 2
@@ -67,8 +67,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(640, 110)
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
-disabled = true
-text = "Training  (Milestone 4+)"
+text = "Training"
 
 [node name="SettingsButton" type="Button" parent="SafeArea/Layout/Buttons"]
 unique_name_in_owner = true

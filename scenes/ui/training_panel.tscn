@@ -1,0 +1,72 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/training_panel.gd" id="1_tp"]
+[ext_resource type="Script" path="res://scripts/ui/safe_area_margin.gd" id="2_safe"]
+
+[sub_resource type="StyleBoxFlat" id="Panel"]
+bg_color = Color(0.05, 0.05, 0.08, 0.72)
+content_margin_left = 20.0
+content_margin_top = 14.0
+content_margin_right = 20.0
+content_margin_bottom = 14.0
+
+[node name="TrainingPanel" type="CanvasLayer"]
+layer = 8
+script = ExtResource("1_tp")
+
+[node name="SafeArea" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_safe")
+
+[node name="Root" type="Control" parent="SafeArea"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Info" type="PanelContainer" parent="SafeArea/Root"]
+layout_mode = 0
+offset_top = 230.0
+offset_right = 470.0
+offset_bottom = 520.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="StatsLabel" type="Label" parent="SafeArea/Root/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "TRAINING"
+
+[node name="History" type="PanelContainer" parent="SafeArea/Root"]
+layout_mode = 0
+offset_left = 490.0
+offset_top = 230.0
+offset_right = 790.0
+offset_bottom = 640.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="HistoryLabel" type="Label" parent="SafeArea/Root/History"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "P1 input"
+
+[node name="ResetButton" type="Button" parent="SafeArea/Root"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 90)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -260.0
+offset_top = 340.0
+offset_bottom = 430.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+text = "Reset"

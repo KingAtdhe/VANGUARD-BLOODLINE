@@ -3,16 +3,16 @@
 Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 2.5D combat. *Working title — needs trademark and legal review before public use.*
 
-![Milestone 3: greybox match HUD in round 2](docs/images/m3_hud_round2.png)
+![Milestone 4: training mode — L, L, K combo entered via touch controls](docs/images/m4_training_combo_touch.png)
 
 ## Current status
 
 | | |
 |---|---|
-| Version | `0.0.4-m3` |
-| Milestone | **3 — match loop** (complete, awaiting approval) |
-| Next | Milestone 4 — touch controls, input buffer, combos, training tools |
-| Playable | Main menu → **Fight** → best-of-three, 90 s rounds vs a scripted dummy (stand/block/jab), results + rematch, pause. |
+| Version | `0.0.5-m4` |
+| Milestone | **4 — combo and input systems** (complete, awaiting approval) |
+| Next | Milestone 5 — AI opponent |
+| Playable | **Fight**: best-of-three vs a scripted dummy. **Training**: ∞ time, combo/frame data, input history, reset. Touch controls on phones. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.
@@ -59,8 +59,16 @@ UI scales with `canvas_items` / `expand` stretch.
 
 Actions are defined in `scripts/input/input_actions.gd`; bindings are generated
 by `tools/configure_input_map.gd`. Up/down, special, ultimate and pause do
-nothing yet. On a phone, use the labelled **DEBUG** buttons (temporary until
-Milestone 4 touch controls) plus **Hitboxes / Dummy**; **II** pauses.
+nothing yet.
+
+### Touch controls (phones)
+
+- **Left side:** touch anywhere in the lower-left area and drag to walk
+  (floating stick).
+- **Right side:** **L** light, **H** heavy, **K** kick, **BLOCK** (hold).
+  Buttons fire on touch-down; walking and attacking work at the same time.
+- **II** pauses; the pause menu toggles **left-handed** controls.
+- Combo to try: **L, L, K** (tap each as soon as the previous one hits).
 
 ## How combat runs
 
@@ -73,6 +81,8 @@ Milestone 4 touch controls) plus **Hitboxes / Dummy**; **II** pauses.
   current frame-data table: [`docs/COMBAT_FRAME_DATA.md`](docs/COMBAT_FRAME_DATA.md).
 - Every hit, block, whiff and KO is logged with its tick number (on screen
   and in the console).
+- Attack presses are buffered for 6 ticks; cancels and combo scaling follow
+  `data/rules/combat_tuning.tres` and each move's `tags` / `cancel_tags`.
 - `MatchDirector` runs rounds on top of the simulation: best of three, 90 s,
   draws award both fighters a round, hard cap of 5 rounds. Rules are data:
   `data/rules/standard_match.tres`.

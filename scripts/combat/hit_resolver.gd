@@ -1,36 +1,42 @@
 class_name HitResolver
 extends RefCounted
-## Applies detected contacts: hit vs block, damage, stun, pushback, hitstop
-## and KO. Rules (docs/COMBAT_FRAME_DATA.md):
+## Applies detected contacts: hit vs block, damage, combo scaling, stun,
+## pushback, hitstop and KO. Rules (docs/COMBAT_FRAME_DATA.md):
 ##   - Blocked if the defender is in BLOCK or BLOCKSTUN and the move is
 ##     standing-blockable (HIGH, MID, PROJECTILE). Fighters always face each
 ##     other, so every attack comes from the front.
-##   - Hit: defender loses `damage`, enters HITSTUN for hitstun_frames; any
-##     attack it was performing is interrupted.
-##   - Block: defender loses `chip_damage` (can KO), enters BLOCKSTUN.
+##   - Hit: if the defender was already in HITSTUN it is the next hit of a
+##     combo, otherwise a new combo starts at hit 1. Damage is scaled by the
+##     hit number (CombatTuning). Defender enters HITSTUN; any attack it was
+##     performing is interrupted.
+##   - Block: defender loses unscaled `chip_damage` (can KO), enters BLOCKSTUN,
+##     and any combo on it ends.
 ##   - Either way the attack is spent (one connection per attack) and the
 ##     defender slides back by `pushback` over PUSHBACK_TICKS ticks.
 ##   - Global hitstop = largest hitstop among this tick's contacts.
-##   - Health reaching 0 → KO (no hurtbox, ignores input).
-## All hit/block decisions are taken from the state BEFORE any contact is
-## applied, so simultaneous hits trade fairly regardless of P1/P2 order.
+##   - Health reaching 0 → KO (no hurtbox, ignores input). With
+##     sim.ko_enabled == false (training) health stops at 1.
+## All decisions are taken from the state BEFORE any contact is applied, so
+## simultaneous hits trade fairly regardless of P1/P2 order.
 
 const PUSHBACK_TICKS: int = 6
 
 
-## Returns the hitstop (ticks) to apply. Adds events to [param combat_log].
-static func resolve(contacts: Array[HitboxSystem.Contact], states: Array[FighterState],
-		tick: int, combat_log: CombatLog) -> int:
+## Returns the hitstop (ticks) to apply. Adds events to the sim's combat log.
+static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation) -> int:
 	if contacts.is_empty():
 		return 0
-	# Snapshot moves and block decisions first: applying one contact clears
-	# the defender's own move, which a trade still needs.
+	var states: Array[FighterState] = sim.fighters
+	# Snapshot moves, block decisions and combo state first: applying one
+	# contact changes the defender, which a trade still needs unchanged.
 	var moves: Array[MoveData] = []
 	var blocked: Array[bool] = []
+	var in_combo: Array[bool] = []
 	for c: HitboxSystem.Contact in contacts:
 		var move: MoveData = states[c.attacker].move
 		moves.append(move)
 		blocked.append(states[c.defender].is_blocking() and move.is_blockable_standing())
+		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN)
 
 	var hitstop: int = 0
 	for i: int in contacts.size():
@@ -41,11 +47,27 @@ static func resolve(contacts: Array[HitboxSystem.Contact], states: Array[Fighter
 		attacker.move_connected = true
 		hitstop = maxi(hitstop, move.hitstop_frames)
 
-		var dmg: int = move.chip_damage if blocked[i] else move.damage
-		defender.health = maxi(0, defender.health - dmg)
+		var dmg: int
+		var percent: int = 100
+		if blocked[i]:
+			dmg = move.chip_damage
+			defender.combo_hits = 0
+			defender.combo_damage = 0
+		else:
+			defender.combo_hits = defender.combo_hits + 1 if in_combo[i] else 1
+			if not in_combo[i]:
+				defender.combo_damage = 0
+			percent = sim.tuning.scaling_percent(defender.combo_hits)
+			dmg = sim.tuning.scaled_damage(move.damage, defender.combo_hits)
+		var floor_hp: int = 0 if sim.ko_enabled else 1
+		var before_hp: int = defender.health
+		defender.health = maxi(mini(floor_hp, before_hp), defender.health - dmg)
+		dmg = before_hp - defender.health
+		if not blocked[i]:
+			defender.combo_damage += dmg
 
 		var ev := CombatEvent.new()
-		ev.tick = tick
+		ev.tick = sim.tick
 		ev.type = CombatEvent.Type.BLOCK if blocked[i] else CombatEvent.Type.HIT
 		ev.actor = c.attacker
 		ev.target = c.defender
@@ -54,10 +76,12 @@ static func resolve(contacts: Array[HitboxSystem.Contact], states: Array[Fighter
 		ev.target_health = defender.health
 		ev.point = c.point
 		ev.hitstop = move.hitstop_frames
-		combat_log.add(ev)
+		ev.combo_hits = 0 if blocked[i] else defender.combo_hits
+		ev.scaling_percent = percent
+		sim.combat_log.add(ev)
 
 		if defender.health == 0:
-			_knock_out(defender, c.defender, tick, combat_log)
+			_knock_out(defender, c.defender, sim)
 			continue
 
 		# Interrupt whatever the defender was doing (including its own attack,
@@ -66,6 +90,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], states: Array[Fighter
 		defender.move_frame = 0
 		defender.move_connected = false
 		defender.move_x = 0
+		defender.chain.clear()
 		if blocked[i]:
 			defender.action = FighterState.Action.BLOCKSTUN
 			defender.stun_remaining = move.blockstun_frames
@@ -81,15 +106,17 @@ static func resolve(contacts: Array[HitboxSystem.Contact], states: Array[Fighter
 	return hitstop
 
 
-static func _knock_out(f: FighterState, index: int, tick: int, combat_log: CombatLog) -> void:
+static func _knock_out(f: FighterState, index: int, sim: CombatSimulation) -> void:
 	f.action = FighterState.Action.KO
 	f.move = null
 	f.move_frame = 0
 	f.stun_remaining = 0
 	f.move_x = 0
 	f.pushback_remaining = 0.0
+	f.chain.clear()
+	f.buffer.clear()
 	var ev := CombatEvent.new()
-	ev.tick = tick
+	ev.tick = sim.tick
 	ev.type = CombatEvent.Type.KO
 	ev.target = index
-	combat_log.add(ev)
+	sim.combat_log.add(ev)

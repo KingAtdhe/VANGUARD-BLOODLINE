@@ -3,6 +3,9 @@ extends Resource
 ## Match configuration (spec §2.3). Starting values, tuned in playtests.
 ## Durations are in 60 Hz combat ticks unless named *_seconds.
 
+## Training mode (spec §6.1): no intro, no timer, no rounds, no KO; each
+## fighter's health refills once it is back in neutral after a combo.
+@export var training: bool = false
 @export var rounds_to_win: int = 2
 @export var round_time_seconds: int = 90
 ## "ROUND n / FIGHT!" intro; inputs are ignored.

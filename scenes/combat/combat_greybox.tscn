@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/combat_scene.gd" id="1_combat"]
 [ext_resource type="Resource" path="res://data/arenas/greybox_arena.tres" id="2_arena_cfg"]
@@ -14,6 +14,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/match_hud.tscn" id="12_hud"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="13_pause"]
 [ext_resource type="PackedScene" path="res://scenes/ui/match_results.tscn" id="14_results"]
+[ext_resource type="Resource" path="res://data/rules/combat_tuning.tres" id="15_tuning"]
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="16_touch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/training_panel.tscn" id="17_training"]
 
 [node name="CombatScene" type="Node"]
 script = ExtResource("1_combat")
@@ -21,6 +24,7 @@ arena_config = ExtResource("2_arena_cfg")
 p1_definition = ExtResource("3_p1")
 p2_definition = ExtResource("4_p2")
 match_rules = ExtResource("11_rules")
+combat_tuning = ExtResource("15_tuning")
 
 [node name="ArenaRoot" parent="." instance=ExtResource("5_arena")]
 
@@ -56,6 +60,15 @@ unique_name_in_owner = true
 
 [node name="MatchHUD" parent="." instance=ExtResource("12_hud")]
 unique_name_in_owner = true
+
+[node name="TrainingPanel" parent="." instance=ExtResource("17_training")]
+unique_name_in_owner = true
+visible = false
+
+[node name="TouchControls" type="CanvasLayer" parent="."]
+unique_name_in_owner = true
+layer = 15
+script = ExtResource("16_touch")
 
 [node name="MatchResults" parent="." instance=ExtResource("14_results")]
 unique_name_in_owner = true

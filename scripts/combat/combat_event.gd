@@ -16,6 +16,11 @@ var target_health: int = 0
 ## Contact point on the fighting plane (x, height) for effects.
 var point: Vector2 = Vector2.ZERO
 var hitstop: int = 0
+## ATTACK_START: id of the move this one cancelled ("" = not a cancel).
+var cancel_from: StringName = &""
+## HIT: which hit of the combo this was (1 = first) and scaling applied.
+var combo_hits: int = 0
+var scaling_percent: int = 100
 
 
 func type_name() -> String:
@@ -26,10 +31,13 @@ func to_text() -> String:
 	var who: String = "P%d" % (actor + 1) if actor >= 0 else "--"
 	match type:
 		Type.ATTACK_START:
+			if cancel_from != &"":
+				return "t%d %s cancels %s -> %s" % [tick, who, cancel_from, move_id]
 			return "t%d %s starts %s" % [tick, who, move_id]
 		Type.HIT:
-			return "t%d %s %s HIT P%d  -%d  (hp %d)  stop %d" % [
-				tick, who, move_id, target + 1, damage, target_health, hitstop]
+			var combo: String = "" if combo_hits <= 1 else "  combo %d (%d%%)" % [combo_hits, scaling_percent]
+			return "t%d %s %s HIT P%d  -%d  (hp %d)  stop %d%s" % [
+				tick, who, move_id, target + 1, damage, target_health, hitstop, combo]
 		Type.BLOCK:
 			return "t%d %s %s BLOCKED by P%d  chip %d  (hp %d)  stop %d" % [
 				tick, who, move_id, target + 1, damage, target_health, hitstop]

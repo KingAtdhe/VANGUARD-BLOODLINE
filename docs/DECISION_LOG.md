@@ -156,6 +156,39 @@ now restarts the whole match (same as the pause menu). The on-screen Reset and
 Menu debug buttons are removed (pause menu covers them). A proper Training
 mode (infinite time, reset positions) is part of M4/M7. **Accepted.**
 
+## D-026 — 2026-11-18 — Input buffer in the simulation
+Each fighter keeps a buffer of attack presses with tick ages (6-tick window,
+`CombatTuning`). Ages freeze during hitstop so presses made during a hit
+remain usable. Newest legal press wins; illegal presses are kept until they
+expire. Replaces the M2 hitstop latch. **Accepted.**
+
+## D-027 — 2026-11-18 — Cancel model: tags + window + repeat limit
+`MoveData.tags` (what a move is) and `MoveData.cancel_tags` (what it may
+cancel into). Cancel only on contact, within active frames + 3 grace
+frames, max 2 uses of the same move per chain. Kairo: Light → Light/Kick;
+Heavy and Kick → specials (none yet). **Accepted.**
+
+## D-028 — 2026-11-18 — Combo counting and scaling
+Combo counted on the defender (hit while in HITSTUN), reset on recovery or
+block. Scaling 100/100/80/70/60/50, floor 40 %, integer maths, min 1. HUD
+shows "N HITS" on the attacker's side from 2 hits. **Accepted — tune later.**
+
+## D-029 — 2026-11-18 — Touch controls
+Custom multi-touch layer (`TouchControls`) tracking fingers by index:
+floating stick in the outer 33 % below the HUD, diamond action cluster
+(Heavy top, Light inner, Kick bottom, Block outer), 100 px radius at 1080p
+with 15 % hit slop, touch-down activation, finger keeps its button until
+lifted. Left-handed mirror toggle in the pause menu (not persisted until the
+M7 save system). Size/opacity are exported properties ready for M7 settings.
+Shown on touchscreens and in debug builds. **Accepted.**
+
+## D-030 — 2026-11-18 — Training mode
+`MatchRules.training`: straight to FIGHT, ∞ timer, no rounds, no KO (health
+floor 1), health refills when neutral, Reset button / R resets positions.
+Implemented as `training_greybox.tscn` (inherits the versus scene, different
+rules). Training panel: combo hits/damage, last hit + scaling, last move frame
+data and advantage, P1 input history. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

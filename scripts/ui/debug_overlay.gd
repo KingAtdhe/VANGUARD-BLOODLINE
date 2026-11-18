@@ -3,9 +3,8 @@ extends CanvasLayer
 ## Development overlay for the greybox combat scene.
 ## F3 (debug_toggle_overlay) shows/hides the text panel.
 ##
-## All on-screen buttons labelled DEBUG are TEMPORARY so the prototype can be
-## tried on a phone before real touch controls arrive in Milestone 4. They
-## press the same logical actions as the keyboard, so no combat logic lives here.
+## Touch gameplay controls live in TouchControls (Milestone 4); this overlay
+## only shows debug text and the Hitboxes / Dummy toggles.
 
 signal dummy_cycle_requested
 signal hitboxes_toggle_requested
@@ -18,12 +17,6 @@ signal hitboxes_toggle_requested
 
 
 func _ready() -> void:
-	_bind_hold(%DebugLeftButton, InputActions.MOVE_LEFT)
-	_bind_hold(%DebugRightButton, InputActions.MOVE_RIGHT)
-	_bind_hold(%DebugLightButton, InputActions.ATTACK_LIGHT)
-	_bind_hold(%DebugHeavyButton, InputActions.ATTACK_HEAVY)
-	_bind_hold(%DebugKickButton, InputActions.ATTACK_KICK)
-	_bind_hold(%DebugBlockButton, InputActions.BLOCK)
 	_dummy_button.pressed.connect(func() -> void: dummy_cycle_requested.emit())
 	_hitbox_button.pressed.connect(func() -> void: hitboxes_toggle_requested.emit())
 
@@ -43,8 +36,5 @@ func set_dummy_mode(mode_name: String) -> void:
 	_dummy_button.text = "Dummy: %s" % mode_name
 
 
-func _bind_hold(button: Button, action: StringName) -> void:
-	# button_down fires on touch-down (spec §2.4), release on lift.
-	button.button_down.connect(func() -> void: Input.action_press(action))
-	button.button_up.connect(func() -> void: Input.action_release(action))
-	button.tree_exiting.connect(func() -> void: Input.action_release(action))
+func set_panel_visible(value: bool) -> void:
+	_panel.visible = value

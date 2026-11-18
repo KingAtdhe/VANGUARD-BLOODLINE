@@ -1,7 +1,7 @@
 # Technical Architecture
 
 Canonical source: `PRODUCTION_PACKAGE.md` §9. This file records what is
-actually implemented. Updated: Milestone 3.
+actually implemented. Updated: Milestone 4.
 
 ## Combat loop (per render frame)
 
@@ -23,10 +23,11 @@ MatchResults (match_ended).
 
 ## Simulation step phases (`CombatSimulation.step`)
 
-0. Hitstop — if active: count down, latch new button presses, freeze all.
-1. State/input — advance attack frame / stun timers; detect presses
-   (held vs previous tick); neutral fighters start an attack (Heavy > Kick >
-   Light), hold block, or walk.
+0. Hitstop — if active: count down, buffer new presses (no aging), freeze all.
+1. State/input — buffer new presses; advance attack frame / stun timers
+   (recovering from stun ends the combo on that fighter); an attacking
+   fighter may cancel into the newest legal buffered move; a neutral fighter
+   starts the newest buffered attack, holds block, or walks; age the buffer.
 2. Integrate — walking (forward/back speed relative to facing) and pushback.
 3. Spacing — corner pushback transfer, max separation, pushbox resolve, walls.
 4. Facing — only neutral fighters turn toward the opponent.
@@ -64,3 +65,7 @@ P1 is always processed before P2 inside each phase.
 | MatchRules | `scripts/combat/match_rules.gd` | Rounds, time, intro/outro, draw rules (data) |
 | MatchDirector | `scripts/combat/match_director.gd` | Phases, timer, round results, match winner, rematch |
 | MatchHUD / PauseMenu / MatchResults | `scripts/ui/` | Presentation; read state, emit button signals |
+| CombatTuning | `scripts/combat/combat_tuning.gd` | Buffer window, cancel grace/repeat limit, combo scaling (data) |
+| TouchControls | `scripts/ui/touch_controls.gd` | Multi-touch stick + buttons → logical actions |
+| InputHistory | `scripts/input/input_history.gd` | Compressed P1 input log for training |
+| TrainingPanel | `scripts/ui/training_panel.gd` | Combo/frame data/input history readout |

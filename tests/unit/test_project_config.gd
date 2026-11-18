@@ -81,3 +81,23 @@ func test_only_expected_autoloads() -> Array[String]:
 		if not expected.has(autoload):
 			f.append("unexpected autoload '%s' = %s" % [autoload, ProjectSettings.get_setting(name)])
 	return f
+
+
+## Every gameplay action must be playable on keyboard AND gamepad (spec §2.4).
+func test_gameplay_actions_have_keyboard_and_gamepad() -> Array[String]:
+	var f: Array[String] = []
+	var gameplay: Array[StringName] = [
+		InputActions.MOVE_LEFT, InputActions.MOVE_RIGHT, InputActions.MOVE_UP, InputActions.MOVE_DOWN,
+		InputActions.ATTACK_LIGHT, InputActions.ATTACK_HEAVY, InputActions.ATTACK_KICK,
+		InputActions.BLOCK, InputActions.SPECIAL, InputActions.ULTIMATE, InputActions.PAUSE,
+	]
+	for action: StringName in gameplay:
+		var events: Array = (ProjectSettings.get_setting("input/" + String(action)) as Dictionary).get("events", [])
+		var has_key: bool = false
+		var has_pad: bool = false
+		for e: Variant in events:
+			has_key = has_key or e is InputEventKey
+			has_pad = has_pad or e is InputEventJoypadButton or e is InputEventJoypadMotion
+		if not has_key or not has_pad:
+			f.append("%s: keyboard=%s gamepad=%s" % [action, has_key, has_pad])
+	return f

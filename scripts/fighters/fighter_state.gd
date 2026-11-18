@@ -31,9 +31,18 @@ var stun_remaining: int = 0
 
 ## Buttons held on the last processed tick (for press-edge detection).
 var held_buttons: int = 0
-## Presses detected during hitstop, applied on the first tick after it.
-## (A minimal latch; the general input buffer arrives in Milestone 4.)
-var pending_presses: int = 0
+## Input buffer: recent attack presses as Vector2i(button, age_in_ticks),
+## oldest first. Ages advance only on non-hitstop ticks; entries older than
+## CombatTuning.input_buffer_ticks are dropped. A press is consumed when it
+## starts (or cancels into) an attack.
+var buffer: Array[Vector2i] = []
+## Move ids in the current cancel chain (for repeat limits).
+var chain: Array[StringName] = []
+
+## Combo being suffered by THIS fighter (as defender): hits and damage since
+## it was last neutral. Reset when it recovers to neutral.
+var combo_hits: int = 0
+var combo_damage: int = 0
 
 ## Pushback still to slide (signed metres) and slide amount per tick.
 var pushback_remaining: float = 0.0
@@ -53,7 +62,10 @@ func copy() -> FighterState:
 	s.move_connected = move_connected
 	s.stun_remaining = stun_remaining
 	s.held_buttons = held_buttons
-	s.pending_presses = pending_presses
+	s.buffer = buffer.duplicate()
+	s.chain = chain.duplicate()
+	s.combo_hits = combo_hits
+	s.combo_damage = combo_damage
 	s.pushback_remaining = pushback_remaining
 	s.pushback_step = pushback_step
 	return s
@@ -78,7 +90,7 @@ func action_name() -> String:
 
 ## Compact, exact text form — used for determinism checks and debugging.
 func describe() -> String:
-	return "%s x=%s f=%d hp=%d mv=%s:%d stun=%d push=%s" % [
+	return "%s x=%s f=%d hp=%d mv=%s:%d stun=%d push=%s buf=%s combo=%d/%d" % [
 		action_name(), var_to_str(position_x), facing, health,
 		move.id if move != null else "-", move_frame, stun_remaining,
-		var_to_str(pushback_remaining)]
+		var_to_str(pushback_remaining), buffer, combo_hits, combo_damage]

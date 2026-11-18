@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MatchRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/match_rules.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+training = true
+rounds_to_win = 2
+round_time_seconds = 90
+intro_ticks = 0
+round_end_ticks = 0
+draw_awards_both = true
+max_rounds = 5

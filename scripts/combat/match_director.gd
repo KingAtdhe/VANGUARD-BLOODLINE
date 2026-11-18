@@ -17,6 +17,11 @@ extends RefCounted
 ##   - Draw: both fighters get the round if rules.draw_awards_both.
 ## The match ends as soon as a fighter reaches rounds_to_win (both at once =
 ## match draw) or after rules.max_rounds, so it always reaches an end state.
+##
+## Training (rules.training): goes straight to FIGHT, the timer never runs,
+## rounds never end, KO is disabled (health floor 1) and health refills once a
+## fighter is neutral with no combo running. [method training_reset] puts
+## both fighters back on their spawn points.
 
 signal round_started(round_number: int)
 signal fight_started(round_number: int)
@@ -63,6 +68,7 @@ func start_match(sim: CombatSimulation) -> void:
 	match_winner = -1
 	round_number = 0
 	sim.combat_log.clear()
+	sim.ko_enabled = not rules.training
 	_start_round(sim)
 
 
@@ -77,8 +83,11 @@ func step(sim: CombatSimulation, inputs: Array[FighterInputFrame]) -> void:
 				fight_started.emit(round_number)
 		Phase.FIGHT:
 			sim.step(inputs)
-			timer_ticks = maxi(0, timer_ticks - 1)
-			_check_round_end(sim)
+			if rules.training:
+				_training_refill(sim)
+			else:
+				timer_ticks = maxi(0, timer_ticks - 1)
+				_check_round_end(sim)
 		Phase.ROUND_END:
 			sim.step(_neutral())
 			if phase_ticks >= rules.round_end_ticks:
@@ -90,6 +99,12 @@ func step(sim: CombatSimulation, inputs: Array[FighterInputFrame]) -> void:
 ## Whole seconds left, rounded up (90.0 → 90, 0.01 → 1, 0 → 0).
 func timer_seconds() -> int:
 	return ceili(float(timer_ticks) / CombatConstants.TICK_RATE)
+
+
+## Training: spawn positions and full health, keeps running.
+func training_reset(sim: CombatSimulation) -> void:
+	sim.reset()
+	round_started.emit(round_number)
 
 
 func is_match_over() -> bool:
@@ -110,8 +125,17 @@ func _start_round(sim: CombatSimulation) -> void:
 	round_number += 1
 	timer_ticks = rules.round_ticks()
 	sim.reset()
-	_set_phase(Phase.INTRO)
+	_set_phase(Phase.FIGHT if rules.training else Phase.INTRO)
 	round_started.emit(round_number)
+	if rules.training:
+		fight_started.emit(round_number)
+
+
+func _training_refill(sim: CombatSimulation) -> void:
+	for i: int in 2:
+		var f: FighterState = sim.fighters[i]
+		if f.is_neutral() and f.combo_hits == 0 and f.health < sim.definitions[i].base_health:
+			f.health = sim.definitions[i].base_health
 
 
 func _check_round_end(sim: CombatSimulation) -> void:

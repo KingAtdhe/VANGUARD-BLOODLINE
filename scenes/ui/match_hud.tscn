@@ -220,3 +220,25 @@ theme_override_font_sizes/font_size = 150
 text = "FIGHT!"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="P1Combo" type="Label" parent="SafeArea/Root/TopRow/P1Side"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0.15, 0, 0, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 64
+text = "2 HITS"
+horizontal_alignment = 0
+
+[node name="P2Combo" type="Label" parent="SafeArea/Root/TopRow/P2Side"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0.15, 0, 0, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 64
+text = "2 HITS"
+horizontal_alignment = 2

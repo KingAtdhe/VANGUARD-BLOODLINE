@@ -21,6 +21,13 @@ func move_for(pattern: StringName) -> MoveData:
 	return null
 
 
+func move_for_id(id: StringName) -> MoveData:
+	for m: MoveData in moves:
+		if m != null and m.id == id:
+			return m
+	return null
+
+
 func validate() -> Array[String]:
 	var p: Array[String] = []
 	if fighter_id == &"":

@@ -1,6 +1,6 @@
 extends Node
-## Greybox versus scene: P1 (local) vs the training dummy in a best-of-three
-## match.
+## Greybox scene: P1 (local) vs the training dummy. Versus (best-of-three)
+## or Training, chosen by match_rules.training (training_greybox.tscn).
 ##
 ## Each render frame:
 ##   1. CombatClock converts the render delta into N fixed 60 Hz ticks.
@@ -19,6 +19,7 @@ extends Node
 @export var p1_definition: FighterDefinition
 @export var p2_definition: FighterDefinition
 @export var match_rules: MatchRules
+@export var combat_tuning: CombatTuning
 ## Print combat-log events to stdout as they happen.
 @export var print_combat_log: bool = true
 
@@ -30,6 +31,8 @@ extends Node
 @onready var _hud: MatchHUD = %MatchHUD
 @onready var _pause_menu: PauseMenu = %PauseMenu
 @onready var _results: MatchResults = %MatchResults
+@onready var _touch: TouchControls = %TouchControls
+@onready var _training_panel: TrainingPanel = %TrainingPanel
 
 var simulation := CombatSimulation.new()
 var clock := CombatClock.new()
@@ -37,24 +40,27 @@ var dummy := TrainingDummyController.new()
 var director: MatchDirector
 var _previous: Array[FighterState] = []
 var _seen_events: int = 0
+var input_history := InputHistory.new()
 
 
 func _ready() -> void:
 	var problems: Array[String] = []
-	if arena_config == null or p1_definition == null or p2_definition == null or match_rules == null:
-		problems.append("missing arena, fighter or match data")
+	if arena_config == null or p1_definition == null or p2_definition == null \
+			or match_rules == null or combat_tuning == null:
+		problems.append("missing arena, fighter, match or tuning data")
 	else:
 		problems.append_array(arena_config.validate())
 		problems.append_array(p1_definition.validate())
 		problems.append_array(p2_definition.validate())
 		problems.append_array(match_rules.validate())
+		problems.append_array(combat_tuning.validate())
 	if not problems.is_empty():
 		push_error("CombatScene: invalid setup: %s" % ", ".join(problems))
 		set_process(false)
 		return
 
 	simulation.combat_log.echo_to_stdout = print_combat_log
-	simulation.setup(arena_config, p1_definition, p2_definition)
+	simulation.setup(arena_config, p1_definition, p2_definition, combat_tuning)
 	director = MatchDirector.new(match_rules)
 	director.round_started.connect(_on_round_started)
 	director.fight_started.connect(_on_fight_started)
@@ -62,10 +68,17 @@ func _ready() -> void:
 	director.match_ended.connect(_on_match_ended)
 
 	_camera_rig.configure(arena_config)
-	_hud.setup(simulation.definitions, match_rules.rounds_to_win)
+	var training: bool = match_rules.training
+	_hud.setup(simulation.definitions, match_rules.rounds_to_win, training)
+	_training_panel.visible = training
+	_training_panel.reset_requested.connect(reset_positions)
+	_overlay.set_panel_visible(not training)  # F3 still toggles it
+	_pause_menu.set_training(training)
+	_pause_menu.set_left_handed(_touch.left_handed)
+	_pause_menu.handedness_toggled.connect(toggle_handedness)
 	_hud.pause_pressed.connect(toggle_pause)
 	_pause_menu.resume_requested.connect(resume)
-	_pause_menu.restart_requested.connect(func() -> void: resume(); start_match())
+	_pause_menu.restart_requested.connect(func() -> void: resume(); restart())
 	_pause_menu.quit_requested.connect(_return_to_menu)
 	_results.rematch_requested.connect(start_match)
 	_results.menu_requested.connect(_return_to_menu)
@@ -74,9 +87,10 @@ func _ready() -> void:
 	_overlay.set_dummy_mode(dummy.mode_name())
 
 	start_match()
-	print("[Combat] greybox ready: arena=%s P1=%s P2=%s tick=%dHz rounds_to_win=%d time=%ds" % [
-		arena_config.arena_id, p1_definition.fighter_id, p2_definition.fighter_id,
-		CombatConstants.TICK_RATE, match_rules.rounds_to_win, match_rules.round_time_seconds])
+	print("[Combat] greybox ready: mode=%s arena=%s P1=%s P2=%s tick=%dHz rounds_to_win=%d time=%ds buffer=%d" % [
+		"training" if training else "versus", arena_config.arena_id, p1_definition.fighter_id,
+		p2_definition.fighter_id, CombatConstants.TICK_RATE, match_rules.rounds_to_win,
+		match_rules.round_time_seconds, combat_tuning.input_buffer_ticks])
 
 
 func _exit_tree() -> void:
@@ -91,7 +105,10 @@ func _process(delta: float) -> void:
 	var ticks: int = clock.advance(delta)
 	for _i: int in ticks:
 		_previous = simulation.snapshot()
-		director.step(simulation, _gather_inputs())
+		var inputs: Array[FighterInputFrame] = _gather_inputs()
+		if director.phase == MatchDirector.Phase.FIGHT:
+			input_history.record(inputs[0])
+		director.step(simulation, inputs)
 	_present_new_events()
 	_render(delta)
 
@@ -100,7 +117,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(InputActions.PAUSE):
 		toggle_pause()
 	elif event.is_action_pressed(InputActions.DEBUG_RESET):
-		start_match()
+		restart()
 	elif event.is_action_pressed(InputActions.DEBUG_CYCLE_DUMMY):
 		cycle_dummy_mode()
 
@@ -124,11 +141,33 @@ func _notification(what: int) -> void:
 func start_match() -> void:
 	_results.hide_results()
 	_hud.clear_announce()
+	_touch.release_all()
+	input_history.clear()
+	_training_panel.clear()
 	clock.reset()
 	director.start_match(simulation)
 	_previous = simulation.snapshot()
 	_seen_events = simulation.combat_log.total_count()
 	_render(0.0)
+
+
+## Debug R / pause-menu restart: training resets positions, versus restarts.
+func restart() -> void:
+	if match_rules.training:
+		reset_positions()
+	else:
+		start_match()
+
+
+## Training reset (spec M4): spawn positions and full health.
+func reset_positions() -> void:
+	director.training_reset(simulation)
+	_previous = simulation.snapshot()
+
+
+func toggle_handedness() -> void:
+	_touch.set_left_handed(not _touch.left_handed)
+	_pause_menu.set_left_handed(_touch.left_handed)
 
 
 func is_paused() -> bool:
@@ -139,6 +178,7 @@ func is_paused() -> bool:
 func pause() -> void:
 	if director == null or director.is_match_over() or get_tree().paused:
 		return
+	_touch.release_all()  # no stuck walk/attack after resuming
 	get_tree().paused = true
 	_pause_menu.open()
 
@@ -163,13 +203,16 @@ func cycle_dummy_mode() -> void:
 func _on_round_started(round_number: int) -> void:
 	# The simulation was reset: don't interpolate from last round's positions.
 	_previous = simulation.snapshot()
+	if match_rules.training:
+		return
 	var final_round: bool = director.round_wins[0] == match_rules.rounds_to_win - 1 \
 			and director.round_wins[1] == match_rules.rounds_to_win - 1
 	_hud.announce("FINAL ROUND" if final_round else "ROUND %d" % round_number, true)
 
 
 func _on_fight_started(_round_number: int) -> void:
-	_hud.announce("FIGHT!")
+	if not match_rules.training:
+		_hud.announce("FIGHT!")
 
 
 func _on_round_ended(result: MatchDirector.RoundResult) -> void:
@@ -188,6 +231,7 @@ func _on_round_ended(result: MatchDirector.RoundResult) -> void:
 
 func _on_match_ended(_winner: int) -> void:
 	_hud.clear_announce()
+	_touch.release_all()
 	_results.show_results(director, simulation.definitions)
 
 
@@ -201,6 +245,8 @@ func _gather_inputs() -> Array[FighterInputFrame]:
 func _present_new_events() -> void:
 	var combat_log: CombatLog = simulation.combat_log
 	for ev: CombatEvent in combat_log.events_since(_seen_events):
+		if match_rules.training:
+			_training_panel.on_event(ev, simulation)
 		match ev.type:
 			CombatEvent.Type.HIT:
 				_effects.spawn_for(ev)
@@ -222,13 +268,15 @@ func _render(delta: float) -> void:
 	_hitbox_view.show_boxes(simulation, xs)
 	_camera_rig.follow(xs[0], xs[1], delta)
 	_hud.refresh(simulation, director, delta)
+	if match_rules.training:
+		_training_panel.refresh(simulation, input_history)
 	_overlay.set_text(_debug_text(), _log_text())
 
 
 func _debug_text() -> String:
 	var f: Array[FighterState] = simulation.fighters
 	return "\n".join([
-		"M3 GREYBOX — F3 panel  F4 boxes  R restart match  T dummy  Esc/P pause",
+		"M4 GREYBOX — F3 panel  F4 boxes  R restart/reset  T dummy  Esc/P pause",
 		"round %d  %s  phase tick %d  timer %d  wins %d-%d" % [
 			director.round_number, director.phase_name(), director.phase_ticks,
 			director.timer_ticks, director.round_wins[0], director.round_wins[1]],

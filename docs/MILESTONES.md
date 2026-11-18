@@ -61,7 +61,7 @@ Acceptance:
 - [x] Hit detection is reproducible and debuggable — identical 1,200-tick combat logs across runs;
       hitbox debug view draws the exact simulation boxes; tick-stamped combat log
 - [ ] **On-device check — NOT VERIFIED**
-## Milestone 3 — match loop  ✅ implemented, awaiting approval
+## Milestone 3 — match loop  ✅ approved
 - [x] Health bars (with damage trail)
 - [x] Timer (90 s, integer ticks, shown rounded up)
 - [x] Round counter + round-win pips, ROUND n / FINAL ROUND / FIGHT! / K.O. / TIME announcer
@@ -78,7 +78,24 @@ Acceptance:
 - [x] Round transitions reset positions and state correctly — test compares every field after round 1
 - [x] Rematch starts a clean match — director + scene tests (round 1, 0–0, full health, empty log)
 - [ ] **On-device check (HUD layout on a real phone, pause on home/back) — NOT VERIFIED**
-## Milestone 4 — combo and input systems (touch controls)
+## Milestone 4 — combo and input systems  ✅ implemented, awaiting approval
+- [x] Touch controls: multi-touch stick + L/H/K/Block cluster, left-handed toggle (DEBUG buttons removed)
+- [x] Keyboard/gamepad debug controls (every gameplay action has both — tested)
+- [x] Input buffer (6 ticks, frozen during hitstop)
+- [x] Cancel routes (tags, window, repeat limit) — Kairo L→L, L→K
+- [x] Combo counter and scaling (HUD "N HITS", training panel)
+- [x] Training mode + training reset (main menu → Training)
+- [x] Input history (training panel)
+
+Acceptance:
+- [x] Simultaneous movement and attack works — sim test (attack while holding a direction,
+      walk resumes) + touch test (two fingers: stick + button, independent release) + touch combo in scene
+- [x] Buffered inputs execute only when legal — tests: executes on the first neutral tick only
+      within the window; never during hitstun; reversal within window; illegal cancels stay unused
+- [x] Invalid cancel routes are rejected — L→H, K→L, H→L, whiff, late, 3rd Light
+- [x] No infinite combo possible in the tested move set — exhaustive 363-route × 4-situation
+      search; max 3 hits; defender always recovers
+- [ ] **On-device check (touch feel, thumb reach, multi-touch on a real phone) — NOT VERIFIED**
 ## Milestone 5 — AI
 ## Milestone 6 — Kairo vertical slice
 ## Milestone 7 — UI, menus and modes

@@ -36,3 +36,8 @@ jobs:
           ./godot --headless --path . res://scenes/combat/combat_greybox.tscn --fixed-fps 60 --quit-after 300 2>&1 | tee combat.log
           grep -q "\[Combat\] greybox ready" combat.log
           ! grep -E "SCRIPT ERROR|^ERROR" combat.log
+      - name: Run training scene (smoke)
+        run: |
+          ./godot --headless --path . res://scenes/combat/training_greybox.tscn --fixed-fps 60 --quit-after 300 2>&1 | tee training.log
+          grep -q "mode=training" training.log
+          ! grep -E "SCRIPT ERROR|^ERROR" training.log

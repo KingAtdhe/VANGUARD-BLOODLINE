@@ -1,7 +1,7 @@
 # Combat Frame Data
 
 Canonical design source: `PRODUCTION_PACKAGE.md` §4.3–§4.5. This file holds
-the implemented conventions and the current numbers. Updated: Milestone 2.
+the implemented conventions and the current numbers. Updated: Milestone 4.
 
 ## Conventions (decision D-018)
 
@@ -32,6 +32,10 @@ the implemented conventions and the current numbers. Updated: Milestone 2.
 | Facing | Only neutral fighters turn; attacks/stuns keep their facing. |
 | KO | Health 0 → KO state, no hurtbox, input ignored. Training reset (R / F5 / Reset button) restores. |
 | Attack priority | Several attack buttons pressed on the same tick: Heavy > Kick > Light. |
+| Input buffer | Attack presses are buffered for **6 ticks** (`data/rules/combat_tuning.tres`). Buffer age does not advance during hitstop. The newest legal press is used; illegal ones stay buffered until they expire. Block is a held state, never buffered. |
+| Cancels | Allowed only on contact (hit **or** block), from the first active frame until **3 frames** after the last active frame, into a move whose `tags` appear in the current move's `cancel_tags`, and only if that move is in the current chain fewer than **2** times. |
+| Combo | Counted on the defender: a hit while the defender is already in HITSTUN is the next hit of the combo. Ends when the defender recovers to neutral, or when an attack is blocked. |
+| Combo scaling | Damage % by hit number: 100, 100, 80, 70, 60, 50, then 40 (integer maths, min 1 damage). Chip is never scaled. |
 
 ## Kairo (placeholder) — prototype values
 
@@ -53,3 +57,29 @@ them.
 Notable consequence: heavy is −5 on block and punishable by the 5f light at
 close range (≤ ~0.95 m); from further out its pushback leaves the light out
 of reach.
+
+## Cancel routes (Kairo placeholder)
+
+| Move | tags | cancel_tags (can cancel into) |
+|---|---|---|
+| Light punch | normal, light | light, kick |
+| Heavy punch | normal, heavy | special *(no specials yet)* |
+| Kick | normal, kick | special *(no specials yet)* |
+
+Rejected (tested): Light→Heavy, Kick→Light, Heavy→Light, any cancel on whiff,
+any cancel after the window, a third Light in one chain.
+
+**Starter route (spec §4.5): Light, Light, Kick** = 3 hits,
+35 + 35 + 48 (kick at 80 %) = **118 damage**. It connects from up to
+**0.94 m** apart (mid-screen or corner) when each cancel is input as early
+as possible — the first Light's pushback otherwise carries the dummy out of
+Light range. Origin Palm and the heavy follow-up join the route in M6.
+
+## Infinite-combo guarantee
+
+`test_no_infinite_combo_exhaustive_routes` tries all 363 routes of 1–5
+attacks from {L, K, H}, each mashed so every cancel and every link is
+attempted, mid-screen and cornered, standing and walking forward (1,452
+runs). The longest combo found is 3 hits and the defender always recovers.
+Bounds come from: tag routes ending at Kick/Heavy, the 2-per-chain repeat
+limit, pushback, and no move being plus enough to link into itself.

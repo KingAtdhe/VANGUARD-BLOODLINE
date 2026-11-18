@@ -43,9 +43,13 @@ func _invariants(sim: CombatSimulation, d: MatchDirector) -> Array[String]:
 	return p
 
 
-## P1 keeps walking in and pressing heavy.
-func _p1_aggressor(t: int) -> FighterInputFrame:
-	return FighterInputFrame.with_buttons(H if t % 2 == 0 else 0, 1)
+## P1 walks in; once in heavy range it mashes heavy. (Pressing from out of
+## range would just buffer whiffs forever, so a sane player walks in first.)
+func _p1_aggressor(sim: CombatSimulation) -> Callable:
+	return func(t: int) -> FighterInputFrame:
+		if sim.separation() < 1.25:
+			return FighterInputFrame.with_buttons(H if t % 2 == 0 else 0)
+		return FighterInputFrame.moving(1)
 
 
 func _run_until_end(sim: CombatSimulation, d: MatchDirector, p1: Callable, p2: Callable) -> Array[String]:
@@ -71,7 +75,7 @@ func test_p1_wins_two_straight_rounds_by_ko() -> Array[String]:
 	var s: Array = _setup()
 	var sim: CombatSimulation = s[0]
 	var d: MatchDirector = s[1]
-	var f: Array[String] = _run_until_end(sim, d, _p1_aggressor, func(_t: int) -> FighterInputFrame: return FighterInputFrame.neutral())
+	var f: Array[String] = _run_until_end(sim, d, _p1_aggressor(sim), func(_t: int) -> FighterInputFrame: return FighterInputFrame.neutral())
 	if d.match_winner != 0 or d.round_wins != [2, 0] or d.results.size() != 2:
 		f.append("expected P1 2-0, got winner %d wins %s rounds %d" % [d.match_winner, d.round_wins, d.results.size()])
 	for r: MatchDirector.RoundResult in d.results:
@@ -163,8 +167,9 @@ func test_round_transition_resets_everything() -> Array[String]:
 	var d: MatchDirector = s[1]
 	var f: Array[String] = []
 	var guard: int = 0
+	var aggressor: Callable = _p1_aggressor(sim)
 	while d.round_number < 2 and guard < 20000:
-		d.step(sim, [_p1_aggressor(guard), FighterInputFrame.neutral()])
+		d.step(sim, [aggressor.call(guard), FighterInputFrame.neutral()])
 		guard += 1
 	if d.round_number != 2 or d.phase != MatchDirector.Phase.INTRO or d.phase_ticks != 0:
 		return ["did not reach round 2 intro (round %d, %s)" % [d.round_number, d.phase_name()]]
@@ -205,7 +210,7 @@ func test_rematch_starts_clean_match() -> Array[String]:
 	var s: Array = _setup()
 	var sim: CombatSimulation = s[0]
 	var d: MatchDirector = s[1]
-	var f: Array[String] = _run_until_end(sim, d, _p1_aggressor, func(_t: int) -> FighterInputFrame: return FighterInputFrame.neutral())
+	var f: Array[String] = _run_until_end(sim, d, _p1_aggressor(sim), func(_t: int) -> FighterInputFrame: return FighterInputFrame.neutral())
 	d.start_match(sim)
 	if d.round_number != 1 or d.round_wins != [0, 0] or not d.results.is_empty():
 		f.append("rematch round/wins/results not reset")
@@ -217,7 +222,7 @@ func test_rematch_starts_clean_match() -> Array[String]:
 	if sim.combat_log.total_count() != 1:  # just the RESET event
 		f.append("combat log not cleared (%d events)" % sim.combat_log.total_count())
 	# And the rematch plays out to a valid end too.
-	f.append_array(_run_until_end(sim, d, _p1_aggressor, func(_t: int) -> FighterInputFrame: return FighterInputFrame.neutral()))
+	f.append_array(_run_until_end(sim, d, _p1_aggressor(sim), func(_t: int) -> FighterInputFrame: return FighterInputFrame.neutral()))
 	return f
 
 
@@ -239,9 +244,14 @@ func test_random_matches_always_end_validly() -> Array[String]:
 		# actually fight; per-match aggression differs so outcomes vary.
 		var p1_dirs: Array[int] = [-1, 0, 1, 1]
 		var p2_dirs: Array[int] = [1, 0, -1, -1]
+		# Out of range they walk (with random hesitation); in range they mash.
 		var gen1 := func(_t: int) -> FighterInputFrame:
+			if sim.separation() > 1.5:
+				return FighterInputFrame.moving(p1_dirs[rng.randi() % 4])
 			return FighterInputFrame.with_buttons(buttons[rng.randi() % buttons.size()], p1_dirs[rng.randi() % 4])
 		var gen2 := func(_t: int) -> FighterInputFrame:
+			if sim.separation() > 1.5:
+				return FighterInputFrame.moving(p2_dirs[rng.randi() % 4])
 			return FighterInputFrame.with_buttons(buttons[rng.randi() % buttons.size()], p2_dirs[rng.randi() % 4])
 		f.append_array(_run_until_end(sim, d, gen1, gen2))
 		outcomes[d.match_winner] = outcomes.get(d.match_winner, 0) + 1

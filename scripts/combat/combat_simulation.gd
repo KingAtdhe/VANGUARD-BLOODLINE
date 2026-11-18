@@ -8,7 +8,8 @@ extends RefCounted
 ## frame rate.
 ##
 ## Scope so far: walking, facing, pushboxes, walls, max separation (M1);
-## attacks, hitboxes, block, damage, stun, pushback, hitstop, KO (M2).
+## attacks, hitboxes, block, damage, stun, pushback, hitstop, KO (M2);
+## input buffer, cancel routes, combo counter and damage scaling (M4).
 
 var arena: ArenaConfig
 var definitions: Array[FighterDefinition] = []
@@ -17,19 +18,31 @@ var combat_log := CombatLog.new()
 var tick: int = 0
 ## Remaining global hitstop ticks. While > 0 every fighter is frozen.
 var hitstop_remaining: int = 0
+var tuning: CombatTuning
+## False in training: health never drops below 1.
+var ko_enabled: bool = true
 
-## Button → move pattern, in priority order when pressed on the same tick.
-const _ATTACK_BUTTONS: Array[Array] = [
-	[FighterInputFrame.BUTTON_HEAVY, &"HEAVY"],
-	[FighterInputFrame.BUTTON_KICK, &"KICK"],
-	[FighterInputFrame.BUTTON_LIGHT, &"LIGHT"],
+## Attack buttons in REVERSE priority. Presses on the same tick are buffered
+## in this order, and the buffer is read newest-first, so simultaneous
+## presses resolve Heavy > Kick > Light.
+const _BUFFER_ORDER: Array[int] = [
+	FighterInputFrame.BUTTON_LIGHT,
+	FighterInputFrame.BUTTON_KICK,
+	FighterInputFrame.BUTTON_HEAVY,
 ]
+const _PATTERNS: Dictionary = {
+	FighterInputFrame.BUTTON_LIGHT: &"LIGHT",
+	FighterInputFrame.BUTTON_KICK: &"KICK",
+	FighterInputFrame.BUTTON_HEAVY: &"HEAVY",
+}
 
 
-func setup(arena_config: ArenaConfig, p1: FighterDefinition, p2: FighterDefinition) -> void:
+func setup(arena_config: ArenaConfig, p1: FighterDefinition, p2: FighterDefinition,
+		combat_tuning: CombatTuning = null) -> void:
 	assert(arena_config != null and p1 != null and p2 != null)
 	arena = arena_config
 	definitions = [p1, p2]
+	tuning = combat_tuning if combat_tuning != null else CombatTuning.new()
 	reset()
 
 
@@ -59,10 +72,12 @@ func reset() -> void:
 ## [param inputs] must contain one FighterInputFrame per fighter (P1, P2).
 ##
 ## Phase order (always P1 before P2 inside each phase):
-##   0. Hitstop     — if active: count down, latch new presses, freeze
-##                    everything else.
-##   1. State/input — advance attack/stun timers, detect button presses,
-##                    start attacks, block, or set walking intent.
+##   0. Hitstop     — if active: count down, buffer new presses (buffer ages
+##                    do not advance), freeze everything else.
+##   1. State/input — buffer new presses; advance attack/stun timers; a
+##                    fighter in an attack may cancel into a buffered move
+##                    if the route is legal; a neutral fighter starts the
+##                    newest buffered attack, blocks, or walks; age buffer.
 ##   2. Integrate   — walking (forward/back speed) and pushback slide.
 ##   3. Max separation, pushbox resolve, wall clamp (wall-blocked pushback
 ##                    is transferred to the attacker).
@@ -73,15 +88,14 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 	assert(inputs.size() == 2, "step() needs one input frame per fighter")
 	tick += 1
 
-	# 0. Hitstop freezes both fighters. Presses made during the freeze are
-	# latched and applied on the first tick after it, so they are not lost.
+	# 0. Hitstop freezes both fighters. New presses are buffered; the buffer
+	# does not age, so a press during hitstop is still fresh afterwards
+	# (this is what makes "press Light during the hit" cancels work).
 	if hitstop_remaining > 0:
 		hitstop_remaining -= 1
 		for i: int in 2:
 			var f: FighterState = fighters[i]
-			var held: int = inputs[i].buttons if inputs[i] != null else 0
-			f.pending_presses |= held & ~f.held_buttons
-			f.held_buttons = held
+			_register_presses(f, inputs[i].buttons if inputs[i] != null else 0)
 			f.last_displacement = 0.0
 		return
 
@@ -124,7 +138,7 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 
 	# 5. Hit detection and resolution.
 	var contacts: Array[HitboxSystem.Contact] = HitboxSystem.find_contacts(definitions, fighters)
-	hitstop_remaining = HitResolver.resolve(contacts, fighters, tick, combat_log)
+	hitstop_remaining = HitResolver.resolve(contacts, self)
 
 
 func separation() -> float:
@@ -149,13 +163,12 @@ func describe() -> String:
 
 func _update_state(i: int, input: FighterInputFrame) -> void:
 	var f: FighterState = fighters[i]
-	var pressed: int = (input.buttons & ~f.held_buttons) | f.pending_presses
-	f.held_buttons = input.buttons
-	f.pending_presses = 0
+	_register_presses(f, input.buttons)
 
 	match f.action:
 		FighterState.Action.KO:
 			f.move_x = 0
+			f.buffer.clear()
 			return
 		FighterState.Action.ATTACK:
 			f.move_frame += 1
@@ -164,42 +177,108 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 		FighterState.Action.HITSTUN, FighterState.Action.BLOCKSTUN:
 			# Actionable on the tick after stun reaches 0 (N ticks of no control).
 			if f.stun_remaining <= 0:
-				_to_idle(f)
+				_recover(f)
 			else:
 				f.stun_remaining -= 1
 
-	if not f.is_neutral():
+	if f.action == FighterState.Action.ATTACK:
+		# Still attacking: only a legal cancel may consume a buffered press.
 		f.move_x = 0
+		var cancel_move: MoveData = _take_buffered(i, _can_cancel_into.bind(i))
+		if cancel_move != null:
+			_start_attack(i, cancel_move, true)
+		_age_buffer(f)
 		return
 
-	for entry: Array in _ATTACK_BUTTONS:
-		if pressed & int(entry[0]):
-			var move: MoveData = definitions[i].move_for(entry[1])
-			if move != null:
-				_start_attack(i, move)
-				return
+	if not f.is_neutral():
+		f.move_x = 0
+		_age_buffer(f)
+		return
+
+	var move: MoveData = _take_buffered(i, func(_m: MoveData) -> bool: return true)
+	if move != null:
+		_start_attack(i, move, false)
+		_age_buffer(f)
+		return
 
 	if input.is_held(FighterInputFrame.BUTTON_BLOCK):
 		f.action = FighterState.Action.BLOCK
 		f.move_x = 0
-		return
+	else:
+		f.move_x = clampi(input.move_x, -1, 1)
+		f.action = FighterState.Action.WALK if f.move_x != 0 else FighterState.Action.IDLE
+	_age_buffer(f)
 
-	f.move_x = clampi(input.move_x, -1, 1)
-	f.action = FighterState.Action.WALK if f.move_x != 0 else FighterState.Action.IDLE
+
+## Adds attack buttons pressed this tick (held now, not held last tick).
+func _register_presses(f: FighterState, held: int) -> void:
+	var pressed: int = held & ~f.held_buttons
+	f.held_buttons = held
+	for button: int in _BUFFER_ORDER:
+		if pressed & button:
+			f.buffer.append(Vector2i(button, 0))
 
 
-func _start_attack(i: int, move: MoveData) -> void:
+## Advances buffer ages by one tick and drops expired presses.
+func _age_buffer(f: FighterState) -> void:
+	for k: int in range(f.buffer.size() - 1, -1, -1):
+		var e: Vector2i = f.buffer[k]
+		e.y += 1
+		if e.y > tuning.input_buffer_ticks:
+			f.buffer.remove_at(k)
+		else:
+			f.buffer[k] = e
+
+
+## Newest buffered press whose move [param accept] allows; consumes it.
+## Rejected presses stay buffered (they may become legal before expiring).
+func _take_buffered(i: int, accept: Callable) -> MoveData:
 	var f: FighterState = fighters[i]
+	for k: int in range(f.buffer.size() - 1, -1, -1):
+		var move: MoveData = definitions[i].move_for(_PATTERNS.get(f.buffer[k].x, &""))
+		if move != null and accept.call(move):
+			f.buffer.remove_at(k)
+			return move
+	return null
+
+
+## Cancel legality (spec §4.5, docs/COMBAT_FRAME_DATA.md):
+##   - the current attack has connected (hit or block),
+##   - we are between its first active frame and cancel_grace_frames after
+##     its last active frame,
+##   - the target's tags are in the current move's cancel_tags,
+##   - the target has not been used max_same_move_in_chain times already.
+func _can_cancel_into(target: MoveData, i: int) -> bool:
+	var f: FighterState = fighters[i]
+	var m: MoveData = f.move
+	if m == null or not f.move_connected:
+		return false
+	var last_active: int = m.startup_frames + m.active_frames - 1
+	if f.move_frame < m.startup_frames or f.move_frame > last_active + tuning.cancel_grace_frames:
+		return false
+	if not m.can_cancel_into(target):
+		return false
+	return f.chain.count(target.id) < tuning.max_same_move_in_chain
+
+
+func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
+	var f: FighterState = fighters[i]
+	var from_id: StringName = f.move.id if (is_cancel and f.move != null) else &""
 	f.action = FighterState.Action.ATTACK
 	f.move = move
 	f.move_frame = 1
 	f.move_connected = false
 	f.move_x = 0
+	if is_cancel:
+		f.chain.append(move.id)
+	else:
+		f.chain = [move.id]
 	var ev := CombatEvent.new()
 	ev.tick = tick
 	ev.type = CombatEvent.Type.ATTACK_START
 	ev.actor = i
 	ev.move_id = move.id
+	ev.cancel_from = from_id
 	combat_log.add(ev)
 
 
@@ -215,12 +294,20 @@ func _end_attack(i: int) -> void:
 	_to_idle(f)
 
 
+## Back to neutral from hitstun/blockstun: any combo on this fighter ends.
+func _recover(f: FighterState) -> void:
+	_to_idle(f)
+	f.combo_hits = 0
+	f.combo_damage = 0
+
+
 func _to_idle(f: FighterState) -> void:
 	f.action = FighterState.Action.IDLE
 	f.move = null
 	f.move_frame = 0
 	f.move_connected = false
 	f.stun_remaining = 0
+	f.chain.clear()
 
 
 # --- phase 3: spacing ---------------------------------------------------------

@@ -199,23 +199,25 @@ func test_hitstop_freezes_both_fighters() -> Array[String]:
 
 
 func test_button_edges_tracked_through_hitstop() -> Array[String]:
-	# Presses during hitstop are latched, but only act if the fighter is free
-	# right after hitstop (buffering into recovery is the M4 input buffer).
-	# What M2 guarantees: holding never re-triggers, a fresh press always works.
+	# Holding a button never re-triggers; a release+press during hitstop is a
+	# fresh press (since M4 it is buffered and, here, legally cancels
+	# Light -> Light on hit).
 	var f: Array[String] = []
 	var sim := _sim(0.9)
 	var m: MoveData = _move(&"LIGHT")
 	_step(sim, L, 0, m.startup_frames)  # connects → hitstop
+	_step(sim, L, 0, 3)                  # keep holding during hitstop: no new press
+	if not sim.fighters[0].buffer.is_empty():
+		f.append("held button was buffered as a new press")
 	_step(sim, 0, 0, 1)                  # release during hitstop
-	_step(sim, L, 0, 60)                 # press during hitstop and keep holding
-	if _count(sim, CombatEvent.Type.ATTACK_START) != 1:
-		f.append("held/latched press fired while attacker was busy or re-triggered")
-	if sim.fighters[0].pending_presses != 0:
-		f.append("latched press was not consumed")
-	_step(sim, 0, 0, 1)
-	_step(sim, L, 0, 1)                  # fresh press when neutral
-	if _count(sim, CombatEvent.Type.ATTACK_START) != 2:
-		f.append("fresh press after recovery did not start an attack")
+	_step(sim, L, 0, 1)                  # press again during hitstop
+	_step(sim, L, 0, m.hitstop_frames + 2)
+	var starts: Array[CombatEvent] = []
+	for e: CombatEvent in sim.combat_log.all_events():
+		if e.type == CombatEvent.Type.ATTACK_START:
+			starts.append(e)
+	if starts.size() != 2 or starts[1].cancel_from != m.id:
+		f.append("expected exactly one Light->Light cancel, log:\n%s" % sim.combat_log.to_text())
 	return f
 
 

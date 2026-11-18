@@ -6,6 +6,7 @@ extends CanvasLayer
 signal resume_requested
 signal restart_requested
 signal quit_requested
+signal handedness_toggled
 
 @onready var _resume: Button = %ResumeButton
 
@@ -16,6 +17,16 @@ func _ready() -> void:
 	_resume.pressed.connect(func() -> void: resume_requested.emit())
 	%RestartButton.pressed.connect(func() -> void: restart_requested.emit())
 	%QuitButton.pressed.connect(func() -> void: quit_requested.emit())
+	%HandednessButton.pressed.connect(func() -> void: handedness_toggled.emit())
+
+
+## Training renames "Restart match" to "Reset positions".
+func set_training(training: bool) -> void:
+	(%RestartButton as Button).text = "Reset positions" if training else "Restart match"
+
+
+func set_left_handed(value: bool) -> void:
+	(%HandednessButton as Button).text = "Controls: left-handed" if value else "Controls: right-handed"
 
 
 func open() -> void:

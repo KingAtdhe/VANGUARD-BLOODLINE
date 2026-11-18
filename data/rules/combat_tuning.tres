@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CombatTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/combat_tuning.gd" id="1_tuning"]
+
+[resource]
+script = ExtResource("1_tuning")
+input_buffer_ticks = 6
+cancel_grace_frames = 3
+max_same_move_in_chain = 2
+combo_scaling_percent = PackedInt32Array(100, 100, 80, 70, 60, 50)
+combo_scaling_floor_percent = 40
