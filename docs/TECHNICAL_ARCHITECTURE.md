@@ -1,7 +1,7 @@
 # Technical Architecture
 
 Canonical source: `PRODUCTION_PACKAGE.md` §9. This file records what is
-actually implemented. Updated: Milestone 4.
+actually implemented. Updated: Milestone 5.
 
 ## Combat loop (per render frame)
 
@@ -11,7 +11,8 @@ CombatScene._process(delta)
  ├─ (nothing if SceneTree.paused)
  ├─ repeat ticks:
  │    previous = simulation.snapshot()
- │    director.step(simulation, [P1 input, P2 dummy input])
+ │    P2 input = AI (observe AIObservation → next_input) or dummy
+ │    director.step(simulation, [P1 input, P2 input])
  │        INTRO/ROUND_END/MATCH_END → simulation.step(neutral inputs)
  │        FIGHT → simulation.step(inputs), timer −1, check KO / time-out
  ├─ new CombatLog events → EffectsManager sparks, view flash, camera shake
@@ -69,3 +70,7 @@ P1 is always processed before P2 inside each phase.
 | TouchControls | `scripts/ui/touch_controls.gd` | Multi-touch stick + buttons → logical actions |
 | InputHistory | `scripts/input/input_history.gd` | Compressed P1 input log for training |
 | TrainingPanel | `scripts/ui/training_panel.gd` | Combo/frame data/input history readout |
+| AIController | `scripts/ai/ai_controller.gd` | FSM opponent; delayed perception; FighterInputFrame out |
+| AIObservation | `scripts/ai/ai_observation.gd` | Human-visible snapshot (no inputs/buffers/stun counters) |
+| AIProfile / AIDecisionLog | `scripts/ai/ai_profile.gd`, `ai_decision_log.gd` | Difficulty data, decision log |
+| SessionSettings | `scripts/app/session_settings.gd` | Session-only choices (AI difficulty) |

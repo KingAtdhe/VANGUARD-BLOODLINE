@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AIProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ai/ai_profile.gd" id="1_ai"]
+
+[resource]
+script = ExtResource("1_ai")
+difficulty_name = "Standard"
+reaction_delay_ticks = 10
+anticipation = 0.7
+decision_interval_ticks = 12
+aggression = 0.55
+attack_weights = {
+&"HEAVY": 3.0,
+&"KICK": 3.0,
+&"LIGHT": 4.0
+}
+close_light_bias = 2.0
+range_mistake_chance = 0.05
+combo_chance = 0.5
+combo_route = PackedStringArray("LIGHT", "LIGHT", "KICK")
+block_reaction_chance = 0.6
+guard_chance = 0.35
+guard_ticks = 18
+punish_chance = 0.55
+punish_optimally = false
+mash_out_chance = 0.6
+retreat_chance = 0.15
+predictable_pattern = false
+adaptive = false
+max_idle_ticks = 60

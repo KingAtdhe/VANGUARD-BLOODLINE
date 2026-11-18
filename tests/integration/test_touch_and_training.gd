@@ -109,6 +109,8 @@ func test_versus_touch_combo_and_hud_counter() -> Array[String]:
 	if not f.is_empty():
 		scene.free()
 		return f
+	scene.p2_mode = scene.P2Mode.DUMMY_STAND
+	scene._apply_p2_mode()
 	var sim: CombatSimulation = scene.simulation
 	var d: MatchDirector = scene.director
 	while d.phase == MatchDirector.Phase.INTRO:
@@ -172,5 +174,33 @@ func test_training_scene() -> Array[String]:
 	scene.restart()
 	if sim.fighters[0].position_x != sim.arena.p1_spawn_x or d.phase != MatchDirector.Phase.FIGHT:
 		f.append("training reset did not restore positions")
+	scene.free()
+	return f
+
+
+func test_versus_p2_is_ai_by_default_and_acts() -> Array[String]:
+	var scene: Node = _spawn(ScenePaths.COMBAT_GREYBOX)
+	var f: Array[String] = _ready_failures(scene)
+	if not f.is_empty():
+		scene.free()
+		return f
+	if scene.ai == null:
+		f.append("versus P2 is not the AI")
+	var hud: MatchHUD = scene.get_node("%MatchHUD")
+	if not hud.fighter_name(1).contains("CPU"):
+		f.append("HUD does not show the CPU difficulty: '%s'" % hud.fighter_name(1))
+	var sim: CombatSimulation = scene.simulation
+	_frames(scene, 600)  # 10 s: intro + fight
+	var p2_acted: bool = false
+	for e: CombatEvent in sim.combat_log.all_events():
+		if e.actor == 1 and e.type == CombatEvent.Type.ATTACK_START:
+			p2_acted = true
+	if not p2_acted and absf(sim.fighters[1].position_x - sim.arena.p2_spawn_x) < 0.01:
+		f.append("AI P2 never moved or attacked in 10 s")
+	# Cycling P2 reaches the dummy and back to AI.
+	for _k: int in 3:
+		scene.cycle_dummy_mode()
+	if scene.ai != null or not hud.fighter_name(1).contains("Dummy"):
+		f.append("cycling did not reach the dummy modes")
 	scene.free()
 	return f

@@ -102,6 +102,14 @@ func announce_text() -> String:
 	return _announce.text if _announce.visible else ""
 
 
+func set_fighter_name(i: int, text: String) -> void:
+	_names[i].text = text
+
+
+func fighter_name(i: int) -> String:
+	return _names[i].text
+
+
 func combo_text(i: int) -> String:
 	return _combo_labels[i].text if _combo_labels[i].visible else ""
 

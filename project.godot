@@ -12,7 +12,7 @@ config_version=5
 
 config/name="VANGUARD: BLOODLINE"
 config/description="Landscape, Android-first 3D one-on-one fighting game (2.5D combat)."
-config/version="0.0.5-m4"
+config/version="0.0.6-m5"
 run/main_scene="res://scenes/app/boot.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"

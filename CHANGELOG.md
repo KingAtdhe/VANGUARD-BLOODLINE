@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.0.6-m5] — 2026-11-18
+### Added
+- CPU opponent: finite-state-machine `AIController` with spec states, distance bands, weighted move selection, combo route, reaction-delayed blocking, guard, punish, mash-out reversals, spacing anticipation, anti-idle.
+- Fair perception: `AIObservation` (human-visible info only), whole screen seen with reaction delay.
+- Difficulty profiles Beginner / Standard / Expert (`data/ai/`), main-menu "AI:" selector, debug P2 cycling, HUD "CPU <level>" label.
+- AI decision log (debug panel + stdout), `tools/ai_benchmark.gd`, `docs/AI_TUNING.md`.
+- 9 new tests (perception delay, future-input, legality replay, difficulty ordering, defeatable, anti-idle, determinism); mutation-checked.
+### Changed
+- Versus P2 is now the CPU by default; the dummy remains in Training and via T.
+
 ## [0.0.5-m4] — 2026-11-18
 ### Added
 - Multi-touch controls: floating stick + Light/Heavy/Kick/Block cluster, touch-down, per-finger tracking, left-handed toggle (pause menu).

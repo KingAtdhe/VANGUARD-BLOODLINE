@@ -78,7 +78,7 @@ Acceptance:
 - [x] Round transitions reset positions and state correctly — test compares every field after round 1
 - [x] Rematch starts a clean match — director + scene tests (round 1, 0–0, full health, empty log)
 - [ ] **On-device check (HUD layout on a real phone, pause on home/back) — NOT VERIFIED**
-## Milestone 4 — combo and input systems  ✅ implemented, awaiting approval
+## Milestone 4 — combo and input systems  ✅ approved
 - [x] Touch controls: multi-touch stick + L/H/K/Block cluster, left-handed toggle (DEBUG buttons removed)
 - [x] Keyboard/gamepad debug controls (every gameplay action has both — tested)
 - [x] Input buffer (6 ticks, frozen during hitstop)
@@ -96,7 +96,25 @@ Acceptance:
 - [x] No infinite combo possible in the tested move set — exhaustive 363-route × 4-situation
       search; max 3 hits; defender always recovers
 - [ ] **On-device check (touch feel, thumb reach, multi-touch on a real phone) — NOT VERIFIED**
-## Milestone 5 — AI
+## Milestone 5 — AI  ✅ implemented, awaiting approval
+- [x] AI state machine (spec states) — `AIController`
+- [x] Distance evaluation (bands from the fighter's own move ranges, spacing projection)
+- [x] Attack selection (weighted, in-range, close-range Light bias, combo route)
+- [x] Block / punish behaviour (reaction-delayed blocks, guard, punish visible recovery, mash-out)
+- [x] Difficulty settings (Beginner / Standard / Expert data profiles; main-menu selector)
+- [x] Decision logging (per-AI log on debug panel + stdout in debug builds)
+
+Acceptance:
+- [x] AI uses the same legal combat actions as the player — outputs FighterInputFrame only;
+      replaying its inputs as a human reproduces the fight exactly; no illegal cancels
+- [x] AI does not read future input — perception-delay test (catches an instant-vision
+      cheater 12–16/20) + diverging-worlds test
+- [x] Each difficulty is distinguishable — stronger wins ≥ 75 % both sides (actual 10–0);
+      blocking vs the same pressure script ordered by level
+- [x] AI can be defeated and does not become idle permanently — scripted player beats
+      Beginner/Standard; Expert takes hits; every level beats a passive opponent; idle
+      streak bounded
+- [ ] **Feel vs a human on a phone — NOT VERIFIED (needs playtests)**
 ## Milestone 6 — Kairo vertical slice
 ## Milestone 7 — UI, menus and modes
 ## Milestone 8 — remaining fighters and arenas

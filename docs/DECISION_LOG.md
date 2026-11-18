@@ -189,6 +189,28 @@ Implemented as `training_greybox.tscn` (inherits the versus scene, different
 rules). Training panel: combo hits/damage, last hit + scaling, last move frame
 data and advantage, P1 input history. **Accepted.**
 
+## D-031 — 2026-11-18 — FSM AI with delayed, human-visible perception
+`AIController` is a finite-state machine (spec §5 states) driven only by
+`AIObservation` snapshots. The whole screen — including the AI's own fighter
+— is perceived `reaction_delay_ticks` late. Output is a normal
+`FighterInputFrame`. Frame data is treated as public matchup knowledge.
+Seeded RNG for reproducibility. **Accepted.**
+
+## D-032 — 2026-11-18 — Three difficulty profiles as data
+`data/ai/{beginner,standard,expert}.tres` (`AIProfile`). Knobs: reaction
+delay, decision interval, anticipation, aggression, move weights, close
+Light bias, range mistakes, combo commit, block/guard/punish/mash chances,
+predictable pattern (Beginner), adaptive (Expert), anti-idle. No stat knobs
+exist on the type. Values and benchmark in `docs/AI_TUNING.md`. **Accepted —
+tune with human playtests.**
+
+## D-033 — 2026-11-18 — P2 controller selection
+Versus: P2 = AI at the difficulty chosen on the main menu ("AI: …" button,
+session-only `SessionSettings` until the M7 save system). Training: P2 =
+dummy. T / the debug "P2:" button cycles AI Beginner/Standard/Expert and
+dummy STAND/BLOCK/JAB. HUD shows "… — CPU <level>" or "— Dummy". AI is
+re-seeded per match. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

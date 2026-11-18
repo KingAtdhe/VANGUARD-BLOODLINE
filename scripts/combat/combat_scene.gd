@@ -1,6 +1,8 @@
 extends Node
-## Greybox scene: P1 (local) vs the training dummy. Versus (best-of-three)
-## or Training, chosen by match_rules.training (training_greybox.tscn).
+## Greybox scene: P1 (local) vs P2 = AI opponent or training dummy.
+## Versus (best-of-three, P2 = AI at the menu-selected difficulty) or Training
+## (P2 = dummy by default), chosen by match_rules.training.
+## The P2 controller can be cycled with T / the debug "P2:" button.
 ##
 ## Each render frame:
 ##   1. CombatClock converts the render delta into N fixed 60 Hz ticks.
@@ -37,6 +39,11 @@ extends Node
 var simulation := CombatSimulation.new()
 var clock := CombatClock.new()
 var dummy := TrainingDummyController.new()
+## P2 controllers, cycled in this order.
+enum P2Mode { AI_BEGINNER, AI_STANDARD, AI_EXPERT, DUMMY_STAND, DUMMY_BLOCK, DUMMY_JAB }
+var p2_mode: P2Mode = P2Mode.AI_STANDARD
+var ai: AIController = null
+var _matches_started: int = 0
 var director: MatchDirector
 var _previous: Array[FighterState] = []
 var _seen_events: int = 0
@@ -63,6 +70,7 @@ func _ready() -> void:
 	simulation.setup(arena_config, p1_definition, p2_definition, combat_tuning)
 	director = MatchDirector.new(match_rules)
 	director.round_started.connect(_on_round_started)
+	p2_mode = P2Mode.DUMMY_STAND if match_rules.training else (SessionSettings.ai_difficulty as P2Mode)
 	director.fight_started.connect(_on_fight_started)
 	director.round_ended.connect(_on_round_ended)
 	director.match_ended.connect(_on_match_ended)
@@ -84,13 +92,12 @@ func _ready() -> void:
 	_results.menu_requested.connect(_return_to_menu)
 	_overlay.dummy_cycle_requested.connect(cycle_dummy_mode)
 	_overlay.hitboxes_toggle_requested.connect(func() -> void: _hitbox_view.visible = not _hitbox_view.visible)
-	_overlay.set_dummy_mode(dummy.mode_name())
-
 	start_match()
 	print("[Combat] greybox ready: mode=%s arena=%s P1=%s P2=%s tick=%dHz rounds_to_win=%d time=%ds buffer=%d" % [
 		"training" if training else "versus", arena_config.arena_id, p1_definition.fighter_id,
 		p2_definition.fighter_id, CombatConstants.TICK_RATE, match_rules.rounds_to_win,
 		match_rules.round_time_seconds, combat_tuning.input_buffer_ticks])
+	print("[Combat] P2 controller: %s" % p2_mode_name())
 
 
 func _exit_tree() -> void:
@@ -144,6 +151,8 @@ func start_match() -> void:
 	_touch.release_all()
 	input_history.clear()
 	_training_panel.clear()
+	_matches_started += 1
+	_apply_p2_mode()
 	clock.reset()
 	director.start_match(simulation)
 	_previous = simulation.snapshot()
@@ -195,14 +204,38 @@ func toggle_pause() -> void:
 		pause()
 
 
+## Cycles P2 between AI difficulties and dummy modes (debug T / P2 button).
 func cycle_dummy_mode() -> void:
-	dummy.next_mode()
-	_overlay.set_dummy_mode(dummy.mode_name())
+	p2_mode = ((p2_mode + 1) % P2Mode.size()) as P2Mode
+	_apply_p2_mode()
+
+
+func p2_mode_name() -> String:
+	match p2_mode:
+		P2Mode.AI_BEGINNER, P2Mode.AI_STANDARD, P2Mode.AI_EXPERT:
+			return "AI %s" % SessionSettings.AI_DIFFICULTY_NAMES[p2_mode]
+	return "Dummy %s" % dummy.mode_name()
+
+
+func _apply_p2_mode() -> void:
+	if p2_mode <= P2Mode.AI_EXPERT:
+		var profile: AIProfile = load(SessionSettings.ai_profile_path(p2_mode))
+		# Seeded per match: reproducible, but not the same fight every rematch.
+		ai = AIController.new(profile, 1, p2_definition, p1_definition, 9000 + _matches_started)
+		ai.decision_log.echo_to_stdout = print_combat_log and OS.is_debug_build()
+	else:
+		ai = null
+		dummy.mode = (p2_mode - P2Mode.DUMMY_STAND) as TrainingDummyController.Mode
+	_overlay.set_dummy_mode(p2_mode_name())
+	var cpu: String = "CPU %s" % SessionSettings.AI_DIFFICULTY_NAMES[p2_mode] if ai != null else "Dummy"
+	_hud.set_fighter_name(1, "%s — %s" % [p2_definition.display_name, cpu])
 
 
 func _on_round_started(round_number: int) -> void:
 	# The simulation was reset: don't interpolate from last round's positions.
 	_previous = simulation.snapshot()
+	if ai != null:
+		ai.reset()
 	if match_rules.training:
 		return
 	var final_round: bool = director.round_wins[0] == match_rules.rounds_to_win - 1 \
@@ -238,8 +271,15 @@ func _on_match_ended(_winner: int) -> void:
 # --- per-frame -------------------------------------------------------------------
 
 func _gather_inputs() -> Array[FighterInputFrame]:
-	# P2 is a scripted training dummy until the AI milestone (M5).
-	return [LocalInputReader.read(), dummy.input_for_tick(simulation.tick + 1)]
+	var p2: FighterInputFrame
+	if ai != null:
+		# The AI only ever receives what is visible on screen (AIObservation);
+		# it outputs a normal input frame like a player.
+		ai.observe(AIObservation.from_sim(simulation))
+		p2 = ai.next_input()
+	else:
+		p2 = dummy.input_for_tick(simulation.tick + 1)
+	return [LocalInputReader.read(), p2]
 
 
 func _present_new_events() -> void:
@@ -276,7 +316,8 @@ func _render(delta: float) -> void:
 func _debug_text() -> String:
 	var f: Array[FighterState] = simulation.fighters
 	return "\n".join([
-		"M4 GREYBOX — F3 panel  F4 boxes  R restart/reset  T dummy  Esc/P pause",
+		"M5 GREYBOX — F3 panel  F4 boxes  R restart/reset  T cycle P2  Esc/P pause   P2: %s%s" % [
+			p2_mode_name(), "  [%s]" % AIController.State.keys()[ai.state] if ai != null else ""],
 		"round %d  %s  phase tick %d  timer %d  wins %d-%d" % [
 			director.round_number, director.phase_name(), director.phase_ticks,
 			director.timer_ticks, director.round_wins[0], director.round_wins[1]],
@@ -304,8 +345,11 @@ func _fighter_line(i: int, s: FighterState) -> String:
 
 func _log_text() -> String:
 	var lines: PackedStringArray = []
-	for ev: CombatEvent in simulation.combat_log.recent(4):
+	for ev: CombatEvent in simulation.combat_log.recent(3):
 		lines.append(ev.to_text())
+	if ai != null:
+		for l: String in ai.decision_log.recent(2):
+			lines.append(l)
 	return "\n".join(lines)
 
 

@@ -33,7 +33,7 @@ func set_text(text: String, log_text: String) -> void:
 
 
 func set_dummy_mode(mode_name: String) -> void:
-	_dummy_button.text = "Dummy: %s" % mode_name
+	_dummy_button.text = "P2: %s" % mode_name
 
 
 func set_panel_visible(value: bool) -> void:

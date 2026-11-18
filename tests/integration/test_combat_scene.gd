@@ -9,9 +9,14 @@ func _tree() -> SceneTree:
 	return Engine.get_main_loop() as SceneTree
 
 
+## Versus scene with P2 forced to the passive dummy, so these movement /
+## camera / match-flow tests are deterministic (AI behaviour has its own tests).
 func _spawn_scene() -> Node:
 	var scene: Node = (load(ScenePaths.COMBAT_GREYBOX) as PackedScene).instantiate()
 	_tree().root.add_child(scene)
+	if scene.is_node_ready():
+		scene.p2_mode = scene.P2Mode.DUMMY_STAND
+		scene._apply_p2_mode()
 	return scene
 
 

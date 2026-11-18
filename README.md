@@ -3,16 +3,16 @@
 Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 2.5D combat. *Working title — needs trademark and legal review before public use.*
 
-![Milestone 4: training mode — L, L, K combo entered via touch controls](docs/images/m4_training_combo_touch.png)
+![Milestone 5: versus the Standard CPU — it blocks a kick and mashes a Light reversal](docs/images/m5_versus_ai_standard.png)
 
 ## Current status
 
 | | |
 |---|---|
-| Version | `0.0.5-m4` |
-| Milestone | **4 — combo and input systems** (complete, awaiting approval) |
-| Next | Milestone 5 — AI opponent |
-| Playable | **Fight**: best-of-three vs a scripted dummy. **Training**: ∞ time, combo/frame data, input history, reset. Touch controls on phones. |
+| Version | `0.0.6-m5` |
+| Milestone | **5 — AI** (complete, awaiting approval) |
+| Next | Milestone 6 — Kairo vertical slice (Blender model, animations, specials, Origin Surge) |
+| Playable | **Fight**: best-of-three vs the CPU (pick Beginner/Standard/Expert on the menu). **Training**: dummy, ∞ time, combo/frame data, input history. Touch controls on phones. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.
@@ -55,7 +55,7 @@ UI scales with `canvas_items` / `expand` stretch.
 | Pause / resume | Esc, P (or on-screen **II**, Android back) | Start |
 | Debug overlay / hitboxes | F3 / F4 | — |
 | Restart match (debug) | R or F5 | — |
-| Cycle dummy mode | T or F6 | — |
+| Cycle P2 (CPU levels / dummy modes) | T or F6 | — |
 
 Actions are defined in `scripts/input/input_actions.gd`; bindings are generated
 by `tools/configure_input_map.gd`. Up/down, special, ultimate and pause do
@@ -83,6 +83,9 @@ nothing yet.
   and in the console).
 - Attack presses are buffered for 6 ticks; cancels and combo scaling follow
   `data/rules/combat_tuning.tres` and each move's `tags` / `cancel_tags`.
+- The CPU (`AIController`) sees only what a player could see, with a
+  reaction delay, and presses the same inputs a player does. Difficulty is
+  data in `data/ai/`; see [`docs/AI_TUNING.md`](docs/AI_TUNING.md).
 - `MatchDirector` runs rounds on top of the simulation: best of three, 90 s,
   draws award both fighters a round, hard cap of 5 rounds. Rules are data:
   `data/rules/standard_match.tres`.
