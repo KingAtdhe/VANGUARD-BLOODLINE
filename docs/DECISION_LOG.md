@@ -299,6 +299,15 @@ a rim light and an inverted-hull ink outline (`ModelUtil.apply_toon_style`).
 My earlier vector concept sheets in `docs/art/` are superseded.
 **Accepted.**
 
+## D-047 — 2026-11-19 — 3D character sheets: model, render, present, approve
+Same method as the Aurelia Island building sheets the owner liked: each
+fighter is modelled with sculpted detail (`Shell.crease` / `Shell.dent`
+strokes on the fused surface), rendered in Cycles in the cel style of the
+approved art (`tools/art/render_character_sheet.py`, toon shading + Freestyle
+ink) from a dense "concept" build, and laid out as a presentation sheet
+(`compose_character_sheet.py`) for approval. The game model is the same build
+at the mobile triangle budget. Kairo is first. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

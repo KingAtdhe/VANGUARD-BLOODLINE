@@ -94,3 +94,11 @@ Fighters in `HEROES` (kairo, sentinel, warden) are built as layered shells:
 forms → voxel remesh → smooth → decimate → weight/colour transfer. Colour is
 vertex paint (`Col`); slots keep the `<ID>_<Slot>` names. Smooth skinning,
 max 4 influences.
+
+## 3D character sheets
+
+```
+python tools/blender/hero_builder.py --fighter kairo --moves /tmp/kairo_moves.json --out /tmp/concept --quality concept
+python tools/art/render_character_sheet.py /tmp/concept/kairo/kairo.glb KAIRO /tmp/concept
+python3 tools/art/compose_character_sheet.py /tmp/concept kairo KAIRO "The Exiled" docs/art/kairo_3d_sheet.png
+```

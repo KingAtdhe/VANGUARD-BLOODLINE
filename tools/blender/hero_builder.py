@@ -33,6 +33,10 @@ from mathutils.bvhtree import BVHTree
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import character_builder as cb  # noqa: E402  (shared rig + animation)
 
+# "game" keeps the mobile triangle budget; "concept" is the dense version used
+# for presentation renders (finer voxels, more triangles, same forms).
+QUALITY = dict(voxel=1.0, tris=1.0)
+
 SLOTS = ["Skin", "Cloth", "Cloth2", "Accent", "Hair", "Gear"]
 # Surface response per slot; colour comes from vertex paint (Accent excepted).
 SLOT_PBR = {"Skin": (0.52, 0.0), "Cloth": (0.9, 0.0), "Cloth2": (0.45, 0.0), "Accent": (0.35, 0.0),
@@ -56,6 +60,18 @@ class Shell:
         self.f_bone = self.bm.faces.layers.int.new("bone")
         self.f_col = self.bm.faces.layers.int.new("col")
         self.palette = []
+        self.brushes = []   # sculpt strokes applied to the dense surface
+
+    # ------------------------------------------------------------ sculpt --
+    def crease(self, a, b, r, depth, head=False):
+        """Sculpt stroke from a to b: pushes the surface in by `depth` within
+        radius r (negative depth raises a ridge). Applied after the forms are
+        fused, so it can cut grooves a union of forms cannot: muscle
+        separations, the mouth line, seams, folds."""
+        self.brushes.append(dict(a=Vector(a), b=Vector(b), r=r, d=depth, head=head))
+
+    def dent(self, c, r, depth, head=False):
+        self.brushes.append(dict(a=Vector(c), b=Vector(c), r=r, d=depth, head=head))
 
     def _tag(self, faces, bone, color):
         if color not in self.palette:
@@ -113,20 +129,43 @@ class Shell:
         self.bm.to_mesh(src)
         obj = bpy.data.objects.new(self.name + "_src", src)
         bpy.context.scene.collection.objects.link(obj)
+        q = QUALITY
         if self.voxel > 0:
             m = obj.modifiers.new("remesh", "REMESH")
             m.mode = "VOXEL"
-            m.voxel_size = self.voxel
+            m.voxel_size = self.voxel * q["voxel"]
             m.adaptivity = 0.0
             if self.smooth > 0:
                 sm = obj.modifiers.new("smooth", "SMOOTH")
                 sm.factor = 0.5
-                sm.iterations = self.smooth
+                sm.iterations = int(round(self.smooth / q["voxel"]))
             dg = bpy.context.evaluated_depsgraph_get()
-            n_tris = sum(len(p.vertices) - 2 for p in obj.evaluated_get(dg).data.polygons)
-            if n_tris > self.tris:
+            dense = bpy.data.meshes.new_from_object(obj.evaluated_get(dg))
+            if self.brushes:
+                nd = len(dense.vertices)
+                co = np.zeros(nd * 3)
+                nr = np.zeros(nd * 3)
+                dense.vertices.foreach_get("co", co)
+                dense.vertices.foreach_get("normal", nr)
+                co, nr = co.reshape(nd, 3), nr.reshape(nd, 3)
+                for br in self.brushes:
+                    a_, b_ = np.array(br["a"]), np.array(br["b"])
+                    ab = b_ - a_
+                    L2 = float(ab @ ab)
+                    t = np.clip(((co - a_) @ ab) / L2, 0, 1) if L2 > 1e-12 else np.zeros(nd)
+                    dist = np.linalg.norm(co - (a_ + t[:, None] * ab), axis=1)
+                    w = np.clip(1.0 - (dist / br["r"]) ** 2, 0, 1) ** 2
+                    co -= nr * (br["d"] * w)[:, None]
+                dense.vertices.foreach_set("co", co.ravel())
+                dense.update()
+            bpy.data.objects.remove(obj)
+            obj = bpy.data.objects.new(self.name + "_dense", dense)
+            bpy.context.scene.collection.objects.link(obj)
+            n_tris = sum(len(p.vertices) - 2 for p in dense.polygons)
+            target = self.tris * q["tris"]
+            if n_tris > target:
                 d = obj.modifiers.new("decimate", "DECIMATE")
-                d.ratio = self.tris / n_tris
+                d.ratio = target / n_tris
                 d.use_collapse_triangulate = True
         tri = obj.modifiers.new("tri", "TRIANGULATE")
         tri.min_vertices = 4
@@ -395,8 +434,8 @@ def kairo_v2_shells(B, bones):
     spiky black hair with a red streak."""
     P = {n: (Vector(h), Vector(t)) for n, (h, t, _p, _c) in B.items()}
     SKIN, SKIN_D, LIP = (0.52, 0.31, 0.2), (0.4, 0.22, 0.14), (0.3, 0.11, 0.09)
-    TOP, TOP_L = (0.075, 0.078, 0.1), (0.15, 0.155, 0.19)
-    PANTS, GUARD, BOOT = (0.06, 0.062, 0.08), (0.22, 0.23, 0.27), (0.085, 0.085, 0.1)
+    TOP, TOP_L = (0.04, 0.042, 0.055), (0.1, 0.104, 0.13)
+    PANTS, GUARD, BOOT = (0.034, 0.036, 0.048), (0.16, 0.168, 0.2), (0.055, 0.056, 0.07)
     SASH, SASH_D = (0.5, 0.02, 0.018), (0.3, 0.012, 0.012)
     HAIR, STREAK = (0.035, 0.03, 0.035), (0.6, 0.04, 0.03)
     shells = []
@@ -455,8 +494,7 @@ def kairo_v2_shells(B, bones):
         for k, zz in enumerate((1.25, 1.192, 1.134, 1.078)):                                         # abdominals
             t.ell((sx * 0.038, -0.094 + k * 0.002, zz), (0.035, 0.015, 0.025), "Spine", TOP)
         for k in range(3):                                                                           # serratus
-            t.ell((sx * (0.16 - k * 0.012), -0.07, 1.27 - k * 0.04), (0.03, 0.012, 0.014), "Spine", TOP, rot=(0, sx * 30, 0))
-        t.ell((sx * 0.128, -0.045, 1.14), (0.028, 0.04, 0.085), "Spine", TOP, rot=(0, sx * 12, 0))     # oblique
+            t.crease((sx * (0.175 - k * 0.012), -0.075, 1.262 - k * 0.04), (sx * (0.135 - k * 0.01), -0.1, 1.245 - k * 0.04), 0.008, 0.003)
     col = S("collar", "Cloth2", voxel=0.004, smooth=2, tris=700, weight_blur=2, cavity=1.2)
     col.loft((0, 0.01, 1.49), (0, 0.006, 1.53), [(0, 0.088, 0.08), (1, 0.078, 0.073)], "Neck", TOP_L, segs=24)
     line = S("origin_line", "Accent", voxel=0, tris=0, weight_blur=0)
@@ -467,8 +505,8 @@ def kairo_v2_shells(B, bones):
     sg = S("shoulder_guards", "Cloth2", voxel=0.0045, smooth=2, tris=1500, weight_blur=3, cavity=1.6)
     for side, sx in (("Left", 1), ("Right", -1)):
         sh = P[f"{side}UpperArm"][0]
-        sg.ell(sh + Vector((sx * 0.01, 0, 0.022)), (0.086, 0.09, 0.062), f"{side}UpperArm", TOP_L, rot=(0, sx * 18, 0))
-        sg.ell(sh + Vector((sx * 0.045, 0, -0.03)), (0.05, 0.08, 0.04), f"{side}UpperArm", GUARD, rot=(0, sx * 40, 0))
+        sg.ell(sh + Vector((sx * 0.012, 0, 0.03)), (0.088, 0.09, 0.05), f"{side}UpperArm", TOP_L, rot=(0, sx * 22, 0))
+        sg.box(sh + Vector((sx * 0.062, 0, 0.0)), (0.02, 0.15, 0.07), f"{side}UpperArm", GUARD, rot=(0, sx * 28, 0))
 
     # ----------------------------------------- forearm guards + gloves ----
     g = S("gauntlets", "Cloth2", voxel=0.0042, smooth=3, tris=3200, weight_blur=4, cavity=1.8)
@@ -511,13 +549,13 @@ def kairo_v2_shells(B, bones):
     kn = S("knee_guards", "Cloth2", voxel=0.0045, smooth=2, tris=1300, weight_blur=2, cavity=1.6)
     for side, sx in (("Left", 1), ("Right", -1)):
         knee = P[f"{side}LowerLeg"][0]
-        kn.ell(knee + Vector((0, -0.052, 0.0)), (0.056, 0.036, 0.075), f"{side}LowerLeg", GUARD)
-        kn.ell(knee + Vector((0, -0.066, 0.01)), (0.036, 0.024, 0.045), f"{side}LowerLeg", TOP_L)
+        kn.ell(knee + Vector((0, -0.05, 0.0)), (0.052, 0.03, 0.07), f"{side}LowerLeg", GUARD)
+        kn.box(knee + Vector((0, -0.074, 0.005)), (0.05, 0.016, 0.07), f"{side}LowerLeg", TOP_L)
         hip = P[f"{side}UpperLeg"][0]
         kn.loft(hip.lerp(knee, 0.45), hip.lerp(knee, 0.52), [(0, 0.104, 0.11), (1, 0.1, 0.106)], f"{side}UpperLeg", TOP_L, segs=20)  # thigh strap
     belt = S("belt", "Cloth2", voxel=0.0045, smooth=1, tris=1500, weight_blur=0, cavity=1.5)
     belt.loft((0, 0, 1.02), (0, 0, 1.075), [(0, 0.168, 0.12), (0.5, 0.172, 0.124), (1, 0.164, 0.116)], "Hips", TOP_L, segs=28)
-    for x, y in ((0.115, -0.1), (0.172, 0.0), (0.1, 0.105)):                                              # pouches
+    for x, y in ((0.172, 0.0), (0.1, 0.105), (-0.1, 0.105)):                                              # pouches
         belt.ell((x, y, 1.005), (0.036, 0.03, 0.045), "Hips", GUARD)
     buckle = S("buckle", "Accent", voxel=0, tris=0, weight_blur=0)
     buckle.box((0, -0.127, 1.047), (0.05, 0.012, 0.04), "Hips", (1, 1, 1))
@@ -579,10 +617,84 @@ def kairo_v2_shells(B, bones):
         e.ell((sx * 0.0295, -0.0835, 1.6735), (0.0082, 0.0045, 0.0082), "Head", (0.12, 0.05, 0.02), segs=14, rings=8)
         e.ell((sx * 0.0295, -0.0868, 1.6735), (0.0037, 0.0022, 0.0037), "Head", (0.0, 0.0, 0.0), segs=10, rings=6)
         lids.ell((sx * 0.03, -0.0725, 1.6865), (0.0185, 0.0165, 0.0062), "Head", SKIN_D, rot=(-8, sx * -8, 0), segs=16, rings=8)
+    # ------------------------------------------------ sculpted detail ----
+    H = dict(head=True)
+    b.crease((-0.023, -0.088, 1.6128), (0.023, -0.088, 1.6128), 0.0042, 0.0034, **H)          # mouth line
+    b.crease((-0.012, -0.086, 1.5975), (0.012, -0.086, 1.5975), 0.006, 0.0022, **H)           # under the lower lip
+    b.crease((0, -0.098, 1.633), (0, -0.092, 1.622), 0.0035, 0.0014, **H)                     # philtrum
+    for sx in (1, -1):
+        b.dent((sx * 0.03, -0.09, 1.676), 0.021, 0.0075, **H)                                 # eye socket
+        b.dent((sx * 0.0085, -0.104, 1.6365), 0.0048, 0.0036, **H)                            # nostril
+        b.crease((sx * 0.017, -0.094, 1.642), (sx * 0.03, -0.082, 1.612), 0.005, 0.002, **H)  # nasolabial fold
+        b.dent((sx * 0.06, -0.045, 1.628), 0.022, 0.0042, **H)                                # cheek hollow
+        b.dent((sx * 0.068, -0.03, 1.69), 0.02, 0.003, **H)                                   # temple
+        b.dent((sx * 0.09, 0.004, 1.664), 0.011, 0.0045, **H)                                 # ear bowl
+        b.crease((sx * 0.02, -0.03, 1.56), (sx * 0.05, -0.012, 1.585), 0.008, 0.003, **H)     # jaw underside
+    b.dent((0, -0.06, 1.468), 0.02, 0.006)                                                    # sternal notch
+    for side, sx in (("Left", 1), ("Right", -1)):
+        sh, el = P[f"{side}UpperArm"]
+        wr = P[f"{side}Hand"][0]
+        b.crease(sh + Vector((sx * 0.0, -0.06, -0.085)), sh.lerp(el, 0.42) + Vector((sx * 0.05, -0.025, 0)), 0.012, 0.0045)   # deltoid / biceps
+        b.crease(sh + Vector((sx * 0.02, 0.06, -0.09)), sh.lerp(el, 0.4) + Vector((sx * 0.055, 0.02, 0)), 0.012, 0.004)       # deltoid / triceps
+        b.crease(sh.lerp(el, 0.4) + Vector((sx * 0.062, 0.004, 0)), el + Vector((sx * 0.045, 0.004, 0.03)), 0.009, 0.0035)    # biceps / triceps
+        b.crease(sh.lerp(el, 0.4) + Vector((-sx * 0.05, 0.0, 0)), el + Vector((-sx * 0.035, 0.0, 0.03)), 0.009, 0.003)        # inner arm
+        b.dent(el + Vector((0, -0.04, 0.0)), 0.02, 0.004)                                                                     # elbow pit
+        b.crease(el + Vector((sx * 0.02, -0.035, -0.04)), el.lerp(wr, 0.5) + Vector((sx * 0.005, -0.035, 0)), 0.008, 0.003)   # forearm flexors
+    # torso through the fitted top
+    t.crease((0, -0.14, 1.445), (0, -0.128, 1.3), 0.011, 0.005)                                # sternum
+    t.crease((0, -0.124, 1.295), (0, -0.112, 1.05), 0.008, 0.0045)                             # linea alba
+    t.crease((0, 0.125, 1.46), (0, 0.108, 1.06), 0.016, 0.007)                                 # spine
+    for sx in (1, -1):
+        t.crease((sx * 0.015, -0.13, 1.325), (sx * 0.1, -0.124, 1.312), 0.012, 0.0055)         # under the pectoral
+        t.crease((sx * 0.1, -0.124, 1.312), (sx * 0.185, -0.08, 1.345), 0.012, 0.005)
+        t.crease((sx * 0.185, -0.08, 1.345), (sx * 0.2, -0.04, 1.4), 0.011, 0.0045)            # pectoral / deltoid
+        for zz in (1.222, 1.163, 1.106):
+            t.crease((sx * 0.006, -0.118, zz), (sx * 0.078, -0.108, zz + 0.004), 0.0075, 0.004)   # abdominal rows
+        t.crease((sx * 0.082, -0.108, 1.285), (sx * 0.092, -0.098, 1.06), 0.008, 0.004)        # rectus edge
+        t.crease((sx * 0.13, -0.075, 1.07), (sx * 0.07, -0.105, 1.03), 0.008, 0.003)           # hip line
+        t.crease((sx * 0.06, 0.12, 1.42), (sx * 0.15, 0.09, 1.3), 0.012, 0.004)                # shoulder blade
+        t.crease((sx * 0.16, 0.07, 1.28), (sx * 0.1, 0.1, 1.12), 0.011, 0.0035)                # lat edge
+        t.crease((sx * 0.212, 0.0, 1.33), (sx * 0.156, 0.0, 1.03), 0.0045, 0.002)              # side seam
+    # trousers: seams and folds
+    for side, sx in (("Left", 1), ("Right", -1)):
+        hip, knee = P[f"{side}UpperLeg"]
+        ankle = P[f"{side}Foot"][0]
+        p.crease(hip + Vector((sx * 0.108, 0, 0.02)), knee + Vector((sx * 0.07, 0, 0)), 0.0045, 0.0022)       # outer seam
+        p.crease(knee + Vector((sx * 0.07, 0, 0)), ankle + Vector((sx * 0.062, 0, 0.24)), 0.0045, 0.002)
+        for dz, w in ((0.02, 0.07), (-0.02, 0.085), (-0.06, 0.06)):                                           # folds from the crotch
+            p.crease((sx * 0.02, -0.105, 0.86 + dz), (sx * w, -0.115, 0.9 + dz * 0.5), 0.009, 0.004)
+        p.crease(knee + Vector((-0.05, 0.065, 0.02)), knee + Vector((0.05, 0.065, 0.02)), 0.009, 0.005)       # behind the knee
+        p.crease(knee + Vector((-0.045, 0.06, -0.03)), knee + Vector((0.045, 0.06, -0.03)), 0.008, 0.0035)
+        p.crease(hip.lerp(knee, 0.2) + Vector((0, -0.11, 0)), hip.lerp(knee, 0.78) + Vector((0, -0.085, 0)), 0.014, 0.003)  # quadriceps split
+    p.crease((0, -0.118, 1.02), (0, -0.105, 0.88), 0.005, 0.0025)                                             # fly
+    # gloves: finger separations and a wrist line
+    for side, sx in (("Left", 1), ("Right", -1)):
+        wr, ht = P[f"{side}Hand"]
+        d = (ht - wr).normalized()
+        pc = wr + d * 0.07
+        for yy in (-0.0245, -0.0015, 0.0215):
+            g.crease(pc + d * 0.062 + Vector((sx * 0.01, yy, 0)), pc + d * 0.01 + Vector((-sx * 0.036, yy, 0)), 0.0042, 0.0034)
+        g.crease(wr + Vector((sx * 0.04, 0, 0.005)), wr + Vector((-sx * 0.04, 0, 0.005)), 0.006, 0.003)
+        g.crease(wr + Vector((0, -0.04, 0.005)), wr + Vector((0, 0.04, 0.005)), 0.006, 0.003)
+    # sash: long folds
+    for dx, dd in ((-0.03, 0.004), (0.02, 0.005), (0.06, 0.004)):
+        sa.crease((-0.125 + dx, -0.152, 0.98), (-0.2 + dx, -0.13, 0.52), 0.011, dd)
+    # boots: panel lines
+    for side, sx in (("Left", 1), ("Right", -1)):
+        x = P[f"{side}Foot"][0].x
+        bt.crease((x - 0.06, -0.11, 0.07), (x + 0.06, -0.11, 0.07), 0.005, 0.003)                             # toe-cap seam
+        bt.crease((x - 0.06, -0.02, 0.1), (x + 0.06, -0.02, 0.1), 0.005, 0.0025)                              # ankle flex
+        bt.crease((x, -0.085, 0.24), (x, -0.07, 0.07), 0.004, 0.002)                                          # shin plate centre
     head, pivot, k = bones["Head"], Vector((0, 0, 1.59)), 1.08
     for sh_ in shells:
         for v in {v for f in sh_.bm.faces if f[sh_.f_bone] == head for v in f.verts}:
             v.co = pivot + (v.co - pivot) * k + Vector((0, 0, 0.004))
+        for br in sh_.brushes:   # head strokes follow the head
+            if br["head"]:
+                br["a"] = pivot + (br["a"] - pivot) * k + Vector((0, 0, 0.004))
+                br["b"] = pivot + (br["b"] - pivot) * k + Vector((0, 0, 0.004))
+                br["r"] *= k
+                br["d"] *= k
     return shells
 
 
@@ -701,7 +813,10 @@ def main():
     ap.add_argument("--fighter", default="kairo")
     ap.add_argument("--moves", required=True)
     ap.add_argument("--out", default="assets/characters")
+    ap.add_argument("--quality", default="game", choices=["game", "concept"])
     a = ap.parse_args(argv)
+    if a.quality == "concept":
+        QUALITY.update(voxel=0.62, tris=3.2)
     build(a.fighter, json.loads(open(a.moves).read()), f"{a.out}/{a.fighter}/{a.fighter}.glb")
 
 
