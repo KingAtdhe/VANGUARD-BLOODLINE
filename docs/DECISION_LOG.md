@@ -338,6 +338,28 @@ Six of its eight materials are the bloodline emblem colours. Locked arenas
 now carry their own `unlock_hint` instead of one hard-coded sentence.
 **Accepted — boss-fight placement open.**
 
+## D-051 — 2026-11-20 — Arena quality pass: textures, baked AO, motion
+To move the arenas from flat colours towards console-stage quality while
+staying phone-friendly:
+- **Textures:** 14 tileable surface sets (albedo/normal/roughness, 512 px,
+  VRAM-compressed with mipmaps) generated from scratch by
+  `tools/art/make_arena_textures.py` and shared by all arenas.
+- **UVs + baked ambient occlusion:** `arena_builder.py` gives every face a
+  world-scale planar UV0 and a unique UV1, and bakes ambient occlusion in
+  Cycles to `<arena>_ao.png` (2048 px). It writes one StandardMaterial3D per
+  surface to `assets/arenas/<id>/materials/`; `ArenaView` swaps them in by
+  material name at load (AO on UV2). Real-time lights and shadows stay as
+  they were. Godot's LightmapGI was not used because it can only be baked
+  from the editor.
+- **Motion (presentation only, render-frame time):** `ArenaSpin` (Origin
+  heart rings), `EmissionPulse` (Origin veins, neon flicker, heart, emblems,
+  crystal), a banner sway shader (Sanctuary), and a crowd shader (The Pit:
+  one mesh, colour and cheering per spectator from UV data). All are in the
+  `arena_fx` group where it matters, so "reduce effects" calms them.
+- **Close detail** is concentrated just behind the fighters, where the
+  gameplay camera actually looks.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

@@ -1,0 +1,22 @@
+[gd_resource type="StandardMaterial3D" load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/arenas/textures/stone_albedo.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/arenas/textures/stone_rough.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/arenas/textures/stone_normal.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/arenas/neon/neon_ao.png" id="4"]
+
+[resource]
+resource_name = "SEV_Concrete"
+albedo_color = Color(0.4649, 0.4714, 0.4999, 1)
+albedo_texture = ExtResource("1")
+roughness = 1.000
+roughness_texture = ExtResource("2")
+roughness_texture_channel = 4
+normal_enabled = true
+normal_texture = ExtResource("3")
+metallic = 0.000
+ao_enabled = true
+ao_texture = ExtResource("4")
+ao_on_uv2 = true
+ao_light_affect = 0.75
+texture_filter = 5

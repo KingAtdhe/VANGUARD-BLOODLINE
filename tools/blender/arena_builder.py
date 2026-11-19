@@ -12,6 +12,7 @@ Deterministic: a fixed random seed per arena.
 
 import argparse
 import math
+import os
 import random
 import sys
 
@@ -31,6 +32,15 @@ class Kit:
         self.done = self.bm.verts.layers.int.new("placed")
         self.mats = list(materials)  # [(name, rgb, rough, metal, emit_rgb, emit_strength)]
         self.idx = {m[0]: i for i, m in enumerate(self.mats)}
+        self.custom_uv = {}  # face -> constant UV (data for shaders, e.g. crowd seed/kind)
+
+    def tag_uv(self, verts, uv):
+        """Give every face of these verts a constant UV0 (read by a shader).
+        Stored V-flipped because the glTF exporter flips V (Godot then reads
+        exactly `uv`)."""
+        for v in verts:
+            for f in v.link_faces:
+                self.custom_uv[f] = (uv[0], 1.0 - uv[1])
 
     def _tag(self, faces, mat):
         for f in faces:
@@ -105,10 +115,40 @@ class Kit:
         self.bm.faces.new(vs)
         return self._finish_new(c, (0, 0, 0), mat)
 
-    def export(self, path):
+    def export(self, path, bake_ao=True, ao_size=2048, ao_samples=48, ao_distance=2.0, materials=True):
+        """Write the GLB, its baked ambient-occlusion map and the Godot
+        materials that use them.
+
+        UV0 ("UVMap") is a world-space planar projection per face, scaled by
+        the material's surface tile size, so the shared tiling textures keep
+        a constant texel density. UV1 ("Lightmap") is a unique unwrap; Cycles
+        bakes ambient occlusion into it ([id]_ao.png). For every material a
+        StandardMaterial3D is written to <arena>/materials/<name>.tres;
+        ArenaView swaps them in at runtime (textures + AO on UV2)."""
         bpy.ops.wm.read_factory_settings(use_empty=True)
-        mesh = bpy.data.meshes.new(self.name)
+        out_dir = os.path.dirname(path)
+        arena_id = os.path.basename(out_dir)
+        uv = self.bm.loops.layers.uv.new("UVMap")
         self.bm.normal_update()
+        names = [m[0] for m in self.mats]
+        for f in self.bm.faces:
+            if f in self.custom_uv:
+                for loop in f.loops:
+                    loop[uv].uv = self.custom_uv[f]
+                continue
+            tile = SURFACES.get(names[f.material_index], (None, 2.0))[1]
+            n = f.normal
+            ax = max(range(3), key=lambda i: abs(n[i]))
+            for loop in f.loops:
+                co = loop.vert.co
+                if ax == 2:
+                    u, v = co.x, co.y
+                elif ax == 0:
+                    u, v = co.y * (1 if n.x > 0 else -1), co.z
+                else:
+                    u, v = co.x * (-1 if n.y > 0 else 1), co.z
+                loop[uv].uv = (u / tile, v / tile)
+        mesh = bpy.data.meshes.new(self.name)
         self.bm.to_mesh(mesh)
         tris = sum(len(p.vertices) - 2 for p in mesh.polygons)
         self.bm.free()
@@ -127,9 +167,115 @@ class Kit:
         bpy.context.scene.collection.objects.link(obj)
         for p in mesh.polygons:
             p.use_smooth = False
-        print(f"[arena] {self.name}: tris={tris} materials={len(self.mats)}")
+        ao_rel = ""
+        if bake_ao:
+            lm = mesh.uv_layers.new(name="Lightmap")
+            mesh.uv_layers.active = lm
+            bpy.context.view_layer.objects.active = obj
+            obj.select_set(True)
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_all(action="SELECT")
+            bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.003, area_weight=0.0,
+                                     scale_to_bounds=True)
+            bpy.ops.object.mode_set(mode="OBJECT")
+            sc = bpy.context.scene
+            sc.render.engine = "CYCLES"
+            sc.cycles.device = "CPU"
+            sc.cycles.samples = ao_samples
+            if sc.world is None:
+                sc.world = bpy.data.worlds.new("w")
+            sc.world.light_settings.distance = ao_distance
+            img = bpy.data.images.new(f"{arena_id}_ao", ao_size, ao_size, alpha=False)
+            img.generated_color = (1, 1, 1, 1)
+            for m in mesh.materials:
+                t = m.node_tree.nodes.new("ShaderNodeTexImage")
+                t.image = img
+                m.node_tree.nodes.active = t
+            sc.render.bake.margin = 8
+            bpy.ops.object.bake(type="AO")
+            ao_path = os.path.join(out_dir, f"{arena_id}_ao.png")
+            img.filepath_raw = ao_path
+            img.file_format = "PNG"
+            img.save()
+            ao_rel = "res://" + os.path.relpath(ao_path, ROOT).replace(os.sep, "/")
+            for m in mesh.materials:
+                for nd in [nd for nd in m.node_tree.nodes if nd.type == "TEX_IMAGE"]:
+                    m.node_tree.nodes.remove(nd)
+            mesh.uv_layers.active = mesh.uv_layers["UVMap"]
+        print(f"[arena] {self.name}: tris={tris} materials={len(self.mats)} ao={'yes' if ao_rel else 'no'}")
         bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_yup=True, export_apply=False,
                                   export_materials="EXPORT", export_animations=False)
+        if materials:
+            write_godot_materials(out_dir, self.mats, ao_rel)
+
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+TEX = "res://assets/arenas/textures"
+# Material -> (shared tiling texture, tile size in metres). Emissive and
+# shader-driven materials are absent: they keep their flat colour.
+SURFACES = {
+    "SEV_RoofWet": ("concrete_wet", 4.0), "SEV_Concrete": ("stone", 2.0), "SEV_Building": ("facade", 6.0),
+    "SEV_Casing": ("paint_grey", 3.0), "SEV_Metal": ("metal_dark", 2.0),
+    "SAN_Stone": ("stone", 1.5), "SAN_StoneDark": ("stone", 3.0), "SAN_Moss": ("moss", 1.0),
+    "SAN_Gold": ("gold", 1.0), "SAN_Roof": ("roof_tiles", 1.5), "SAN_White": ("plaster", 2.0),
+    "SAN_Wood": ("wood", 1.0),
+    "PIT_Rock": ("rock_strata", 4.0), "PIT_Gravel": ("gravel", 1.0), "PIT_Dark": ("stone", 3.0),
+    "PIT_Paint": ("paint_yellow", 2.0), "PIT_Gold": ("gold", 1.0), "PIT_Steel": ("metal_dark", 1.5),
+    "ORI_Obsidian": ("obsidian", 3.0),
+}
+_TEX_MEAN = {}
+
+
+def _tex_mean(tex):
+    """Average linear albedo of a texture, so the material colour can be kept."""
+    if tex not in _TEX_MEAN:
+        import numpy as np
+        from PIL import Image
+        a = np.asarray(Image.open(os.path.join(ROOT, "assets/arenas/textures", f"{tex}_albedo.png")).convert("RGB"),
+                       float) / 255.0
+        _TEX_MEAN[tex] = (a ** 2.2).reshape(-1, 3).mean(0)
+    return _TEX_MEAN[tex]
+
+
+def write_godot_materials(out_dir, mats, ao_rel):
+    mdir = os.path.join(out_dir, "materials")
+    os.makedirs(mdir, exist_ok=True)
+    for name, rgb, rough, metal, emit, strength in mats:
+        res, props = [], []
+        surf = SURFACES.get(name)
+
+        def ext(p, typ="Texture2D"):
+            res.append(f'[ext_resource type="{typ}" path="{p}" id="{len(res) + 1}"]')
+            return f'ExtResource("{len(res)}")'
+
+        if surf:
+            mean = _tex_mean(surf[0])
+            tint = [min(1.0, max(0.0, c / max(1e-4, mc))) for c, mc in zip(rgb, mean)]
+            # linear tint -> Godot Color is sRGB-encoded in .tres for albedo
+            tint = [t ** (1 / 2.2) for t in tint]
+            props += [f"albedo_color = Color({tint[0]:.4f}, {tint[1]:.4f}, {tint[2]:.4f}, 1)",
+                      f"albedo_texture = {ext(f'{TEX}/{surf[0]}_albedo.png')}",
+                      f"roughness = {min(1.0, rough * 1.35):.3f}",
+                      f"roughness_texture = {ext(f'{TEX}/{surf[0]}_rough.png')}",
+                      "roughness_texture_channel = 4",
+                      "normal_enabled = true",
+                      f"normal_texture = {ext(f'{TEX}/{surf[0]}_normal.png')}"]
+        else:
+            c = [x ** (1 / 2.2) for x in rgb]
+            props += [f"albedo_color = Color({c[0]:.4f}, {c[1]:.4f}, {c[2]:.4f}, 1)", f"roughness = {rough:.3f}"]
+        props.append(f"metallic = {metal:.3f}")
+        if strength > 0:
+            e = [x ** (1 / 2.2) for x in emit]
+            props += ["emission_enabled = true", f"emission = Color({e[0]:.4f}, {e[1]:.4f}, {e[2]:.4f}, 1)",
+                      f"emission_energy_multiplier = {strength:.3f}"]
+        elif ao_rel:
+            props += ["ao_enabled = true", f"ao_texture = {ext(ao_rel)}", "ao_on_uv2 = true",
+                      "ao_light_affect = 0.75"]
+        props.append("texture_filter = 5")
+        body = "\n".join([f'[gd_resource type="StandardMaterial3D" load_steps={len(res) + 1} format=3]', ""]
+                         + res + ["", "[resource]", f'resource_name = "{name}"'] + props) + "\n"
+        with open(os.path.join(mdir, f"{name}.tres"), "w") as fh:
+            fh.write(body)
 
 
 def M(name, rgb, rough=0.8, metal=0.0, emit=None, strength=0.0):
@@ -183,15 +329,16 @@ def ascendant():
     red Origin veins in the walls. Dusk. Mobile: one mesh, 8 materials."""
     rnd = random.Random(23)
     k = Kit("ThePit", [
-        M("PIT_Rock", (0.3, 0.2, 0.13), 0.92),
+        M("PIT_Rock", (0.075, 0.062, 0.052), 0.92),
         M("PIT_Gravel", (0.2, 0.15, 0.11), 0.95),
         M("PIT_Dark", (0.075, 0.07, 0.07), 0.5, 0.5),             # cut bedrock stage, steel
         M("PIT_Paint", (0.42, 0.29, 0.07), 0.7, 0.3),             # weathered crane yellow
         M("PIT_Gold", (0.75, 0.5, 0.18), 0.3, 1.0),
         M("PIT_Vein", (0.2, 0.0, 0.0), 0.5, 0.0, (1.0, 0.05, 0.02), 1.6),
         M("PIT_Lamp", (1.0, 0.95, 0.85), 0.5, 0.0, (1.0, 0.88, 0.7), 2.5),
-        M("PIT_Crowd", (0.06, 0.055, 0.06), 0.9),
+        M("PIT_Steel", (0.12, 0.12, 0.13), 0.45, 0.8),
     ])
+    crowd = Kit("PitCrowd", [M("PIT_CrowdShader", (0.06, 0.055, 0.06), 0.9)])
     PIT = Vector((0, 7.5, 0))
     R0, STEP, H, N = 14.0, 3.4, 2.2, 7
     A0, A1 = math.radians(-38), math.radians(218)
@@ -210,16 +357,16 @@ def ascendant():
             lo.append(k.bm.verts.new(Vector((PIT.x + c * (r_in + j), PIT.y + s * (r_in + j), z0))))
             hi.append(k.bm.verts.new(Vector((PIT.x + c * (r_in + j + 0.9), PIT.y + s * (r_in + j + 0.9),
                                              z1 + rnd.uniform(-0.1, 0.1)))))
-        for i in range(SEG):
-            k.bm.faces.new((lo[i], lo[i + 1], hi[i + 1], hi[i]))
+        for i in range(SEG):                              # faces point into the pit (towards the camera)
+            k.bm.faces.new((lo[i], hi[i], hi[i + 1], lo[i + 1]))
         k._finish_new((0, 0, 0), (0, 0, 0), "PIT_Rock")
         for i in range(SEG + 1):
             a = A0 + (A1 - A0) * i / SEG
             c, s = math.cos(a), math.sin(a)
             t_in.append(k.bm.verts.new(Vector((PIT.x + c * (r_in + 0.9), PIT.y + s * (r_in + 0.9), z1))))
             t_out.append(k.bm.verts.new(Vector((PIT.x + c * r_out, PIT.y + s * r_out, z1))))
-        for i in range(SEG):
-            k.bm.faces.new((t_in[i], t_in[i + 1], t_out[i + 1], t_out[i]))
+        for i in range(SEG):                              # bench tops face up
+            k.bm.faces.new((t_in[i], t_out[i], t_out[i + 1], t_in[i + 1]))
         k._finish_new((0, 0, 0), (0, 0, 0), "PIT_Gravel")
         tops.append((r_in + 0.9, r_out, z1))
         # thin red Origin veins running along the strata of this face
@@ -241,7 +388,7 @@ def ascendant():
         a0, a1 = math.radians(22.5 + 45 * i), math.radians(22.5 + 45 * (i + 1))
         p0 = Vector((math.cos(a0) * STAGE_R, math.sin(a0) * STAGE_R, 0.25))
         p1 = Vector((math.cos(a1) * STAGE_R, math.sin(a1) * STAGE_R, 0.25))
-        beam(k, p0, p1, 0.35, "PIT_Paint", h=0.12)
+        beam(k, p0, p1, 0.22, "PIT_Paint", h=0.1)
         if p0.y < 0:                                      # no posts between the camera and the fight
             continue
         k.cyl((p0.x, p0.y, 0.9), 0.28, 1.4, "PIT_Dark", segs=10)
@@ -284,7 +431,9 @@ def ascendant():
     blade((-2.6, 3.0, 0), (0.0, -3.4, 0))
     blade((2.6, 3.0, 0), (0.0, -3.4, 0))
 
-    # ---- crowd on the lower benches (low-poly silhouettes) ------------------
+    # ---- crowd on the lower benches: a separate mesh animated by
+    # shaders/arena/crowd.gdshader; UV0 = (seed, kind) per spectator --------
+    C = "PIT_CrowdShader"
     for b, (ri, ro, z) in enumerate(tops[:4]):
         rows = 3 if b < 3 else 2
         for row in range(rows):
@@ -296,14 +445,16 @@ def ascendant():
                 a = A0 + 0.1 + (A1 - A0 - 0.2) * (i + rnd.uniform(-0.3, 0.3)) / count
                 x, y = PIT.x + math.cos(a) * r, PIT.y + math.sin(a) * r
                 s = rnd.uniform(0.9, 1.1)
-                k.cyl((x, y, z + 0.58 * s), 0.23 * s, 1.15 * s, "PIT_Crowd", segs=5, r2=0.17 * s, caps=False)
-                k.sphere((x, y, z + 1.32 * s), 0.13 * s, "PIT_Crowd", segs=5, rings=3)
+                seed = rnd.random()
+                crowd.tag_uv(crowd.cyl((x, y, z + 0.58 * s), 0.15 * s, 1.15 * s, C, segs=6, r2=0.25 * s, caps=False),
+                             (seed, 0.0))
+                crowd.tag_uv(crowd.sphere((x, y, z + 1.32 * s), 0.13 * s, C, segs=5, rings=3), (seed, 0.0))
                 if rnd.random() < 0.08:                    # phone lights and flares held up
-                    k.sphere((x, y, z + 1.78), 0.06, "PIT_Lamp", segs=4, rings=2)
-                elif rnd.random() < 0.03:
-                    beam(k, (x, y, z + 1.2), (x, y, z + 3.2), 0.04, "PIT_Dark")
-                    k.box((x + 0.45, y, z + 2.85), (0.9, 0.03, 0.6), rnd.choice(("PIT_Paint", "PIT_Vein")),
-                          rot=(0, 0, math.degrees(a) + 90))
+                    crowd.tag_uv(crowd.sphere((x, y, z + 1.78), 0.06, C, segs=4, rings=2), (seed, 2.0))
+                elif rnd.random() < 0.035:                 # waved flags
+                    crowd.tag_uv(crowd.cyl((x, y, z + 2.2), 0.025, 2.0, C, segs=4), (seed, 3.0))
+                    crowd.tag_uv(crowd.box((x + 0.45, y, z + 2.85), (0.9, 0.03, 0.6), C,
+                                           rot=(0, 0, math.degrees(a) + 90)), (rnd.random(), 1.0))
         for i in range(12):                                # work lamps along the bench lip
             a = A0 + 0.15 + (A1 - A0 - 0.3) * i / 11
             k.sphere((PIT.x + math.cos(a) * (ri - 0.2), PIT.y + math.sin(a) * (ri - 0.2), z + 0.15), 0.09,
@@ -367,7 +518,39 @@ def ascendant():
             continue
         k.sphere((x, y, -0.3), rnd.uniform(0.15, 0.6), "PIT_Rock", segs=6, rings=4,
                  scale=(rnd.uniform(0.7, 1.4), rnd.uniform(0.7, 1.4), rnd.uniform(0.4, 0.8)))
-    return k
+
+    # ---- close detail just behind the ring (what the camera sees most) -----
+    for i in range(15):                                   # crowd barrier around the back half
+        a0, a1 = math.radians(8 + i * 11), math.radians(8 + (i + 1) * 11)
+        p0 = Vector((math.cos(a0) * 10.2, math.sin(a0) * 10.2, -0.4))
+        p1 = Vector((math.cos(a1) * 10.2, math.sin(a1) * 10.2, -0.4))
+        k.box(p0 + Vector((0, 0, 0.6)), (0.08, 0.08, 1.2), "PIT_Steel")
+        for zz in (0.35, 0.75, 1.15):
+            beam(k, p0 + Vector((0, 0, zz)), p1 + Vector((0, 0, zz)), 0.05, "PIT_Steel")
+        if i % 3 == 1:                                    # hazard plate hung on the barrier
+            mid = (p0 + p1) / 2
+            k.box(mid + Vector((0, 0, 0.75)) - mid.normalized() * 0.05 * 0, (0.9, 0.03, 0.4), "PIT_Paint",
+                  rot=(0, 0, math.degrees(math.atan2(p1.y - p0.y, p1.x - p0.x))))
+    for sx in (-1, 1):                                    # sound and broadcast kit by the ring
+        base = Vector((sx * 8.6, 6.4, -0.4))
+        for j in range(3):                                # speaker stack
+            k.box(base + Vector((0, 0, 0.45 + j * 0.9)), (1.1, 0.9, 0.86), "PIT_Dark", bevel=0.03)
+            k.box(base + Vector((0, -0.46, 0.45 + j * 0.9)), (0.9, 0.02, 0.7), "PIT_Steel")
+            k.cyl(base + Vector((0, -0.48, 0.45 + j * 0.9)), 0.28, 0.03, "PIT_Dark", segs=14, rot=(90, 0, 0))
+        for j in range(2):                                # flight cases
+            k.box(base + Vector((sx * -1.4, -0.3 + j * 0.1, 0.3 + j * 0.6)), (1.2, 0.7, 0.58), "PIT_Dark", bevel=0.04)
+            k.box(base + Vector((sx * -1.4, -0.66 + j * 0.1, 0.3 + j * 0.6)), (1.25, 0.02, 0.06), "PIT_Steel")
+        k.cyl(base + Vector((sx * -2.6, 0.2, 0.45)), 0.5, 0.9, "PIT_Paint", segs=14, rot=(90, 0, 0))   # cable drum
+        k.cyl(base + Vector((sx * -2.6, 0.2, 0.45)), 0.3, 0.92, "PIT_Dark", segs=14, rot=(90, 0, 0))
+        cam = Vector((sx * 5.2, 9.0, -0.4))               # broadcast camera on a tripod
+        for t in range(3):
+            ang = t * 2 * math.pi / 3
+            beam(k, cam + Vector((math.cos(ang) * 0.5, math.sin(ang) * 0.5, 0)), cam + Vector((0, 0, 1.4)), 0.04,
+                 "PIT_Steel")
+        k.box(cam + Vector((0, 0, 1.6)), (0.35, 0.7, 0.4), "PIT_Dark", bevel=0.03)
+        k.cyl(cam + Vector((0, -0.45, 1.6)), 0.12, 0.3, "PIT_Steel", segs=10, rot=(90, 0, 0))
+        k.box(cam + Vector((0, 0.1, 1.85)), (0.2, 0.2, 0.1), "PIT_Vein")    # tally light
+    return k, [(crowd, "pit_crowd.glb")]
 
 
 def temple():
@@ -536,31 +719,56 @@ def temple():
     chain((-5.5, 9.0, 9.0), (-17, 20.5, 10.0), 2.2)
     chain((-17, 24, 12.0), (-2, 38, 17.0), 3.0)
 
-    # ---- Ryuen's banners: blue cloth, gold trim, wave-in-a-ring emblem -----
-    def banner(top, length, width):
-        x, y, z = top
-        k.box((x, y, z + 0.05), (width + 0.3, 0.08, 0.08), "SAN_StoneDark")
-        cols = 4
-        for i in range(cols):                       # cloth: a few panels with a gentle sway
-            seg_l = length / cols
-            sway = math.sin(i * 1.3 + x) * 0.12
-            k.box((x + sway * 0.3, y + sway, z - seg_l * (i + 0.5)), (width, 0.03, seg_l + 0.02), "SAN_Roof",
-                  rot=(math.degrees(sway) * 0.4, 0, 0))
-        ty = y - 0.25
-        for sx in (-1, 1):
-            k.box((x + sx * width / 2, ty, z - length / 2), (0.05, 0.03, length), "SAN_Gold")
-        k.box((x, ty, z - length + 0.03), (width, 0.03, 0.06), "SAN_Gold")
-        ez, er = z - length * 0.3, width * 0.32
-        torus((x, ty, ez), er, er * 0.09, er * 0.09, "SAN_Gold", segs=20, sides=4)
-        for i in range(6):                          # the wave crest
-            t = i / 5
-            k.box((x + (-0.6 + 1.2 * t) * er, ty, ez + (-0.2 + 0.35 * math.sin(t * math.pi * 1.4)) * er),
-                  (0.3 * er, 0.03, 0.14 * er), "SAN_Gold", rot=(0, -40 * math.cos(t * math.pi * 1.4), 0))
-
-    for i, x in enumerate((-2.6, -1.3, 1.3, 2.6)):
-        banner((x, gy - 0.2, 2 * R - 0.2 - abs(x) * 0.4), rnd.uniform(4.0, 5.5), 0.95)
+    # ---- banner poles (the cloth is a swaying shader quad in the scene,
+    # see BANNERS in scenes/arenas/forgotten_temple.tscn) -------------------
+    for x, top, w in ((-2.6, 9.16, 0.95), (-1.3, 9.68, 0.95), (1.3, 9.68, 0.95), (2.6, 9.16, 0.95)):
+        k.box((x, gy - 0.2, top + 0.05), (w + 0.3, 0.08, 0.08), "SAN_StoneDark")
+        k.box((x, gy - 0.2, top + 0.5), (0.04, 0.04, 0.9), "SAN_StoneDark")
     for x, y, z in ((-12, 12, 5.5), (11, 14, 7.0), (-8, 16, 8.5)):
-        banner((x, y, z), 3.0, 0.6)
+        k.box((x, y, z + 0.05), (0.9, 0.08, 0.08), "SAN_StoneDark")
+
+    # ---- close detail just behind the fighters -----------------------------
+    u = Vector((0, 4.4, 0))                                # bronze incense burner (smoke in the scene)
+    for t in range(3):
+        ang = t * 2 * math.pi / 3 + 0.5
+        beam(k, u + Vector((math.cos(ang) * 0.55, math.sin(ang) * 0.55, 0)), u + Vector((0, 0, 0.9)), 0.07,
+             "SAN_Gold")
+    k.sphere(u + Vector((0, 0, 1.05)), 0.55, "SAN_Gold", segs=14, rings=7, scale=(1.0, 1.0, 0.55))
+    k.cyl(u + Vector((0, 0, 1.35)), 0.42, 0.06, "SAN_StoneDark", segs=14)
+    k.sphere(u + Vector((0, 0, 1.4)), 0.3, "SAN_Glow", segs=8, rings=3, scale=(1.0, 1.0, 0.25))
+    for x0 in (6.6,):                                      # bell rack
+        for dx in (-1.1, 1.1):
+            k.box((x0 + dx, 4.5, 1.2), (0.18, 0.18, 2.4), "SAN_StoneDark")
+        k.box((x0, 4.5, 2.45), (2.8, 0.22, 0.18), "SAN_StoneDark", bevel=0.03)
+        k.box((x0, 4.5, 2.62), (3.1, 0.3, 0.12), "SAN_Roof", bevel=0.03)
+        for i, bx in enumerate((-0.6, 0.0, 0.6)):
+            k.box((x0 + bx, 4.5, 2.2), (0.02, 0.02, 0.4), "SAN_StoneDark")
+            k.cyl((x0 + bx, 4.5, 1.85), 0.2 + 0.04 * i, 0.4 + 0.05 * i, "SAN_Gold", segs=12, r2=0.08)
+    g = Vector((-6.8, 4.3, 0))                            # a broken stone guardian (original figure)
+    k.box(g + Vector((0, 0, 0.35)), (1.4, 1.1, 0.7), "SAN_StoneDark", bevel=0.05)
+    k.box(g + Vector((0, 0, 1.4)), (0.9, 0.7, 1.4), "SAN_Stone", bevel=0.08)          # robed legs
+    k.box(g + Vector((0.1, 0.05, 2.45)), (1.0, 0.65, 0.9), "SAN_Stone", rot=(0, -8, 4), bevel=0.08)
+    k.box(g + Vector((-0.55, -0.1, 2.2)), (0.28, 0.3, 1.0), "SAN_Stone", rot=(0, 12, 0), bevel=0.04)
+    beam(k, g + Vector((0.55, -0.35, 0.8)), g + Vector((0.6, -0.4, 2.9)), 0.12, "SAN_StoneDark")      # staff
+    k.sphere(g + Vector((1.2, -0.7, 0.32)), 0.32, "SAN_Stone", segs=10, rings=6)                       # fallen head
+    k.box(g + Vector((1.15, -1.0, 0.36)), (0.26, 0.05, 0.08), "SAN_StoneDark")
+    for i in range(6):                                    # broken pieces
+        k.box(g + Vector((rnd.uniform(-1.4, 1.6), rnd.uniform(-1.2, -0.4), 0.1)),
+              (rnd.uniform(0.15, 0.4), rnd.uniform(0.15, 0.35), rnd.uniform(0.1, 0.25)), "SAN_Stone",
+              rot=(0, 0, rnd.uniform(0, 90)))
+    for c in ((-3.2, 5.0), (3.8, 5.1), (-10.5, 4.6)):       # prayer cairns
+        z = 0.0
+        for j in range(4):
+            r = 0.32 - j * 0.06
+            k.sphere((c[0] + rnd.uniform(-0.04, 0.04), c[1], z + r * 0.5), r, "SAN_Stone", segs=8, rings=5,
+                     scale=(1.0, 0.85, 0.55))
+            z += r * 0.9
+    for i in range(18):                                   # fallen roof tiles and moss clumps
+        x = rnd.choice((rnd.uniform(-13, -8), rnd.uniform(8, 13)))
+        k.box((x, rnd.uniform(3.6, 5.3), 0.04), (0.35, 0.22, 0.05), "SAN_Roof", rot=(rnd.uniform(-8, 8), 0, rnd.uniform(0, 90)))
+    for ix in range(-13, 14, 2):
+        k.sphere((ix + rnd.uniform(-0.2, 0.2), 5.45, 0.02), rnd.uniform(0.2, 0.4), "SAN_Moss", segs=8, rings=4,
+                 scale=(1.6, 1.0, 0.35))
 
     # ---- stone lanterns framing the stage -----------------------------------
     for x in (-12.5, 12.5):
@@ -645,6 +853,50 @@ def neon():
         k.box((0, 5.25 - i * 0.12, 0.05 + i * 0.03), (30, 0.06, 0.06), "SEV_Metal")
     for x in (-11.2, 10.7):                              # steam vents (particles in the scene)
         k.cyl((x, 3.6, 0.35), 0.28, 0.7, "SEV_Metal", segs=10)
+
+    # ---- close detail just behind the fighters -----------------------------
+    # A torn armour plate from the conduit, smashed into the roof, still
+    # bleeding Origin light through the cracks around it.
+    k.box((-4.6, 3.7, 0.55), (3.2, 0.35, 1.9), "SEV_Casing", rot=(62, 8, 14), bevel=0.04)
+    k.box((-4.4, 3.45, 0.95), (2.6, 0.06, 0.12), "SEV_Metal", rot=(62, 8, 14))
+    for i in range(7):
+        a = rnd.uniform(0, 2 * math.pi)
+        p0 = Vector((-4.6, 3.7, 0.006))
+        p1 = p0 + Vector((math.cos(a), math.sin(a), 0)) * rnd.uniform(1.0, 2.4)
+        k.box(((p0 + p1) / 2).to_tuple(), ((p1 - p0).length, 0.05, 0.006), "SEV_Origin",
+              rot=(0, 0, math.degrees(a)))
+    for i in range(14):                                  # concrete rubble thrown out of the impact
+        k.box((-4.6 + rnd.uniform(-2.4, 2.4), 3.7 + rnd.uniform(-1.6, 1.2), 0.08),
+              (rnd.uniform(0.12, 0.45), rnd.uniform(0.12, 0.4), rnd.uniform(0.08, 0.25)), "SEV_Concrete",
+              rot=(rnd.uniform(-20, 20), rnd.uniform(-20, 20), rnd.uniform(0, 90)))
+    for j, (dx, dy, dz, s_) in enumerate(((0, 0, 0, 1.0), (1.05, 0.1, 0, 0.9), (0.45, 0.05, 0.95, 0.85))):
+        c = Vector((5.6 + dx, 4.3 + dy, 0.5 * s_ + dz))   # crate stack, banded
+        k.box(c, (1.0 * s_, 1.0 * s_, 1.0 * s_), "SEV_Casing", bevel=0.03, rot=(0, 0, j * 7))
+        for zz in (-0.3, 0.3):
+            k.box(c + Vector((0, -0.51 * s_, zz * s_)), (1.02 * s_, 0.02, 0.07), "SEV_Metal", rot=(0, 0, j * 7))
+    g = Vector((-8.2, 2.9, 0))                           # generator with exhaust and cables
+    k.box(g + Vector((0, 0, 0.55)), (1.8, 1.0, 1.1), "SEV_Casing", bevel=0.04)
+    for i in range(6):
+        k.box(g + Vector((-0.6 + i * 0.24, -0.51, 0.65)), (0.12, 0.02, 0.6), "SEV_Metal")
+    k.cyl(g + Vector((0.6, 0.2, 1.5)), 0.1, 0.9, "SEV_Metal", segs=8)
+    k.box(g + Vector((-0.5, -0.52, 0.95)), (0.18, 0.02, 0.08), "SEV_Neon")  # status LED
+    for i in range(3):
+        beam(k, g + Vector((0.9, 0.1 * i, 0.15)), Vector((-6.6, 4.4 + 0.1 * i, 0.06)), 0.05, "SEV_Metal")
+    d = Vector((8.9, 4.7, 0))                            # satellite dish on a tripod
+    for t in range(3):
+        ang = t * 2 * math.pi / 3
+        beam(k, d + Vector((math.cos(ang) * 0.5, math.sin(ang) * 0.5, 0)), d + Vector((0, 0, 1.4)), 0.05, "SEV_Metal")
+    k.sphere(d + Vector((0, -0.25, 2.0)), 0.9, "SEV_Casing", segs=12, rings=6, scale=(1.0, 0.25, 1.0))
+    beam(k, d + Vector((0, -0.4, 2.0)), d + Vector((0, -1.1, 2.0)), 0.04, "SEV_Metal")
+    a_ = Vector((14.6, 4.9, 0))                          # antenna mast with an aircraft warning light
+    beam(k, a_, a_ + Vector((0, 0, 9.0)), 0.12, "SEV_Metal")
+    for zz in (3.0, 5.5, 7.5):
+        beam(k, a_ + Vector((-0.6, 0, zz)), a_ + Vector((0.6, 0, zz)), 0.05, "SEV_Metal")
+    k.sphere(a_ + Vector((0, 0, 9.15)), 0.14, "SEV_Origin", segs=6, rings=4)
+    for z in (0.3, 0.55):                                # pipe run along the parapet
+        k.cyl((0, 5.3, z), 0.07, 30, "SEV_Metal", segs=8, rot=(0, 90, 0))
+    for x in range(-14, 15, 3):
+        k.box((x, 5.35, 0.42), (0.1, 0.2, 0.5), "SEV_Metal")
 
     # ---- the district below and the skyline -------------------------------
     GROUND = -32.0
@@ -892,9 +1144,7 @@ def origin():
         rot = n.to_track_quat("Z", "Y").to_euler()
         k.box(HEART + n * 2.2, (rnd.uniform(0.6, 0.95), rnd.uniform(0.6, 0.95), 0.1), "ORI_Obsidian",
               rot=tuple(math.degrees(x) for x in rot[:2]) + (rnd.uniform(0, 90),))
-    for i, (rx, ry, R) in enumerate(((17, 0, 3.6), (69, 29, 4.3), (-34, 74, 5.0))):
-        torus_mesh(k, HEART, R, 0.28, 0.2, "ORI_Obsidian", segs=56, sides=6, rot=(rx + 90, ry, i * 40))
-        torus_mesh(k, HEART, R, 0.05, 0.05, "ORI_Origin", segs=56, sides=4, rot=(rx + 90, ry, i * 40))
+    # (the cage rings turn, so they are TorusMesh nodes in scenes/arenas/origin_chamber.tscn)
     for i in range(16):                                      # crystal pedestal under the heart
         a = rnd.uniform(0, 2 * math.pi)
         base = HEART + Vector((math.cos(a) * rnd.uniform(0.5, 3), math.sin(a) * rnd.uniform(0.5, 3), -HEART.z))
@@ -939,6 +1189,24 @@ def origin():
             if f.normal.dot(n) < 0:
                 f.normal_flip()
             k._finish_new((0, 0, 0), (0, 0, 0), mat)
+    # ---- close detail just behind the fighters -----------------------------
+    for i in range(9):                                   # crystal clusters along the back of the stage
+        a = math.radians(18 + i * 18 + rnd.uniform(-5, 5))
+        c = Vector((math.cos(a) * 10.4, math.sin(a) * 10.4, 0))
+        for j in range(rnd.randint(3, 5)):
+            d = Vector((rnd.uniform(-0.4, 0.4), rnd.uniform(-0.2, 0.5), 1))
+            shard(k, c + Vector((rnd.uniform(-0.6, 0.6), rnd.uniform(-0.4, 0.4), -0.1)), d, rnd.uniform(0.8, 2.6),
+                  rnd.uniform(0.15, 0.4), "ORI_Origin" if j == 0 and i % 3 == 0 else "ORI_Obsidian", rnd.uniform(0, 6))
+    for x in (-7.5, 7.8):                                # broken obsidian pillars flanking the stage
+        k.cyl((x, 7.5, 1.4), 0.75, 2.8, "ORI_Obsidian", segs=7)
+        shard(k, (x, 7.5, 2.7), (0.3, -0.2, 1), 1.4, 0.65, "ORI_Obsidian", 0.4)
+        for j in range(4):
+            k.box((x + rnd.uniform(-1.2, 1.2), 7.5 + rnd.uniform(-1.4, 0.4), 0.15),
+                  (rnd.uniform(0.3, 0.7), rnd.uniform(0.3, 0.6), 0.3), "ORI_Obsidian", rot=(rnd.uniform(-15, 15), 0, rnd.uniform(0, 90)))
+    for i in range(14):                                  # fragments hanging in the air just behind the fight
+        p = Vector((rnd.uniform(-8, 8), rnd.uniform(4.5, 9), rnd.uniform(2.6, 5.5)))
+        shard(k, p, (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1)), rnd.uniform(0.3, 0.8),
+              rnd.uniform(0.06, 0.18), "ORI_Obsidian", rnd.uniform(0, 6))
     # floating debris frozen mid-air
     for i in range(60):
         p = Vector((rnd.uniform(-16, 16), rnd.uniform(6, 22), rnd.uniform(3, 14)))
@@ -957,11 +1225,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="assets/arenas")
     ap.add_argument("--only", default="")
+    ap.add_argument("--no-bake", action="store_true", help="skip the ambient-occlusion bake (fast preview)")
     a = ap.parse_args(argv)
     for name, fn in ARENAS.items():
         if a.only and a.only != name:
             continue
-        fn().export(f"{a.out}/{name}/{name}_arena.glb")
+        # A builder returns the arena Kit, or (Kit, [(extra Kit, file name), ...])
+        # for separately animated parts such as The Pit's crowd.
+        res = fn()
+        main_kit, extras = (res if isinstance(res, tuple) else (res, []))
+        main_kit.export(f"{a.out}/{name}/{name}_arena.glb", bake_ao=not a.no_bake)
+        for kit, fname in extras:
+            kit.export(f"{a.out}/{name}/{fname}", bake_ao=False, materials=False)
 
 
 if __name__ == "__main__":

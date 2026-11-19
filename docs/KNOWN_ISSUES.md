@@ -45,5 +45,6 @@
 | KI-041 | M7 | Provenance/rights of the owner-supplied art sheet are not recorded yet. | Open — owner |
 | KI-042 | M8 | The Severed Line (neon) uses a ReflectionProbe; Godot 4.7.2 prints "7 RIDs of type Texture were leaked" at engine shutdown whenever a probe has existed (reproduced in an empty project with one probe). Exit-time only, no in-game effect. | Engine — monitor |
 | KI-043 | M8 | The Severed Line was checked only on Mesa software Vulkan (lavapipe) with the Mobile renderer; frame rate, glow and the reflection probe cost on a phone are unverified. | Open — needs device |
-| KI-044 | M8 | Ryuen's Sanctuary: the Origin crystal keystone sits above the gameplay camera's view at normal zoom (visible in menus and wide shots); banners are rigid panels (no cloth motion). | Open |
-| KI-045 | M8 | Origin Chamber: the heart's rings are static (the concept has them turning); the black-glass floor needs the reflection probe to read as glass, cost on phones unmeasured. | Open |
+| KI-044 | M8 | Ryuen's Sanctuary: the Origin crystal keystone sits above the gameplay camera's view at normal zoom (visible in menus and wide shots). Banners now sway (shader). | Open |
+| KI-045 | M8 | Origin Chamber: the black-glass floor needs the reflection probe to read as glass; cost on phones unmeasured. (Heart rings now turn.) | Open |
+| KI-046 | M8 | Arena textures are procedural (generated), not hand-painted or scanned; still a clear step below console stages. Ambient occlusion is baked, but direct light is still real-time only (no baked light bounce). Texture memory and shader cost on phones unmeasured. | Open — needs device |

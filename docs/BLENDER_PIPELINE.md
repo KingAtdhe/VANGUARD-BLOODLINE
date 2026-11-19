@@ -84,6 +84,12 @@ python tools/blender/arena_builder.py --out assets/arenas
 - Arenas: one mesh per arena, ≤8 materials, emissive trims; lights, fog,
   glow, particles and text are in `scenes/arenas/*.tscn`.
 - After a rebuild, keep `animation/fps=60` in each `.glb.import`.
+- Arena surfaces (D-051): `python3 tools/art/make_arena_textures.py` makes the
+  shared textures; `arena_builder.py` then bakes AO and writes the Godot
+  materials (`--no-bake` is a fast geometry preview only: it writes
+  materials without AO). After a rebuild run Godot's import once, then
+  `python3 tools/art/arena_texture_imports.py` and import again so the
+  textures are VRAM-compressed with mipmaps.
 - Arena design flow (D-048): concept render first
   (`tools/blender/arena_concept_<name>.py <out.png> [samples] [width]`),
   owner approval, then the game version in `arena_builder.py`. Check the

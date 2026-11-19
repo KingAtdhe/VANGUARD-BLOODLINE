@@ -4,6 +4,9 @@
 [ext_resource type="PackedScene" path="res://assets/arenas/temple/temple_arena.glb" id="2_geo"]
 [ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
 [ext_resource type="Resource" path="res://data/arenas/temple_arena.tres" id="4_cfg"]
+[ext_resource type="Shader" path="res://shaders/arena/banner_sway.gdshader" id="5_banner"]
+[ext_resource type="Texture2D" path="res://assets/arenas/temple/ryuen_banner.png" id="6_bannertex"]
+[ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="7_pulse"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.22, 0.36, 0.62, 1)
@@ -116,6 +119,141 @@ billboard_keep_scale = true
 material = SubResource("LeafMat2")
 size = Vector2(0.09, 0.05)
 
+[sub_resource type="ShaderMaterial" id="BannerMat0"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.16
+shader_parameter/speed = 1.40
+shader_parameter/phase = 0.00
+
+[sub_resource type="QuadMesh" id="BannerQuad0"]
+material = SubResource("BannerMat0")
+size = Vector2(0.95, 4.6)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ShaderMaterial" id="BannerMat1"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.16
+shader_parameter/speed = 1.55
+shader_parameter/phase = 1.70
+
+[sub_resource type="QuadMesh" id="BannerQuad1"]
+material = SubResource("BannerMat1")
+size = Vector2(0.95, 5.2)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ShaderMaterial" id="BannerMat2"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.16
+shader_parameter/speed = 1.70
+shader_parameter/phase = 3.40
+
+[sub_resource type="QuadMesh" id="BannerQuad2"]
+material = SubResource("BannerMat2")
+size = Vector2(0.95, 5.0)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ShaderMaterial" id="BannerMat3"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.16
+shader_parameter/speed = 1.85
+shader_parameter/phase = 5.10
+
+[sub_resource type="QuadMesh" id="BannerQuad3"]
+material = SubResource("BannerMat3")
+size = Vector2(0.95, 4.4)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ShaderMaterial" id="BannerMat4"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.1
+shader_parameter/speed = 2.00
+shader_parameter/phase = 6.80
+
+[sub_resource type="QuadMesh" id="BannerQuad4"]
+material = SubResource("BannerMat4")
+size = Vector2(0.6, 3.0)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ShaderMaterial" id="BannerMat5"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.1
+shader_parameter/speed = 2.15
+shader_parameter/phase = 8.50
+
+[sub_resource type="QuadMesh" id="BannerQuad5"]
+material = SubResource("BannerMat5")
+size = Vector2(0.6, 3.0)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ShaderMaterial" id="BannerMat6"]
+render_priority = 0
+shader = ExtResource("5_banner")
+shader_parameter/albedo_tex = ExtResource("6_bannertex")
+shader_parameter/sway = 0.1
+shader_parameter/speed = 2.30
+shader_parameter/phase = 10.20
+
+[sub_resource type="QuadMesh" id="BannerQuad6"]
+material = SubResource("BannerMat6")
+size = Vector2(0.6, 3.0)
+subdivide_width = 2
+subdivide_depth = 14
+
+[sub_resource type="ParticleProcessMaterial" id="SmokeMat"]
+emission_shape = 1
+emission_sphere_radius = 0.15
+direction = Vector3(0, 1, 0)
+spread = 8
+initial_velocity_min = 0.25
+initial_velocity_max = 0.45
+gravity = Vector3(0.05, 0.08, 0)
+scale_min = 0.6
+scale_max = 1.6
+color = Color(0.85, 0.82, 0.78, 0.18)
+turbulence_enabled = true
+turbulence_noise_strength = 0.4
+
+[sub_resource type="Gradient" id="SmokeGrad"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SmokeDot"]
+gradient = SubResource("SmokeGrad")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+width = 64
+height = 64
+
+[sub_resource type="StandardMaterial3D" id="SmokeMat2"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = SubResource("SmokeDot")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="SmokeQuad"]
+material = SubResource("SmokeMat2")
+size = Vector2(0.5, 0.5)
+
 [node name="ForgottenTemple" type="Node3D"]
 script = ExtResource("1_view")
 config = ExtResource("4_cfg")
@@ -208,3 +346,56 @@ preprocess = 9.0
 visibility_aabb = AABB(-40, -10, -40, 80, 40, 80)
 process_material = SubResource("LeafMat")
 draw_pass_1 = SubResource("LeafQuad")
+
+[node name="Banners" type="Node3D" parent="."]
+
+[node name="Banner0" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 6.860, -8.78)
+mesh = SubResource("BannerQuad0")
+
+[node name="Banner1" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3, 7.080, -8.78)
+mesh = SubResource("BannerQuad1")
+
+[node name="Banner2" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3, 7.180, -8.78)
+mesh = SubResource("BannerQuad2")
+
+[node name="Banner3" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 6.960, -8.78)
+mesh = SubResource("BannerQuad3")
+
+[node name="Banner4" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 4.000, -11.98)
+mesh = SubResource("BannerQuad4")
+
+[node name="Banner5" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 5.500, -13.98)
+mesh = SubResource("BannerQuad5")
+
+[node name="Banner6" type="MeshInstance3D" parent="Banners"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 7.000, -15.98)
+mesh = SubResource("BannerQuad6")
+
+[node name="IncenseSmoke" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.45, -4.4)
+amount = 26
+lifetime = 6.0
+preprocess = 6.0
+visibility_aabb = AABB(-10, -2, -10, 20, 20, 20)
+process_material = SubResource("SmokeMat")
+draw_pass_1 = SubResource("SmokeQuad")
+
+[node name="IncenseGlow" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -4.2)
+light_color = Color(1, 0.55, 0.25, 1)
+light_energy = 0.9
+omni_range = 3.5
+light_specular = 0.1
+
+[node name="CrystalPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+script = ExtResource("7_pulse")
+material_names = PackedStringArray("SAN_Origin", "SAN_Glow")
+period = 4.0
+low = 0.75
+high = 1.25

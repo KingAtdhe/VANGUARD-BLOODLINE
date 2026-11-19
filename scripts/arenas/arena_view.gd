@@ -10,11 +10,38 @@ extends Node3D
 const FX_GROUP: StringName = &"arena_fx"
 
 @export var config: ArenaConfig
+## Folder of per-surface materials; empty = "materials" next to the GLB.
+@export_dir var material_dir: String = ""
 
 
 func _ready() -> void:
 	if config == null:
 		push_error("ArenaView %s: no ArenaConfig assigned" % name)
+	apply_surface_materials()
+
+
+## Swaps the flat glTF materials for the textured ones written by
+## tools/blender/arena_builder.py (tiling textures + baked AO on UV2).
+## Looked up by material name in res://assets/arenas/<folder>/materials/.
+## A material without a matching file keeps its imported look.
+func apply_surface_materials() -> void:
+	var dir: String = material_dir
+	if dir == "":
+		var geo: Node = get_node_or_null("Geometry")
+		if geo == null or geo.scene_file_path == "":
+			return
+		dir = geo.scene_file_path.get_base_dir().path_join("materials")
+	for n: Node in find_children("*", "MeshInstance3D", true, false):
+		var mi: MeshInstance3D = n
+		if mi.mesh == null:
+			continue
+		for s: int in mi.mesh.get_surface_count():
+			var src: Material = mi.mesh.surface_get_material(s)
+			if src == null or src.resource_name == "":
+				continue
+			var path: String = dir.path_join(src.resource_name + ".tres")
+			if ResourceLoader.exists(path):
+				mi.set_surface_override_material(s, load(path) as Material)
 
 
 ## [param enabled] false hides ambient particles for low-end devices.

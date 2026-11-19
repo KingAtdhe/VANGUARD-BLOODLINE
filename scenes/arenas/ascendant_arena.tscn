@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" path="res://assets/arenas/ascendant/ascendant_arena.glb" id="2_geo"]
 [ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
 [ext_resource type="Resource" path="res://data/arenas/ascendant_arena.tres" id="4_cfg"]
+[ext_resource type="PackedScene" path="res://assets/arenas/ascendant/pit_crowd.glb" id="5_crowd"]
+[ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.01, 0.015, 0.05, 1)
@@ -71,6 +73,8 @@ config = ExtResource("4_cfg")
 
 [node name="Geometry" parent="." instance=ExtResource("2_geo")]
 
+[node name="Crowd" parent="." instance=ExtResource("5_crowd")]
+
 [node name="Lighting" type="Node3D" parent="."]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
@@ -131,8 +135,8 @@ base_energy = 1.2
 
 [node name="CrowdWash" type="OmniLight3D" parent="Lighting"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -12)
-light_color = Color(1, 0.7, 0.45, 1)
-light_energy = 2.5
+light_color = Color(1, 0.86, 0.72, 1)
+light_energy = 1.2
 omni_range = 22.0
 light_specular = 0.0
 
@@ -144,3 +148,10 @@ preprocess = 8.0
 visibility_aabb = AABB(-40, -10, -40, 80, 40, 80)
 process_material = SubResource("MotesMat")
 draw_pass_1 = SubResource("MoteQuad")
+
+[node name="VeinPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+script = ExtResource("6_pulse")
+material_names = PackedStringArray("PIT_Vein")
+period = 2.6
+low = 0.35
+high = 1.35

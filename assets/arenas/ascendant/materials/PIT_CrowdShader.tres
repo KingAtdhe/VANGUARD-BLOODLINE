@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/arena/crowd.gdshader" id="1"]
+
+[resource]
+resource_name = "PIT_CrowdShader"
+shader = ExtResource("1")
+shader_parameter/hop = 0.13
+shader_parameter/excitement = 0.6

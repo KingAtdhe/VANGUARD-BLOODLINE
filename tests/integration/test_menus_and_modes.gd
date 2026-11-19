@@ -265,6 +265,17 @@ func test_roster_models_and_arenas() -> Array[String]:
 			f.append("arena %s scene does not point at its config" % id)
 		if not cfg.unlocked_by_default and cfg.unlock_hint == "":
 			f.append("locked arena %s has no unlock hint" % id)
+		# Textured surface materials (tools/blender/arena_builder.py) must load.
+		(arena as ArenaView).apply_surface_materials()
+		var textured: int = 0
+		for mn: Node in arena.find_children("*", "MeshInstance3D", true, false):
+			var mi: MeshInstance3D = mn
+			for si: int in mi.get_surface_override_material_count():
+				var om: Material = mi.get_surface_override_material(si)
+				if om is StandardMaterial3D and (om as StandardMaterial3D).albedo_texture != null:
+					textured += 1
+		if textured < 3:
+			f.append("arena %s: only %d textured surfaces" % [id, textured])
 		if arena.find_children("*", "WorldEnvironment", true, false).is_empty():
 			f.append("arena %s has no environment" % id)
 		var tris: int = 0

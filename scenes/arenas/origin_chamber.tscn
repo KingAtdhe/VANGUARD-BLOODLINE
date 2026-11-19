@@ -4,6 +4,10 @@
 [ext_resource type="PackedScene" path="res://assets/arenas/origin/origin_arena.glb" id="2_geo"]
 [ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
 [ext_resource type="Resource" path="res://data/arenas/origin_arena.tres" id="4_cfg"]
+[ext_resource type="Script" path="res://scripts/arenas/spin.gd" id="5_spin"]
+[ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
+[ext_resource type="Material" path="res://assets/arenas/origin/materials/ORI_Obsidian.tres" id="7_obs"]
+[ext_resource type="Material" path="res://assets/arenas/origin/materials/ORI_Origin.tres" id="8_glow"]
 
 [sub_resource type="Environment" id="Env"]
 background_mode = 1
@@ -52,6 +56,42 @@ billboard_keep_scale = true
 [sub_resource type="QuadMesh" id="EmberQuad"]
 material = SubResource("EmberMat2")
 size = Vector2(0.05, 0.05)
+
+[sub_resource type="TorusMesh" id="Band0"]
+inner_radius = 3.32
+outer_radius = 3.88
+rings = 64
+ring_segments = 8
+
+[sub_resource type="TorusMesh" id="Glow0"]
+inner_radius = 3.84
+outer_radius = 3.92
+rings = 64
+ring_segments = 4
+
+[sub_resource type="TorusMesh" id="Band1"]
+inner_radius = 4.02
+outer_radius = 4.58
+rings = 64
+ring_segments = 8
+
+[sub_resource type="TorusMesh" id="Glow1"]
+inner_radius = 4.54
+outer_radius = 4.62
+rings = 64
+ring_segments = 4
+
+[sub_resource type="TorusMesh" id="Band2"]
+inner_radius = 4.72
+outer_radius = 5.28
+rings = 64
+ring_segments = 8
+
+[sub_resource type="TorusMesh" id="Glow2"]
+inner_radius = 5.24
+outer_radius = 5.32
+rings = 64
+ring_segments = 4
 
 [node name="OriginChamber" type="Node3D"]
 script = ExtResource("1_view")
@@ -115,3 +155,71 @@ preprocess = 7.0
 visibility_aabb = AABB(-40, -10, -40, 80, 40, 80)
 process_material = SubResource("EmberMat")
 draw_pass_1 = SubResource("EmberQuad")
+
+[node name="HeartCage" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.9, -15)
+
+[node name="Ring0" type="Node3D" parent="HeartCage"]
+transform = Transform3D(1.00000, 0.00000, 0.00000, 0.00000, 0.25882, -0.96593, 0.00000, 0.96593, 0.25882, 0, 0, 0)
+
+[node name="Spin" type="Node3D" parent="HeartCage/Ring0"]
+script = ExtResource("5_spin")
+speed = 14
+
+[node name="Band" type="MeshInstance3D" parent="HeartCage/Ring0/Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Band0")
+surface_material_override/0 = ExtResource("7_obs")
+
+[node name="Glow" type="MeshInstance3D" parent="HeartCage/Ring0/Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Glow0")
+surface_material_override/0 = ExtResource("8_glow")
+
+[node name="Ring1" type="Node3D" parent="HeartCage"]
+transform = Transform3D(0.86603, -0.46985, 0.17101, 0.50000, 0.81380, -0.29620, 0.00000, 0.34202, 0.93969, 0, 0, 0)
+
+[node name="Spin" type="Node3D" parent="HeartCage/Ring1"]
+script = ExtResource("5_spin")
+speed = -19
+
+[node name="Band" type="MeshInstance3D" parent="HeartCage/Ring1/Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Band1")
+surface_material_override/0 = ExtResource("7_obs")
+
+[node name="Glow" type="MeshInstance3D" parent="HeartCage/Ring1/Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Glow1")
+surface_material_override/0 = ExtResource("8_glow")
+
+[node name="Ring2" type="Node3D" parent="HeartCage"]
+transform = Transform3D(0.50000, 0.55667, 0.66341, -0.86603, 0.32139, 0.38302, 0.00000, -0.76604, 0.64279, 0, 0, 0)
+
+[node name="Spin" type="Node3D" parent="HeartCage/Ring2"]
+script = ExtResource("5_spin")
+speed = 9
+
+[node name="Band" type="MeshInstance3D" parent="HeartCage/Ring2/Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Band2")
+surface_material_override/0 = ExtResource("7_obs")
+
+[node name="Glow" type="MeshInstance3D" parent="HeartCage/Ring2/Spin"]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Glow2")
+surface_material_override/0 = ExtResource("8_glow")
+
+[node name="HeartPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+script = ExtResource("6_pulse")
+material_names = PackedStringArray("ORI_Origin")
+period = 3.2
+low = 0.6
+high = 1.45
+
+[node name="EmblemPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+script = ExtResource("6_pulse")
+material_names = PackedStringArray("ORI_Emblem_kairo", "ORI_Emblem_drakon", "ORI_Emblem_seraphina", "ORI_Emblem_nox", "ORI_Emblem_vexa", "ORI_Emblem_ryuen")
+period = 6.0
+low = 0.8
+high = 1.25

@@ -1,7 +1,9 @@
 extends SceneTree
 ## Renders an arena from the gameplay camera with two fighters for scale.
 ##   godot --path . --rendering-method mobile --script res://tools/godot/arena_shot.gd \
-##         -- <arena.tscn> <out.png> [distance] [width] [height]
+##         -- <arena.tscn> <out.png> [distance] [width] [height] [seconds]
+## With [seconds], a second frame is saved that much later as <out>_b.png
+## (to check that animated parts actually move).
 ## Needs a display (use xvfb-run on a headless machine).
 
 func _initialize() -> void:
@@ -11,6 +13,7 @@ func _initialize() -> void:
 	var dist: float = float(args[2]) if args.size() > 2 else 8.0
 	var w: int = int(args[3]) if args.size() > 3 else 1280
 	var h: int = int(args[4]) if args.size() > 4 else 720
+	var later: float = float(args[5]) if args.size() > 5 else 0.0
 	root.size = Vector2i(w, h)
 	var arena: Node3D = (load(arena_path) as PackedScene).instantiate()
 	root.add_child(arena)
@@ -30,6 +33,12 @@ func _initialize() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out)
 	print("saved ", out)
+	if later > 0.0:
+		await create_timer(later).timeout
+		await RenderingServer.frame_post_draw
+		var out_b: String = out.get_basename() + "_b.png"
+		root.get_texture().get_image().save_png(out_b)
+		print("saved ", out_b)
 	# Free the scene before quitting so render resources are released cleanly.
 	arena.queue_free()
 	cam.queue_free()

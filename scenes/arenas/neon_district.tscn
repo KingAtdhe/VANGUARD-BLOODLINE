@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
 [ext_resource type="Resource" path="res://data/arenas/neon_arena.tres" id="4_cfg"]
 [ext_resource type="Texture2D" path="res://assets/arenas/neon/wanted_poster.png" id="5_poster"]
+[ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.015, 0.02, 0.05, 1)
@@ -192,6 +193,13 @@ light_energy = 4.0
 spot_range = 7.0
 spot_angle = 50.0
 
+[node name="ImpactGlow" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 0.5, -3.4)
+light_color = Color(1, 0.1, 0.04, 1)
+light_energy = 1.6
+omni_range = 4.5
+light_specular = 0.2
+
 [node name="Reflections" type="ReflectionProbe" parent="Lighting"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2)
 size = Vector3(34, 14, 24)
@@ -243,3 +251,17 @@ shaded = true
 double_sided = false
 alpha_cut = 1
 texture = ExtResource("5_poster")
+
+[node name="OriginPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+script = ExtResource("6_pulse")
+material_names = PackedStringArray("SEV_Origin")
+period = 1.8
+low = 0.6
+high = 1.4
+
+[node name="NeonFlicker" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+script = ExtResource("6_pulse")
+material_names = PackedStringArray("SEV_Neon")
+low = 0.7
+high = 1.0
+flicker = true

@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — arena quality pass
+- All four arenas are textured (stone, quarry strata, wet concrete, rusted paint, gravel, obsidian, plaster, roof tiles, facades, gold) with normal and roughness maps, and have baked ambient occlusion.
+- Motion: The Pit's crowd cheers and waves flags; Ryuen's banners sway; the Origin heart's three rings turn; Origin veins, neon signs, the Sanctuary crystal and the Origin emblems pulse or flicker; incense smoke in the Sanctuary.
+- Close detail behind the fighters: a conduit armour plate smashed into the Severed Line roof (glowing cracks, rubble), crates, generator, satellite dish, antenna; an incense burner, bell rack, broken stone guardian and prayer cairns in the Sanctuary; crowd barrier, speaker stacks, flight cases, cable drums and broadcast cameras at The Pit; crystal clusters, broken pillars and floating fragments in the Origin Chamber.
+### Fixed
+- The Pit's quarry walls and bench tops faced away from the camera, so the engine hid them and the red sky showed through.
 ### Changed
 - Ascendant Arena rebuilt as "The Pit": an octagon ring cut into the bedrock of an abandoned Origin-ore mine, with the carved crest (a V of two blades inside a ring broken into six), a crowd on seven quarry benches with phone lights and flags, two lattice mining cranes holding the light rigs, flood-light towers, a haul truck, conveyor wreck and red Origin veins in the walls (~50k tris, 8 materials). English banner/screen/floor text removed.
 - Forgotten Temple rebuilt as "Ryuen's Sanctuary": a courtyard of worn running-bond slabs on a floating island at dawn, the great carved ring gate with gold inlays and the dormant Origin crystal keystone, monastery halls on chained floating rocks, Ryuen's blue banners with gold trim and wave emblem, stone lanterns, a sea of clouds (~30k tris, 8 materials). The English inscription was removed.
