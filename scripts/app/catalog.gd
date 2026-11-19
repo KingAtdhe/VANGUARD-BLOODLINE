@@ -6,7 +6,7 @@ extends RefCounted
 ## Fighter select order (spec §3 launch roster).
 const ROSTER: Array[StringName] = [&"kairo", &"drakon", &"seraphina", &"nox", &"vexa", &"ryuen"]
 ## Selectable arenas, in select-screen order.
-const ARENAS: Array[StringName] = [&"ascendant", &"temple", &"neon"]
+const ARENAS: Array[StringName] = [&"ascendant", &"temple", &"neon", &"origin"]
 
 
 static func fighter_path(id: StringName) -> String:

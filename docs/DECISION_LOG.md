@@ -329,6 +329,16 @@ the Mobile renderer. On a machine without a GPU it runs under `xvfb-run` on
 Mesa's software Vulkan (lavapipe). This verifies look and framing only;
 frame rate on a phone is still unverified. **Accepted.**
 
+## D-050 — 2026-11-19 — The Origin Chamber joins as a fourth selectable arena
+The approved boss-arena concept is added as arena `origin`, locked by
+default and unlocked by clearing Story chapter 6. Story and Arcade boss
+fights stay where they are (the chapter 6 script places the final in the
+Ascendant ring); moving the boss fights there is an owner decision.
+Six of its eight materials are the bloodline emblem colours. Locked arenas
+now carry their own `unlock_hint` instead of one hard-coded sentence.
+**Accepted — boss-fight placement open.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).
+- **M8:** Should the Story finale / Arcade boss be fought in the Origin Chamber (D-050)?

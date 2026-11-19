@@ -776,7 +776,180 @@ def neon():
     return k
 
 
-ARENAS = {"ascendant": ascendant, "temple": temple, "neon": neon}
+def torus_mesh(k, c, R, r_rad, r_depth, mat, segs=48, sides=8, rot=(0, 0, 0)):
+    """Torus in the local XZ plane (ring faces -Y), then rotated by rot (deg)."""
+    vs = []
+    for i in range(segs):
+        a = 2 * math.pi * i / segs
+        ring_ = []
+        for j in range(sides):
+            b = 2 * math.pi * j / sides
+            rr = R + math.cos(b) * r_rad
+            ring_.append(k.bm.verts.new(Vector((math.cos(a) * rr, math.sin(b) * r_depth, math.sin(a) * rr))))
+        vs.append(ring_)
+    for i in range(segs):
+        for j in range(sides):
+            a, b = vs[i], vs[(i + 1) % segs]
+            k.bm.faces.new((a[j], b[j], b[(j + 1) % sides], a[(j + 1) % sides]))
+    k._finish_new(c, rot, mat)
+
+
+def shard(k, base, direction, length, width, mat, twist=0.0):
+    """Faceted crystal blade: 5-sided prism tapering to a point."""
+    base, d = Vector(base), Vector(direction).normalized()
+    u = d.orthogonal().normalized()
+    v = d.cross(u)
+    ring_, mid = [], []
+    for i in range(5):
+        a = twist + 2 * math.pi * i / 5
+        ring_.append(k.bm.verts.new(base + (u * math.cos(a) + v * math.sin(a)) * width * (0.7 + 0.3 * math.sin(i * 2.1))))
+        a2 = twist + 0.3 + 2 * math.pi * i / 5
+        mid.append(k.bm.verts.new(base + d * length * 0.6 + (u * math.cos(a2) + v * math.sin(a2)) * width * 0.55))
+    tip = k.bm.verts.new(base + d * length)
+    for i in range(5):
+        j = (i + 1) % 5
+        k.bm.faces.new((ring_[i], ring_[j], mid[j], mid[i]))
+        k.bm.faces.new((mid[i], mid[j], tip))
+    k._finish_new((0, 0, 0), (0, 0, 0), mat)
+
+
+# Each bloodline's emblem as a flat outline (unit size). All six are original
+# marks made for this game.
+def _emblem_points(kind):
+    P = []
+    if kind == "kairo":            # a rising flame-blade
+        P = [(0, 1), (0.25, 0.35), (0.5, 0.55), (0.3, -0.2), (0.45, -1), (0, -0.55), (-0.45, -1), (-0.3, -0.2),
+             (-0.5, 0.55), (-0.25, 0.35)]
+    elif kind == "drakon":         # three claw slashes joined at the root
+        P = [(-0.8, 1), (-0.5, 1), (0.1, -0.6), (0.25, 1), (0.55, 1), (0.6, -0.9), (0.95, 0.9), (1.0, -1), (-0.2, -1)]
+    elif kind == "seraphina":      # a single swept wing
+        P = [(-1, -0.6), (-0.2, 0.0), (0.2, 0.9), (0.4, 0.4), (0.9, 0.7), (0.7, 0.1), (1.0, 0.0), (0.4, -0.4),
+             (0.0, -0.3)]
+    elif kind == "nox":            # crescent
+        P = [(math.cos(math.radians(40 + i * 17.5)), math.sin(math.radians(40 + i * 17.5))) for i in range(17)]
+        P += [(0.25 + 0.7 * math.cos(math.radians(320 - i * 17.5)), 0.7 * math.sin(math.radians(320 - i * 17.5)))
+              for i in range(17)]
+    elif kind == "vexa":           # a thorned spiral hook
+        P = [((1.0 - 0.7 * t) * math.cos(t * 4.2), (1.0 - 0.7 * t) * math.sin(t * 4.2)) for t in [i / 23 for i in range(24)]]
+        P += [((0.75 - 0.6 * t + (0.25 if i % 6 == 0 else 0)) * math.cos(t * 4.2),
+               (0.75 - 0.6 * t + (0.25 if i % 6 == 0 else 0)) * math.sin(t * 4.2)) for i, t in
+              [(i, i / 23) for i in range(23, -1, -1)]]
+    return P
+
+
+def origin():
+    """The Origin Chamber (boss arena): inside the Origin core. Black glass
+    floor with red light in the fractures, the molten Origin heart in a cage
+    of rings, a dome of obsidian blades, and the six bloodline emblems frozen
+    in crystal slabs on the walls. Mobile: one mesh, 8 materials (six of them
+    are the emblem colours)."""
+    rnd = random.Random(7)
+    BLOOD = (("kairo", (1.0, 0.3, 0.06)), ("drakon", (0.2, 0.9, 0.3)), ("seraphina", (1.0, 0.85, 0.5)),
+             ("nox", (0.55, 0.3, 1.0)), ("vexa", (1.0, 0.15, 0.55)), ("ryuen", (0.25, 0.55, 1.0)))
+    k = Kit("OriginChamber", [
+        M("ORI_Obsidian", (0.012, 0.01, 0.012), 0.12, 0.0),
+        M("ORI_Origin", (0.25, 0.0, 0.0), 0.4, 0.0, (0.9, 0.02, 0.02), 1.0),
+    ] + [M(f"ORI_Emblem_{n}", tuple(c * 0.5 for c in col), 0.4, 0.6, col, 0.9) for n, col in BLOOD])
+    C0 = Vector((0, 10, 0))
+    HEART = Vector((0, 15, 4.9))
+    # ---- floor: black glass with red fractures --------------------------------
+    k.disc((C0.x, C0.y, -0.02), 34, "ORI_Obsidian", sides=48)
+    k.cyl((0, 0, 0.15), 9.0, 0.3, "ORI_Obsidian", segs=48)
+    torus_mesh(k, (0, 0, 0.3), 9.02, 0.03, 0.03, "ORI_Origin", segs=64, sides=4, rot=(90, 0, 0))
+    for i in range(46):
+        p = Vector((rnd.uniform(-20, 20), rnd.uniform(-8, 24), 0))
+        on_stage = p.length < 9.0
+        z = 0.305 if on_stage else 0.004
+        ang = rnd.uniform(0, 2 * math.pi)
+        for s_ in range(rnd.randint(3, 7)):
+            ang += rnd.uniform(-0.8, 0.8)
+            q = p + Vector((math.cos(ang), math.sin(ang), 0)) * rnd.uniform(0.6, 1.6)
+            if on_stage and q.length > 8.9:
+                break
+            beam(k, (p.x, p.y, z), (q.x, q.y, z), rnd.uniform(0.04, 0.09), "ORI_Origin", h=0.006)
+            p = q
+    # ---- dome of obsidian blades ------------------------------------------------
+    for i in range(150):
+        a = rnd.uniform(math.radians(-25), math.radians(205))
+        r = rnd.uniform(22, 30)
+        base = Vector((math.cos(a) * r, C0.y + math.sin(a) * r, rnd.uniform(-1, 2)))
+        d = Vector((-math.cos(a), -math.sin(a), 0)) * rnd.uniform(0.25, 0.7) + Vector((0, 0, rnd.uniform(1.0, 3.2)))
+        shard(k, base, d, rnd.uniform(12, 30), rnd.uniform(0.8, 2.4), "ORI_Obsidian", rnd.uniform(0, 6))
+    for i in range(70):
+        a = rnd.uniform(math.radians(-30), math.radians(210))
+        r = rnd.uniform(15, 19)
+        base = Vector((math.cos(a) * r, C0.y + math.sin(a) * r, -0.5))
+        d = Vector((math.cos(a), math.sin(a), 0)) * rnd.uniform(0.2, 0.9) + Vector((0, 0, 1))
+        shard(k, base, d, rnd.uniform(2.5, 7), rnd.uniform(0.3, 0.9), "ORI_Obsidian", rnd.uniform(0, 6))
+    ret = bmesh.ops.create_uvsphere(k.bm, u_segments=32, v_segments=16, radius=40)    # dark vault, seen from inside
+    bmesh.ops.reverse_faces(k.bm, faces=list({f for v in ret["verts"] for f in v.link_faces}))
+    k._finish_new((C0.x, C0.y, -6), (0, 0, 0), "ORI_Obsidian")
+    # ---- the Origin heart -------------------------------------------------------
+    k.sphere(HEART, 2.2, "ORI_Origin", segs=18, rings=12)
+    for i in range(95):                                      # cooled crust plates; light shows in the gaps
+        a, b = rnd.uniform(0, 2 * math.pi), math.acos(rnd.uniform(-1, 1))
+        n = Vector((math.sin(b) * math.cos(a), math.sin(b) * math.sin(a), math.cos(b)))
+        rot = n.to_track_quat("Z", "Y").to_euler()
+        k.box(HEART + n * 2.2, (rnd.uniform(0.6, 0.95), rnd.uniform(0.6, 0.95), 0.1), "ORI_Obsidian",
+              rot=tuple(math.degrees(x) for x in rot[:2]) + (rnd.uniform(0, 90),))
+    for i, (rx, ry, R) in enumerate(((17, 0, 3.6), (69, 29, 4.3), (-34, 74, 5.0))):
+        torus_mesh(k, HEART, R, 0.28, 0.2, "ORI_Obsidian", segs=56, sides=6, rot=(rx + 90, ry, i * 40))
+        torus_mesh(k, HEART, R, 0.05, 0.05, "ORI_Origin", segs=56, sides=4, rot=(rx + 90, ry, i * 40))
+    for i in range(16):                                      # crystal pedestal under the heart
+        a = rnd.uniform(0, 2 * math.pi)
+        base = HEART + Vector((math.cos(a) * rnd.uniform(0.5, 3), math.sin(a) * rnd.uniform(0.5, 3), -HEART.z))
+        shard(k, base, (math.cos(a) * 0.3, math.sin(a) * 0.3, 1), rnd.uniform(1.5, 4.5), rnd.uniform(0.3, 0.8),
+              "ORI_Obsidian")
+    # ---- the six bloodline emblems frozen in crystal ----------------------------
+    for (kind, col), deg in zip(BLOOD, (-165, -125, -95, 95, 125, 165)):
+        a = math.radians(deg / 2 + 90)
+        pos = Vector((math.cos(a) * 15.5, C0.y + math.sin(a) * 15.5 * 0.75, 4.5 + abs(deg) * 0.012))
+        n = (Vector((0, 0, 1.2)) - pos).normalized()
+        n.z = -0.15
+        n.normalize()
+        u = Vector((0, 0, 1)).cross(n).normalized()
+        v = n.cross(u)
+        size = 2.3
+        for j in range(3):
+            shard(k, pos - n * 1.1 + u * rnd.uniform(-0.6, 0.6) - v * size * 1.2,
+                  v + n * 0.25 + u * rnd.uniform(-0.3, 0.3), size * rnd.uniform(2.6, 3.4), size * 0.8,
+                  "ORI_Obsidian", j * 1.3)
+        front = pos + n * 0.35
+        mat = f"ORI_Emblem_{kind}"
+        if kind == "ryuen":                                  # wave breaking inside a ring
+            ring_c = front
+            outer = [k.bm.verts.new(ring_c + (u * math.cos(t) + v * math.sin(t)) * size)
+                     for t in [2 * math.pi * i / 32 for i in range(32)]]
+            inner = [k.bm.verts.new(ring_c + (u * math.cos(t) + v * math.sin(t)) * size * 0.8)
+                     for t in [2 * math.pi * i / 32 for i in range(32)]]
+            for i in range(32):
+                k.bm.faces.new((outer[i], outer[(i + 1) % 32], inner[(i + 1) % 32], inner[i]))
+            k._finish_new((0, 0, 0), (0, 0, 0), mat)
+            top = [k.bm.verts.new(front + (u * (-0.7 + 1.4 * t) + v * (0.3 * math.sin(t * 6) - 0.2)) * size)
+                   for t in [i / 11 for i in range(12)]]
+            bot = [k.bm.verts.new(front + (u * (-0.7 + 1.4 * t) + v * (0.3 * math.sin(t * 6) - 0.45)) * size)
+                   for t in [i / 11 for i in range(12)]]
+            for i in range(11):
+                k.bm.faces.new((bot[i], bot[i + 1], top[i + 1], top[i]))
+            k._finish_new((0, 0, 0), (0, 0, 0), mat)
+        else:
+            vs = [k.bm.verts.new(front + (u * x + v * y) * size) for x, y in _emblem_points(kind)]
+            f = k.bm.faces.new(vs)
+            f.normal_update()
+            if f.normal.dot(n) < 0:
+                f.normal_flip()
+            k._finish_new((0, 0, 0), (0, 0, 0), mat)
+    # floating debris frozen mid-air
+    for i in range(60):
+        p = Vector((rnd.uniform(-16, 16), rnd.uniform(6, 22), rnd.uniform(3, 14)))
+        if (p - HEART).length < 6:
+            continue
+        shard(k, p, (rnd.uniform(-1, 1), rnd.uniform(-1, 1), rnd.uniform(-1, 1)), rnd.uniform(0.3, 1.4),
+              rnd.uniform(0.08, 0.3), "ORI_Obsidian", rnd.uniform(0, 6))
+    return k
+
+
+ARENAS = {"ascendant": ascendant, "temple": temple, "neon": neon, "origin": origin}
 
 
 def main():

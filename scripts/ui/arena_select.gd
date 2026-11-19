@@ -58,7 +58,8 @@ func _select(id: StringName) -> void:
 		_confirm.disabled = false
 		_confirm.text = "Training  ›" if ModeFlow.mode == MatchSetup.Mode.TRAINING else "Fight  ›"
 	else:
-		_tag.text = "%s\nUnlock: clear Story chapter 3 or the Arcade ladder." % cfg.tagline
+		var hint: String = cfg.unlock_hint if cfg.unlock_hint != "" else "Keep playing Story and Arcade."
+		_tag.text = "%s\nUnlock: %s" % [cfg.tagline, hint]
 		_confirm.disabled = true
 		_confirm.text = "Locked"
 

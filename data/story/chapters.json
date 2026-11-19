@@ -111,7 +111,7 @@
 				["Ryuen", "The Order's machines are silent. The championship is yours, Kairo."],
 				["Kairo", "Not yours, not the Order's. The trials are open to everyone now."]
 			],
-			"reward": {"xp": 800, "currency": 400, "title": "Ascendant Champion"}
+			"reward": {"xp": 800, "currency": 400, "arena": "origin", "title": "Ascendant Champion"}
 		}
 	]
 }

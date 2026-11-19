@@ -6,6 +6,9 @@
 - Forgotten Temple rebuilt as "Ryuen's Sanctuary": a courtyard of worn running-bond slabs on a floating island at dawn, the great carved ring gate with gold inlays and the dormant Origin crystal keystone, monastery halls on chained floating rocks, Ryuen's blue banners with gold trim and wave emblem, stone lanterns, a sea of clouds (~30k tris, 8 materials). The English inscription was removed.
 - Neon District rebuilt as "The Severed Line": a wet rooftop above the district with the broken Origin conduit hanging over the street, invented-script neon signs, a torn wanted poster, three-row skyline, falling Origin sparks, soft steam and a reflection probe (~21k tris, 8 materials). Real-world shop-name signs removed.
 ### Added
+- New arena "The Origin Chamber" (`origin`): inside the Origin core, black-glass floor with red fractures, the molten Origin heart in a cage of rings, a dome of obsidian blades, and the six bloodline emblems frozen in crystal (~14k tris, 8 materials). Locked; clearing Story chapter 6 unlocks it.
+- `ArenaConfig.unlock_hint`: each locked arena says how to earn it on the arena select screen (was one hard-coded line).
+- Tests: Origin Chamber starts locked and unlocks after chapter 6; every locked arena has an unlock hint.
 - `tools/godot/arena_shot.gd`: in-engine arena screenshots from the gameplay camera.
 - `tools/blender/arena_concept_{neon,sanctuary,pit,origin}.py`: concept renders for the four arenas.
 

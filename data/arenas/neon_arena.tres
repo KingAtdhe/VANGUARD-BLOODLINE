@@ -14,3 +14,4 @@ p2_spawn_x = 1.5
 scene_path = "res://scenes/arenas/neon_district.tscn"
 tagline = "A rooftop under the broken Origin conduit."
 unlocked_by_default = false
+unlock_hint = "clear Story chapter 3 or the Arcade ladder."

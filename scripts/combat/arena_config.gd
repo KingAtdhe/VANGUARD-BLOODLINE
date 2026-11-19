@@ -23,6 +23,8 @@ extends Resource
 @export var tagline: String = ""
 ## Unlocked from the start (false = earned through Story/Arcade).
 @export var unlocked_by_default: bool = true
+## How a locked arena is earned, shown on the arena select screen.
+@export var unlock_hint: String = ""
 
 
 func width() -> float:

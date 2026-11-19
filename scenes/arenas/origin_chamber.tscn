@@ -1,0 +1,117 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/arenas/arena_view.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://assets/arenas/origin/origin_arena.glb" id="2_geo"]
+[ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
+[ext_resource type="Resource" path="res://data/arenas/origin_arena.tres" id="4_cfg"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0, 0, 0, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.5, 0.25, 0.25, 1)
+ambient_light_energy = 0.35
+tonemap_mode = 3
+tonemap_exposure = 1.0
+glow_enabled = true
+glow_intensity = 0.9
+glow_bloom = 0.06
+glow_hdr_threshold = 1.0
+glow_blend_mode = 1
+fog_enabled = true
+fog_light_color = Color(0.3, 0.04, 0.03, 1)
+fog_density = 0.012
+fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.1
+adjustment_saturation = 1.1
+
+[sub_resource type="ParticleProcessMaterial" id="EmberMat"]
+emission_shape = 3
+emission_box_extents = Vector3(14, 0.5, 9)
+direction = Vector3(0, 1, 0)
+spread = 20
+initial_velocity_min = 0.2
+initial_velocity_max = 0.7
+gravity = Vector3(0, 0.15, 0)
+scale_min = 0.5
+scale_max = 1.2
+color = Color(1, 0.35, 0.12, 1)
+turbulence_enabled = true
+turbulence_noise_strength = 0.5
+
+[sub_resource type="StandardMaterial3D" id="EmberMat2"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 1, 1, 1)
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="EmberQuad"]
+material = SubResource("EmberMat2")
+size = Vector2(0.05, 0.05)
+
+[node name="OriginChamber" type="Node3D"]
+script = ExtResource("1_view")
+config = ExtResource("4_cfg")
+
+[node name="Geometry" parent="." instance=ExtResource("2_geo")]
+
+[node name="Lighting" type="Node3D" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Lighting"]
+environment = SubResource("Env")
+
+[node name="Ambience" type="Node3D" parent="."]
+
+[node name="Signage" type="Node3D" parent="."]
+
+[node name="ColdRim" type="DirectionalLight3D" parent="Lighting"]
+transform = Transform3D(-0.94868, 0.24175, -0.20386, 0.0, 0.64466, 0.76447, 0.31623, 0.72524, -0.61158, 0, 20, 0)
+light_color = Color(0.5, 0.62, 1, 1)
+light_energy = 0.9
+shadow_enabled = true
+directional_shadow_max_distance = 40.0
+
+[node name="HeartLight" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.9, -12)
+light_color = Color(1, 0.16, 0.05, 1)
+light_energy = 6.0
+omni_range = 26.0
+omni_attenuation = 1.2
+light_specular = 0.05
+script = ExtResource("3_flicker")
+base_energy = 6.0
+
+[node name="FighterKey" type="SpotLight3D" parent="Lighting"]
+transform = Transform3D(1.0, 0.0, -0.0, -0.0, 0.8, 0.6, 0.0, -0.6, 0.8, 0, 6, 5)
+light_color = Color(1, 0.85, 0.8, 1)
+light_energy = 3.4
+light_specular = 0.0
+spot_range = 16.0
+spot_angle = 38.0
+spot_attenuation = 0.6
+
+[node name="FloorGlow" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+light_color = Color(1, 0.1, 0.04, 1)
+light_energy = 0.8
+omni_range = 9.0
+light_specular = 0.0
+
+[node name="Reflections" type="ReflectionProbe" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -4)
+size = Vector3(40, 16, 30)
+max_distance = 80.0
+update_mode = 0
+
+[node name="Embers" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -6)
+amount = 90
+lifetime = 7.0
+preprocess = 7.0
+visibility_aabb = AABB(-40, -10, -40, 80, 40, 80)
+process_material = SubResource("EmberMat")
+draw_pass_1 = SubResource("EmberQuad")

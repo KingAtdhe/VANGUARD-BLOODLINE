@@ -14,7 +14,7 @@ Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 | Version | `0.0.8-m7` |
 | Milestone | **7 — UI, menus and modes** (implemented, awaiting approval) |
 | Next | Milestone 8 — remaining fighters' movesets and arena polish |
-| Playable | Main menu → **Story** (6 chapters, boss), **Arcade** (5-stage ladder), **Versus CPU**, **Training**, **Survival**, Profile, Settings. Kairo is playable; Drakon, Seraphina, Nox, Vexa and Ryuen are viewable in fighter select (movesets in M8). Three arenas: Ascendant Arena, Forgotten Temple, Neon District (unlockable). Progress and settings persist. |
+| Playable | Main menu → **Story** (6 chapters, boss), **Arcade** (5-stage ladder), **Versus CPU**, **Training**, **Survival**, Profile, Settings. Kairo is playable; Drakon, Seraphina, Nox, Vexa and Ryuen are viewable in fighter select (movesets in M8). Four arenas: The Pit (Ascendant), Ryuen's Sanctuary (Temple), The Severed Line (Neon, unlockable) and The Origin Chamber (unlocked by finishing Story). Progress and settings persist. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.

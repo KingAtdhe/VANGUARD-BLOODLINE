@@ -61,6 +61,15 @@ func test_story_progression_unlocks_in_order() -> Array[String]:
 	ModeFlow.on_match_end(0, 2, 700, 1000, 30)
 	if not Catalog.is_arena_unlocked(&"neon"):
 		f.append("clearing chapter 3 did not unlock the Neon District")
+	# Chapter 6 (the finale) unlocks the Origin Chamber; it starts locked.
+	if Catalog.is_arena_unlocked(&"origin"):
+		f.append("the Origin Chamber should start locked")
+	SaveManager.section("progress")["story_cleared"] = 5
+	ModeFlow.open_story_chapter(5)
+	ModeFlow.start_story_fight()
+	ModeFlow.on_match_end(0, 2, 700, 1000, 30)
+	if not Catalog.is_arena_unlocked(&"origin"):
+		f.append("clearing chapter 6 did not unlock the Origin Chamber")
 	return f
 
 

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ArenaConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/arena_config.gd" id="1_arena"]
+
+[resource]
+script = ExtResource("1_arena")
+arena_id = &"origin"
+display_name = "The Origin Chamber"
+left_bound = -6.0
+right_bound = 6.0
+max_separation = 6.0
+p1_spawn_x = -1.5
+p2_spawn_x = 1.5
+scene_path = "res://scenes/arenas/origin_chamber.tscn"
+tagline = "Inside the Origin core, where the bloodlines began."
+unlocked_by_default = false
+unlock_hint = "clear Story chapter 6."

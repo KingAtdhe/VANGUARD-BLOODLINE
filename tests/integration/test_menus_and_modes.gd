@@ -263,6 +263,8 @@ func test_roster_models_and_arenas() -> Array[String]:
 		var arena: Node = (load(cfg.scene_path) as PackedScene).instantiate()
 		if not (arena is ArenaView) or (arena as ArenaView).config != cfg:
 			f.append("arena %s scene does not point at its config" % id)
+		if not cfg.unlocked_by_default and cfg.unlock_hint == "":
+			f.append("locked arena %s has no unlock hint" % id)
 		if arena.find_children("*", "WorldEnvironment", true, false).is_empty():
 			f.append("arena %s has no environment" % id)
 		var tris: int = 0
