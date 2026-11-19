@@ -9,6 +9,7 @@ art: toon shading, a rim light and inked outlines (Freestyle).
 """
 
 import math
+import os
 import sys
 
 import bpy
@@ -147,8 +148,16 @@ def pose(action=None, frame=0, arms_out=0.0):
     bpy.context.view_layer.update()
 
 
+# Preview mode for the look-and-correct loop: SHOTS=front,face SCALE=0.5 SAMPLES=12
+ONLY = [s for s in os.environ.get("SHOTS", "").split(",") if s]
+SCALE = float(os.environ.get("SCALE", "1"))
+sc.cycles.samples = int(os.environ.get("SAMPLES", sc.cycles.samples))
+
+
 def shot(name, res):
-    sc.render.resolution_x, sc.render.resolution_y = res
+    if ONLY and name not in ONLY:
+        return
+    sc.render.resolution_x, sc.render.resolution_y = int(res[0] * SCALE), int(res[1] * SCALE)
     sc.render.filepath = f"{out}/{FID.lower()}_{name}.png"
     bpy.ops.render.render(write_still=True)
     print("[sheet] rendered", name)
@@ -174,6 +183,13 @@ shot("gauntlet", (800, 800))
 look((-0.9, -1.9, 0.55), (-0.1, -0.05, 0.42), lens=70)
 shot("legs", (800, 1000))
 # action poses from the game's own animations
+look((1.3, -0.75, 1.72), (0, 0, 1.69), lens=85)
+shot("faceside", (800, 800))
+pose(arms_out=16)
+look((5.6, -5.6, 1.1), (0, 0, 0.93), ortho=2.06)
+shot("quarter", (900, 1500))
+look((8, 0, 0.93), (0, 0, 0.93), ortho=2.06)
+shot("side", (900, 1500))
 pose("IDLE_A", 0)
 look((2.2, -4.0, 1.25), (0, -0.05, 0.93), lens=85)
 shot("stance", (1100, 1500))

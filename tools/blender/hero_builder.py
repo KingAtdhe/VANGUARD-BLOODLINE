@@ -32,6 +32,7 @@ from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import character_builder as cb  # noqa: E402  (shared rig + animation)
+import kairo_v3  # noqa: E402
 
 # "game" keeps the mobile triangle budget; "concept" is the dense version used
 # for presentation renders (finer voxels, more triangles, same forms).
@@ -119,6 +120,38 @@ class Shell:
         faces.append(self.bm.faces.new(list(reversed(rings[0]))))
         faces.append(self.bm.faces.new(rings[-1]))
         self._tag(faces, bone, color)
+
+    def limb(self, rings, bone, color, segs=24, sq=2.0):
+        """Anatomical tube through any number of rings, so a limb can curve and
+        bulge on one side only (calf at the back, quadriceps at the front).
+        rings: [(centre, r_plus_u, r_minus_u, r_minus_w, r_plus_w)] where u is
+        the world-X side of the path and w is world-Y (back), or world-Z (up)
+        for a path that runs along Y (feet). `bone` is one name or one per band.
+        sq > 2 squares the section off (rib cage, pelvis)."""
+        cs = [Vector(r[0]) for r in rings]
+        loops = []
+        for i, r in enumerate(rings):
+            axis = (cs[min(i + 1, len(cs) - 1)] - cs[max(i - 1, 0)]).normalized()
+            u = Vector((1, 0, 0))
+            u = (u - axis * u.dot(axis)).normalized()
+            w = Vector((0, 1, 0)) if abs(axis.y) < 0.8 else Vector((0, 0, 1))
+            w = (w - axis * w.dot(axis) - u * w.dot(u)).normalized()
+            rup, run, rwn, rwp = r[1], r[2], r[3], r[4]
+            loop = []
+            for k in range(segs):
+                a = 2 * math.pi * k / segs
+                ca, sa = math.cos(a), math.sin(a)
+                ex = 2.0 / sq
+                cu = math.copysign(abs(ca) ** ex, ca) * (rup if ca >= 0 else run)
+                cw = math.copysign(abs(sa) ** ex, sa) * (rwp if sa >= 0 else rwn)
+                loop.append(self.bm.verts.new(cs[i] + u * cu + w * cw))
+            loops.append(loop)
+        names = bone if isinstance(bone, (list, tuple)) else [bone] * (len(rings) - 1)
+        for i, (r0, r1) in enumerate(zip(loops, loops[1:])):
+            band = [self.bm.faces.new((r0[k], r0[(k + 1) % segs], r1[(k + 1) % segs], r1[k])) for k in range(segs)]
+            self._tag(band, names[i], color)
+        self._tag([self.bm.faces.new(list(reversed(loops[0])))], names[0], color)
+        self._tag([self.bm.faces.new(loops[-1])], names[-1], color)
 
     # ---------------------------------------------------------------- bake --
     def bake(self):
@@ -700,7 +733,8 @@ def kairo_v2_shells(B, bones):
 
 SENTINEL = dict(body=(0.1, 0.1, 0.12), plate=(0.3, 0.31, 0.35), under=(0.06, 0.065, 0.08), trim=(0.55, 0.56, 0.6))
 WARDEN = dict(body=(0.05, 0.045, 0.045), plate=(0.12, 0.1, 0.09), under=(0.04, 0.035, 0.035), trim=(0.6, 0.44, 0.18))
-HEROES = {"kairo": kairo_v2_shells,
+HEROES = {"kairo": lambda B, bones: kairo_v3.shells(B, bones, Shell),
+          "kairo_v2": kairo_v2_shells,
           "sentinel": lambda B, bones: kairo_shells(B, bones, SENTINEL),
           "warden": lambda B, bones: kairo_shells(B, bones, WARDEN)}
 
