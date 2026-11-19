@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1_arena")
 arena_id = &"ascendant"
-display_name = "Ascendant Arena"
+display_name = "The Pit"
 left_bound = -6.0
 right_bound = 6.0
 max_separation = 6.0
 p1_spawn_x = -1.5
 p2_spawn_x = 1.5
 scene_path = "res://scenes/arenas/ascendant_arena.tscn"
-tagline = "The world stage. Lights, crowd, no excuses."
+tagline = "A tournament ring cut into an old Origin mine."
 unlocked_by_default = true

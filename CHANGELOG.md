@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Changed
+- Ascendant Arena rebuilt as "The Pit": an octagon ring cut into the bedrock of an abandoned Origin-ore mine, with the carved crest (a V of two blades inside a ring broken into six), a crowd on seven quarry benches with phone lights and flags, two lattice mining cranes holding the light rigs, flood-light towers, a haul truck, conveyor wreck and red Origin veins in the walls (~50k tris, 8 materials). English banner/screen/floor text removed.
 - Forgotten Temple rebuilt as "Ryuen's Sanctuary": a courtyard of worn running-bond slabs on a floating island at dawn, the great carved ring gate with gold inlays and the dormant Origin crystal keystone, monastery halls on chained floating rocks, Ryuen's blue banners with gold trim and wave emblem, stone lanterns, a sea of clouds (~30k tris, 8 materials). The English inscription was removed.
 - Neon District rebuilt as "The Severed Line": a wet rooftop above the district with the broken Origin conduit hanging over the street, invented-script neon signs, a torn wanted poster, three-row skyline, falling Origin sparks, soft steam and a reflection probe (~21k tris, 8 materials). Real-world shop-name signs removed.
 ### Added

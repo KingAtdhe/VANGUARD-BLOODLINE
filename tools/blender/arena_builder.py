@@ -137,72 +137,239 @@ def M(name, rgb, rough=0.8, metal=0.0, emit=None, strength=0.0):
 
 
 # ------------------------------------------------------------ Ascendant --
+def beam(k, p0, p1, w, mat, h=None):
+    """Square bar from p0 to p1 (truss members, cables, flag poles)."""
+    p0, p1 = Vector(p0), Vector(p1)
+    d = p1 - p0
+    L = d.length
+    if L < 1e-4:
+        return
+    z = d / L
+    x = z.orthogonal().normalized()
+    y = z.cross(x)
+    r = bmesh.ops.create_cube(k.bm, size=1.0)
+    bmesh.ops.scale(k.bm, vec=(w, h or w, L), verts=r["verts"])
+    bmesh.ops.transform(k.bm, matrix=Matrix((x, y, z)).transposed().to_4x4(), verts=r["verts"])
+    k._finish_new((p0 + p1) / 2, (0, 0, 0), mat)
+
+
+def truss(k, p0, p1, w, mat, r=0.07):
+    """Square lattice boom: four chords plus zig-zag lacing on each face."""
+    p0, p1 = Vector(p0), Vector(p1)
+    ax = p1 - p0
+    L = ax.length
+    ax.normalize()
+    u = Vector((0, 0, 1)).cross(ax)
+    if u.length < 1e-3:
+        u = Vector((1, 0, 0))
+    u.normalize()
+    v = ax.cross(u).normalized()
+    corners = [(u + v) * w / 2, (u - v) * w / 2, (-u - v) * w / 2, (-u + v) * w / 2]
+    for c in corners:
+        beam(k, p0 + c, p1 + c, r * 1.5, mat)
+    bays = max(2, int(L / w))
+    for b in range(bays):
+        a0, a1 = p0 + ax * (L * b / bays), p0 + ax * (L * (b + 1) / bays)
+        for i in range(4):
+            c0, c1 = corners[i], corners[(i + 1) % 4]
+            beam(k, a0 + c0, a1 + c1, r, mat) if b % 2 == 0 else beam(k, a0 + c1, a1 + c0, r, mat)
+
+
 def ascendant():
-    """Premium tournament arena: octagon stage, light rig, stands, screens."""
-    rnd = random.Random(7)
-    k = Kit("AscendantArena", [
-        M("ASC_Floor", (0.05, 0.055, 0.075), 0.25, 0.3),
-        M("ASC_FloorInlay", (0.12, 0.13, 0.17), 0.35, 0.5),
-        M("ASC_Gold", (0.9, 0.62, 0.22), 0.3, 1.0),
-        M("ASC_GlowGold", (1.0, 0.7, 0.25), 0.4, 0.0, (1.0, 0.62, 0.18), 6.0),
-        M("ASC_GlowBlue", (0.2, 0.5, 1.0), 0.4, 0.0, (0.15, 0.45, 1.0), 6.0),
-        M("ASC_Structure", (0.07, 0.075, 0.09), 0.6, 0.6),
-        M("ASC_Crowd", (0.03, 0.03, 0.04), 0.9),
-        M("ASC_Screen", (0.05, 0.1, 0.25), 0.3, 0.0, (0.12, 0.3, 0.9), 2.2),
+    """The Pit: the Ascendant tournament ring sunk into an abandoned open-pit
+    mine that once dug Origin ore. Crowd on the quarry benches, two old
+    lattice cranes hold the light rigs, a carved crest in the bedrock floor
+    (a V of two blades inside a ring broken into six, one per bloodline),
+    red Origin veins in the walls. Dusk. Mobile: one mesh, 8 materials."""
+    rnd = random.Random(23)
+    k = Kit("ThePit", [
+        M("PIT_Rock", (0.3, 0.2, 0.13), 0.92),
+        M("PIT_Gravel", (0.2, 0.15, 0.11), 0.95),
+        M("PIT_Dark", (0.075, 0.07, 0.07), 0.5, 0.5),             # cut bedrock stage, steel
+        M("PIT_Paint", (0.42, 0.29, 0.07), 0.7, 0.3),             # weathered crane yellow
+        M("PIT_Gold", (0.75, 0.5, 0.18), 0.3, 1.0),
+        M("PIT_Vein", (0.2, 0.0, 0.0), 0.5, 0.0, (1.0, 0.05, 0.02), 1.6),
+        M("PIT_Lamp", (1.0, 0.95, 0.85), 0.5, 0.0, (1.0, 0.88, 0.7), 2.5),
+        M("PIT_Crowd", (0.06, 0.055, 0.06), 0.9),
     ])
-    # Arena bowl floor and the raised octagonal stage.
-    k.box((0, 6, -0.6), (70, 50, 1.0), "ASC_Structure")
-    k.cyl((0, 0, -0.25), 9.5, 0.5, "ASC_Floor", segs=8, rot=(0, 0, 22.5))
-    k.ring((0, 0, 0), 9.5, 9.75, "ASC_GlowGold", sides=8, z0=-0.5, z1=0.03)
-    k.ring((0, 0, 0), 7.6, 7.75, "ASC_GlowBlue", sides=8, z0=0.0, z1=0.006)
-    k.ring((0, 0, 0), 2.2, 2.32, "ASC_FloorInlay", segs=40, z0=0.0, z1=0.004)
-    k.ring((0, 0, 0), 1.2, 1.26, "ASC_GlowGold", segs=40, z0=0.0, z1=0.005)
-    for a in range(8):  # spokes in the floor
-        ang = math.radians(a * 45 + 22.5)
-        k.box((math.cos(ang) * 5.0, math.sin(ang) * 5.0, 0.002), (5.0, 0.06, 0.004), "ASC_FloorInlay",
-              rot=(0, 0, math.degrees(ang)))
-    for a in range(8):  # corner posts with glowing caps
-        ang = math.radians(a * 45)
-        p = (math.cos(ang) * 9.25, math.sin(ang) * 9.25, 0.6)
-        k.box(p, (0.35, 0.35, 1.2), "ASC_Gold", bevel=0.04)
-        k.box((p[0], p[1], 1.25), (0.38, 0.38, 0.1), "ASC_GlowBlue")
-    # Stands: tiers rising behind the stage, with a crowd silhouette.
-    for t in range(9):
-        y = 13 + t * 1.6
-        z = 0.4 + t * 1.05
-        k.box((0, y, z - 0.5), (64, 1.6, 1.0 + 0.0), "ASC_Structure")
-        k.box((0, y - 0.79, z - 0.02), (64, 0.04, 0.05), "ASC_GlowBlue" if t % 3 == 0 else "ASC_Structure")
-        x = -30.0
-        while x < 30.0:
-            if rnd.random() < 0.82:
-                h = rnd.uniform(0.55, 0.75)
-                k.box((x, y + 0.1, z + h / 2), (0.42, 0.3, h), "ASC_Crowd")
-                k.sphere((x, y + 0.1, z + h + 0.14), 0.13, "ASC_Crowd", segs=6, rings=4)
-            x += rnd.uniform(0.55, 0.85)
-    # Giant screens and the hanging light rig.
-    for sx in (-1, 1):
-        k.box((sx * 12, 24, 10), (9.6, 0.4, 5.6), "ASC_Structure")
-        k.quad((sx * 12, 23.78, 10), 9.0, 5.0, "ASC_Screen")
-        k.box((sx * 12, 23.76, 7.35), (9.6, 0.05, 0.08), "ASC_GlowGold")
-    k.box((0, 24, 13.5), (11, 0.4, 3.4), "ASC_Structure")
-    k.quad((0, 23.78, 13.5), 10.4, 2.8, "ASC_Screen")
-    for r_, z in ((11.0, 12.0), (7.5, 12.6)):
-        k.ring((0, 2, 0), r_, r_ + 0.25, "ASC_Structure", sides=8, z0=z, z1=z + 0.35)
-        k.ring((0, 2, 0), r_ + 0.02, r_ + 0.23, "ASC_GlowBlue", sides=8, z0=z - 0.03, z1=z)
-    for a in range(16):  # spot cans on the rig
-        ang = math.radians(a * 22.5)
-        k.cyl((math.cos(ang) * 11.1, 2 + math.sin(ang) * 11.1, 11.75), 0.22, 0.45, "ASC_Gold", segs=8)
-        k.disc((math.cos(ang) * 11.1, 2 + math.sin(ang) * 11.1, 11.52), 0.18, "ASC_GlowGold", sides=8)
-    for sx in (-1, 1):  # pylons with banners
-        for y in (6, 16):
-            k.box((sx * 17, y, 7), (0.6, 0.6, 14), "ASC_Structure")
-            k.box((sx * 17 - sx * 0.31, y, 7), (0.02, 0.4, 13), "ASC_GlowGold")
-        k.box((sx * 15.5, 10, 7), (0.1, 3.0, 8.0), "ASC_FloorInlay")
-        k.box((sx * 15.44, 10, 7), (0.02, 2.6, 7.4), "ASC_GlowBlue")
+    PIT = Vector((0, 7.5, 0))
+    R0, STEP, H, N = 14.0, 3.4, 2.2, 7
+    A0, A1 = math.radians(-38), math.radians(218)
+    SEG = 72
+
+    # ---- quarry benches: rough rock faces, gravel tops ----------------------
+    tops = []
+    for b in range(N):
+        r_in, r_out = R0 + b * STEP, R0 + (b + 1) * STEP
+        z0, z1 = b * H - (0.5 if b == 0 else 0.0), (b + 1) * H
+        lo, hi, t_in, t_out = [], [], [], []
+        for i in range(SEG + 1):
+            a = A0 + (A1 - A0) * i / SEG
+            c, s = math.cos(a), math.sin(a)
+            j = rnd.uniform(-0.35, 0.35)
+            lo.append(k.bm.verts.new(Vector((PIT.x + c * (r_in + j), PIT.y + s * (r_in + j), z0))))
+            hi.append(k.bm.verts.new(Vector((PIT.x + c * (r_in + j + 0.9), PIT.y + s * (r_in + j + 0.9),
+                                             z1 + rnd.uniform(-0.1, 0.1)))))
+        for i in range(SEG):
+            k.bm.faces.new((lo[i], lo[i + 1], hi[i + 1], hi[i]))
+        k._finish_new((0, 0, 0), (0, 0, 0), "PIT_Rock")
+        for i in range(SEG + 1):
+            a = A0 + (A1 - A0) * i / SEG
+            c, s = math.cos(a), math.sin(a)
+            t_in.append(k.bm.verts.new(Vector((PIT.x + c * (r_in + 0.9), PIT.y + s * (r_in + 0.9), z1))))
+            t_out.append(k.bm.verts.new(Vector((PIT.x + c * r_out, PIT.y + s * r_out, z1))))
+        for i in range(SEG):
+            k.bm.faces.new((t_in[i], t_in[i + 1], t_out[i + 1], t_out[i]))
+        k._finish_new((0, 0, 0), (0, 0, 0), "PIT_Gravel")
+        tops.append((r_in + 0.9, r_out, z1))
+        # thin red Origin veins running along the strata of this face
+        for v in range(3):
+            a = rnd.uniform(A0 + 0.2, A1 - 0.2)
+            span = rnd.uniform(0.08, 0.25)
+            zz = z0 + rnd.uniform(0.4, H - 0.4)
+            for q in range(6):
+                aa = a + span * q / 6
+                beam(k, (PIT.x + math.cos(aa) * (r_in + 0.3), PIT.y + math.sin(aa) * (r_in + 0.3), zz + rnd.uniform(-0.1, 0.1)),
+                     (PIT.x + math.cos(aa + span / 6) * (r_in + 0.3), PIT.y + math.sin(aa + span / 6) * (r_in + 0.3),
+                      zz + rnd.uniform(-0.1, 0.1)), 0.07, "PIT_Vein")
+
+    # ---- pit floor and the cut-bedrock ring --------------------------------
+    k.box((0, 2, -0.45), (90, 50, 0.1), "PIT_Gravel")
+    STAGE_R = 8.0
+    k.cyl((0, 0, -0.1), STAGE_R, 0.6, "PIT_Dark", segs=8, rot=(0, 0, 22.5))
+    for i in range(8):                                    # hazard rim + drill-bit corner posts
+        a0, a1 = math.radians(22.5 + 45 * i), math.radians(22.5 + 45 * (i + 1))
+        p0 = Vector((math.cos(a0) * STAGE_R, math.sin(a0) * STAGE_R, 0.25))
+        p1 = Vector((math.cos(a1) * STAGE_R, math.sin(a1) * STAGE_R, 0.25))
+        beam(k, p0, p1, 0.35, "PIT_Paint", h=0.12)
+        if p0.y < 0:                                      # no posts between the camera and the fight
+            continue
+        k.cyl((p0.x, p0.y, 0.9), 0.28, 1.4, "PIT_Dark", segs=10)
+        for c in range(3):
+            ang = c * 2 * math.pi / 3
+            k.cyl((p0.x + math.cos(ang) * 0.2, p0.y + math.sin(ang) * 0.2, 1.9), 0.24, 0.6, "PIT_Paint", segs=8,
+                  r2=0.04, rot=(math.degrees(math.cos(ang + 1.57) * 0.5), math.degrees(math.sin(ang + 1.57) * 0.5), 0))
+
+    # the crest: six arcs (one per bloodline) and a V of two blades
+    CR = 5.2
+    for i in range(6):
+        a = math.radians(90 + 60 * i + 6)
+        n = 12
+        for kk, (ri, ro, mat, z) in enumerate(((CR - 0.35, CR, "PIT_Gold", 0.215), (CR - 0.5, CR - 0.42, "PIT_Vein", 0.21))):
+            out_, in_ = [], []
+            for s_ in range(n + 1):
+                t = a + math.radians(48) * s_ / n
+                out_.append(k.bm.verts.new(Vector((math.cos(t) * ro, math.sin(t) * ro, z))))
+                in_.append(k.bm.verts.new(Vector((math.cos(t) * ri, math.sin(t) * ri, z))))
+            for s_ in range(n):
+                k.bm.faces.new((in_[s_], in_[s_ + 1], out_[s_ + 1], out_[s_]))
+            k._finish_new((0, 0, 0), (0, 0, 0), mat)
+
+    def blade(hilt, tip, width=0.75):
+        hilt, tip = Vector(hilt), Vector(tip)
+        d = tip - hilt
+        L = d.length
+        d.normalize()
+        sx = Vector((d.y, -d.x, 0))
+        pts = [(-0.12, 0), (0.12, 0), (0.12, 0.9), (0.55, 0.95), (0.55, 1.15), (width / 2, 1.2), (0.08, L),
+               (-width / 2, 1.2), (-0.55, 1.15), (-0.55, 0.95), (-0.12, 0.9)]
+        vs = [k.bm.verts.new(hilt + sx * x + d * y + Vector((0, 0, 0.215))) for x, y in pts]
+        k.bm.faces.new(vs)
+        k._finish_new((0, 0, 0), (0, 0, 0), "PIT_Gold")
+        fl = [(-0.05, 1.4), (0.05, 1.4), (0.03, L - 0.8), (-0.03, L - 0.8)]
+        vs = [k.bm.verts.new(hilt + sx * x + d * y + Vector((0, 0, 0.222))) for x, y in fl]
+        k.bm.faces.new(vs)
+        k._finish_new((0, 0, 0), (0, 0, 0), "PIT_Vein")
+
+    blade((-2.6, 3.0, 0), (0.0, -3.4, 0))
+    blade((2.6, 3.0, 0), (0.0, -3.4, 0))
+
+    # ---- crowd on the lower benches (low-poly silhouettes) ------------------
+    for b, (ri, ro, z) in enumerate(tops[:4]):
+        rows = 3 if b < 3 else 2
+        for row in range(rows):
+            r = ri + 0.4 + row * (ro - ri - 0.8) / max(1, rows - 1)
+            count = int((A1 - A0 - 0.2) * r / 0.75)
+            for i in range(count):
+                if rnd.random() < 0.15:
+                    continue
+                a = A0 + 0.1 + (A1 - A0 - 0.2) * (i + rnd.uniform(-0.3, 0.3)) / count
+                x, y = PIT.x + math.cos(a) * r, PIT.y + math.sin(a) * r
+                s = rnd.uniform(0.9, 1.1)
+                k.cyl((x, y, z + 0.58 * s), 0.23 * s, 1.15 * s, "PIT_Crowd", segs=5, r2=0.17 * s, caps=False)
+                k.sphere((x, y, z + 1.32 * s), 0.13 * s, "PIT_Crowd", segs=5, rings=3)
+                if rnd.random() < 0.08:                    # phone lights and flares held up
+                    k.sphere((x, y, z + 1.78), 0.06, "PIT_Lamp", segs=4, rings=2)
+                elif rnd.random() < 0.03:
+                    beam(k, (x, y, z + 1.2), (x, y, z + 3.2), 0.04, "PIT_Dark")
+                    k.box((x + 0.45, y, z + 2.85), (0.9, 0.03, 0.6), rnd.choice(("PIT_Paint", "PIT_Vein")),
+                          rot=(0, 0, math.degrees(a) + 90))
+        for i in range(12):                                # work lamps along the bench lip
+            a = A0 + 0.15 + (A1 - A0 - 0.3) * i / 11
+            k.sphere((PIT.x + math.cos(a) * (ri - 0.2), PIT.y + math.sin(a) * (ri - 0.2), z + 0.15), 0.09,
+                     "PIT_Lamp", segs=5, rings=3)
+
+    # ---- flood-light towers on the upper bench ------------------------------
+    for a_deg in (25, 70, 110, 155):
+        a = math.radians(a_deg)
+        ri, ro, z = tops[5]
+        base = Vector((PIT.x + math.cos(a) * (ri + 1), PIT.y + math.sin(a) * (ri + 1), z))
+        truss(k, base, base + Vector((0, 0, 9)), 0.8, "PIT_Dark", r=0.05)
+        k.box(base + Vector((0, 0, 9.4)), (2.2, 0.4, 1.0), "PIT_Dark", rot=(0, 0, a_deg + 90))
+        k.box(base + Vector((0, 0, 9.4)) - Vector((math.cos(a), math.sin(a), 0)) * 0.22, (2.0, 0.05, 0.8),
+              "PIT_Lamp", rot=(0, 0, a_deg + 90))
+
+    # ---- mining cranes holding the stage-light rigs -------------------------
+    for side in (-1, 1):
+        bx, by = side * 11.5, 11.5
+        for dy in (-1.3, 1.3):
+            k.box((bx, by + dy, 0.5), (5.0, 0.9, 1.0), "PIT_Dark", bevel=0.12)
+        k.box((bx, by, 1.8), (4.2, 3.2, 1.8), "PIT_Paint", bevel=0.06)
+        k.box((bx - side * 1.4, by - 1.0, 3.1), (1.4, 1.2, 1.2), "PIT_Paint", bevel=0.04)
+        k.box((bx - side * 1.4, by - 1.62, 3.15), (1.0, 0.03, 0.6), "PIT_Lamp")
+        k.box((bx + side * 2.0, by, 2.4), (1.2, 3.0, 1.8), "PIT_Dark", bevel=0.05)
+        k.sphere((bx - side * 1.4, by - 1.0, 3.8), 0.12, "PIT_Vein", segs=6, rings=4)   # warning beacon
+        heel = Vector((bx - side * 1.2, by, 2.8))
+        tip = Vector((side * 3.6, 1.0, 10.5))
+        truss(k, heel, tip, 1.0, "PIT_Paint", r=0.06)
+        truss(k, Vector((bx + side * 1.5, by, 2.8)), Vector((bx + side * 0.8, by, 6.5)), 0.6, "PIT_Paint", r=0.05)
+        beam(k, (bx + side * 0.8, by, 6.5), tip, 0.05, "PIT_Dark")
+        beam(k, (bx + side * 0.8, by, 6.5), (bx + side * 2.0, by, 3.2), 0.05, "PIT_Dark")
+        rig_z = 7.6
+        for dx in (-0.6, 0.6):
+            beam(k, tip, (tip.x + dx, tip.y, rig_z + 0.4), 0.04, "PIT_Dark")
+        c0 = Vector((tip.x, tip.y, rig_z))
+        truss(k, c0 - Vector((3.2, 0, 0)), c0 + Vector((3.2, 0, 0)), 0.5, "PIT_Dark", r=0.04)
+        for i in range(5):
+            p = c0 + Vector((-2.8 + i * 1.4, 0, -0.45))
+            k.cyl(p, 0.22, 0.45, "PIT_Dark", segs=10)
+            k.disc(p - Vector((0, 0, 0.23)), 0.18, "PIT_Lamp", sides=10)
+        # tournament banner under the boom: black cloth, gold V-and-ring mark
+        bxn = tip.x + side * 3.5
+        k.box((bxn, tip.y + 2, 8.0), (2.8, 0.04, 4.4), "PIT_Dark")
+        k.box((bxn, tip.y + 1.95, 9.2), (1.3, 0.04, 0.12), "PIT_Gold")
+        k.box((bxn - 0.25, tip.y + 1.95, 8.6), (0.12, 0.04, 1.1), "PIT_Gold", rot=(0, 20, 0))
+        k.box((bxn + 0.25, tip.y + 1.95, 8.6), (0.12, 0.04, 1.1), "PIT_Gold", rot=(0, -20, 0))
+
+    # ---- rusting haul truck, conveyor wreck, rubble ------------------------
+    ri, ro, z = tops[1]
+    a = math.radians(160)
+    hx, hy = PIT.x + math.cos(a) * (ri + 1.8), PIT.y + math.sin(a) * (ri + 1.8)
+    k.box((hx, hy, z + 2.4), (6.0, 3.6, 1.8), "PIT_Paint", rot=(0, -7, 160 + 90), bevel=0.1)
+    k.box((hx + 0.2, hy - 2.6, z + 2.3), (2.4, 1.6, 1.6), "PIT_Paint", rot=(0, 0, 250), bevel=0.06)
+    for dx, dy in ((-0.6, -1.6), (0.6, -1.6), (-0.6, 1.6), (0.6, 1.6)):
+        k.cyl((hx + dx, hy + dy, z + 1.0), 1.0, 0.8, "PIT_Dark", segs=14, rot=(0, 90, 0))
+    truss(k, (-17, -2, 0.4), (-9.5, 2.5, 3.6), 0.9, "PIT_Paint", r=0.05)
+    truss(k, (17, -3, 0.2), (12, 6, 2.6), 0.7, "PIT_Paint", r=0.05)
+    for i in range(50):
+        x, y = rnd.uniform(-16, 16), rnd.choice((rnd.uniform(-9, -6), rnd.uniform(9, 13)))
+        if abs(x) < 9 and y > 0:
+            continue
+        k.sphere((x, y, -0.3), rnd.uniform(0.15, 0.6), "PIT_Rock", segs=6, rings=4,
+                 scale=(rnd.uniform(0.7, 1.4), rnd.uniform(0.7, 1.4), rnd.uniform(0.4, 0.8)))
     return k
 
 
-# ------------------------------------------------------- Forgotten Temple --
 def temple():
     """Ryuen's Sanctuary: a monastery courtyard on floating stone above a sea
     of clouds at dawn, held to its neighbours by giant chains. Behind the
