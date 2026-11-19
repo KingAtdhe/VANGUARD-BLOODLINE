@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+### Changed
+- Neon District rebuilt as "The Severed Line": a wet rooftop above the district with the broken Origin conduit hanging over the street, invented-script neon signs, a torn wanted poster, three-row skyline, falling Origin sparks, soft steam and a reflection probe (~21k tris, 8 materials). Real-world shop-name signs removed.
+### Added
+- `tools/godot/arena_shot.gd`: in-engine arena screenshots from the gameplay camera.
+- `tools/blender/arena_concept_{neon,sanctuary,pit,origin}.py`: concept renders for the four arenas.
+
 ## [0.0.8-m7] — 2026-11-18
 ### Added
 - Menus: main menu, fighter select, arena select, Story, Arcade, Survival, Profile, Settings — shared themed `MenuScreen` base with live 3D backdrops, Back/Android-back everywhere.

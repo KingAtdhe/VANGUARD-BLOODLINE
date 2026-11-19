@@ -4,12 +4,13 @@
 [ext_resource type="PackedScene" path="res://assets/arenas/neon/neon_arena.glb" id="2_geo"]
 [ext_resource type="Script" path="res://scripts/arenas/light_flicker.gd" id="3_flicker"]
 [ext_resource type="Resource" path="res://data/arenas/neon_arena.tres" id="4_cfg"]
+[ext_resource type="Texture2D" path="res://assets/arenas/neon/wanted_poster.png" id="5_poster"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
-sky_top_color = Color(0.01, 0.01, 0.03, 1)
-sky_horizon_color = Color(0.12, 0.05, 0.16, 1)
+sky_top_color = Color(0.015, 0.02, 0.05, 1)
+sky_horizon_color = Color(0.16, 0.07, 0.12, 1)
 ground_bottom_color = Color(0.01, 0.01, 0.02, 1)
-ground_horizon_color = Color(0.12, 0.05, 0.16, 1)
+ground_horizon_color = Color(0.1, 0.04, 0.08, 1)
 sun_angle_max = 30.0
 energy_multiplier = 1.0
 
@@ -20,7 +21,7 @@ sky_material = SubResource("SkyMat")
 background_mode = 2
 sky = SubResource("Sky")
 ambient_light_source = 2
-ambient_light_color = Color(0.35, 0.35, 0.55, 1)
+ambient_light_color = Color(0.32, 0.36, 0.55, 1)
 ambient_light_energy = 0.5
 tonemap_mode = 3
 tonemap_exposure = 1.0
@@ -30,8 +31,8 @@ glow_bloom = 0.08
 glow_hdr_threshold = 1.0
 glow_blend_mode = 1
 fog_enabled = true
-fog_light_color = Color(0.12, 0.06, 0.18, 1)
-fog_density = 0.018
+fog_light_color = Color(0.1, 0.07, 0.14, 1)
+fog_density = 0.012
 fog_sky_affect = 0.4
 adjustment_enabled = true
 adjustment_contrast = 1.08
@@ -39,7 +40,7 @@ adjustment_saturation = 1.1
 
 [sub_resource type="ParticleProcessMaterial" id="RainMat"]
 emission_shape = 3
-emission_box_extents = Vector3(18, 0.5, 10)
+emission_box_extents = Vector3(18, 0.5, 6)
 direction = Vector3(0, -1, 0)
 spread = 2
 initial_velocity_min = 16
@@ -76,17 +77,52 @@ scale_curve = null
 turbulence_enabled = true
 turbulence_noise_strength = 0.6
 
+[sub_resource type="Gradient" id="SoftGrad"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SoftDot"]
+gradient = SubResource("SoftGrad")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+width = 64
+height = 64
+
 [sub_resource type="StandardMaterial3D" id="SteamMat2"]
 transparency = 1
 shading_mode = 0
 vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 1)
+albedo_texture = SubResource("SoftDot")
 billboard_mode = 3
 billboard_keep_scale = true
 
 [sub_resource type="QuadMesh" id="SteamQuad"]
 material = SubResource("SteamMat2")
 size = Vector2(0.6, 0.6)
+
+[sub_resource type="ParticleProcessMaterial" id="SparkMat"]
+emission_shape = 1
+emission_sphere_radius = 1.6
+direction = Vector3(0, -1, 0)
+spread = 25
+initial_velocity_min = 0.5
+initial_velocity_max = 2.0
+gravity = Vector3(0, -6, 0)
+scale_min = 0.6
+scale_max = 1.4
+color = Color(1, 0.25, 0.08, 1)
+
+[sub_resource type="StandardMaterial3D" id="SparkMat2"]
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.3, 0.1, 1)
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="SparkQuad"]
+material = SubResource("SparkMat2")
+size = Vector2(0.09, 0.09)
 
 [node name="NeonDistrict" type="Node3D"]
 script = ExtResource("1_view")
@@ -105,46 +141,63 @@ environment = SubResource("Env")
 
 [node name="Moon" type="DirectionalLight3D" parent="Lighting"]
 transform = Transform3D(0.98481, -0.12279, 0.12279, 0, 0.70711, 0.70711, -0.17365, -0.69636, 0.69636, 0, 10, 0)
-light_color = Color(0.45, 0.5, 0.85, 1)
-light_energy = 0.45
+light_color = Color(0.5, 0.58, 0.95, 1)
+light_energy = 0.55
 shadow_enabled = true
 directional_shadow_max_distance = 30.0
 
-[node name="NeonMagenta" type="OmniLight3D" parent="Lighting"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 3.5, -11.5)
-light_color = Color(1.0, 0.1, 0.6, 1)
-light_energy = 4.0
-omni_range = 12.0
-script = ExtResource("3_flicker")
-base_energy = 4.0
-
-[node name="NeonCyan" type="OmniLight3D" parent="Lighting"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 3.5, -11.5)
-light_color = Color(0.1, 0.85, 1.0, 1)
-light_energy = 4.0
-omni_range = 12.0
-script = ExtResource("3_flicker")
-base_energy = 4.0
-
-[node name="LampA" type="SpotLight3D" parent="Lighting"]
-transform = Transform3D(1, -0, 0, 0, 6.1232e-17, 1, 0, -1, 6.1232e-17, -5, 5.8, -7)
-light_color = Color(0.6, 0.9, 1.0, 1)
+[node name="OriginBreak" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 6.5, -23)
+light_color = Color(1, 0.08, 0.03, 1)
 light_energy = 8.0
-spot_range = 10.0
-spot_angle = 35.0
+omni_range = 28.0
+omni_attenuation = 1.4
 
-[node name="LampB" type="SpotLight3D" parent="Lighting"]
-transform = Transform3D(1, -0, 0, 0, 6.1232e-17, 1, 0, -1, 6.1232e-17, 5, 5.8, -7)
-light_color = Color(0.6, 0.9, 1.0, 1)
-light_energy = 8.0
-spot_range = 10.0
-spot_angle = 35.0
+[node name="RoofRed" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.6, -4.5)
+light_color = Color(1, 0.18, 0.2, 1)
+light_specular = 0.0
+light_energy = 2.4
+omni_range = 11.0
 
-[node name="StreetBounce" type="OmniLight3D" parent="Lighting"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 1)
-light_color = Color(0.6, 0.3, 0.8, 1)
-light_energy = 0.8
-omni_range = 9.0
+[node name="RoofCyan" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.6, -4.5)
+light_color = Color(0.25, 0.85, 1, 1)
+light_specular = 0.0
+light_energy = 2.4
+omni_range = 11.0
+script = ExtResource("3_flicker")
+base_energy = 2.4
+
+[node name="SignGlow" type="OmniLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 6, -14)
+light_color = Color(0.15, 0.9, 1, 1)
+light_energy = 3.0
+omni_range = 10.0
+script = ExtResource("3_flicker")
+base_energy = 3.0
+
+[node name="FighterKey" type="SpotLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 0.6, 0.8, 0, -0.8, 0.6, 0, 6, 5)
+light_color = Color(0.8, 0.85, 1, 1)
+light_energy = 3.0
+spot_range = 16.0
+spot_angle = 38.0
+spot_attenuation = 0.6
+
+[node name="DoorLamp" type="SpotLight3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, -0.5, 0.86603, 0, -0.86603, -0.5, 12.6, 2.5, -2.2)
+light_color = Color(1, 0.85, 0.6, 1)
+light_energy = 4.0
+spot_range = 7.0
+spot_angle = 50.0
+
+[node name="Reflections" type="ReflectionProbe" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2)
+size = Vector3(34, 14, 24)
+max_distance = 120.0
+update_mode = 0
+ambient_mode = 0
 
 [node name="Rain" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, -3)
@@ -156,7 +209,7 @@ process_material = SubResource("RainMat")
 draw_pass_1 = SubResource("RainQuad")
 
 [node name="SteamL" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 0.3, -9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.2, 0.75, -3.6)
 amount = 24
 lifetime = 4.0
 preprocess = 4.0
@@ -165,7 +218,7 @@ process_material = SubResource("SteamMat")
 draw_pass_1 = SubResource("SteamQuad")
 
 [node name="SteamR" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.3, -9)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.7, 0.75, -3.6)
 amount = 24
 lifetime = 4.0
 preprocess = 4.0
@@ -173,57 +226,20 @@ visibility_aabb = AABB(-40, -10, -40, 80, 40, 80)
 process_material = SubResource("SteamMat")
 draw_pass_1 = SubResource("SteamQuad")
 
-[node name="SignA" type="Label3D" parent="Signage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 3.55, -12.35)
-pixel_size = 0.0075
-modulate = Color(1, 0.3, 0.75, 1)
-outline_modulate = Color(1, 0, 0.5, 0.6)
-outline_size = 12
-font_size = 96
-shaded = false
-double_sided = false
-text = "RIFT RAMEN"
+[node name="OriginSparks" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 5, -22)
+amount = 60
+lifetime = 2.5
+preprocess = 2.5
+visibility_aabb = AABB(-10, -30, -10, 20, 40, 20)
+process_material = SubResource("SparkMat")
+draw_pass_1 = SubResource("SparkQuad")
 
-[node name="SignB" type="Label3D" parent="Signage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3.55, -12.35)
-pixel_size = 0.0075
-modulate = Color(0.4, 0.95, 1, 1)
-outline_modulate = Color(0, 0.6, 1, 0.6)
-outline_size = 12
-font_size = 96
-shaded = false
+[node name="WantedPoster" type="Sprite3D" parent="Signage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.6, 13, -17.43)
+pixel_size = 0.0112
+modulate = Color(0.7, 0.66, 0.68, 1)
+shaded = true
 double_sided = false
-text = "SYNAPSE ARCADE"
-
-[node name="SignC" type="Label3D" parent="Signage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 3.55, -12.35)
-pixel_size = 0.0075
-modulate = Color(1, 0.3, 0.75, 1)
-outline_modulate = Color(1, 0, 0.5, 0.6)
-outline_size = 12
-font_size = 96
-shaded = false
-double_sided = false
-text = "LOTUS 24H"
-
-[node name="SignD" type="Label3D" parent="Signage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 7.5, -12.4)
-pixel_size = 0.0075
-modulate = Color(0.4, 0.95, 1, 1)
-outline_modulate = Color(0, 0, 0, 0.0)
-outline_size = 0
-font_size = 96
-shaded = false
-double_sided = false
-text = "VOLT//CLINIC"
-
-[node name="SkyAd" type="Label3D" parent="Signage"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26, -45)
-pixel_size = 0.09
-modulate = Color(1, 0.25, 0.65, 0.55)
-outline_modulate = Color(0, 0, 0, 0.0)
-outline_size = 0
-font_size = 96
-shaded = false
-double_sided = false
-text = "ORIGIN IS IN YOUR BLOOD"
+alpha_cut = 1
+texture = ExtResource("5_poster")

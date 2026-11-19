@@ -308,6 +308,24 @@ ink) from a dense "concept" build, and laid out as a presentation sheet
 (`compose_character_sheet.py`) for approval. The game model is the same build
 at the mobile triangle budget. Kairo is first. **Accepted.**
 
+## D-048 — 2026-11-19 — Lore-driven arenas from approved 3D concepts
+Arenas are first designed as Cycles concept renders
+(`tools/blender/arena_concept_*.py`) and approved by the owner before the
+game version is built. Four concepts: The Severed Line (Neon District
+rooftop under the broken Origin conduit), Ryuen's Sanctuary (Forgotten
+Temple), The Pit (Ascendant Arena) and the Origin Chamber (boss arena).
+Signage uses an invented glyph script, not real-world shop names. The game
+version keeps the existing arena ids, configs and gameplay bounds; only the
+presentation (GLB + scene lighting/effects) changes. The Severed Line is the
+first one rebuilt (`arena_builder.py neon()`, ~21k tris, 8 materials, one
+reflection probe, 7 lights). **Accepted — owner approved the concept.**
+
+## D-049 — 2026-11-19 — In-engine screenshots on the build machine
+`tools/godot/arena_shot.gd` renders an arena from the gameplay camera with
+the Mobile renderer. On a machine without a GPU it runs under `xvfb-run` on
+Mesa's software Vulkan (lavapipe). This verifies look and framing only;
+frame rate on a phone is still unverified. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

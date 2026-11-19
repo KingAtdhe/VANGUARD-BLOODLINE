@@ -33,10 +33,13 @@ from mathutils.bvhtree import BVHTree
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import character_builder as cb  # noqa: E402  (shared rig + animation)
 import kairo_v3  # noqa: E402
+import kairo_v4  # noqa: E402
 
 # "game" keeps the mobile triangle budget; "concept" is the dense version used
 # for presentation renders (finer voxels, more triangles, same forms).
 QUALITY = dict(voxel=1.0, tris=1.0)
+# --bake: high-detail sculpt -> baked normal / colour / AO textures (Kairo v5)
+BAKE = dict(on=False, size=2048, samples=24, voxel_scale=0.5, blend=None)
 
 SLOTS = ["Skin", "Cloth", "Cloth2", "Accent", "Hair", "Gear"]
 # Surface response per slot; colour comes from vertex paint (Accent excepted).
@@ -731,9 +734,105 @@ def kairo_v2_shells(B, bones):
     return shells
 
 
+class SdfShell:
+    """Adapter: an sdf_sculpt.Layer baked like a Shell (Kairo v4+).
+    Dense SDF surface -> hidden-skin culling -> decimate -> soft bone
+    weights from the tagged forms -> vertex paint + cavity shading."""
+
+    def __init__(self, layer, bones, cover=(), weight_blur=4, cavity=1.0):
+        self.layer, self.bones, self.cover = layer, bones, cover
+        self.slot, self.name = layer.slot, layer.name
+        self.weight_blur, self.cavity = weight_blur, cavity
+        self.bm = bmesh.new()   # empty: build()'s per-fighter rescale loop is a no-op
+
+    def bake(self):
+        L = self.layer
+        V, F = L.polygonize(L.voxel * QUALITY["voxel"])
+        if self.cover:
+            # Drop skin that is buried under clothing: saves budget and stops
+            # it poking through when joints bend.
+            inside = np.zeros(len(V), dtype=bool)
+            for c in self.cover:
+                inside |= c.field(V) < -0.0015
+            F = F[~inside[F].all(axis=1)]
+            used = np.unique(F)
+            remap = -np.ones(len(V), dtype=np.int64)
+            remap[used] = np.arange(len(used))
+            V, F = V[used], remap[F]
+        me = bpy.data.meshes.new(L.name + "_dense")
+        me.from_pydata(V.tolist(), [], F.tolist())
+        obj = bpy.data.objects.new(L.name + "_dense", me)
+        bpy.context.scene.collection.objects.link(obj)
+        target = L.tris * QUALITY["tris"]
+        if len(F) > target:
+            d = obj.modifiers.new("decimate", "DECIMATE")
+            d.ratio = target / len(F)
+            d.use_collapse_triangulate = True
+        tri = obj.modifiers.new("tri", "TRIANGULATE")
+        tri.min_vertices = 4
+        dg = bpy.context.evaluated_depsgraph_get()
+        out = bpy.data.meshes.new_from_object(obj.evaluated_get(dg))
+        n = len(out.vertices)
+        verts = np.zeros(n * 3)
+        out.vertices.foreach_get("co", verts)
+        verts = verts.reshape(n, 3)
+        tris = np.zeros(len(out.polygons) * 3, dtype=np.int64)
+        out.polygons.foreach_get("vertices", tris)
+        tris = tris.reshape(-1, 3)
+        normals = np.zeros(n * 3)
+        out.vertices.foreach_get("normal", normals)
+        normals = normals.reshape(n, 3)
+        weights, colors = L.attributes(verts, self.bones, tau=0.003)
+        edges = np.unique(np.sort(np.concatenate([tris[:, [0, 1]], tris[:, [1, 2]], tris[:, [2, 0]]]), axis=1), axis=0)
+        deg = np.zeros(n)
+        np.add.at(deg, edges[:, 0], 1)
+        np.add.at(deg, edges[:, 1], 1)
+        deg = np.maximum(deg, 1)[:, None]
+
+        def blur(a, iters, keep=0.5):
+            for _ in range(iters):
+                acc = np.zeros_like(a)
+                np.add.at(acc, edges[:, 0], a[edges[:, 1]])
+                np.add.at(acc, edges[:, 1], a[edges[:, 0]])
+                a = keep * a + (1 - keep) * acc / deg
+            return a
+
+        weights = blur(weights, self.weight_blur)
+        order = np.argsort(-weights, axis=1)
+        mask = np.zeros_like(weights, dtype=bool)
+        np.put_along_axis(mask, order[:, :4], True, axis=1)
+        weights = np.where(mask & (weights > 0.03), weights, 0.0)
+        weights /= weights.sum(axis=1, keepdims=True)
+        if self.cavity > 0:
+            lap = blur(verts, 1, keep=0.0) - verts
+            conc = blur((lap * normals).sum(axis=1)[:, None], 2)[:, 0]
+            shade = np.clip(1.0 - conc * 45.0 * self.cavity, 0.6, 1.1)
+            colors = colors * shade[:, None]
+        bpy.data.objects.remove(obj)
+        print(f"[sdf] {L.name}: {len(tris)} tris", flush=True)
+        return dict(verts=verts, tris=tris, weights=weights, colors=np.clip(colors, 0, 1), slot=self.slot,
+                    smooth=True)
+
+
+def kairo_v4_shells(B, bones):  # rejected SDF experiment (D-047 follow-up); not in HEROES
+    layers = kairo_v4.all_layers(B)
+    by = {L.name: L for L in layers}
+    cover = [by[n] for n in ("Top", "Trousers", "Boots", "Gloves")]
+    shells = []
+    for L in layers:
+        if L.name == "Body":
+            shells.append(SdfShell(L, bones, cover=cover))
+        elif L.name in ("Eyes", "Origin"):
+            shells.append(SdfShell(L, bones, cavity=0.0))
+        else:
+            shells.append(SdfShell(L, bones))
+    return shells
+
+
 SENTINEL = dict(body=(0.1, 0.1, 0.12), plate=(0.3, 0.31, 0.35), under=(0.06, 0.065, 0.08), trim=(0.55, 0.56, 0.6))
 WARDEN = dict(body=(0.05, 0.045, 0.045), plate=(0.12, 0.1, 0.09), under=(0.04, 0.035, 0.035), trim=(0.6, 0.44, 0.18))
 HEROES = {"kairo": lambda B, bones: kairo_v3.shells(B, bones, Shell),
+          "kairo_v3": lambda B, bones: kairo_v3.shells(B, bones, Shell),
           "kairo_v2": kairo_v2_shells,
           "sentinel": lambda B, bones: kairo_shells(B, bones, SENTINEL),
           "warden": lambda B, bones: kairo_shells(B, bones, WARDEN)}
@@ -775,6 +874,9 @@ def build(fid, moves, out_path):
     mesh.from_pydata(verts.tolist(), [], tris.tolist())
     mesh.polygons.foreach_set("material_index", mat_idx.astype(np.int32))
     mesh.polygons.foreach_set("use_smooth", np.ones(len(tris), dtype=bool))
+    layer_ids = np.concatenate([np.full(len(p["tris"]), i) for i, p in enumerate(baked)])
+    lay = mesh.attributes.new("layer", "INT", "FACE")
+    lay.data.foreach_set("value", layer_ids.astype(np.int32))
     col = mesh.color_attributes.new("Col", "FLOAT_COLOR", "CORNER")
     loop_v = np.zeros(len(mesh.loops), dtype=np.int64)
     mesh.loops.foreach_get("vertex_index", loop_v)
@@ -820,6 +922,17 @@ def build(fid, moves, out_path):
     obj.parent = arm_obj
     obj.modifiers.new("Armature", "ARMATURE").object = arm_obj
 
+    if BAKE["on"] and all(isinstance(s_, SdfShell) for s_ in shells):
+        import hero_bake
+        highs = [hero_bake.high_object(s_.layer, BAKE["voxel_scale"]) for s_ in shells]   # same order as layer ids
+        prefix = f"{os.path.dirname(out_path)}/{fid}"
+        albedo, normal = hero_bake.bake_maps(obj, highs, size=BAKE["size"], samples=BAKE["samples"],
+                                             out_prefix=BAKE.get("tmp", "/tmp/") + fid)
+        hero_bake.game_materials(obj, albedo, normal, cfg["palette"]["accent"])
+        for o in highs:
+            bpy.data.objects.remove(o)
+        obj.data.color_attributes.remove(obj.data.color_attributes["Col"])
+
     arm_obj.animation_data_create()
     targets = cb.setup_ik(arm_obj)
     actions = cb.build_actions(moves, cfg["height"] / cb.REF_HEIGHT, fid)
@@ -837,8 +950,11 @@ def build(fid, moves, out_path):
     bpy.ops.export_scene.gltf(filepath=out_path, export_format="GLB", export_animations=True,
                               export_animation_mode="ACTIONS", export_force_sampling=True, export_frame_step=1,
                               export_skins=True, export_def_bones=False, export_yup=True, export_apply=False,
-                              export_materials="EXPORT", export_vertex_color="ACTIVE", export_all_vertex_colors=False,
-                              export_active_vertex_color_when_no_material=True)
+                              export_materials="EXPORT", export_vertex_color="NONE" if BAKE["on"] else "ACTIVE",
+                              export_all_vertex_colors=False,
+                              export_active_vertex_color_when_no_material=not BAKE["on"])
+    if BAKE.get("blend"):
+        bpy.ops.wm.save_as_mainfile(filepath=BAKE["blend"], compress=True)
 
 
 def main():
@@ -848,7 +964,12 @@ def main():
     ap.add_argument("--moves", required=True)
     ap.add_argument("--out", default="assets/characters")
     ap.add_argument("--quality", default="game", choices=["game", "concept"])
+    ap.add_argument("--bake", action="store_true", help="bake normal/colour/AO maps from a dense sculpt")
+    ap.add_argument("--bake-size", type=int, default=2048)
+    ap.add_argument("--bake-samples", type=int, default=24)
+    ap.add_argument("--blend", default=None, help="also save the .blend source here")
     a = ap.parse_args(argv)
+    BAKE.update(on=a.bake, size=a.bake_size, samples=a.bake_samples, blend=a.blend)
     if a.quality == "concept":
         QUALITY.update(voxel=0.62, tris=3.2)
     build(a.fighter, json.loads(open(a.moves).read()), f"{a.out}/{a.fighter}/{a.fighter}.glb")

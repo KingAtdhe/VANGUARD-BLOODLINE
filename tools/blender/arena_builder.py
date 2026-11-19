@@ -61,8 +61,8 @@ class Kit:
             v[self.done] = 1
         return new
 
-    def cyl(self, c, r, h, mat, segs=16, r2=None, rot=(0, 0, 0)):
-        bmesh.ops.create_cone(self.bm, cap_ends=True, cap_tris=False, segments=segs, radius1=r,
+    def cyl(self, c, r, h, mat, segs=16, r2=None, rot=(0, 0, 0), caps=True):
+        bmesh.ops.create_cone(self.bm, cap_ends=caps, cap_tris=False, segments=segs, radius1=r,
                               radius2=r if r2 is None else r2, depth=h)
         return self._finish_new(c, rot, mat)
 
@@ -285,73 +285,192 @@ def temple():
 
 # ---------------------------------------------------------- Neon District --
 def neon():
-    """Rain-soaked street at night: buildings, neon signs, steam, skyline."""
-    rnd = random.Random(23)
-    k = Kit("NeonDistrict", [
-        M("NEO_Asphalt", (0.035, 0.035, 0.045), 0.12, 0.2),
-        M("NEO_Concrete", (0.11, 0.11, 0.13), 0.85),
-        M("NEO_Building", (0.05, 0.05, 0.07), 0.6, 0.3),
-        M("NEO_Window", (0.22, 0.17, 0.12), 0.4, 0.0, (1.0, 0.68, 0.35), 0.3),
-        M("NEO_Magenta", (1.0, 0.1, 0.6), 0.4, 0.0, (1.0, 0.08, 0.55), 7.0),
-        M("NEO_Cyan", (0.1, 0.9, 1.0), 0.4, 0.0, (0.05, 0.85, 1.0), 7.0),
-        M("NEO_Metal", (0.25, 0.26, 0.28), 0.35, 0.9),
-        M("NEO_Line", (0.8, 0.75, 0.3), 0.6),
+    """The Severed Line: a wet rooftop above the Neon District at night. A
+    colossal Origin power conduit broke and crashed through the district; its
+    torn end hangs over the street behind the roof, still leaking red energy.
+    Mobile layout: one mesh, 8 materials, everything behind the parapet is
+    backdrop only (gameplay bounds come from data/arenas/neon_arena.tres)."""
+    rnd = random.Random(31)
+    k = Kit("SeveredLine", [
+        M("SEV_RoofWet", (0.085, 0.085, 0.095), 0.3, 0.1),
+        M("SEV_Concrete", (0.11, 0.11, 0.12), 0.85),
+        M("SEV_Building", (0.03, 0.032, 0.045), 0.7, 0.2),
+        M("SEV_Window", (0.25, 0.22, 0.18), 0.4, 0.0, (1.0, 0.85, 0.62), 0.45),
+        M("SEV_Casing", (0.085, 0.09, 0.1), 0.7, 0.25),
+        M("SEV_Origin", (0.15, 0.0, 0.0), 0.4, 0.0, (0.85, 0.0, 0.03), 0.8),
+        M("SEV_Neon", (0.1, 0.9, 1.0), 0.4, 0.0, (0.15, 0.9, 1.0), 6.0),
+        M("SEV_Metal", (0.09, 0.09, 0.1), 0.04, 0.75),
     ])
-    k.box((0, 6, -0.25), (80, 40, 0.5), "NEO_Asphalt")
-    for x in range(-14, 15, 4):  # road markings
-        k.box((x, 3.2, 0.002), (2.0, 0.12, 0.004), "NEO_Line")
-    for y in (-2.6, 7.5):
-        k.box((0, y, 0.002), (40, 0.1, 0.004), "NEO_Line")
-    k.box((0, 10.5, 0.1), (80, 5.0, 0.2), "NEO_Concrete")  # sidewalk
-    k.box((0, 8.05, 0.1), (80, 0.1, 0.2), "NEO_Metal")
-    for i in range(10):  # puddles (mirror-like patches)
-        k.box((rnd.uniform(-12, 12), rnd.uniform(-2, 5), 0.003), (rnd.uniform(1, 3), rnd.uniform(0.6, 1.5), 0.004),
-              "NEO_Metal", rot=(0, 0, rnd.uniform(0, 180)))
-    # Building facades with windows, storefronts, neon trims.
-    x = -34.0
-    bi = 0
-    while x < 34.0:
-        w = rnd.uniform(6.0, 10.0)
-        h = rnd.uniform(14.0, 34.0)
-        y = 15.5 + rnd.uniform(-0.5, 2.0)
-        cx = x + w / 2
-        k.box((cx, y, h / 2), (w - 0.3, 6.0, h), "NEO_Building")
-        front = y - 3.02
-        for fx in range(int((w - 1.0) / 1.1)):
-            for fz in range(int((h - 5.0) / 1.6)):
-                if rnd.random() < 0.55:
-                    k.quad((x + 0.9 + fx * 1.1, front, 5.0 + fz * 1.6), 0.6, 0.85, "NEO_Window")
-        k.quad((cx, front - 0.01, 1.6), w - 1.6, 2.4, "NEO_Building")
-        for d in range(int((w - 2.0) / 1.4)):   # shop window panes, dimmer than signs
-            k.quad((x + 1.4 + d * 1.4, front - 0.02, 1.7), 1.1, 1.6, "NEO_Window")
-        neon_mat = "NEO_Magenta" if bi % 2 == 0 else "NEO_Cyan"
-        k.box((cx, front - 0.08, 3.1), (w - 1.0, 0.08, 0.1), neon_mat)
-        k.box((cx, front - 0.6, 3.0), (w - 1.0, 1.2, 0.12), "NEO_Metal")  # awning
-        if bi % 3 == 1:  # vertical sign blade
-            k.box((x + 0.8, front - 0.9, 9), (0.25, 1.4, 7.0), "NEO_Building")
-            k.box((x + 0.8, front - 1.62, 9), (0.18, 0.04, 6.6), neon_mat)
-        x += w
-        bi += 1
-    # Overhead cables, street lamps, vents, crates, a parked hover-bike shape.
-    for xx in (-15, -5, 5, 15):
-        k.cyl((xx, 8.4, 3.0), 0.09, 6.0, "NEO_Metal", segs=8)
-        k.box((xx, 7.7, 5.95), (0.18, 1.5, 0.12), "NEO_Metal")
-        k.box((xx, 7.05, 5.85), (0.4, 0.4, 0.06), "NEO_Cyan")
-    for i in range(6):
-        k.box((rnd.uniform(-30, 30), 6, 9 + i * 0.6), (60, 0.03, 0.03), "NEO_Metal", rot=(0, rnd.uniform(-2, 2), 0))
-    for vx in (-10.5, 11.0):
-        k.box((vx, 9.0, 0.15), (1.2, 1.2, 0.3), "NEO_Metal")
+    # ---- the roof: fighting area, puddles, painted helipad-style lines ----
+    k.box((0, -2, -0.25), (34, 24, 0.5), "SEV_RoofWet")
+    for i in range(16):                                  # standing water: glossy patches
+        k.box((rnd.uniform(-13, 13), rnd.uniform(-9, 4.5), 0.004),
+              (rnd.uniform(0.8, 2.8), rnd.uniform(0.5, 1.4), 0.006), "SEV_Metal", rot=(0, 0, rnd.uniform(0, 180)))
+    for x in range(-15, 16, 3):                          # tar-sealed seams between roof slabs
+        k.box((x + 0.5, -2, 0.002), (0.07, 23.5, 0.004), "SEV_Building")
+    for y in range(-13, 6, 3):
+        k.box((0, y, 0.002), (33.5, 0.07, 0.004), "SEV_Building")
+    for x, y in ((-4.5, 2.6), (5.0, -3.4), (-10.2, -6.0)):  # drain grates
+        k.box((x, y, 0.006), (0.7, 0.7, 0.012), "SEV_Metal")
         for g in range(5):
-            k.box((vx, 8.6 + g * 0.2, 0.31), (1.0, 0.06, 0.02), "NEO_Building")
-    for cx, cy in ((-13, 10.5), (-12.3, 11.0), (13.5, 10.8)):
-        k.box((cx, cy, 0.6), (1.0, 1.0, 1.0), "NEO_Concrete", rot=(0, 0, rnd.uniform(-20, 20)), bevel=0.04)
-        k.box((cx, cy, 1.205), (1.02, 1.02, 0.03), "NEO_Magenta")
-    # Distant skyline.
-    for i in range(26):
-        h = rnd.uniform(30, 80)
-        sx = -90 + i * 7.2
-        k.box((sx, 60 + rnd.uniform(0, 20), h / 2), (rnd.uniform(4, 7), 6, h), "NEO_Building")
-        k.box((sx, 56.9, h - 1), (2.0, 0.1, 0.3), "NEO_Magenta" if i % 2 else "NEO_Cyan")
+            k.box((x, y - 0.28 + g * 0.14, 0.014), (0.62, 0.05, 0.006), "SEV_Building")
+    for x in (-9.5, 9.5):                                # faded yellow lane marks (concrete tone)
+        k.box((x, 1.5, 0.003), (3.2, 0.1, 0.005), "SEV_Concrete", rot=(0, 0, -12 if x < 0 else 12))
+    # ---- parapets, railing, roof furniture --------------------------------
+    k.box((0, 5.75, 0.45), (34, 0.5, 0.9), "SEV_Concrete", bevel=0.03)
+    k.box((0, 5.75, 0.93), (34, 0.62, 0.08), "SEV_Concrete")
+    for sx in (-1, 1):
+        k.box((sx * 16.75, -2, 0.45), (0.5, 15.5, 0.9), "SEV_Concrete")
+    for x in range(-16, 17, 2):                          # railing posts + two rails
+        k.box((x, 5.75, 1.45), (0.05, 0.05, 1.0), "SEV_Metal")
+    for z in (1.5, 1.95):
+        k.box((0, 5.75, z), (32, 0.04, 0.04), "SEV_Metal")
+    # stairwell hut (right) with its door lamp
+    k.box((12.6, 4.0, 1.5), (3.6, 3.0, 3.0), "SEV_Concrete", bevel=0.04)
+    k.box((12.6, 4.0, 3.06), (3.9, 3.3, 0.12), "SEV_Concrete")
+    k.box((12.6, 2.49, 1.1), (1.0, 0.04, 2.2), "SEV_Metal")
+    k.box((12.6, 2.4, 2.45), (0.5, 0.18, 0.1), "SEV_Window")
+    # water tank on stilts (left)
+    for dx, dy in ((-0.9, -0.9), (0.9, -0.9), (-0.9, 0.9), (0.9, 0.9)):
+        k.box((-12.6 + dx, 4.0 + dy, 1.0), (0.14, 0.14, 2.0), "SEV_Metal")
+    k.cyl((-12.6, 4.0, 3.2), 1.3, 2.4, "SEV_Casing", segs=18)
+    k.cyl((-12.6, 4.0, 4.5), 1.35, 0.3, "SEV_Casing", segs=18, r2=0.4)
+    # AC units / vents along the parapet, cable runs on the floor
+    for x in (-9.0, -6.6, 6.8, 9.2):
+        k.box((x, 4.7, 0.45), (1.6, 1.0, 0.9), "SEV_Concrete", bevel=0.03)
+        k.cyl((x, 4.7, 0.92), 0.36, 0.05, "SEV_Metal", segs=12)
+    for i in range(3):
+        k.box((0, 5.25 - i * 0.12, 0.05 + i * 0.03), (30, 0.06, 0.06), "SEV_Metal")
+    for x in (-11.2, 10.7):                              # steam vents (particles in the scene)
+        k.cyl((x, 3.6, 0.35), 0.28, 0.7, "SEV_Metal", segs=10)
+
+    # ---- the district below and the skyline -------------------------------
+    GROUND = -32.0
+
+    def building(cx, cy, w, d, h, win_p, crown):
+        k.box((cx, cy, (GROUND + h) / 2), (w, d, h - GROUND), "SEV_Building")
+        front = cy - d / 2 - 0.02
+        cols = max(1, int((w - 1.2) / 1.25))
+        rows = max(1, int((h - GROUND - 4) / 1.9))
+        for c in range(cols):
+            for r in range(rows):
+                if rnd.random() < win_p:
+                    k.quad((cx - (cols - 1) * 0.625 + c * 1.25, front, GROUND + 3 + r * 1.9), 0.55, 0.85,
+                           "SEV_Window")
+        for lz in range(int(GROUND + 8), int(h), 9):     # ledges catch the light
+            k.box((cx, front - 0.1, lz), (w + 0.2, 0.25, 0.18), "SEV_Concrete")
+        if crown:
+            k.box((cx, cy, h + 0.8), (w * 0.6, d * 0.6, 1.6), "SEV_Building")
+            k.box((cx, cy - d * 0.3 - 0.02, h + 1.3), (w * 0.4, 0.05, 0.12), "SEV_Neon")
+        if rnd.random() < 0.5:                           # facade AC boxes and a drainpipe
+            for j in range(4):
+                k.box((cx + rnd.uniform(-w / 3, w / 3), front - 0.3, rnd.uniform(-10, h - 3)), (0.8, 0.6, 0.55),
+                      "SEV_Concrete")
+            k.box((cx + w / 2 - 0.3, front - 0.15, (GROUND + h) / 2), (0.16, 0.16, h - GROUND), "SEV_Metal")
+
+    for row, (y0, hmin, hmax, wp) in enumerate(((16, 4, 22, 0.32), (34, 18, 45, 0.24), (60, 35, 75, 0.16))):
+        x = -70.0 + rnd.uniform(0, 4)
+        while x < 70:
+            w = rnd.uniform(7, 13) * (1 + row * 0.3)
+            if row == 0 and -6 < x + w / 2 < 8:          # keep a gap: the street the conduit fell into
+                x += w * 0.6
+                continue
+            building(x + w / 2, y0 + rnd.uniform(0, 6) + w * 0.2, w - 0.6, rnd.uniform(6, 10),
+                     rnd.uniform(hmin, hmax), wp, rnd.random() < 0.35)
+            x += w
+    # invented-script neon signs: stacks of glyph strokes (no real lettering)
+    def glyph(cx, y, cz, s, seed):
+        g = random.Random(seed)
+        for kk in range(g.randint(2, 4)):
+            x0, z0 = g.uniform(-0.4, 0.4) * s, g.uniform(-0.6, 0.6) * s
+            if g.random() < 0.5:
+                k.box((cx + x0, y, cz + z0), (g.uniform(0.3, 0.9) * s, 0.06, 0.08 * s), "SEV_Neon")
+            else:
+                k.box((cx + x0, y, cz + z0), (0.08 * s, 0.06, g.uniform(0.3, 1.0) * s), "SEV_Neon")
+
+    for i, (gx, gy, gz) in enumerate(((-17, 13.0, 9), (-4.5, 15.5, 6), (9.5, 14.5, 12), (21, 13.5, 4),
+                                       (-28, 31, 22), (26, 32, 25))):
+        k.box((gx, gy + 0.08, gz), (0.25, 0.1, 5.4), "SEV_Building")
+        for j in range(4):
+            glyph(gx, gy - 0.02, gz + 2.0 - j * 1.35, 1.1, 100 + i * 10 + j)
+
+    # ---- THE SEVERED LINE: the broken Origin conduit -----------------------
+    def ring(c, axis, r, w, mat, segs=28):
+        """A rib: a short thick band around the conduit axis."""
+        axis = Vector(axis).normalized()
+        u = axis.orthogonal().normalized()
+        v = axis.cross(u)
+        loops = []
+        for (rr, off) in ((r, -w / 2), (r, w / 2), (r * 0.94, w / 2), (r * 0.94, -w / 2)):
+            loops.append([k.bm.verts.new(Vector(c) + axis * off + (u * math.cos(2 * math.pi * s / segs)
+                                                                    + v * math.sin(2 * math.pi * s / segs)) * rr)
+                          for s in range(segs)])
+        for a, b in zip(loops, loops[1:] + loops[:1]):
+            for s in range(segs):
+                k.bm.faces.new((a[s], a[(s + 1) % segs], b[(s + 1) % segs], b[s]))
+        k._finish_new((0, 0, 0), (0, 0, 0), mat)
+
+    def obox(c, size, basis, mat):
+        """Box oriented by a 3x3 basis (columns = local X, Y, Z)."""
+        r = bmesh.ops.create_cube(k.bm, size=1.0)
+        bmesh.ops.scale(k.bm, vec=size, verts=r["verts"])
+        bmesh.ops.transform(k.bm, matrix=basis.to_4x4(), verts=r["verts"])
+        k._finish_new(c, (0, 0, 0), mat)
+
+    def conduit(p0, p1, r, broken):
+        p0, p1 = Vector(p0), Vector(p1)
+        ax = (p1 - p0)
+        L = ax.length
+        ax.normalize()
+        u = ax.orthogonal().normalized()
+        w = ax.cross(u)
+        # glowing core (visible where armour is torn away)
+        rot = ax.to_track_quat("Z", "Y").to_euler()
+        # open-ended so the torn end shows a glowing rim, not a flat disc
+        k.cyl(p0 + ax * (L - 1.2) / 2, r * 0.8, L - 1.2, "SEV_Origin", segs=16,
+              rot=tuple(math.degrees(a) for a in rot), caps=False)
+        n_plates = 10
+        for i in range(n_plates):
+            ang = 2 * math.pi * i / n_plates
+            d = u * math.cos(ang) + w * math.sin(ang)
+            t0 = 0.0
+            while t0 < L:
+                t1 = min(L, t0 + rnd.uniform(3.0, 6.0))
+                torn = 0.12 + (0.55 * (t1 / L) ** 3 if broken else 0.0)
+                if rnd.random() > torn:
+                    basis = Matrix((d, ax.cross(d), ax)).transposed()
+                    obox(p0 + ax * ((t0 + t1) / 2) + d * r * 0.92, (0.36, r * 0.82, t1 - t0 - 0.16),
+                         basis, "SEV_Casing")
+                t0 = t1
+        t = 1.5
+        while t < L - 1.0:
+            if not broken or t < L * 0.8:
+                ring(p0 + ax * t, ax, r * 1.08, 0.45, "SEV_Casing")
+            t += rnd.uniform(4.0, 6.5)
+        if broken:                                       # jagged lip and dangling cables
+            for i in range(12):
+                ang = rnd.uniform(0, 2 * math.pi)
+                d = u * math.cos(ang) + w * math.sin(ang)
+                base = p1 + d * r * 0.85
+                tip = base + ax * rnd.uniform(0.6, 2.4) + d * rnd.uniform(0.2, 0.9)
+                basis = Matrix((d, ax.cross(d), (tip - base).normalized())).transposed()
+                obox((base + tip) / 2, (0.3, 0.3, (tip - base).length), basis, "SEV_Casing")
+            for i in range(5):
+                q = p1 + Vector((rnd.uniform(-1.5, 1.5), rnd.uniform(-1, 1), rnd.uniform(-1, 1)))
+                for j in range(5):
+                    q2 = q + Vector((rnd.uniform(-0.4, 0.4), rnd.uniform(-0.3, 0.3), -rnd.uniform(1.2, 2.2)))
+                    k.cyl((q + q2) / 2, 0.08, (q2 - q).length, "SEV_Metal", segs=5,
+                          rot=tuple(math.degrees(a) for a in (q2 - q).normalized().to_track_quat("Z", "Y").to_euler()))
+                    q = q2
+
+    conduit((-75, 95, 52), (-16, 40, 20), 3.0, False)
+    conduit((-16, 40, 20), (4, 22, 5.5), 3.0, True)
+    conduit((12, 24, -20), (30, 44, -6), 2.8, True)       # a second piece lying in the street
+
+    # torn billboard frame (the poster itself is a Sprite3D in the scene)
+    k.box((8.6, 17.6, 13.0), (6.6, 0.3, 7.6), "SEV_Metal")
+    for x in (6.2, 11.0):
+        k.box((x, 18.0, 4.0), (0.3, 0.3, 12), "SEV_Metal")
     return k
 
 

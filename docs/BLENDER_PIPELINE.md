@@ -84,6 +84,11 @@ python tools/blender/arena_builder.py --out assets/arenas
 - Arenas: one mesh per arena, ≤8 materials, emissive trims; lights, fog,
   glow, particles and text are in `scenes/arenas/*.tscn`.
 - After a rebuild, keep `animation/fps=60` in each `.glb.import`.
+- Arena design flow (D-048): concept render first
+  (`tools/blender/arena_concept_<name>.py <out.png> [samples] [width]`),
+  owner approval, then the game version in `arena_builder.py`. Check the
+  game version from the gameplay camera with:
+  `xvfb-run -a godot --path . --rendering-method mobile --script res://tools/godot/arena_shot.gd -- res://scenes/arenas/<scene>.tscn <out.png> [distance]`
 
 ## Hero pipeline (quality pass)
 

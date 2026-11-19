@@ -81,6 +81,41 @@ for o in meshes:
     for p in o.data.polygons:
         p.use_smooth = True
 
+# STYLE=real: stylized-realistic PBR look (SF6 / Tekken direction) instead of
+# the cel + ink look. Same model, same vertex paint.
+REAL = os.environ.get("STYLE", "cel") == "real"
+PBR = {"Skin": (0.48, 0.0, 0.12), "Cloth": (0.78, 0.0, 0.0), "Cloth2": (0.85, 0.0, 0.0),
+       "Hair": (0.38, 0.0, 0.0), "Gear": (0.42, 0.6, 0.0)}
+if REAL:
+    for m in bpy.data.materials:
+        slot = m.name.split("_")[-1].split(".")[0]
+        if slot not in PBR:
+            continue
+        nt = m.node_tree
+        nt.nodes.clear()
+        outn = nt.nodes.new("ShaderNodeOutputMaterial")
+        bs = nt.nodes.new("ShaderNodeBsdfPrincipled")
+        col = nt.nodes.new("ShaderNodeVertexColor")
+        col.layer_name = COLOR_LAYER
+        nt.links.new(col.outputs["Color"], bs.inputs["Base Color"])
+        r, mt, sss = PBR[slot]
+        bs.inputs["Roughness"].default_value = r
+        bs.inputs["Metallic"].default_value = mt
+        if sss:
+            bs.inputs["Subsurface Weight"].default_value = sss
+            bs.inputs["Subsurface Radius"].default_value = (0.012, 0.005, 0.003)
+            bs.inputs["Subsurface Scale"].default_value = 0.5
+        if slot in ("Cloth", "Cloth2"):          # fabric sheen + fine weave bump
+            bs.inputs["Sheen Weight"].default_value = 0.25
+            bs.inputs["Sheen Roughness"].default_value = 0.4
+            noise = nt.nodes.new("ShaderNodeTexNoise")
+            noise.inputs["Scale"].default_value = 900.0
+            bump = nt.nodes.new("ShaderNodeBump")
+            bump.inputs["Strength"].default_value = 0.15
+            nt.links.new(noise.outputs["Fac"], bump.inputs["Height"])
+            nt.links.new(bump.outputs["Normal"], bs.inputs["Normal"])
+        nt.links.new(bs.outputs[0], outn.inputs["Surface"])
+
 # ------------------------------------------------------------- lighting --
 def sun(direction, energy, color, angle=2.0):
     l = bpy.data.objects.new("sun", bpy.data.lights.new("sun", "SUN"))
@@ -104,7 +139,16 @@ sc.cycles.samples = 40
 sc.cycles.use_denoising = False
 sc.render.film_transparent = True
 sc.view_settings.view_transform = "Standard"
-sc.render.use_freestyle = True
+sc.render.use_freestyle = not REAL
+if REAL:
+    sc.view_settings.view_transform = "AgX"
+    sc.view_settings.look = "AgX - Punchy"
+    sc.cycles.use_denoising = True
+    key.data.energy, rim.data.energy = 4.2, 3.0
+    rim.data.color = (0.75, 0.82, 1.0)
+    sun((-0.7, 0.4, -0.45), 1.2, (1.0, 0.95, 0.9), 8.0)   # soft fill
+    w.node_tree.nodes["Background"].inputs[0].default_value = (0.55, 0.57, 0.62, 1)
+    w.node_tree.nodes["Background"].inputs[1].default_value = 0.6
 sc.render.line_thickness = 2.1
 vl = bpy.context.view_layer
 vl.use_freestyle = True

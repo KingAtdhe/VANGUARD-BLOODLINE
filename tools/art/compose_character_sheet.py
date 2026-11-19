@@ -2,6 +2,7 @@
 
     python3 tools/art/compose_character_sheet.py <render_dir> <fighter_id> <NAME> <Title> <out.png>
 """
+import os
 import sys
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -51,7 +52,7 @@ d.polygon([(0, 0), (1500, 0), (1420, 150), (0, 150)], fill=INK)
 d.polygon([(0, 150), (1420, 150), (1412, 166), (0, 166)], fill=RED)
 d.text((60, 26), name, font=F(96), fill=(255, 255, 255))
 d.text((70 + d.textlength(name, font=F(96)) + 30, 70), title.upper(), font=F(40), fill=(255, 90, 80))
-tag(1560, 40, "3D CHARACTER SHEET  ·  MODELLED IN BLENDER FROM THE APPROVED ART", 30)
+tag(1560, 40, os.environ.get("SUBTITLE", "3D CHARACTER SHEET  ·  MODELLED IN BLENDER FROM THE APPROVED ART"), 30)
 d.text((1570, 122), "These are renders of the actual game model, posed with the game's own animations.", font=F(26, False), fill=(90, 90, 104))
 
 # turnaround
@@ -76,10 +77,19 @@ for i, (v, lab) in enumerate((("face", "FACE"), ("torso", "TORSO  ·  ORIGIN LIN
 tag(2660, 1600, "PALETTE  +  NOTES")
 for i, c in enumerate(((24, 25, 31), (58, 60, 72), (104, 108, 124), (176, 24, 20), (255, 60, 44), (196, 142, 108))):
     d.rounded_rectangle((2660 + i * 150, 1690, 2660 + i * 150 + 130, 1790), 14, fill=c, outline=(120, 120, 130), width=2)
-notes = ["Heroic build: wide shoulders, narrow waist", "Fitted sleeveless top, muscle definition sculpted in",
+import os  # noqa: E402
+NOTES = {"v4": ["Sculpted from scratch: muscles, skull, face",
+                "Stylized-realistic (SF6 / Tekken direction)",
+                "Fitted top: the muscles read through",
+                "Sculpted fists, knuckle plates, Origin line",
+                "Torn red sash knotted on the right hip",
+                "Layered spiky hair with one red streak",
+                "44.3k triangles, 6 materials, game rig"]}
+notes = NOTES.get(os.environ.get("NOTES", ""), [
+         "Heroic build: wide shoulders, narrow waist", "Fitted sleeveless top, muscle definition sculpted in",
          "Glowing red Origin line on chest, guards and boots", "Forearm guards and gloves with knuckle plates",
          "Torn red sash over the right thigh", "Short spiked hair with one red streak",
-         "Cel shading and ink outlines, as in the 2D art"]
+         "Cel shading and ink outlines, as in the 2D art"])
 for i, n in enumerate(notes):
     d.ellipse((2664, 1836 + i * 54, 2680, 1852 + i * 54), fill=RED)
     d.text((2700, 1824 + i * 54), n, font=F(30, False), fill=INK)

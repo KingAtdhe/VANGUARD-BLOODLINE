@@ -43,3 +43,5 @@
 | KI-039 | M7 | Only Kairo is modelled to the approved art sheet. Drakon, Seraphina, Nox, Vexa and Ryuen still use old models; Sentinel/Warden keep the earlier construct look. | Open — next |
 | KI-040 | M7 | Kairo's 3D face is simpler than the art sheet; no textures (vertex colour only); sash is rigid cloth (no physics). | Open |
 | KI-041 | M7 | Provenance/rights of the owner-supplied art sheet are not recorded yet. | Open — owner |
+| KI-042 | M8 | The Severed Line (neon) uses a ReflectionProbe; Godot 4.7.2 prints "7 RIDs of type Texture were leaked" at engine shutdown whenever a probe has existed (reproduced in an empty project with one probe). Exit-time only, no in-game effect. | Engine — monitor |
+| KI-043 | M8 | The Severed Line was checked only on Mesa software Vulkan (lavapipe) with the Mobile renderer; frame rate, glow and the reflection probe cost on a phone are unverified. | Open — needs device |
