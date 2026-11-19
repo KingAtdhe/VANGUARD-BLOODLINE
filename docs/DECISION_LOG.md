@@ -318,7 +318,8 @@ Signage uses an invented glyph script, not real-world shop names. The game
 version keeps the existing arena ids, configs and gameplay bounds; only the
 presentation (GLB + scene lighting/effects) changes. The Severed Line is the
 first one rebuilt (`arena_builder.py neon()`, ~21k tris, 8 materials, one
-reflection probe, 7 lights). **Accepted — owner approved the concept.**
+reflection probe, 7 lights). Ryuen's Sanctuary followed (`temple()`, ~30k tris,
+8 materials, 6 lights; real-world-language inscription removed). **Accepted — owner approved the concept.**
 
 ## D-049 — 2026-11-19 — In-engine screenshots on the build machine
 `tools/godot/arena_shot.gd` renders an arena from the gameplay camera with

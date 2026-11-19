@@ -204,86 +204,221 @@ def ascendant():
 
 # ------------------------------------------------------- Forgotten Temple --
 def temple():
-    """Ancient ruins at dusk: cracked slabs, broken columns, torches, statue."""
+    """Ryuen's Sanctuary: a monastery courtyard on floating stone above a sea
+    of clouds at dawn, held to its neighbours by giant chains. Behind the
+    fighters stands the great ring gate with the dormant Origin crystal as
+    its keystone. Mobile: one mesh, 8 materials; gameplay bounds come from
+    data/arenas/temple_arena.tres."""
     rnd = random.Random(11)
-    k = Kit("ForgottenTemple", [
-        M("TMP_Stone", (0.42, 0.37, 0.31), 0.95),
-        M("TMP_StoneDark", (0.22, 0.2, 0.18), 0.95),
-        M("TMP_Moss", (0.16, 0.26, 0.1), 1.0),
-        M("TMP_Bronze", (0.45, 0.3, 0.14), 0.45, 0.8),
-        M("TMP_Fire", (1.0, 0.55, 0.12), 0.5, 0.0, (1.0, 0.45, 0.08), 8.0),
-        M("TMP_Rune", (0.3, 0.75, 0.7), 0.5, 0.0, (0.2, 0.9, 0.8), 1.4),
-        M("TMP_Mountain", (0.18, 0.15, 0.2), 1.0),
+    k = Kit("RyuenSanctuary", [
+        M("SAN_Stone", (0.15, 0.145, 0.14), 0.92),
+        M("SAN_StoneDark", (0.06, 0.058, 0.056), 0.85),          # ring, timber, rock
+        M("SAN_Moss", (0.06, 0.1, 0.03), 1.0),
+        M("SAN_Gold", (0.85, 0.6, 0.22), 0.3, 1.0),
+        M("SAN_Roof", (0.06, 0.12, 0.3), 0.55, 0.2),             # Ryuen blue: roofs, banners
+        M("SAN_White", (0.78, 0.74, 0.68), 0.95),                # plaster walls, clouds
+        M("SAN_Glow", (1.0, 0.7, 0.4), 0.5, 0.0, (1.0, 0.55, 0.22), 2.5),
+        M("SAN_Origin", (0.2, 0.0, 0.0), 0.2, 0.0, (0.9, 0.02, 0.02), 1.2),
     ])
-    # Courtyard of irregular slabs.
-    for ix in range(-9, 10):
-        for iy in range(-3, 7):
-            w, d = 1.9 + rnd.uniform(-0.05, 0.05), 1.9 + rnd.uniform(-0.05, 0.05)
-            z = rnd.uniform(-0.03, 0.0) - 0.15
-            mat = "TMP_StoneDark" if rnd.random() < 0.18 else "TMP_Stone"
-            k.box((ix * 2.0, iy * 2.0, z), (w, d, 0.3), mat, rot=(0, 0, rnd.uniform(-1.5, 1.5)), bevel=0.04)
-            if rnd.random() < 0.12:
-                k.box((ix * 2.0 + rnd.uniform(-0.5, 0.5), iy * 2.0 + rnd.uniform(-0.5, 0.5), 0.005),
-                      (rnd.uniform(0.4, 1.0), rnd.uniform(0.3, 0.8), 0.02), "TMP_Moss")
-    k.box((0, 0, 0.003), (0.08, 3.0, 0.006), "TMP_Rune")  # centre line rune
-    k.ring((0, 0, 0), 1.6, 1.7, "TMP_Rune", segs=36, z0=0.0, z1=0.006)
-    # Stairs up to the inner sanctum, flanked by columns.
-    for s in range(6):
-        k.box((0, 13 + s * 0.6, 0.15 + s * 0.3), (16 - s * 0.6, 0.6, 0.3), "TMP_Stone", bevel=0.03)
-    k.box((0, 19.5, 1.0), (24, 6, 2.0), "TMP_StoneDark", bevel=0.05)
-    k.box((0, 20, 6.5), (10, 3, 9.0), "TMP_Stone", bevel=0.08)       # sanctum wall
-    k.box((0, 18.45, 4.6), (3.2, 0.2, 5.0), "TMP_StoneDark")          # doorway
-    k.quad((0, 18.33, 4.6), 2.8, 4.6, "TMP_Rune")
-    k.box((0, 18.4, 11.5), (12, 3.6, 0.8), "TMP_Stone", bevel=0.05)   # lintel
-    # Guardian statue head carved above the door.
-    k.sphere((0, 18.6, 13.6), 1.9, "TMP_Stone", segs=14, rings=10, scale=(0.9, 0.85, 1.1))
-    k.box((0, 17.0, 13.3), (0.45, 0.6, 0.9), "TMP_Stone")
+
+    def rock(c, rx, ry, depth):
+        """Floating-island underside: a jagged, stepped downward spike."""
+        segs = 11
+        profile = ((0.0, 1.0), (0.18, 0.86), (0.42, 0.6), (0.7, 0.3), (1.0, 0.04))
+        rings = []
+        for t, rad in profile:
+            ring_ = []
+            for i in range(segs):
+                a = 2 * math.pi * i / segs
+                j = rnd.uniform(0.75, 1.15) if t > 0 else rnd.uniform(0.95, 1.05)
+                ring_.append(k.bm.verts.new(Vector((math.cos(a) * rx * rad * j, math.sin(a) * ry * rad * j,
+                                                    -t * depth * rnd.uniform(0.9, 1.08) if t > 0 else 0.0))))
+            rings.append(ring_)
+        k.bm.faces.new(rings[0])
+        for r0, r1 in zip(rings, rings[1:]):
+            for i in range(segs):
+                k.bm.faces.new((r0[(i + 1) % segs], r0[i], r1[i], r1[(i + 1) % segs]))
+        k._finish_new(c, (0, 0, 0), "SAN_StoneDark")
+
+    def torus(c, R, r_rad, r_depth, mat, segs=48, sides=8, plane="XZ"):
+        vs = []
+        for i in range(segs):
+            a = 2 * math.pi * i / segs
+            ring_ = []
+            for j in range(sides):
+                b = 2 * math.pi * j / sides
+                rr = R + math.cos(b) * r_rad
+                if plane == "XZ":
+                    ring_.append(k.bm.verts.new(Vector((math.cos(a) * rr, math.sin(b) * r_depth, math.sin(a) * rr))))
+                else:
+                    ring_.append(k.bm.verts.new(Vector((math.cos(a) * rr, math.sin(a) * rr, math.sin(b) * r_depth))))
+            vs.append(ring_)
+        for i in range(segs):
+            for j in range(sides):
+                a, b = vs[i], vs[(i + 1) % segs]
+                k.bm.faces.new((a[j], b[j], b[(j + 1) % sides], a[(j + 1) % sides]))
+        k._finish_new(c, (0, 0, 0), mat)
+
+    # ---- courtyard: running-bond slabs over a moss bed ---------------------
+    TILE = 0.62
+    k.box((0, -3.5, -0.17), (28, 20, 0.1), "SAN_Moss")
+    for iy in range(-21, 10):
+        x = -13.4 + rnd.uniform(0, 0.6)
+        while x < 13.4:
+            ln = rnd.choice((0.6, 0.75, 0.9, 1.1))
+            if not (rnd.random() < 0.02 and abs(x) > 3):
+                h = rnd.uniform(-0.03, 0.015)
+                k.box((x + ln / 2, iy * TILE, -0.1 + h), (ln - 0.045, TILE - 0.045, 0.2), "SAN_Stone",
+                      rot=(0, 0, rnd.uniform(-0.6, 0.6)))
+            x += ln
+    k.ring((0, 0, 0), 3.15, 3.25, "SAN_Gold", segs=64, z0=0.016, z1=0.028)     # ritual circle inlay
+    k.ring((0, 0, 0), 3.55, 3.6, "SAN_Gold", segs=64, z0=0.016, z1=0.028)
+    rock((0, -3.5, -0.25), 15, 10, 9)
+    for ix in range(-13, 14, 2):                                           # broken balustrade
+        if rnd.random() < 0.18:
+            continue
+        k.box((ix, 5.7, 0.5), (0.35, 0.35, 1.0), "SAN_StoneDark", bevel=0.03)
+        if rnd.random() < 0.8:
+            k.box((ix + 1, 5.7, 1.05), (2.0, 0.3, 0.18), "SAN_StoneDark", bevel=0.03)
+
+    # ---- the great ring gate ------------------------------------------------
+    gx, gy, R = 0.0, 9.0, 5.2
+    cz = R + 0.9
+    torus((gx, gy, cz), R, 0.85, 1.36, "SAN_StoneDark", segs=56, sides=10)
+    torus((gx, gy - 1.2, cz), R, 0.22, 0.22, "SAN_StoneDark", segs=56, sides=6)      # carved front lip
+    for i in range(48):                                                    # carved recesses
+        a = 2 * math.pi * (i + 0.5) / 48
+        k.box((gx + math.cos(a) * (R + 0.45), gy - 1.05, cz + math.sin(a) * (R + 0.45)), (0.12, 0.1, 0.4),
+              "SAN_Moss" if i % 7 == 0 else "SAN_Stone", rot=(0, -math.degrees(a), 0))
+    for i in range(24):                                                    # gold inlays
+        a = 2 * math.pi * i / 24
+        if abs(math.sin(a) - 1) < 0.05:
+            continue
+        k.box((gx + math.cos(a) * R, gy - 1.0, cz + math.sin(a) * R), (0.32, 0.12, 0.22 if i % 2 else 0.4),
+              "SAN_Gold", rot=(0, -math.degrees(a), 0))
+    k.box((gx, gy, 0.5), (4.5, 2.6, 1.0), "SAN_StoneDark", bevel=0.06)
     for sx in (-1, 1):
-        k.box((sx * 0.62, 17.05, 14.0), (0.55, 0.2, 0.16), "TMP_Rune")
-    k.box((0, 18.0, 15.35), (3.6, 1.8, 0.35), "TMP_Bronze")           # crown band
-    # Columns: some intact, some broken; with a few fallen drums.
-    for i, x in enumerate((-13, -9.5, -6, 6, 9.5, 13)):
-        y = 9.0 + (i % 2) * 0.8
-        h = [9.0, 4.2, 7.5, 9.0, 3.1, 6.4][i]
-        k.box((x, y, 0.3), (1.6, 1.6, 0.6), "TMP_StoneDark", bevel=0.05)
-        k.cyl((x, y, 0.6 + h / 2), 0.55, h, "TMP_Stone", segs=12)
-        for f in range(12):  # flutes
-            a = 2 * math.pi * f / 12
-            k.box((x + math.cos(a) * 0.55, y + math.sin(a) * 0.55, 0.6 + h / 2), (0.08, 0.08, h * 0.97),
-                  "TMP_StoneDark", rot=(0, 0, math.degrees(a)))
-        if h > 8:
-            k.box((x, y, 0.6 + h + 0.25), (1.5, 1.5, 0.5), "TMP_Stone", bevel=0.05)
-        else:
-            k.cyl((x + 0.9, y - 1.2, 0.5), 0.5, 1.2, "TMP_Stone", segs=12, rot=(90, 0, rnd.uniform(0, 90)))
-        k.box((x, y - 0.56, 0.6 + h * 0.4), (0.9, 0.04, h * 0.5), "TMP_Moss")
-    k.box((-11.25, 9.4, 9.85), (5.0, 1.2, 0.7), "TMP_Stone", bevel=0.05)  # surviving architrave
-    # Torches on bronze stands.
-    for x in (-7.8, 7.8):
-        k.cyl((x, 6.5, 0.9), 0.08, 1.8, "TMP_Bronze", segs=8)
-        k.cyl((x, 6.5, 1.85), 0.28, 0.25, "TMP_Bronze", segs=10, r2=0.4)
-        k.cyl((x, 6.5, 2.15), 0.22, 0.5, "TMP_Fire", segs=8, r2=0.02)
-    for x in (-3.6, 3.6):
-        k.cyl((x, 17.0, 2.5), 0.3, 1.0, "TMP_Bronze", segs=10, r2=0.45)
-        k.cyl((x, 17.0, 3.25), 0.3, 0.6, "TMP_Fire", segs=8, r2=0.02)
-    # Hanging vines from the architrave and ruined walls at the sides.
-    for i in range(14):
-        x = -13.5 + i * 0.4 + rnd.uniform(-0.1, 0.1)
-        L = rnd.uniform(1.5, 4.5)
-        k.box((x, 8.8, 9.6 - L / 2), (0.05, 0.05, L), "TMP_Moss")
-    for sx in (-1, 1):
-        for j in range(5):
-            h = rnd.uniform(2.0, 5.5)
-            k.box((sx * (18 + j * 0.2), 4 + j * 3.5, h / 2), (1.2, 3.4, h), "TMP_StoneDark", bevel=0.06)
-    # Distant mountains and a sky band.
-    for i in range(14):
-        x = -60 + i * 9 + rnd.uniform(-3, 3)
-        h = rnd.uniform(14, 30)
-        k.cyl((x, 70 + rnd.uniform(-5, 10), h / 2 - 2), rnd.uniform(9, 15), h, "TMP_Mountain", segs=6, r2=0.5,
-              rot=(0, 0, rnd.uniform(0, 60)))
+        k.box((gx + sx * (R - 0.4), gy + 0.9, 1.6), (1.2, 2.2, 3.2), "SAN_StoneDark", rot=(0, sx * 12, 0))
+    # dormant Origin crystal cluster as keystone
+    for dx, dz, s, tilt in ((0, 0, 1.0, 0), (-1.3, -0.6, 0.6, 25), (1.2, -0.5, 0.7, -25), (-0.8, 1.3, 0.45, 15),
+                            (0.9, 1.1, 0.5, -15)):
+        k.sphere((gx + dx, gy - 0.5, 2 * R + 1.0 + dz), 1.0, "SAN_Origin", segs=6, rings=4,
+                 scale=(1.5 * s * 0.6, 1.0 * s * 0.6, 2.5 * s * 0.6))
+    rock((gx, gy, 0.0), 8, 3.5, 7)
+    k.box((gx, gy, -0.1), (14, 5, 0.2), "SAN_Stone")
+    for i in range(5):
+        k.box((gx, 6.6 + i * 0.45, -0.3), (6, 0.45, 0.2), "SAN_StoneDark")
+
+    # ---- monastery halls on the far islands --------------------------------
+    def hall(x, y, z, w, d, h, tiers):
+        rock((x, y, z - 0.4), w * 0.75, d * 0.9, h * 1.6)
+        k.box((x, y, z - 0.2), (w * 1.2, d * 1.3, 0.4), "SAN_StoneDark")
+        yy = z
+        for t in range(tiers):
+            ww, dd = w * (1 - 0.22 * t), d * (1 - 0.22 * t)
+            k.box((x, y, yy + h / 2), (ww * 0.8, dd * 0.8, h), "SAN_White")
+            n_bays = max(2, int(ww * 0.8 / 1.2))
+            for i in range(n_bays + 1):
+                px = x - ww * 0.4 + i * (ww * 0.8 / n_bays)
+                k.box((px, y - dd * 0.42, yy + h / 2), (0.16, 0.16, h), "SAN_StoneDark")
+                if i < n_bays:
+                    cx = px + ww * 0.4 / n_bays
+                    k.box((cx, y - dd * 0.405, yy + h * 0.55), (ww * 0.8 / n_bays * 0.6, 0.03, h * 0.45), "SAN_Glow")
+                    for j in range(3):
+                        k.box((cx - 0.25 + j * 0.25, y - dd * 0.415, yy + h * 0.55), (0.04, 0.03, h * 0.45),
+                              "SAN_StoneDark")
+            k.box((x, y - dd * 0.42, yy + h), (ww * 0.85, 0.25, 0.25), "SAN_StoneDark")
+            k.box((x, y - dd * 0.5, yy + 0.08), (ww * 0.95, 0.5, 0.12), "SAN_StoneDark")
+            k.box((x, y - dd * 0.72, yy + 0.7), (ww * 0.95, 0.08, 0.08), "SAN_StoneDark")
+            k.box((x, y, yy + h + 0.25), (ww * 1.4, dd * 1.45, 0.3), "SAN_Roof", bevel=0.06)
+            k.box((x, y, yy + h + 0.6), (ww * 1.05, dd * 1.0, 0.5), "SAN_Roof", bevel=0.08)
+            for sx in (-1, 1):
+                for sy in (-1, 1):
+                    k.box((x + sx * ww * 0.68, y + sy * dd * 0.7, yy + h + 0.45), (0.9, 0.5, 0.2), "SAN_Roof",
+                          rot=(sy * 10, sx * -22, 0))
+            k.box((x, y, yy + h + 0.95), (ww * 0.8, 0.3, 0.3), "SAN_Gold")
+            yy += h + 0.9
+
+    hall(-17, 22, 3.0, 7, 5, 3.0, 3)
+    hall(15, 26, 6.0, 6, 4.5, 2.6, 2)
+    hall(-2, 40, 11.0, 9, 6, 3.4, 3)
+    hall(30, 45, 2.0, 5, 4, 2.4, 2)
+    hall(-34, 38, 8.0, 5, 4, 2.4, 2)
+    for (x, y, z, rx) in ((22, 14, -2.0, 2.5), (-24, 12, -1.0, 2.0), (8, 30, 1.0, 1.8), (-12, 55, 6, 3.0)):
+        rock((x, y, z - 0.2), rx, rx * 0.8, rx * 2.5)
+        k.box((x, y, z - 0.1), (rx * 1.6, rx * 1.3, 0.25), "SAN_Stone")
+
+    # ---- chains linking the islands ----------------------------------------
+    def chain(p0, p1, sag):
+        p0, p1 = Vector(p0), Vector(p1)
+        L = (p1 - p0).length
+        n = int(L / 0.55)
+        for i in range(n):
+            t = (i + 0.5) / n
+            p = p0.lerp(p1, t) - Vector((0, 0, sag * 4 * t * (1 - t)))
+            q = p0.lerp(p1, min(1, t + 0.01)) - Vector((0, 0, sag * 4 * min(1, t + 0.01) * (1 - min(1, t + 0.01))))
+            d = (q - p).normalized()
+            yaw = math.degrees(math.atan2(d.y, d.x))
+            pitch = -math.degrees(math.asin(max(-1, min(1, d.z))))
+            roll = 90 if i % 2 else 0
+            k.box(p, (0.62, 0.09, 0.3), "SAN_StoneDark", rot=(roll, pitch, yaw))
+
+    chain((-13.5, 5.5, -0.3), (-17, 19.5, 2.5), 1.6)
+    chain((13.5, 5.5, -0.3), (15, 23.5, 5.5), 1.8)
+    chain((5.5, 9.0, 9.0), (15, 24.5, 9.0), 2.5)
+    chain((-5.5, 9.0, 9.0), (-17, 20.5, 10.0), 2.2)
+    chain((-17, 24, 12.0), (-2, 38, 17.0), 3.0)
+
+    # ---- Ryuen's banners: blue cloth, gold trim, wave-in-a-ring emblem -----
+    def banner(top, length, width):
+        x, y, z = top
+        k.box((x, y, z + 0.05), (width + 0.3, 0.08, 0.08), "SAN_StoneDark")
+        cols = 4
+        for i in range(cols):                       # cloth: a few panels with a gentle sway
+            seg_l = length / cols
+            sway = math.sin(i * 1.3 + x) * 0.12
+            k.box((x + sway * 0.3, y + sway, z - seg_l * (i + 0.5)), (width, 0.03, seg_l + 0.02), "SAN_Roof",
+                  rot=(math.degrees(sway) * 0.4, 0, 0))
+        ty = y - 0.25
+        for sx in (-1, 1):
+            k.box((x + sx * width / 2, ty, z - length / 2), (0.05, 0.03, length), "SAN_Gold")
+        k.box((x, ty, z - length + 0.03), (width, 0.03, 0.06), "SAN_Gold")
+        ez, er = z - length * 0.3, width * 0.32
+        torus((x, ty, ez), er, er * 0.09, er * 0.09, "SAN_Gold", segs=20, sides=4)
+        for i in range(6):                          # the wave crest
+            t = i / 5
+            k.box((x + (-0.6 + 1.2 * t) * er, ty, ez + (-0.2 + 0.35 * math.sin(t * math.pi * 1.4)) * er),
+                  (0.3 * er, 0.03, 0.14 * er), "SAN_Gold", rot=(0, -40 * math.cos(t * math.pi * 1.4), 0))
+
+    for i, x in enumerate((-2.6, -1.3, 1.3, 2.6)):
+        banner((x, gy - 0.2, 2 * R - 0.2 - abs(x) * 0.4), rnd.uniform(4.0, 5.5), 0.95)
+    for x, y, z in ((-12, 12, 5.5), (11, 14, 7.0), (-8, 16, 8.5)):
+        banner((x, y, z), 3.0, 0.6)
+
+    # ---- stone lanterns framing the stage -----------------------------------
+    for x in (-12.5, 12.5):
+        k.box((x, 4.6, 0.3), (0.9, 0.9, 0.6), "SAN_StoneDark", bevel=0.05)
+        k.box((x, 4.6, 1.1), (0.35, 0.35, 1.0), "SAN_StoneDark")
+        k.box((x, 4.6, 1.85), (0.7, 0.7, 0.55), "SAN_StoneDark", bevel=0.04)
+        k.box((x, 4.6 - 0.36, 1.85), (0.45, 0.02, 0.3), "SAN_Glow")
+        k.box((x, 4.6, 2.25), (1.1, 1.1, 0.2), "SAN_Roof", bevel=0.05)
+
+    # ---- sea of clouds and cloud towers -------------------------------------
+    nx, ny = 36, 14
+    grid = [[k.bm.verts.new(Vector((-200 + 400 * i / nx, 20 + 160 * j / ny,
+                                    -7 + rnd.uniform(-1.5, 3.5) + (2.5 if (i + j) % 5 == 0 else 0))))
+             for i in range(nx + 1)] for j in range(ny + 1)]
+    for j in range(ny):
+        for i in range(nx):
+            k.bm.faces.new((grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]))
+    k._finish_new((0, 0, 0), (0, 0, 0), "SAN_White")
+    for x, y, z, r in ((-45, 90, 4, 14), (38, 110, 8, 18), (-10, 140, 10, 22), (70, 80, 2, 12)):
+        for b in range(5):                          # a tower is a stack of lumpy puffs
+            k.sphere((x + rnd.uniform(-r, r) * 0.4, y, z + b * r * 0.5), r * rnd.uniform(0.5, 0.8), "SAN_White",
+                     segs=10, rings=6, scale=(1.0, 0.8, 0.75))
     return k
 
 
-# ---------------------------------------------------------- Neon District --
 def neon():
     """The Severed Line: a wet rooftop above the Neon District at night. A
     colossal Origin power conduit broke and crashed through the district; its

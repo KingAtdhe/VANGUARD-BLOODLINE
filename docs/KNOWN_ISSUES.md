@@ -45,3 +45,4 @@
 | KI-041 | M7 | Provenance/rights of the owner-supplied art sheet are not recorded yet. | Open — owner |
 | KI-042 | M8 | The Severed Line (neon) uses a ReflectionProbe; Godot 4.7.2 prints "7 RIDs of type Texture were leaked" at engine shutdown whenever a probe has existed (reproduced in an empty project with one probe). Exit-time only, no in-game effect. | Engine — monitor |
 | KI-043 | M8 | The Severed Line was checked only on Mesa software Vulkan (lavapipe) with the Mobile renderer; frame rate, glow and the reflection probe cost on a phone are unverified. | Open — needs device |
+| KI-044 | M8 | Ryuen's Sanctuary: the Origin crystal keystone sits above the gameplay camera's view at normal zoom (visible in menus and wide shots); banners are rigid panels (no cloth motion). | Open |
