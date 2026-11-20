@@ -360,6 +360,33 @@ staying phone-friendly:
   gameplay camera actually looks.
 **Accepted.**
 
+## D-052 — 2026-11-20 — Arena pass 2: baked light, panoramas, reactions
+- **Baked light:** besides AO, the builder bakes a lightmap per arena in
+  Cycles: bounce light from the scene's own lights (read from the arena
+  .tscn) and sky, plus the light thrown by glowing surfaces (neon, lamps,
+  Origin cracks). Real-time lights stay for direct light, shadows and
+  speculars; the lightmap is added as emission by
+  `shaders/arena/arena_surface.gdshader` (capped near strong emitters).
+- **Surface shader:** arena materials are now ShaderMaterials: tiling
+  textures, world-space macro variation against visible tiling, grime that
+  gathers in occluded areas (from the AO map), optional travelling glow
+  (`flow`).
+- **Panoramas:** the far city (Severed Line) and the cloud sea with far
+  islands (Sanctuary) are rendered from the concept scenes as 4096 x 2048
+  equirectangular skies (`tools/blender/arena_panorama.py`); the matching
+  far geometry was removed from the game meshes.
+- **Hero pieces:** conduit flanges, service pipes and exposed Origin coils;
+  ring gate outer flange, carved ribs, plinth and chains; crane track
+  wheels, ladder, exhaust, sheaves and hook block; heart spikes.
+- **Life:** drone over the city, birds over the Sanctuary, camera flashes in
+  The Pit crowd, orbiting fragments round the heart, crack glow travelling
+  outward in the Origin Chamber.
+- **Fight reactions (presentation only):** `ArenaView.react()` is called by
+  the combat scene on hits, knockdowns and KOs: impact dust/splash/sparks,
+  crowd excitement, glow flares. Off with "reduce effects".
+- **Colour grading:** a per-arena 1D colour-correction curve.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

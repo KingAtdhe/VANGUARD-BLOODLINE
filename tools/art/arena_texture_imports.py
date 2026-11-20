@@ -10,7 +10,7 @@ explicit for builds made from the command line.
 import glob
 import re
 
-paths = glob.glob("assets/arenas/textures/*.png.import") + glob.glob("assets/arenas/*/*_ao.png.import") \
+paths = glob.glob("assets/arenas/textures/*.png.import") + glob.glob("assets/arenas/*/*_ao.png.import") + glob.glob("assets/arenas/*/*_light.png.import") + glob.glob("assets/arenas/*/*_sky.png.import") \
     + glob.glob("assets/arenas/*/*banner*.png.import")
 for p in paths:
     s = open(p).read()

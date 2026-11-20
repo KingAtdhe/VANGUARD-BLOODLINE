@@ -374,7 +374,25 @@ func _present_new_events() -> void:
 			CombatEvent.Type.BLOCK:
 				_effects.spawn_for(ev)
 				_camera_rig.add_shake(0.008)
+		_arena_react(ev)
 	_seen_events = combat_log.total_count()
+
+
+## Lets the arena answer the fight (dust, crowd, glow). Presentation only.
+func _arena_react(ev: CombatEvent) -> void:
+	if not (arena_view is ArenaView):
+		return
+	var av: ArenaView = arena_view
+	var x: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5
+	if ev.target == 0 or ev.target == 1:
+		x = simulation.fighters[ev.target].position_x
+	match ev.type:
+		CombatEvent.Type.HIT:
+			av.react(&"hit", x, clampf(float(ev.damage) / 120.0, 0.0, 1.0))
+		CombatEvent.Type.KNOCKDOWN:
+			av.react(&"knockdown", x, 1.0)
+		CombatEvent.Type.KO:
+			av.react(&"ko", x, 1.0)
 
 
 func _render(delta: float) -> void:

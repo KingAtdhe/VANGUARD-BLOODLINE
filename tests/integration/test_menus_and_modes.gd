@@ -272,10 +272,18 @@ func test_roster_models_and_arenas() -> Array[String]:
 			var mi: MeshInstance3D = mn
 			for si: int in mi.get_surface_override_material_count():
 				var om: Material = mi.get_surface_override_material(si)
-				if om is StandardMaterial3D and (om as StandardMaterial3D).albedo_texture != null:
+				if om is ShaderMaterial and (om as ShaderMaterial).get_shader_parameter("albedo_tex") != null:
 					textured += 1
 		if textured < 3:
 			f.append("arena %s: only %d textured surfaces" % [id, textured])
+		# The arena answers a KO: impact dust fires (presentation only).
+		var dust: Node = arena.get_node_or_null("Reactions/ImpactDust")
+		if not (dust is GPUParticles3D):
+			f.append("arena %s has no Reactions/ImpactDust" % id)
+		else:
+			(arena as ArenaView).react(&"ko", 1.0, 1.0)
+			if not (dust as GPUParticles3D).emitting:
+				f.append("arena %s: KO reaction did not fire the impact dust" % id)
 		if arena.find_children("*", "WorldEnvironment", true, false).is_empty():
 			f.append("arena %s has no environment" % id)
 		var tris: int = 0

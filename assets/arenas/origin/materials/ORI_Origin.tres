@@ -1,12 +1,18 @@
-[gd_resource type="StandardMaterial3D" load_steps=1 format=3]
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
 
+[ext_resource type="Shader" path="res://shaders/arena/arena_surface.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://assets/arenas/textures/macro_noise.png" id="2"]
 
 [resource]
 resource_name = "ORI_Origin"
-albedo_color = Color(0.5325, 0.0000, 0.0000, 1)
-roughness = 0.400
-metallic = 0.000
-emission_enabled = true
-emission = Color(0.9532, 0.1689, 0.1689, 1)
-emission_energy_multiplier = 1.000
-texture_filter = 5
+shader = ExtResource("1")
+shader_parameter/tint = Color(0.5325, 0.0000, 0.0000, 1)
+shader_parameter/use_textures = false
+shader_parameter/roughness = 0.400
+shader_parameter/metallic = 0.000
+shader_parameter/macro_tex = ExtResource("2")
+shader_parameter/macro = 0.0
+shader_parameter/grime = 0.0
+shader_parameter/emission_color = Color(0.9532, 0.1689, 0.1689, 1)
+shader_parameter/emission_energy = 1.000
+shader_parameter/flow = 1.0

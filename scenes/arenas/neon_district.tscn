@@ -6,17 +6,22 @@
 [ext_resource type="Resource" path="res://data/arenas/neon_arena.tres" id="4_cfg"]
 [ext_resource type="Texture2D" path="res://assets/arenas/neon/wanted_poster.png" id="5_poster"]
 [ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
+[ext_resource type="Script" path="res://scripts/arenas/arena_drift.gd" id="7_drift"]
+[ext_resource type="Texture2D" path="res://assets/arenas/neon/neon_sky.png" id="9_sky"]
 
-[sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
-sky_top_color = Color(0.015, 0.02, 0.05, 1)
-sky_horizon_color = Color(0.16, 0.07, 0.12, 1)
-ground_bottom_color = Color(0.01, 0.01, 0.02, 1)
-ground_horizon_color = Color(0.1, 0.04, 0.08, 1)
-sun_angle_max = 30.0
+[sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
+panorama = ExtResource("9_sky")
 energy_multiplier = 1.0
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMat")
+
+[sub_resource type="Gradient" id="GradeGrad"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.0, 0.012, 0.04, 1, 0.47, 0.5, 0.56, 1, 1, 0.95, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="Grade"]
+gradient = SubResource("GradeGrad")
 
 [sub_resource type="Environment" id="Env"]
 background_mode = 2
@@ -38,6 +43,7 @@ fog_sky_affect = 0.4
 adjustment_enabled = true
 adjustment_contrast = 1.08
 adjustment_saturation = 1.1
+adjustment_color_correction = SubResource("Grade")
 
 [sub_resource type="ParticleProcessMaterial" id="RainMat"]
 emission_shape = 3
@@ -124,6 +130,76 @@ billboard_keep_scale = true
 [sub_resource type="QuadMesh" id="SparkQuad"]
 material = SubResource("SparkMat2")
 size = Vector2(0.09, 0.09)
+
+[sub_resource type="ParticleProcessMaterial" id="DustMat"]
+emission_shape = 3
+emission_box_extents = Vector3(0.6, 0.05, 0.35)
+direction = Vector3(0, 1, 0)
+spread = 75.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.2
+gravity = Vector3(0, -3.5, 0)
+damping_min = 1.0
+damping_max = 2.0
+scale_min = 1.0
+scale_max = 2.6
+color = Color(0.6, 0.68, 0.85, 0.5)
+
+[sub_resource type="Gradient" id="DustGrad"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="DustDot"]
+gradient = SubResource("DustGrad")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+width = 64
+height = 64
+
+[sub_resource type="StandardMaterial3D" id="DustMat2"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = SubResource("DustDot")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="DustQuad"]
+material = SubResource("DustMat2")
+size = Vector2(0.35, 0.35)
+
+[sub_resource type="StandardMaterial3D" id="DroneBody"]
+albedo_color = Color(0.08, 0.08, 0.09, 1)
+metallic = 0.6
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="DroneRed"]
+shading_mode = 0
+albedo_color = Color(1, 0.1, 0.05, 1)
+
+[sub_resource type="StandardMaterial3D" id="DroneGreen"]
+shading_mode = 0
+albedo_color = Color(0.2, 1, 0.5, 1)
+
+[sub_resource type="BoxMesh" id="DroneBox"]
+material = SubResource("DroneBody")
+size = Vector3(0.9, 0.22, 0.9)
+
+[sub_resource type="CylinderMesh" id="DroneRotor"]
+material = SubResource("DroneBody")
+top_radius = 0.32
+bottom_radius = 0.32
+height = 0.03
+
+[sub_resource type="SphereMesh" id="DroneLampR"]
+material = SubResource("DroneRed")
+radius = 0.07
+height = 0.14
+
+[sub_resource type="SphereMesh" id="DroneLampG"]
+material = SubResource("DroneGreen")
+radius = 0.07
+height = 0.14
 
 [node name="NeonDistrict" type="Node3D"]
 script = ExtResource("1_view")
@@ -254,6 +330,7 @@ texture = ExtResource("5_poster")
 
 [node name="OriginPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
 script = ExtResource("6_pulse")
+reacts = true
 material_names = PackedStringArray("SEV_Origin")
 period = 1.8
 low = 0.6
@@ -265,3 +342,49 @@ material_names = PackedStringArray("SEV_Neon")
 low = 0.7
 high = 1.0
 flicker = true
+
+[node name="Reactions" type="Node3D" parent="."]
+
+[node name="ImpactDust" type="GPUParticles3D" parent="Reactions" groups=["arena_fx"]]
+emitting = false
+amount = 40
+lifetime = 1.2
+one_shot = true
+explosiveness = 0.9
+visibility_aabb = AABB(-6, -1, -6, 12, 8, 12)
+process_material = SubResource("DustMat")
+draw_pass_1 = SubResource("DustQuad")
+
+[node name="Drone" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13, -26)
+script = ExtResource("7_drift")
+radius = Vector2(24, 9)
+height_wave = 1.5
+period = 34.0
+
+[node name="Body" type="MeshInstance3D" parent="Ambience/Drone"]
+mesh = SubResource("DroneBox")
+
+[node name="R1" type="MeshInstance3D" parent="Ambience/Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.14, 0.6)
+mesh = SubResource("DroneRotor")
+
+[node name="R2" type="MeshInstance3D" parent="Ambience/Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.14, 0.6)
+mesh = SubResource("DroneRotor")
+
+[node name="R3" type="MeshInstance3D" parent="Ambience/Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.14, -0.6)
+mesh = SubResource("DroneRotor")
+
+[node name="R4" type="MeshInstance3D" parent="Ambience/Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.14, -0.6)
+mesh = SubResource("DroneRotor")
+
+[node name="LampR" type="MeshInstance3D" parent="Ambience/Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -0.12, 0)
+mesh = SubResource("DroneLampR")
+
+[node name="LampG" type="MeshInstance3D" parent="Ambience/Drone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.12, 0)
+mesh = SubResource("DroneLampG")

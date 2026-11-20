@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — arena pass 2
+- Baked bounce light and glow spill (neon on walls, lamp pools, Origin crack glow) on top of the real-time lights; new arena surface shader with grime in corners and no visible texture tiling.
+- Painted 360-degree backdrops: the neon city skyline and the Sanctuary's sea of clouds with distant floating islands.
+- More detailed hero pieces: the conduit (flanges, pipes, exposed glowing coils), the ring gate (outer flange, carved ribs, plinth, hanging chains), the mining cranes (wheels, ladder, exhaust, pulleys, hook block), the Origin heart (molten spikes).
+- More life: a drone circling the city, birds over the clouds, camera flashes in the crowd, fragments orbiting the heart, glow travelling along the Origin cracks.
+- Arenas react to the fight: impact dust, puddle splashes or sparks on knockdowns and KOs, the crowd jumps harder, glows flare.
+- Per-arena colour grading.
 ### Changed — arena quality pass
 - All four arenas are textured (stone, quarry strata, wet concrete, rusted paint, gravel, obsidian, plaster, roof tiles, facades, gold) with normal and roughness maps, and have baked ambient occlusion.
 - Motion: The Pit's crowd cheers and waves flags; Ryuen's banners sway; the Origin heart's three rings turn; Origin veins, neon signs, the Sanctuary crystal and the Origin emblems pulse or flicker; incense smoke in the Sanctuary.

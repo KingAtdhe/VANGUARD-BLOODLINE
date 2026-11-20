@@ -47,4 +47,5 @@
 | KI-043 | M8 | The Severed Line was checked only on Mesa software Vulkan (lavapipe) with the Mobile renderer; frame rate, glow and the reflection probe cost on a phone are unverified. | Open — needs device |
 | KI-044 | M8 | Ryuen's Sanctuary: the Origin crystal keystone sits above the gameplay camera's view at normal zoom (visible in menus and wide shots). Banners now sway (shader). | Open |
 | KI-045 | M8 | Origin Chamber: the black-glass floor needs the reflection probe to read as glass; cost on phones unmeasured. (Heart rings now turn.) | Open |
-| KI-046 | M8 | Arena textures are procedural (generated), not hand-painted or scanned; still a clear step below console stages. Ambient occlusion is baked, but direct light is still real-time only (no baked light bounce). Texture memory and shader cost on phones unmeasured. | Open — needs device |
+| KI-046 | M8 | Arena textures are procedural (generated), not hand-painted or scanned; still a clear step below console stages. Bounce light and glow spill are baked (approximate match to the real-time lights); direct light stays real-time. Texture memory and shader cost on phones unmeasured. | Open — needs device |
+| KI-047 | M8 | Arena panoramas are 4096x2048 images (VRAM-compressed); memory on low-end phones unmeasured. Panorama city/clouds do not move. | Open — needs device |

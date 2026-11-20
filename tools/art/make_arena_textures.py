@@ -254,7 +254,16 @@ def gold():
     save("gold", m(v) * col((1.0, 0.86, 0.6)), br * 0.2, np.clip(0.25 + 0.15 * br + 0.35 * tarnish, 0, 1), 2)
 
 
+def macro_noise():
+    """Large-scale brightness variation sampled in world space by the arena
+    shader, so repeating textures don't read as a grid."""
+    v = fbm(140, 1, 5) * 0.7 + fnoise(141, 3, 8) * 0.3
+    os.makedirs(OUT, exist_ok=True)
+    Image.fromarray((np.clip(v, 0, 1) * 255).astype(np.uint8), "L").save(f"{OUT}/macro_noise.png")
+
+
 if __name__ == "__main__":
+    macro_noise()
     stone()
     rock_strata()
     concrete_wet()

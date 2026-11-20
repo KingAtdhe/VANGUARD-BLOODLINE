@@ -167,7 +167,7 @@ class Kit:
         bpy.context.scene.collection.objects.link(obj)
         for p in mesh.polygons:
             p.use_smooth = False
-        ao_rel = ""
+        ao_rel, lm_rel = "", ""
         if bake_ao:
             lm = mesh.uv_layers.new(name="Lightmap")
             mesh.uv_layers.active = lm
@@ -201,12 +201,13 @@ class Kit:
             for m in mesh.materials:
                 for nd in [nd for nd in m.node_tree.nodes if nd.type == "TEX_IMAGE"]:
                     m.node_tree.nodes.remove(nd)
+            lm_rel = "res://" + os.path.relpath(bake_lightmap(obj, arena_id), ROOT).replace(os.sep, "/")
             mesh.uv_layers.active = mesh.uv_layers["UVMap"]
         print(f"[arena] {self.name}: tris={tris} materials={len(self.mats)} ao={'yes' if ao_rel else 'no'}")
         bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_yup=True, export_apply=False,
                                   export_materials="EXPORT", export_animations=False)
         if materials:
-            write_godot_materials(out_dir, self.mats, ao_rel)
+            write_godot_materials(out_dir, self.mats, ao_rel, lm_rel)
 
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -237,45 +238,174 @@ def _tex_mean(tex):
     return _TEX_MEAN[tex]
 
 
-def write_godot_materials(out_dir, mats, ao_rel):
+# Per-material tweaks for the arena surface shader.
+FLOW = {"ORI_Origin": 1.0, "PIT_Vein": 0.6, "SEV_Origin": 0.8}
+GRIME = {"SAN_Gold": 0.25, "PIT_Gold": 0.25, "SEV_Metal": 0.35, "PIT_Steel": 0.4, "ORI_Obsidian": 0.2,
+         "SAN_Roof": 0.45, "SEV_RoofWet": 0.7, "PIT_Rock": 0.5, "SAN_White": 0.5}
+# How strongly the baked light is added, per arena (calibrated in-engine).
+LIGHT_STRENGTH = {"neon": 1.0, "temple": 0.7, "ascendant": 0.55, "origin": 1.6}
+
+
+def write_godot_materials(out_dir, mats, ao_rel, lm_rel=""):
+    """One ShaderMaterial (shaders/arena/arena_surface.gdshader) per surface."""
     mdir = os.path.join(out_dir, "materials")
     os.makedirs(mdir, exist_ok=True)
+    arena_id = os.path.basename(out_dir)
     for name, rgb, rough, metal, emit, strength in mats:
         res, props = [], []
-        surf = SURFACES.get(name)
 
         def ext(p, typ="Texture2D"):
             res.append(f'[ext_resource type="{typ}" path="{p}" id="{len(res) + 1}"]')
             return f'ExtResource("{len(res)}")'
 
+        shader = ext("res://shaders/arena/arena_surface.gdshader", "Shader")
+        surf = SURFACES.get(name)
+        P = "shader_parameter/"
         if surf:
             mean = _tex_mean(surf[0])
-            tint = [min(1.0, max(0.0, c / max(1e-4, mc))) for c, mc in zip(rgb, mean)]
-            # linear tint -> Godot Color is sRGB-encoded in .tres for albedo
-            tint = [t ** (1 / 2.2) for t in tint]
-            props += [f"albedo_color = Color({tint[0]:.4f}, {tint[1]:.4f}, {tint[2]:.4f}, 1)",
-                      f"albedo_texture = {ext(f'{TEX}/{surf[0]}_albedo.png')}",
-                      f"roughness = {min(1.0, rough * 1.35):.3f}",
-                      f"roughness_texture = {ext(f'{TEX}/{surf[0]}_rough.png')}",
-                      "roughness_texture_channel = 4",
-                      "normal_enabled = true",
-                      f"normal_texture = {ext(f'{TEX}/{surf[0]}_normal.png')}"]
+            tint = [min(1.0, max(0.0, c / max(1e-4, mc))) ** (1 / 2.2) for c, mc in zip(rgb, mean)]
+            props += [f"{P}tint = Color({tint[0]:.4f}, {tint[1]:.4f}, {tint[2]:.4f}, 1)",
+                      f"{P}use_textures = true",
+                      f"{P}albedo_tex = {ext(f'{TEX}/{surf[0]}_albedo.png')}",
+                      f"{P}normal_tex = {ext(f'{TEX}/{surf[0]}_normal.png')}",
+                      f"{P}rough_tex = {ext(f'{TEX}/{surf[0]}_rough.png')}",
+                      f"{P}roughness = {min(1.0, rough * 1.35):.3f}"]
         else:
             c = [x ** (1 / 2.2) for x in rgb]
-            props += [f"albedo_color = Color({c[0]:.4f}, {c[1]:.4f}, {c[2]:.4f}, 1)", f"roughness = {rough:.3f}"]
-        props.append(f"metallic = {metal:.3f}")
+            props += [f"{P}tint = Color({c[0]:.4f}, {c[1]:.4f}, {c[2]:.4f}, 1)", f"{P}use_textures = false",
+                      f"{P}roughness = {rough:.3f}"]
+        props += [f"{P}metallic = {metal:.3f}", f"{P}macro_tex = {ext(f'{TEX}/macro_noise.png')}",
+                  f"{P}macro = {0.0 if strength > 0 else 0.3}", f"{P}grime = {GRIME.get(name, 0.6) if strength <= 0 else 0.0}"]
         if strength > 0:
             e = [x ** (1 / 2.2) for x in emit]
-            props += ["emission_enabled = true", f"emission = Color({e[0]:.4f}, {e[1]:.4f}, {e[2]:.4f}, 1)",
-                      f"emission_energy_multiplier = {strength:.3f}"]
-        elif ao_rel:
-            props += ["ao_enabled = true", f"ao_texture = {ext(ao_rel)}", "ao_on_uv2 = true",
-                      "ao_light_affect = 0.75"]
-        props.append("texture_filter = 5")
-        body = "\n".join([f'[gd_resource type="StandardMaterial3D" load_steps={len(res) + 1} format=3]', ""]
-                         + res + ["", "[resource]", f'resource_name = "{name}"'] + props) + "\n"
+            props += [f"{P}emission_color = Color({e[0]:.4f}, {e[1]:.4f}, {e[2]:.4f}, 1)",
+                      f"{P}emission_energy = {strength:.3f}", f"{P}flow = {FLOW.get(name, 0.0)}"]
+        else:
+            if ao_rel:
+                props.append(f"{P}ao_tex = {ext(ao_rel)}")
+            if lm_rel:
+                props += [f"{P}light_tex = {ext(lm_rel)}", f"{P}light_scale = {LM_SCALE}",
+                          f"{P}light_strength = {LIGHT_STRENGTH.get(arena_id, 1.0)}"]
+        body = "\n".join([f'[gd_resource type="ShaderMaterial" load_steps={len(res) + 1} format=3]', ""]
+                         + res + ["", "[resource]", f'resource_name = "{name}"', f"shader = {shader}"] + props) + "\n"
         with open(os.path.join(mdir, f"{name}.tres"), "w") as fh:
             fh.write(body)
+
+
+SCENES = {"neon": "scenes/arenas/neon_district.tscn", "temple": "scenes/arenas/forgotten_temple.tscn",
+          "ascendant": "scenes/arenas/ascendant_arena.tscn", "origin": "scenes/arenas/origin_chamber.tscn"}
+
+
+def scene_lights(arena_id):
+    """Reads the arena scene's real-time lights and ambient colour so the
+    lightmap bake uses the same lighting. Godot (x, y, z) -> Blender (x, -z, y)."""
+    import re
+    path = os.path.join(ROOT, SCENES.get(arena_id, ""))
+    if not os.path.isfile(path):
+        return [], (0.3, 0.3, 0.35)
+    text = open(path).read()
+    amb = (0.3, 0.3, 0.35)
+    m = re.search(r"ambient_light_color = Color\(([^)]*)\)", text)
+    e = re.search(r"ambient_light_energy = ([\d.]+)", text)
+    if m:
+        c = [float(x) for x in m.group(1).split(",")[:3]]
+        k = float(e.group(1)) if e else 1.0
+        amb = tuple(x * k for x in c)
+    lights = []
+    for blk in re.split(r"\n(?=\[node )", text):
+        t = re.match(r'\[node name="([^"]+)" type="(OmniLight3D|SpotLight3D|DirectionalLight3D)"', blk)
+        if not t:
+            continue
+        tr = re.search(r"transform = Transform3D\(([^)]*)\)", blk)
+        v = [float(x) for x in tr.group(1).split(",")] if tr else [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+        def f(key, d):
+            mm = re.search(rf"\n{key} = ([^\n]+)", blk)
+            return mm.group(1) if mm else d
+        col = [float(x) for x in f("light_color", "Color(1, 1, 1, 1)")[6:-1].split(",")[:3]]
+        aim_g = Vector((-v[2], -v[5], -v[8]))             # -Z column (rows are serialised)
+        lights.append(dict(name=t.group(1), type=t.group(2), color=col, energy=float(f("light_energy", "1")),
+                           range=float(f("omni_range", f("spot_range", "5"))), angle=float(f("spot_angle", "45")),
+                           pos=Vector((v[9], -v[11], v[10])), aim=Vector((aim_g.x, -aim_g.z, aim_g.y))))
+    return lights, amb
+
+
+def bake_lightmap(obj, arena_id, size=1024, samples=32):
+    """Bakes the light a surface receives that Godot's real-time lights do
+    not give it: (1) bounce light from the scene's own lights and sky, and
+    (2) light thrown by glowing surfaces (neon, lamps, Origin cracks).
+    Returns the image path (sqrt-encoded RGB, value = png^2 * LM_SCALE)."""
+    import numpy as np
+    sc = bpy.context.scene
+    lights, amb = scene_lights(arena_id)
+    made = []
+    for L in lights:
+        if L["type"] == "DirectionalLight3D":
+            d = bpy.data.lights.new(L["name"], "SUN")
+            d.energy = L["energy"] * 2.5
+        elif L["type"] == "SpotLight3D":
+            d = bpy.data.lights.new(L["name"], "SPOT")
+            d.energy = L["energy"] * 25 * max(1.0, L["range"] / 6)
+            d.spot_size = math.radians(min(170.0, L["angle"] * 2))
+        else:
+            d = bpy.data.lights.new(L["name"], "POINT")
+            d.energy = L["energy"] * 25 * max(1.0, L["range"] / 6)
+        d.color = L["color"]
+        o = bpy.data.objects.new(L["name"], d)
+        o.location = L["pos"]
+        o.rotation_euler = L["aim"].to_track_quat("-Z", "Y").to_euler()
+        sc.collection.objects.link(o)
+        made.append(o)
+    w = sc.world
+    w.use_nodes = True
+    bg = w.node_tree.nodes["Background"]
+    bg.inputs[0].default_value = (*amb, 1)
+    bg.inputs[1].default_value = 1.0
+    sc.cycles.samples = samples
+    sc.cycles.max_bounces = 4
+    sc.render.bake.use_pass_direct = False
+    sc.render.bake.use_pass_indirect = True
+    sc.render.bake.use_pass_color = False
+    results = []
+    for pass_ in ("bounce", "glow"):
+        img = bpy.data.images.new(f"{arena_id}_lm_{pass_}", size, size, alpha=False, float_buffer=True)
+        for m in obj.data.materials:
+            t = m.node_tree.nodes.new("ShaderNodeTexImage")
+            t.image = img
+            m.node_tree.nodes.active = t
+        if pass_ == "glow":                       # light from glowing surfaces only
+            for o in made:
+                o.hide_render = True
+            for m in obj.data.materials:          # Godot's glow makes emitters read brighter than
+                b = m.node_tree.nodes.get("Principled BSDF")   # their raw strength: match that here
+                b.inputs["Emission Strength"].default_value *= 3.0
+            bg.inputs[1].default_value = 0.0
+            sc.render.bake.use_pass_direct = True
+            sc.render.bake.use_pass_indirect = True
+        bpy.ops.object.bake(type="DIFFUSE", margin=8)
+        a = np.array(img.pixels[:], dtype=np.float32).reshape(size, size, 4)[..., :3]
+        results.append(a)
+        for m in obj.data.materials:
+            for nd in [nd for nd in m.node_tree.nodes if nd.type == "TEX_IMAGE"]:
+                m.node_tree.nodes.remove(nd)
+    lm = results[0] * 0.35 + results[1]          # bounce from Godot-equivalent lights is approximate: keep it gentle
+    for _ in range(2):                            # soften sampling noise (light is low-frequency)
+        lm = (lm + np.roll(lm, 1, 0) + np.roll(lm, -1, 0) + np.roll(lm, 1, 1) + np.roll(lm, -1, 1)) / 5
+    enc = np.sqrt(np.clip(lm / LM_SCALE, 0, 1))
+    out = bpy.data.images.new(f"{arena_id}_light", size, size, alpha=False)
+    px = np.ones((size, size, 4), np.float32)
+    px[..., :3] = enc
+    out.pixels = px.ravel()
+    path = os.path.join(ROOT, "assets/arenas", arena_id, f"{arena_id}_light.png")
+    out.filepath_raw = path
+    out.file_format = "PNG"
+    out.save()
+    for o in made:
+        bpy.data.objects.remove(o)
+    print(f"[arena] {arena_id}: lightmap mean {lm.mean(axis=(0, 1)).round(3)} max {lm.max():.2f}")
+    return path
+
+
+LM_SCALE = 4.0
 
 
 def M(name, rgb, rough=0.8, metal=0.0, emit=None, strength=0.0):
@@ -332,7 +462,7 @@ def ascendant():
         M("PIT_Rock", (0.075, 0.062, 0.052), 0.92),
         M("PIT_Gravel", (0.2, 0.15, 0.11), 0.95),
         M("PIT_Dark", (0.075, 0.07, 0.07), 0.5, 0.5),             # cut bedrock stage, steel
-        M("PIT_Paint", (0.42, 0.29, 0.07), 0.7, 0.3),             # weathered crane yellow
+        M("PIT_Paint", (0.2, 0.125, 0.025), 0.7, 0.3),            # weathered crane yellow
         M("PIT_Gold", (0.75, 0.5, 0.18), 0.3, 1.0),
         M("PIT_Vein", (0.2, 0.0, 0.0), 0.5, 0.0, (1.0, 0.05, 0.02), 1.6),
         M("PIT_Lamp", (1.0, 0.95, 0.85), 0.5, 0.0, (1.0, 0.88, 0.7), 2.5),
@@ -480,12 +610,27 @@ def ascendant():
         k.box((bx - side * 1.4, by - 1.62, 3.15), (1.0, 0.03, 0.6), "PIT_Lamp")
         k.box((bx + side * 2.0, by, 2.4), (1.2, 3.0, 1.8), "PIT_Dark", bevel=0.05)
         k.sphere((bx - side * 1.4, by - 1.0, 3.8), 0.12, "PIT_Vein", segs=6, rings=4)   # warning beacon
+        for dx in (-1.8, -0.6, 0.6, 1.8):                 # track wheels
+            for dy in (-1.3, 1.3):
+                k.cyl((bx + dx, by + dy - 0.47 * (1 if dy < 0 else -1) * 0, 0.5), 0.36, 0.95, "PIT_Steel", segs=12, rot=(90, 0, 0))
+        for j in range(8):                                # ladder up the side of the body
+            k.box((bx - side * 2.15, by - 1.62, 0.95 + j * 0.25), (0.5, 0.04, 0.04), "PIT_Steel")
+        for dx in (-0.25, 0.25):
+            k.box((bx - side * 2.15 + dx, by - 1.62, 1.8), (0.04, 0.04, 1.9), "PIT_Steel")
+        k.cyl((bx + side * 0.6, by + 1.2, 3.4), 0.13, 1.4, "PIT_Dark", segs=8)          # exhaust stack
         heel = Vector((bx - side * 1.2, by, 2.8))
         tip = Vector((side * 3.6, 1.0, 10.5))
         truss(k, heel, tip, 1.0, "PIT_Paint", r=0.06)
         truss(k, Vector((bx + side * 1.5, by, 2.8)), Vector((bx + side * 0.8, by, 6.5)), 0.6, "PIT_Paint", r=0.05)
         beam(k, (bx + side * 0.8, by, 6.5), tip, 0.05, "PIT_Dark")
         beam(k, (bx + side * 0.8, by, 6.5), (bx + side * 2.0, by, 3.2), 0.05, "PIT_Dark")
+        k.cyl(tip, 0.45, 0.35, "PIT_Steel", segs=14, rot=(90, 0, 0))                    # sheave at the boom tip
+        k.cyl((bx + side * 0.8, by, 6.5), 0.35, 0.3, "PIT_Steel", segs=12, rot=(90, 0, 0))
+        hook_at = tip + Vector((side * -0.9, 0.6, -5.2))                                   # hook block, hanging free
+        beam(k, tip + Vector((side * -0.9, 0.6, 0)), hook_at + Vector((0, 0, 0.5)), 0.04, "PIT_Dark")
+        k.box(hook_at + Vector((0, 0, 0.25)), (0.5, 0.3, 0.6), "PIT_Paint", bevel=0.04)
+        k.cyl(hook_at - Vector((0, 0, 0.35)), 0.2, 0.08, "PIT_Steel", segs=10, rot=(90, 0, 0))
+        k.box(hook_at - Vector((0.12, 0, 0.55)), (0.08, 0.08, 0.35), "PIT_Steel", rot=(0, 25, 0))
         rig_z = 7.6
         for dx in (-0.6, 0.6):
             beam(k, tip, (tip.x + dx, tip.y, rig_z + 0.4), 0.04, "PIT_Dark")
@@ -646,7 +791,18 @@ def temple():
             continue
         k.box((gx + math.cos(a) * R, gy - 1.0, cz + math.sin(a) * R), (0.32, 0.12, 0.22 if i % 2 else 0.4),
               "SAN_Gold", rot=(0, -math.degrees(a), 0))
+    torus((gx, gy - 0.4, cz), R + 0.95, 0.12, 0.5, "SAN_StoneDark", segs=56, sides=6)   # outer flange
+    for i in range(36):                                   # carved radial ribs on the back face
+        a = 2 * math.pi * i / 36
+        k.box((gx + math.cos(a) * R, gy + 0.75, cz + math.sin(a) * R), (0.16, 0.2, 1.3), "SAN_StoneDark",
+              rot=(0, 90 - math.degrees(a), 0))
     k.box((gx, gy, 0.5), (4.5, 2.6, 1.0), "SAN_StoneDark", bevel=0.06)
+    k.box((gx, gy, 1.12), (3.6, 2.0, 0.24), "SAN_Stone", bevel=0.04)                     # stepped plinth
+    for sx in (-1, 1):
+        k.box((gx + sx * 2.0, gy - 1.32, 0.5), (0.4, 0.04, 0.7), "SAN_Gold")              # carved panels
+        for j in range(10):                               # chain hanging inside the ring
+            k.box((gx + sx * (R - 1.1), gy - 0.6, cz + R - 0.9 - j * 0.42), (0.1, 0.3, 0.4) if j % 2 else (0.3, 0.1, 0.4),
+                  "SAN_StoneDark")
     for sx in (-1, 1):
         k.box((gx + sx * (R - 0.4), gy + 0.9, 1.6), (1.2, 2.2, 3.2), "SAN_StoneDark", rot=(0, sx * 12, 0))
     # dormant Origin crystal cluster as keystone
@@ -778,19 +934,8 @@ def temple():
         k.box((x, 4.6 - 0.36, 1.85), (0.45, 0.02, 0.3), "SAN_Glow")
         k.box((x, 4.6, 2.25), (1.1, 1.1, 0.2), "SAN_Roof", bevel=0.05)
 
-    # ---- sea of clouds and cloud towers -------------------------------------
-    nx, ny = 36, 14
-    grid = [[k.bm.verts.new(Vector((-200 + 400 * i / nx, 20 + 160 * j / ny,
-                                    -7 + rnd.uniform(-1.5, 3.5) + (2.5 if (i + j) % 5 == 0 else 0))))
-             for i in range(nx + 1)] for j in range(ny + 1)]
-    for j in range(ny):
-        for i in range(nx):
-            k.bm.faces.new((grid[j][i], grid[j][i + 1], grid[j + 1][i + 1], grid[j + 1][i]))
-    k._finish_new((0, 0, 0), (0, 0, 0), "SAN_White")
-    for x, y, z, r in ((-45, 90, 4, 14), (38, 110, 8, 18), (-10, 140, 10, 22), (70, 80, 2, 12)):
-        for b in range(5):                          # a tower is a stack of lumpy puffs
-            k.sphere((x + rnd.uniform(-r, r) * 0.4, y, z + b * r * 0.5), r * rnd.uniform(0.5, 0.8), "SAN_White",
-                     segs=10, rings=6, scale=(1.0, 0.8, 0.75))
+    # ---- the sea of clouds, cloud towers and far islands are the painted
+    # panorama sky (tools/blender/arena_panorama.py -> temple_sky.png).
     return k
 
 
@@ -922,7 +1067,9 @@ def neon():
                       "SEV_Concrete")
             k.box((cx + w / 2 - 0.3, front - 0.15, (GROUND + h) / 2), (0.16, 0.16, h - GROUND), "SEV_Metal")
 
-    for row, (y0, hmin, hmax, wp) in enumerate(((16, 4, 22, 0.32), (34, 18, 45, 0.24), (60, 35, 75, 0.16))):
+    # Only the nearest row is real geometry; the far city is the painted
+    # panorama sky (tools/blender/arena_panorama.py -> neon_sky.png).
+    for row, (y0, hmin, hmax, wp) in enumerate(((16, 4, 22, 0.32),)):
         x = -70.0 + rnd.uniform(0, 4)
         while x < 70:
             w = rnd.uniform(7, 13) * (1 + row * 0.3)
@@ -1000,7 +1147,19 @@ def neon():
         while t < L - 1.0:
             if not broken or t < L * 0.8:
                 ring(p0 + ax * t, ax, r * 1.08, 0.45, "SEV_Casing")
+                ring(p0 + ax * (t + 0.3), ax, r * 1.12, 0.08, "SEV_Metal", segs=24)       # bolted flange
             t += rnd.uniform(4.0, 6.5)
+        # service pipes riding along the top, clamped to the ribs
+        rot_ax = tuple(math.degrees(a) for a in ax.to_track_quat("Z", "Y").to_euler())
+        up_side = (w if w.z > 0 else -w)
+        for j, off in enumerate((-0.55, 0.0, 0.55)):
+            pc = (p0 + p1) / 2 + up_side * (r * 1.18) + u * off
+            k.cyl(pc, 0.16 if j != 1 else 0.24, L * (0.78 if broken else 0.98), "SEV_Metal", segs=10, rot=rot_ax)
+        if broken:                                       # exposed Origin coils where the armour is gone
+            t = L * 0.72
+            while t < L - 0.8:
+                ring(p0 + ax * t, ax, r * 0.86, 0.12, "SEV_Origin", segs=20)
+                t += 0.7
         if broken:                                       # jagged lip and dangling cables
             for i in range(12):
                 ang = rnd.uniform(0, 2 * math.pi)
@@ -1138,6 +1297,10 @@ def origin():
     k._finish_new((C0.x, C0.y, -6), (0, 0, 0), "ORI_Obsidian")
     # ---- the Origin heart -------------------------------------------------------
     k.sphere(HEART, 2.2, "ORI_Origin", segs=18, rings=12)
+    for i in range(22):                                   # molten spikes forcing through the crust
+        a, b = rnd.uniform(0, 2 * math.pi), math.acos(rnd.uniform(-1, 1))
+        n = Vector((math.sin(b) * math.cos(a), math.sin(b) * math.sin(a), math.cos(b)))
+        shard(k, HEART + n * 1.9, n, rnd.uniform(0.7, 1.6), rnd.uniform(0.12, 0.25), "ORI_Origin", rnd.uniform(0, 6))
     for i in range(95):                                      # cooled crust plates; light shows in the gaps
         a, b = rnd.uniform(0, 2 * math.pi), math.acos(rnd.uniform(-1, 1))
         n = Vector((math.sin(b) * math.cos(a), math.sin(b) * math.sin(a), math.cos(b)))
@@ -1226,6 +1389,8 @@ def main():
     ap.add_argument("--out", default="assets/arenas")
     ap.add_argument("--only", default="")
     ap.add_argument("--no-bake", action="store_true", help="skip the ambient-occlusion bake (fast preview)")
+    ap.add_argument("--materials-only", action="store_true",
+                    help="only rewrite the Godot materials (reuses the baked AO/light maps)")
     a = ap.parse_args(argv)
     for name, fn in ARENAS.items():
         if a.only and a.only != name:
@@ -1234,6 +1399,13 @@ def main():
         # for separately animated parts such as The Pit's crowd.
         res = fn()
         main_kit, extras = (res if isinstance(res, tuple) else (res, []))
+        if a.materials_only:
+            d = f"{a.out}/{name}"
+            rel = lambda f: "res://" + os.path.relpath(os.path.abspath(f"{d}/{f}"), ROOT).replace(os.sep, "/")
+            write_godot_materials(d, main_kit.mats, rel(f"{name}_ao.png") if os.path.exists(f"{d}/{name}_ao.png") else "",
+                                  rel(f"{name}_light.png") if os.path.exists(f"{d}/{name}_light.png") else "")
+            print(f"[arena] {name}: materials rewritten")
+            continue
         main_kit.export(f"{a.out}/{name}/{name}_arena.glb", bake_ao=not a.no_bake)
         for kit, fname in extras:
             kit.export(f"{a.out}/{name}/{fname}", bake_ao=False, materials=False)

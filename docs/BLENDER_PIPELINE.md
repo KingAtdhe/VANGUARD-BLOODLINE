@@ -90,6 +90,11 @@ python tools/blender/arena_builder.py --out assets/arenas
   materials without AO). After a rebuild run Godot's import once, then
   `python3 tools/art/arena_texture_imports.py` and import again so the
   textures are VRAM-compressed with mipmaps.
+- Arena pass 2 (D-052): the full build (`arena_builder.py`, no flags) bakes
+  AO and the lightmap (several minutes per arena). `--materials-only`
+  rewrites the Godot materials after a tuning change without re-baking.
+  Panorama skies: `python tools/blender/arena_panorama.py <neon|temple>
+  assets/arenas/<id>/<id>_sky.png 4096 <samples>`.
 - Arena design flow (D-048): concept render first
   (`tools/blender/arena_concept_<name>.py <out.png> [samples] [width]`),
   owner approval, then the game version in `arena_builder.py`. Check the

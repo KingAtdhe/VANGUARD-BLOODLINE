@@ -7,17 +7,22 @@
 [ext_resource type="Shader" path="res://shaders/arena/banner_sway.gdshader" id="5_banner"]
 [ext_resource type="Texture2D" path="res://assets/arenas/temple/ryuen_banner.png" id="6_bannertex"]
 [ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="7_pulse"]
+[ext_resource type="Texture2D" path="res://assets/arenas/temple/bird.png" id="8_bird"]
+[ext_resource type="Texture2D" path="res://assets/arenas/temple/temple_sky.png" id="9_sky"]
 
-[sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
-sky_top_color = Color(0.22, 0.36, 0.62, 1)
-sky_horizon_color = Color(1.0, 0.72, 0.52, 1)
-ground_bottom_color = Color(0.08, 0.06, 0.05, 1)
-ground_horizon_color = Color(1.0, 0.72, 0.52, 1)
-sun_angle_max = 30.0
+[sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
+panorama = ExtResource("9_sky")
 energy_multiplier = 1.0
 
 [sub_resource type="Sky" id="Sky"]
 sky_material = SubResource("SkyMat")
+
+[sub_resource type="Gradient" id="GradeGrad"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.02, 0.01, 0.03, 1, 0.53, 0.49, 0.44, 1, 1, 0.97, 0.9, 1)
+
+[sub_resource type="GradientTexture1D" id="Grade"]
+gradient = SubResource("GradeGrad")
 
 [sub_resource type="Environment" id="Env"]
 background_mode = 2
@@ -39,6 +44,7 @@ fog_sky_affect = 0.2
 adjustment_enabled = true
 adjustment_contrast = 1.08
 adjustment_saturation = 1.1
+adjustment_color_correction = SubResource("Grade")
 
 [sub_resource type="ParticleProcessMaterial" id="EmberMat"]
 emission_shape = 3
@@ -254,6 +260,66 @@ billboard_keep_scale = true
 material = SubResource("SmokeMat2")
 size = Vector2(0.5, 0.5)
 
+[sub_resource type="ParticleProcessMaterial" id="DustMat"]
+emission_shape = 3
+emission_box_extents = Vector3(0.6, 0.05, 0.35)
+direction = Vector3(0, 1, 0)
+spread = 75.0
+initial_velocity_min = 1.2
+initial_velocity_max = 3.2
+gravity = Vector3(0, -3.5, 0)
+damping_min = 1.0
+damping_max = 2.0
+scale_min = 1.0
+scale_max = 2.6
+color = Color(0.75, 0.68, 0.58, 0.45)
+
+[sub_resource type="Gradient" id="DustGrad"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="DustDot"]
+gradient = SubResource("DustGrad")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+width = 64
+height = 64
+
+[sub_resource type="StandardMaterial3D" id="DustMat2"]
+transparency = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_texture = SubResource("DustDot")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="DustQuad"]
+material = SubResource("DustMat2")
+size = Vector2(0.35, 0.35)
+
+[sub_resource type="ParticleProcessMaterial" id="BirdMat"]
+emission_shape = 3
+emission_box_extents = Vector3(2, 6, 30)
+direction = Vector3(1, 0.05, 0)
+spread = 6.0
+initial_velocity_min = 5.0
+initial_velocity_max = 7.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.8
+scale_max = 1.3
+
+[sub_resource type="StandardMaterial3D" id="BirdMat2"]
+transparency = 2
+alpha_scissor_threshold = 0.5
+shading_mode = 0
+albedo_texture = ExtResource("8_bird")
+billboard_mode = 3
+billboard_keep_scale = true
+
+[sub_resource type="QuadMesh" id="BirdQuad"]
+material = SubResource("BirdMat2")
+size = Vector2(1.2, 0.6)
+
 [node name="ForgottenTemple" type="Node3D"]
 script = ExtResource("1_view")
 config = ExtResource("4_cfg")
@@ -395,7 +461,29 @@ light_specular = 0.1
 
 [node name="CrystalPulse" type="Node3D" parent="Ambience" groups=["arena_fx"]]
 script = ExtResource("7_pulse")
+reacts = true
 material_names = PackedStringArray("SAN_Origin", "SAN_Glow")
 period = 4.0
 low = 0.75
 high = 1.25
+
+[node name="Reactions" type="Node3D" parent="."]
+
+[node name="ImpactDust" type="GPUParticles3D" parent="Reactions" groups=["arena_fx"]]
+emitting = false
+amount = 40
+lifetime = 1.2
+one_shot = true
+explosiveness = 0.9
+visibility_aabb = AABB(-6, -1, -6, 12, 8, 12)
+process_material = SubResource("DustMat")
+draw_pass_1 = SubResource("DustQuad")
+
+[node name="Birds" type="GPUParticles3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 16, -70)
+amount = 7
+lifetime = 26.0
+preprocess = 26.0
+visibility_aabb = AABB(-10, -20, -40, 200, 40, 80)
+process_material = SubResource("BirdMat")
+draw_pass_1 = SubResource("BirdQuad")
