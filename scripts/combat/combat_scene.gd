@@ -87,6 +87,9 @@ func _ready() -> void:
 	# Fighters keep their own Origin colour; a mirror match recolours P2.
 	_fighter_views[0].setup(p1_definition, false)
 	_fighter_views[1].setup(p2_definition, p2_definition.model_scene == p1_definition.model_scene)
+	for v: FighterView in _fighter_views:
+		v.set_fighter_lighting(arena_config.fighter_key_color, arena_config.fighter_key_energy,
+			arena_config.fighter_rim_color, arena_config.fighter_rim_energy)
 	director = MatchDirector.new(match_rules)
 	if setup != null:
 		director.opening_health = [setup.p1_opening_health, -1]

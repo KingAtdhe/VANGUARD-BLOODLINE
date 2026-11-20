@@ -26,6 +26,15 @@ extends Resource
 ## How a locked arena is earned, shown on the arena select screen.
 @export var unlock_hint: String = ""
 
+@export_group("Fighter lighting")
+## Each fighter carries a key light (from the camera side) and a rim light
+## (from behind) that light only the fighters (render layer 2), so painted
+## models read clearly against any arena. Tuned per arena to its mood.
+@export var fighter_key_color: Color = Color(1.0, 0.95, 0.9)
+@export var fighter_key_energy: float = 1.2
+@export var fighter_rim_color: Color = Color(1.0, 0.55, 0.35)
+@export var fighter_rim_energy: float = 1.6
+
 
 func width() -> float:
 	return right_bound - left_bound

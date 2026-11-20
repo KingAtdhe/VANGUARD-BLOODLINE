@@ -414,7 +414,7 @@ away, the mesh is scaled to the fighter's height (no decimation, 16–20k
 triangles), textures are kept (re-encoded as plain JPEG/PNG so Godot can read
 them) and the model is bound to the shared 18-bone fighter skeleton and given
 all 17 game animations. Where the supplied rig is sound (Kairo, Drakon, Nox)
-its skin weights are kept, folded onto the game bones. Three supplied rigs
+its skin weights are kept, folded onto the game bones (later only Drakon, see D-055). Three supplied rigs
 were broken (Ryuen and Vexa: skeleton fitted upside down; Seraphina: spine
 collapsed into the shoulders), so those are re-skinned from measured joints.
 The untouched sources are kept in `assets/characters/_source/` (not imported).
@@ -424,6 +424,23 @@ match tints P2's texture (alternate-colour costume) since these models have no
 separate accent part; the Kairo skinning test allows up to 80% blended
 vertices (Tripo skinning is softer than ours); `character_builder.py` skips
 these six unless `--force`. **Accepted.**
+
+## D-055 — 2026-11-20 — Fighter key/rim lights; roster re-skin fixes
+
+Painted fighters read too dark against strong arena backlight (The Pit). Each
+fighter now carries a key light (camera side) and a rim light (behind) that
+light only fighters (render layer 2, light cull mask), tuned per arena in
+`ArenaConfig` (warm-backlit Pit: cool key, warm rim; Severed Line: cyan rim;
+Sanctuary: soft gold; Origin Chamber: crimson rim). Arena lighting is unchanged.
+
+Pose renders from four angles showed loose parts sticking out: Kairo's sash
+was skinned to his arm by the supplied rig, Nox's hood and cloak too; Ryuen's
+and Vexa's measured arm joints sat inside the sleeves / short of the hands, so
+hands and cuffs were left behind as long strands. Kairo and Nox are now
+re-skinned (supplied joints kept), Ryuen and Vexa use arm joints read off a
+measuring-grid render, and long sleeves around the middle of the arm follow
+the arm. The per-fighter settings live in `tools/blender/import_roster.sh`.
+**Accepted.**
 
 ## Open decisions (needed before the named milestone)
 

@@ -15,3 +15,7 @@ scene_path = "res://scenes/arenas/neon_district.tscn"
 tagline = "A rooftop under the broken Origin conduit."
 unlocked_by_default = false
 unlock_hint = "clear Story chapter 3 or the Arcade ladder."
+fighter_key_color = Color(1, 0.86, 0.95, 1)
+fighter_key_energy = 1.3
+fighter_rim_color = Color(0.3, 0.8, 1, 1)
+fighter_rim_energy = 2.0

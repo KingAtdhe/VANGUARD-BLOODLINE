@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — fighter models
+- Parts hanging out of the fighters: Kairo's sash no longer lifts out sideways with his guard (it hangs from the hip), Nox's hood and cloak no longer crush with his arms, and long strands from Ryuen's and Vexa's hands to their hips are gone (arm joints placed correctly; sleeves follow the arm).
+- Fighters are lit by their own key and rim lights, tuned per arena, so the painted models read clearly against bright or dark backgrounds.
+- `tools/blender/import_roster.sh` rebuilds all six fighters with their checked settings.
 ### Changed — fight HUD and results
 - HUD in the Blood Signet style: angled health bars leaning outwards with a bevelled top edge, colour going gold → ember → crimson as health drops, white damage trail; fighter names, timer (in a framed box with a crimson cap), combo counter and announcer in display type; angled round markers; matching Origin meters.
 - Touch pads restyled: dark glass discs with coloured rims and display-type labels; the stick gets a crimson rim, direction ticks and a bone-white knob. Pad colours follow the game palette.

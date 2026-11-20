@@ -14,3 +14,7 @@ p2_spawn_x = 1.5
 scene_path = "res://scenes/arenas/forgotten_temple.tscn"
 tagline = "A monastery held above the clouds by chains."
 unlocked_by_default = true
+fighter_key_color = Color(1, 0.93, 0.82, 1)
+fighter_key_energy = 0.8
+fighter_rim_color = Color(1, 0.85, 0.55, 1)
+fighter_rim_energy = 1.2

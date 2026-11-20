@@ -14,3 +14,7 @@ p2_spawn_x = 1.5
 scene_path = "res://scenes/arenas/ascendant_arena.tscn"
 tagline = "A tournament ring cut into an old Origin mine."
 unlocked_by_default = true
+fighter_key_color = Color(0.85, 0.9, 1, 1)
+fighter_key_energy = 1.6
+fighter_rim_color = Color(1, 0.6, 0.3, 1)
+fighter_rim_energy = 1.4

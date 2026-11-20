@@ -97,6 +97,11 @@ def remove_pedestal(obj):
     wide_low = (r > 0.2 * h) & (co[:, 2] < zmin + 0.15 * h)
     if wide_low.sum() < 30:
         return 0
+    # a base surrounds the feet: its wide low geometry covers most directions
+    ang = np.arctan2(co[wide_low, 1] - c[1], co[wide_low, 0] - c[0])
+    sectors = np.unique(((ang + np.pi) / (2 * np.pi) * 12).astype(int) % 12)
+    if len(sectors) < 9:
+        return 0
     top = np.percentile(co[wide_low, 2], 97) + 0.004 * h
     # shoe footprint: occupied 1.5 cm cells (in a 1.8 m figure) just above the base, grown by one cell
     cell = 0.0085 * h
@@ -173,6 +178,12 @@ def main():
     ap.add_argument("--moves", required=True)
     ap.add_argument("--out", default="assets/characters")
     ap.add_argument("--force-reskin", action="store_true")
+    ap.add_argument("--joint", action="append", default=[],
+                    help="override a measured left-side joint, metres on the final model: elbow=0.30,0,1.02 "
+                         "(the middle value, depth, is taken from the mesh) "
+                         "(shoulder, elbow, wrist, hand_tip, hip, knee, ankle, toe)")
+    ap.add_argument("--hand-reach", type=float, default=0.12,
+                    help="metres (for a 1.8 m figure): cloth this close to a hand follows it; raise for long sleeves")
     a = ap.parse_args(argv)
     fid = a.fighter
     F = fid.upper()
@@ -190,7 +201,8 @@ def main():
 
     # Posed joint positions (what the viewer shows), world space.
     P = {pb.name.split(":")[-1]: src_arm.matrix_world @ pb.head for pb in src_arm.pose.bones}
-    sound = rig_is_sound(P) and not a.force_reskin
+    sound = rig_is_sound(P)                    # joints usable
+    keep_weights = sound and not a.force_reskin
 
     # 1. bake the displayed pose into the mesh, then drop the source rig
     bpy.context.view_layer.objects.active = body
@@ -224,7 +236,7 @@ def main():
     body.data.vertices.foreach_get("co", co)
     co = co.reshape(-1, 3)
     tris = sum(len(p.vertices) - 2 for p in body.data.polygons)
-    print(f"[rigged] {fid}: rig={'kept' if sound else 'rebuilt'} pedestal_verts={dropped} "
+    print(f"[rigged] {fid}: joints={'rig' if sound else 'measured'} weights={'kept' if keep_weights else 'reskinned'} pedestal_verts={dropped} "
           f"scale={s:.3f} tris={tris}")
 
     # 4. game skeleton
@@ -246,6 +258,15 @@ def main():
         spine = [hips, Vector((0, -0.02, 1.12 * k)), Vector((0, -0.02, 1.28 * k)),
                  Vector((0, -0.03, 1.45 * k)), Vector((0, -0.04, 1.56 * k))]
         top = Vector((0, -0.04, co[:, 2].max()))
+
+    for spec in a.joint:
+        name, xyz = spec.split("=")
+        J[name] = Vector(tuple(float(c) for c in xyz.split(",")))
+        # depth from the mesh: centre of the geometry around that point (front view gives x, z only)
+        near = (np.abs(co[:, 0] - J[name].x) < 0.05 * k) & (np.abs(co[:, 2] - J[name].z) < 0.03 * k)
+        if near.sum() > 20:
+            J[name].y = float(np.median(co[near, 1]))
+        print(f"[rigged] joint override {name}={tuple(J[name])}")
 
     B = {
         "Root": ((0, 0, 0), (0, 0, 0.15 * k), None, False),
@@ -280,7 +301,7 @@ def main():
     bpy.ops.object.mode_set(mode="OBJECT")
 
     body.name = f"{F}_Body"
-    if sound:
+    if keep_weights:
         # fold the supplied weights onto the game bones
         n = len(body.data.vertices)
         idx = {nm: i for i, nm in enumerate(GAME_BONES)}
@@ -316,7 +337,7 @@ def main():
             o.select_set(o in (body, rig))
         bpy.context.view_layer.objects.active = rig
         bpy.ops.object.parent_set(type="ARMATURE_NAME")
-        un = ih.skin_weights(body, B, H)
+        un = ih.skin_weights(body, B, H, a.hand_reach)
         print(f"[rigged] re-skinned: unweighted={un}")
 
     # textures: plain files, one material named <F>_Body

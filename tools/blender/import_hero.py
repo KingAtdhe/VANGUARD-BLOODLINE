@@ -84,11 +84,13 @@ def skeleton_for(J, height):
     return {n: B[n] for n in cb.skeleton(cb.FIGHTERS["kairo"]).keys()}
 
 
-def skin_weights(obj, B, height):
+def skin_weights(obj, B, height, hand_reach=0.12):
     """Bone weights for a mesh that heat weighting can't solve (scanned or
     generated meshes are rarely watertight). Each vertex is weighted by its
     distance to every bone segment, restricted by body region (left/right,
-    arms only outside the torso, legs only below the waist), then smoothed
+    arms only outside the torso, legs only below the waist; cloth further than
+    [param hand_reach] (x height/1.8 m) from the hand hangs from the hips — raise
+    it for long sleeves that hang past the hands), then smoothed
     over the surface so joints bend softly. Max 4 bones per vertex."""
     k = height / 1.8
     names = list(B.keys())
@@ -109,8 +111,11 @@ def skin_weights(obj, B, height):
             w *= (x * side > -0.01 * k)
         if "Arm" in nm or "Hand" in nm:
             torso = np.where(z > 1.28 * k, 0.15 * k, 0.21 * k)
-            # only the limb itself: cloth hanging beside a fist (the sash) must not follow the hand
-            w *= (x * side > torso) & (d < 0.12 * k)
+            # Only the limb itself: cloth hanging beside a fist (a sash) must not
+            # follow the hand. Wide sleeves around the middle of the arm do.
+            interior = ("Hand" not in nm) & (tt > 0.04) & (tt < 0.97)
+            reach = np.where(interior, 0.24 * k, (hand_reach if ("Hand" in nm or "LowerArm" in nm) else 0.12) * k)
+            w *= (x * side > torso) & (d < reach)
         if "Leg" in nm or "Foot" in nm:
             w *= (z < 1.05 * k) & (np.abs(x) < 0.5 * k)
         if nm == "Head":
@@ -156,6 +161,11 @@ def skin_weights(obj, B, height):
     keep = np.zeros_like(W, dtype=bool)
     np.put_along_axis(keep, top, True, axis=1)
     W = np.where(keep & (W > 0.02), W, 0.0)
+    W /= np.maximum(W.sum(1, keepdims=True), 1e-12)
+    # Rigid mid-limbs: a vertex almost wholly on one bone moves with that bone
+    # only, so blending stays at the joints (no rubbery forearms or skull).
+    dom = W.max(1) > 0.85
+    W[dom] = (W[dom] == W[dom].max(1, keepdims=True)).astype(float)
     W /= np.maximum(W.sum(1, keepdims=True), 1e-12)
     for g in list(obj.vertex_groups):
         obj.vertex_groups.remove(g)

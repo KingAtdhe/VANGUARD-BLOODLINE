@@ -75,6 +75,7 @@ func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 	for n: Node in model.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		_model_meshes.append(mi)
+		mi.layers |= FIGHTER_LAYER          # lit by the fighter key/rim lights
 		# Per-fighter accent: duplicate the Origin-energy material and recolour.
 		for surf: int in mi.mesh.get_surface_count():
 			var mat := mi.get_active_material(surf) as StandardMaterial3D
@@ -139,6 +140,38 @@ func _make_energy_shield() -> void:
 	# centred on the body, feet to head (FacingMarker sits at y 1.5)
 	mi.position = Vector3(0.0, -1.5 + 0.05, 0.0)
 	_shield_mat = mat
+
+
+## Render layer that only fighters are on (in addition to layer 1).
+const FIGHTER_LAYER: int = 1 << 1
+var _key_light: OmniLight3D = null
+var _rim_light: OmniLight3D = null
+
+
+## Key + rim light that follow this fighter and light only fighters
+## (cull mask = FIGHTER_LAYER). Presentation only; values from ArenaConfig.
+func set_fighter_lighting(key_color: Color, key_energy: float, rim_color: Color, rim_energy: float) -> void:
+	if _key_light == null:
+		_key_light = OmniLight3D.new()
+		_key_light.name = "FighterKey"
+		_key_light.position = Vector3(0.0, 1.7, 2.4)        # camera side, above head height
+		_key_light.omni_range = 4.5
+		_key_light.omni_attenuation = 0.8
+		_key_light.light_specular = 0.35
+		_key_light.light_cull_mask = FIGHTER_LAYER
+		add_child(_key_light)
+		_rim_light = OmniLight3D.new()
+		_rim_light.name = "FighterRim"
+		_rim_light.position = Vector3(0.0, 2.1, -1.6)       # behind, edges the silhouette
+		_rim_light.omni_range = 3.6
+		_rim_light.omni_attenuation = 1.2
+		_rim_light.light_specular = 0.8
+		_rim_light.light_cull_mask = FIGHTER_LAYER
+		add_child(_rim_light)
+	_key_light.light_color = key_color
+	_key_light.light_energy = key_energy
+	_rim_light.light_color = rim_color
+	_rim_light.light_energy = rim_energy
 
 
 func has_model() -> bool:
