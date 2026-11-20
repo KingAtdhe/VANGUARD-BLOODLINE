@@ -216,6 +216,12 @@ def main():
     co = co * s
     co[:, 2] -= co[:, 2].min()
     print(f"[import] source tris={sum(len(p.vertices) - 2 for p in high.data.polygons)} scale={s:.3f}")
+    # inspection + minimal repair before anything else (CLAUDE.md, D-057)
+    import mesh_check
+    pre = mesh_check.inspect(high)
+    print("[check] before", {k: pre[k] for k in ("verts", "parts", "duplicate_verts", "overlapping_faces",
+                                                 "nonmanifold_edges", "inconsistent_winding_edges")})
+    print("[check] fixed ", mesh_check.repair(high))
 
     # 2. reduced copy for the phone
     low = high.copy()

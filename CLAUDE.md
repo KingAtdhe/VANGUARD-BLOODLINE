@@ -65,6 +65,25 @@ systems without approval.
 - New engine-level, architecture, balance or pipeline decisions get an entry in
   `docs/DECISION_LOG.md`.
 
+## Owner-uploaded meshes (standing rule)
+
+Every time the owner uploads a mesh, inspect it before using or modifying it,
+and fix only where necessary — never alter its shape, details or proportions
+without need:
+
+1. flipped or inconsistent normals (repair; recalculate outward);
+2. duplicate vertices, overlapping faces, internal geometry, non-manifold edges;
+3. object scale, rotation and transforms;
+4. materials, texture assignments and UV maps;
+5. deformation and broken geometry (also after rigging: render poses);
+6. appropriate lighting and material settings in the scene.
+
+Run `python tools/blender/mesh_check.py <file> --repair-preview` (Blender's
+Python) and report the findings. `import_rigged.py` and `import_hero.py` run
+the same inspection and minimal repair automatically (`mesh_check.repair`:
+exact duplicates merged, duplicate/degenerate/loose geometry removed, winding
+made consistent and outward; no vertex is moved).
+
 ## Required report after every implementation task
 
 - Files created.

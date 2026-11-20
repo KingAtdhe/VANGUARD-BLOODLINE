@@ -13,6 +13,7 @@ the silhouette, proportions or UVs.
 Open borders (non-manifold boundary edges) are normal for scanned/generated
 garments and are only reported, never "closed".
 """
+import bpy  # noqa: F401  (bmesh is only importable once bpy is loaded)
 import bmesh
 import numpy as np
 
@@ -157,3 +158,52 @@ def repair(obj, dup_dist=1e-5):
     bm.free()
     me.update()
     return out
+
+
+# --------------------------------------------------------------------------- CLI
+
+def _main():
+    """python tools/blender/mesh_check.py <mesh.glb|.gltf|.fbx|.obj> [--repair-preview]
+
+    Prints the inspection report for every mesh object in the file (run on
+    every owner-uploaded mesh before it is used — see CLAUDE.md). With
+    --repair-preview it also reports what repair() would change, on a copy.
+    The file itself is never modified.
+    """
+    import json
+    import sys
+
+    import bpy
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:]
+    path = argv[0]
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    ext = path.lower().rsplit(".", 1)[-1]
+    if ext in ("glb", "gltf"):
+        bpy.ops.import_scene.gltf(filepath=path)
+    elif ext == "fbx":
+        bpy.ops.import_scene.fbx(filepath=path)
+    elif ext == "obj":
+        bpy.ops.wm.obj_import(filepath=path)
+    else:
+        raise SystemExit(f"unsupported mesh format: {ext}")
+    for o in [o for o in bpy.data.objects if o.type == "MESH"]:
+        rep = inspect(o)
+        dims = tuple(round(d, 3) for d in o.dimensions)
+        print(f"== {o.name}  parent={o.parent.name if o.parent else None}  dimensions={dims}  "
+              f"armature={'yes' if any(m.type == 'ARMATURE' for m in o.modifiers) else 'no'}  "
+              f"groups={len(o.vertex_groups)}")
+        print(json.dumps({k: v for k, v in rep.items() if k != 'textures'}, default=str))
+        for t in rep["textures"]:
+            print("   texture", t)
+        if "--repair-preview" in argv:
+            tmp = o.copy()
+            tmp.data = o.data.copy()
+            bpy.context.scene.collection.objects.link(tmp)
+            print("   repair would do:", repair(tmp))
+            print("   after:", {k: v for k, v in inspect(tmp).items()
+                                 if k in ("verts", "parts", "duplicate_verts", "nonmanifold_edges",
+                                          "boundary_edges", "inconsistent_winding_edges")})
+
+
+if __name__ == "__main__":
+    _main()
