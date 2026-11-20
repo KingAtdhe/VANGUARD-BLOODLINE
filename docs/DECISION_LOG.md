@@ -471,6 +471,19 @@ kept), a few inward faces are turned outward. Triangle counts and shapes are
 unchanged. The 4096 px colour maps are kept at full size; fighter colour and
 normal maps use high-quality (ASTC on phones) compression. **Accepted.**
 
+## D-058 — 2026-11-20 — New roster from Tripo T-pose models with Mixamo rigs
+
+The owner regenerated all six fighters in Tripo (T-pose, no base, textured,
+rigged with the Mixamo preset) and they replace the previous models and their
+sources. Each was inspected first (no duplicates or overlaps; ~10.5k
+triangles; 4K PBR maps). Tripo's own skeleton and skin weights are kept,
+folded onto the 18-bone game skeleton; stretched-edge counts in the idle pose
+are 0–101 (vs. hundreds to thousands before). Mesh repair now flips normals
+only on parts that are inconsistent or face inward (automatic recalculation
+wrongly flipped 4,682 correct faces on Kairo's open garments). FBX import
+sets the scene to 60 fps (it silently reset it to the file's 24 fps).
+Sources: `assets/characters/_source/<id>/<id>.fbx` + textures. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

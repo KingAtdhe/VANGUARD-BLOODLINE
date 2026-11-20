@@ -203,7 +203,12 @@ def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     sc = bpy.context.scene
     sc.render.fps = cb.FPS
-    bpy.ops.import_scene.gltf(filepath=a.src)
+    if a.src.lower().endswith(".fbx"):
+        bpy.ops.import_scene.fbx(filepath=a.src)      # textures from the .fbm folder beside it
+    else:
+        bpy.ops.import_scene.gltf(filepath=a.src)
+    sc.render.fps = cb.FPS          # FBX import resets the scene to the file's frame rate (e.g. 24)
+    sc.render.fps_base = 1.0
     bpy.context.view_layer.update()
     src_arm = [o for o in bpy.data.objects if o.type == "ARMATURE"][0]
     body = [o for o in bpy.data.objects if o.type == "MESH" and o.vertex_groups][0]
@@ -384,12 +389,36 @@ def main():
 
     # textures: plain files, one material named <F>_Body
     mat = body.data.materials[0]
+    def feeds(node):
+        """What a texture drives, following links through normal-map/separate nodes."""
+        out = set()
+        stack = [l for o in node.outputs for l in o.links]
+        while stack:
+            l = stack.pop()
+            t = l.to_node
+            if t.type == "NORMAL_MAP":
+                out.add("normal")
+            elif t.type == "BSDF_PRINCIPLED":
+                out.add(l.to_socket.name.lower())
+            else:
+                stack.extend(l2 for o in t.outputs for l2 in o.links)
+        return out
     for node in mat.node_tree.nodes:
         if node.type == "TEX_IMAGE" and node.image is not None:
             nm = node.image.name.lower()
-            kind = "normal" if "normal" in nm else ("rm" if "_rm" in nm or "rough" in nm or "metal" in nm else "basecolor")
+            f = feeds(node)
+            if "normal" in f or "normal" in nm:
+                kind = "normal"
+            elif "base color" in f:
+                kind = "basecolor"
+            elif f & {"roughness", "metallic"} and not ({"roughness", "metallic"} <= f) and "_rm" not in nm:
+                kind = "roughness" if "roughness" in f else "metallic"
+            elif "_rm" in nm or "rough" in nm or "metal" in nm or f & {"roughness", "metallic"}:
+                kind = "rm"
+            else:
+                kind = "basecolor"
             cs = node.image.colorspace_settings.name
-            ext = ".png" if kind == "rm" else ".jpg"
+            ext = ".png" if kind in ("rm", "roughness", "metallic") else ".jpg"
             # the colour map keeps its full 4K detail; roughness/metal and normal stay at their 2K
             node.image = clean_image(node.image, os.path.abspath(os.path.join(out_dir, f"{fid}_{kind}{ext}")),
                                      4096 if kind == "basecolor" else 2048)
@@ -425,7 +454,7 @@ def main():
                               export_materials="EXPORT", export_image_format="AUTO")
     # only this script's own texture copies (now embedded in the GLB); Godot's
     # extracted textures next to the model (<fid>_<fid>_*.jpg) must stay
-    for kind in ("basecolor.jpg", "rm.png", "normal.jpg"):
+    for kind in ("basecolor.jpg", "rm.png", "normal.jpg", "roughness.png", "metallic.png"):
         f = os.path.join(out_dir, f"{fid}_{kind}")
         if os.path.exists(f):
             os.remove(f)

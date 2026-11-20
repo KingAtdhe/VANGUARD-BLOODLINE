@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — new fighter roster
+- All six fighters replaced by the owner's new Tripo models (T-pose, Mixamo rig, 4K textures): no more torn strips or stuck cloth when they move.
+- Importer: FBX support with separate roughness/metal maps; normals only flipped where actually wrong; 60 fps enforced after FBX import.
 ### Fixed — fighter skinning after the second phone test
 - Kairo's gauntlets no longer leave flaps behind when he raises his guard (arm membership: nearer the arm bone than the body's centre line and the legs); his sash stays on the hip.
 - Nox's coat edges no longer stretch from his fists (small hand reach, fitted sleeves).

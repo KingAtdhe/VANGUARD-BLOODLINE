@@ -2,21 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c2dv7ws717o8g"
-path.s3tc="res://.godot/imported/drakon_drakon_rm.png-42fa5d81af0bc040713ce51fdeae57fb.s3tc.ctex"
-path.etc2="res://.godot/imported/drakon_drakon_rm.png-42fa5d81af0bc040713ce51fdeae57fb.etc2.ctex"
+uid="uid://djqbvksk58s82"
+path.s3tc="res://.godot/imported/ryuen_ryuen_metallic-ryuen_roughness.png-60c5d4343f8192d7d79f1ecd58496855.s3tc.ctex"
+path.etc2="res://.godot/imported/ryuen_ryuen_metallic-ryuen_roughness.png-60c5d4343f8192d7d79f1ecd58496855.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "5297fa16f12892f22e7e0a03d60b1871"
+"md5": "f3645cd3a8442ed32513bd9473c1c811"
 }
 
 [deps]
 
-source_file="res://assets/characters/drakon/drakon_drakon_rm.png"
-dest_files=["res://.godot/imported/drakon_drakon_rm.png-42fa5d81af0bc040713ce51fdeae57fb.s3tc.ctex", "res://.godot/imported/drakon_drakon_rm.png-42fa5d81af0bc040713ce51fdeae57fb.etc2.ctex"]
+source_file="res://assets/characters/ryuen/ryuen_ryuen_metallic-ryuen_roughness.png"
+dest_files=["res://.godot/imported/ryuen_ryuen_metallic-ryuen_roughness.png-60c5d4343f8192d7d79f1ecd58496855.s3tc.ctex", "res://.godot/imported/ryuen_ryuen_metallic-ryuen_roughness.png-60c5d4343f8192d7d79f1ecd58496855.etc2.ctex"]
 
 [params]
 

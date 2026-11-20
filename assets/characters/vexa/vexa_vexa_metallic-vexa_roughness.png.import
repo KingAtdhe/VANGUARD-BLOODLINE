@@ -2,21 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d26p7wgywq2km"
-path.s3tc="res://.godot/imported/ryuen_ryuen_rm.png-31d82aa19c99e2a972df645928db101a.s3tc.ctex"
-path.etc2="res://.godot/imported/ryuen_ryuen_rm.png-31d82aa19c99e2a972df645928db101a.etc2.ctex"
+uid="uid://cynn1saofs0lv"
+path.s3tc="res://.godot/imported/vexa_vexa_metallic-vexa_roughness.png-241be2494bb352a4d01066601e839039.s3tc.ctex"
+path.etc2="res://.godot/imported/vexa_vexa_metallic-vexa_roughness.png-241be2494bb352a4d01066601e839039.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "87e77114fa8c0ae6635ba9242a592eda"
+"md5": "f996f63b1e1f1da6af42e72b6d87e9b5"
 }
 
 [deps]
 
-source_file="res://assets/characters/ryuen/ryuen_ryuen_rm.png"
-dest_files=["res://.godot/imported/ryuen_ryuen_rm.png-31d82aa19c99e2a972df645928db101a.s3tc.ctex", "res://.godot/imported/ryuen_ryuen_rm.png-31d82aa19c99e2a972df645928db101a.etc2.ctex"]
+source_file="res://assets/characters/vexa/vexa_vexa_metallic-vexa_roughness.png"
+dest_files=["res://.godot/imported/vexa_vexa_metallic-vexa_roughness.png-241be2494bb352a4d01066601e839039.s3tc.ctex", "res://.godot/imported/vexa_vexa_metallic-vexa_roughness.png-241be2494bb352a4d01066601e839039.etc2.ctex"]
 
 [params]
 

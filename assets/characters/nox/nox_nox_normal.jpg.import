@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cws745hgy42pt"
+uid="uid://cg6nq87yw3dmg"
 path.bptc="res://.godot/imported/nox_nox_normal.jpg-d82868f859361fca8262b64906f88416.bptc.ctex"
 path.astc="res://.godot/imported/nox_nox_normal.jpg-d82868f859361fca8262b64906f88416.astc.ctex"
 metadata={
@@ -10,7 +10,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "188338effd28634924154f6b5548cc6b"
+"md5": "07cca6b33a7b978499a51ec450305f87"
 }
 
 [deps]

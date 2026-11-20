@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cadpfqfkjass0"
+uid="uid://c1cc4mds5i2uu"
 path.bptc="res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.bptc.ctex"
 path.astc="res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.astc.ctex"
 metadata={
@@ -10,7 +10,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "589b58995238746d13a8ed2fa43f4945"
+"md5": "e0844062b6ffad7e13dd657964281cfa"
 }
 
 [deps]

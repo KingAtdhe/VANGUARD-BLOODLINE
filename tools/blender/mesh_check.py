@@ -150,10 +150,36 @@ def repair(obj, dup_dist=1e-5):
     if loose_v:
         bmesh.ops.delete(bm, geom=loose_v, context="VERTS")
     out["removed_loose"] = len(loose_e) + len(loose_v)
-    before = [f.normal.copy() for f in bm.faces]
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    # Recalculate outward only where the winding is actually wrong: on thin,
+    # open garments the automatic recalculation can misjudge "outside" and
+    # flip correct surfaces, so it is applied per connected part, and only to
+    # parts that are inconsistent or face inward.
     bm.faces.ensure_lookup_table()
-    out["faces_flipped_outward"] = sum(1 for f, n in zip(bm.faces, before) if f.normal.dot(n) < 0)
+    bm.edges.ensure_lookup_table()
+    flipped = 0
+    for part in _parts(bm):
+        faces = [bm.faces[i] for i in part]
+        fset = set(part)
+        inconsistent = False
+        for f in faces:
+            for e in f.edges:
+                lf = [g for g in e.link_faces if g.index in fset]
+                if len(lf) == 2:
+                    d = []
+                    for g in lf:
+                        vs = [v.index for v in g.verts]
+                        i = vs.index(e.verts[0].index)
+                        d.append(vs[(i + 1) % len(vs)] == e.verts[1].index)
+                    inconsistent |= d[0] == d[1]
+        c = np.mean([f.calc_center_median()[:] for f in faces], 0)
+        outward = sum(np.dot(np.array(f.normal[:]), np.array(f.calc_center_median()[:]) - c) * f.calc_area()
+                      for f in faces)
+        if not inconsistent and outward >= 0:
+            continue
+        before = [f.normal.copy() for f in faces]
+        bmesh.ops.recalc_face_normals(bm, faces=faces)
+        flipped += sum(1 for f, n in zip(faces, before) if f.normal.dot(n) < 0)
+    out["faces_flipped_outward"] = flipped
     bm.to_mesh(me)
     bm.free()
     me.update()

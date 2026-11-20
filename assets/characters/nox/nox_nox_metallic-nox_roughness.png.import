@@ -2,21 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://7dmernr1v84t"
-path.s3tc="res://.godot/imported/kairo_kairo_rm.png-97b5b2ce2d08370bcce7351484ca3ed7.s3tc.ctex"
-path.etc2="res://.godot/imported/kairo_kairo_rm.png-97b5b2ce2d08370bcce7351484ca3ed7.etc2.ctex"
+uid="uid://b1067vf3hpf8d"
+path.s3tc="res://.godot/imported/nox_nox_metallic-nox_roughness.png-507ca7f65943150477f787e9b730ff9a.s3tc.ctex"
+path.etc2="res://.godot/imported/nox_nox_metallic-nox_roughness.png-507ca7f65943150477f787e9b730ff9a.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "b65d78ec2eee56f119ef783deedae86d"
+"md5": "732a55b2026aab250342329ffa7a7268"
 }
 
 [deps]
 
-source_file="res://assets/characters/kairo/kairo_kairo_rm.png"
-dest_files=["res://.godot/imported/kairo_kairo_rm.png-97b5b2ce2d08370bcce7351484ca3ed7.s3tc.ctex", "res://.godot/imported/kairo_kairo_rm.png-97b5b2ce2d08370bcce7351484ca3ed7.etc2.ctex"]
+source_file="res://assets/characters/nox/nox_nox_metallic-nox_roughness.png"
+dest_files=["res://.godot/imported/nox_nox_metallic-nox_roughness.png-507ca7f65943150477f787e9b730ff9a.s3tc.ctex", "res://.godot/imported/nox_nox_metallic-nox_roughness.png-507ca7f65943150477f787e9b730ff9a.etc2.ctex"]
 
 [params]
 

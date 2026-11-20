@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://rfi3tudif1aw"
+uid="uid://cuf01h8iq8e7v"
 path.bptc="res://.godot/imported/kairo_kairo_basecolor.jpg-6b47b353219bf7015c324bd69cd7b1a3.bptc.ctex"
 path.astc="res://.godot/imported/kairo_kairo_basecolor.jpg-6b47b353219bf7015c324bd69cd7b1a3.astc.ctex"
 metadata={
@@ -10,7 +10,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "df9f059fee584d2a2daa3d93f2a2ee73"
+"md5": "4d4802d703c0ef42a890993351fa2ceb"
 }
 
 [deps]

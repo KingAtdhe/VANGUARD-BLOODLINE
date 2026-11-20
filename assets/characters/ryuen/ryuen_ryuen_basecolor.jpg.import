@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://w4jn3br8rqcx"
+uid="uid://bgesir1ggegfi"
 path.bptc="res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.bptc.ctex"
 path.astc="res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.astc.ctex"
 metadata={
@@ -10,7 +10,7 @@ metadata={
 "vram_texture": true
 }
 generator_parameters={
-"md5": "caba0dbe1df2ed2939163acdcbab63cc"
+"md5": "107b5b3b18ec25cd1cd5d4fdfc7d7971"
 }
 
 [deps]

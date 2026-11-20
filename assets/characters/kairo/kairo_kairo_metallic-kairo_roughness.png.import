@@ -2,21 +2,21 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cuf7ev1rtcfg6"
-path.s3tc="res://.godot/imported/seraphina_seraphina_rm.png-697bc296ab262441b48982ab18ae81b3.s3tc.ctex"
-path.etc2="res://.godot/imported/seraphina_seraphina_rm.png-697bc296ab262441b48982ab18ae81b3.etc2.ctex"
+uid="uid://dayfou6up511q"
+path.s3tc="res://.godot/imported/kairo_kairo_metallic-kairo_roughness.png-c19818656e70af38c7208db472f530ec.s3tc.ctex"
+path.etc2="res://.godot/imported/kairo_kairo_metallic-kairo_roughness.png-c19818656e70af38c7208db472f530ec.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "3d105aedae38974476836a1f2234feee"
+"md5": "127aad529f6a9ee612994a50c9e90af9"
 }
 
 [deps]
 
-source_file="res://assets/characters/seraphina/seraphina_seraphina_rm.png"
-dest_files=["res://.godot/imported/seraphina_seraphina_rm.png-697bc296ab262441b48982ab18ae81b3.s3tc.ctex", "res://.godot/imported/seraphina_seraphina_rm.png-697bc296ab262441b48982ab18ae81b3.etc2.ctex"]
+source_file="res://assets/characters/kairo/kairo_kairo_metallic-kairo_roughness.png"
+dest_files=["res://.godot/imported/kairo_kairo_metallic-kairo_roughness.png-c19818656e70af38c7208db472f530ec.s3tc.ctex", "res://.godot/imported/kairo_kairo_metallic-kairo_roughness.png-c19818656e70af38c7208db472f530ec.etc2.ctex"]
 
 [params]
 
