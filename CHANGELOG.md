@@ -1,6 +1,13 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — fighter skinning after the second phone test
+- Kairo's gauntlets no longer leave flaps behind when he raises his guard (arm membership: nearer the arm bone than the body's centre line and the legs); his sash stays on the hip.
+- Nox's coat edges no longer stretch from his fists (small hand reach, fitted sleeves).
+- Forearm and hand weights are all-or-nothing (no half-glove, half-coat vertices), arm weights can no longer leak onto cloth through smoothing, and faces fusing a hand to the coat are separated (nothing moves at rest).
+- Idle is a steady guard (35% of the captured shadow-boxing bounce) instead of "dancing".
+- Menu backdrops no longer show arena dust/embers (blurry blobs on phones).
+- Seraphina still stretches at the hands (fingers fused into the coat); waiting for a re-rigged model.
 ### Changed — real motion capture, cleaner meshes, fixes from the first phone test
 - Fighters move with real motion capture (CMU database): a boxer's bouncing guard, snapping jab, rotating cross, chambered front kick, lunging specials, a one-two combination ultimate, a real fall onto the back and a sit-up get-up. Every strike still lands on its frame-data active frames.
 - Imported meshes are inspected and repaired before use: surfaces split at texture seams are joined (no more torn strips around hands, sashes and boots), stray inward faces turned outward; shapes untouched.

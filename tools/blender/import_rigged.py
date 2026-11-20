@@ -184,6 +184,13 @@ def main():
                          "(shoulder, elbow, wrist, hand_tip, hip, knee, ankle, toe)")
     ap.add_argument("--mocap-dir", default="",
                     help="folder with the CMU BVH clips (tools/mocap/fetch_clips.sh); empty = old key poses")
+    ap.add_argument("--sleeve-reach", type=float, default=0.24,
+                    help="metres (1.8 m figure): cloth this close to the middle of an arm follows it (wide sleeves); "
+                         "lower it for bare/fitted arms with loose cloth hanging beside them")
+    ap.add_argument("--by-island", action="store_true",
+                    help="re-skin: decide arm membership per texture piece (UV island) instead of per vertex")
+    ap.add_argument("--cloth-fix", action="store_true",
+                    help="kept weights only: below the belt, points nearer a leg than the arm lose arm weight")
     ap.add_argument("--hand-reach", type=float, default=0.12,
                     help="metres (for a 1.8 m figure): cloth this close to a hand follows it; raise for long sleeves")
     a = ap.parse_args(argv)
@@ -328,6 +335,25 @@ def main():
                     W[v.index, idx[tgt]] += ge.weight
         for g in list(body.vertex_groups):
             body.vertex_groups.remove(g)
+        # Cloth fix on the supplied weights: below the belt, anything closer to
+        # a leg than to the arm (a sash hanging beside the hand at rest) must
+        # not follow the arm — it hangs from the hips instead.
+        co_ = np.array([v.co[:] for v in body.data.vertices])
+        def seg_d(h, t):
+            h, t = np.array(h, float), np.array(t, float)
+            sg = t - h
+            u = np.clip(((co_ - h) @ sg) / max(1e-9, sg @ sg), 0, 1)
+            return np.linalg.norm(co_ - (h + u[:, None] * sg), axis=1)
+        arm_d = np.min([seg_d(B[nm][0], B[nm][1]) for nm in GAME_BONES if "Arm" in nm or "Hand" in nm], 0)
+        leg_d = np.min([seg_d(B[nm][0], B[nm][1]) for nm in GAME_BONES if "UpperLeg" in nm or "LowerLeg" in nm], 0)
+        below_belt = co_[:, 2] < B["Spine"][0][2]
+        cloth = below_belt & (leg_d < arm_d) & a.cloth_fix
+        arm_cols = [idx[nm] for nm in GAME_BONES if "Arm" in nm or "Hand" in nm]
+        moved = W[np.ix_(cloth, arm_cols)].sum(1)
+        W[np.ix_(cloth, arm_cols)] = 0.0
+        W[cloth, idx["Hips"]] += moved
+        if a.cloth_fix:
+            print(f"[rigged] cloth off the arms: {int((moved > 0.01).sum())} vertices")
         orphan = W.sum(1) <= 1e-6
         W[orphan, idx["Hips"]] = 1.0
         # top 4, drop dust, normalise
@@ -351,7 +377,9 @@ def main():
             o.select_set(o in (body, rig))
         bpy.context.view_layer.objects.active = rig
         bpy.ops.object.parent_set(type="ARMATURE_NAME")
-        un = ih.skin_weights(body, B, H, a.hand_reach)
+        un = ih.skin_weights(body, B, H, a.hand_reach, a.sleeve_reach, a.by_island)
+        sep = ih.separate_fused(body)
+        print(f"[rigged] fused hand/coat faces separated: {sep}")
         print(f"[rigged] re-skinned: unweighted={un}")
 
     # textures: plain files, one material named <F>_Body

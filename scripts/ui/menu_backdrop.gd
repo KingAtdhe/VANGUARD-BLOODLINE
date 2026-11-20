@@ -51,6 +51,12 @@ func show_arena(id: StringName) -> void:
 		return
 	_arena = (load(cfg.scene_path) as PackedScene).instantiate() as Node3D
 	_world_root.add_child(_arena)
+	# Drifting dust/embers sit right in front of the menu camera, where they
+	# read as big soft blobs (phone glow): menus show the arena without them.
+	for n: Node in _arena.find_children("*", "GPUParticles3D", true, false):
+		(n as GPUParticles3D).visible = false
+	for n: Node in _arena.find_children("*", "CPUParticles3D", true, false):
+		(n as CPUParticles3D).visible = false
 	_world_root.move_child(_arena, 0)
 
 

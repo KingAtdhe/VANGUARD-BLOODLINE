@@ -375,12 +375,20 @@ def build(rig_obj, moves, fid, height, clip_dir):
     # ---- idle: the boxer's guard bounce, 1 s, looped with a cross-fade
     i0, n_idle = 840, 60
     anchor_idle = box.at(i0)["Hips"][:2]
-    def idle_P(t):          # t in output frames (60 fps), loops
+    def raw_idle_P(t):      # t in output frames (60 fps), loops
         f = i0 + (t % n_idle) * 2
         P = src(box, f, facing_frame=900, anchor=anchor_idle)
         # keep the hips over the origin (no drift in a loop)
         P = shift(P, list(P.keys()), np.array([-P["Hips"][0], -P["Hips"][1], 0]))
         return P
+    # The captured boxer bounces and shifts constantly (shadow boxing), which
+    # reads as dancing on a select screen: keep a steady guard with ~35% of
+    # the captured motion around the average pose (breathing, small bob).
+    raw = [raw_idle_P(t) for t in range(n_idle)]
+    mean = {k: np.mean([r[k] for r in raw], 0) for k in raw[0]}
+    def idle_P(t):
+        r = raw[int(t) % n_idle]
+        return {k: mean[k] + (r[k] - mean[k]) * 0.35 for k in r}
     idle_poses = []
     fade = 14
     for t in range(n_idle + 1):

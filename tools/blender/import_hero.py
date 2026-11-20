@@ -84,7 +84,47 @@ def skeleton_for(J, height):
     return {n: B[n] for n in cb.skeleton(cb.FIGHTERS["kairo"]).keys()}
 
 
-def skin_weights(obj, B, height, hand_reach=0.12):
+def uv_islands(obj):
+    """Texture piece (UV island) of every vertex: faces joined across edges
+    whose two sides have the same UVs. None if the mesh has no UVs."""
+    me = obj.data
+    if not me.uv_layers:
+        return None
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    uv = bm.loops.layers.uv.active
+    bm.faces.ensure_lookup_table()
+    parent = list(range(len(bm.faces)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+    for e in bm.edges:
+        if len(e.link_faces) != 2:
+            continue
+        f1, f2 = e.link_faces
+        def uvs(f):
+            d = {}
+            for l in f.loops:
+                d[l.vert.index] = tuple(round(c, 5) for c in l[uv].uv)
+            return d
+        a_, b_ = uvs(f1), uvs(f2)
+        if all(a_[v.index] == b_[v.index] for v in e.verts):
+            ra, rb = find(f1.index), find(f2.index)
+            if ra != rb:
+                parent[ra] = rb
+    isl = np.zeros(len(bm.verts), dtype=np.int64)
+    for f in bm.faces:
+        r = find(f.index)
+        for v in f.verts:
+            isl[v.index] = r
+    bm.free()
+    return isl
+
+
+def skin_weights(obj, B, height, hand_reach=0.12, sleeve_reach=0.24, by_island=False):
     """Bone weights for a mesh that heat weighting can't solve (scanned or
     generated meshes are rarely watertight). Each vertex is weighted by its
     distance to every bone segment, restricted by body region (left/right,
@@ -98,6 +138,21 @@ def skin_weights(obj, B, height, hand_reach=0.12):
     n = len(co)
     W = np.zeros((n, len(names)))
     radius = {"Hips": 0.13, "Spine": 0.13, "Chest": 0.14, "Neck": 0.06, "Head": 0.1, "Root": 0.05}
+    # distance to the body's centre line (hips -> neck), to tell arm from torso
+    axis_d = np.full(n, 9.0)
+    for nm in ("Hips", "Spine", "Chest", "Neck"):
+        h, t = np.array(B[nm][0], float), np.array(B[nm][1], float)
+        seg = t - h
+        tt = np.clip(((co - h) @ seg) / max(1e-9, seg @ seg), 0, 1)
+        axis_d = np.minimum(axis_d, np.linalg.norm(co - (h + tt[:, None] * seg), axis=1))
+    # ... and to the legs (cloth hanging against a thigh is not arm)
+    legs_d = np.full(n, 9.0)
+    for nm in names:
+        if "UpperLeg" in nm or "LowerLeg" in nm:
+            h, t = np.array(B[nm][0], float), np.array(B[nm][1], float)
+            seg = t - h
+            tt = np.clip(((co - h) @ seg) / max(1e-9, seg @ seg), 0, 1)
+            legs_d = np.minimum(legs_d, np.linalg.norm(co - (h + tt[:, None] * seg), axis=1))
     for j, nm in enumerate(names):
         h, t = np.array(B[nm][0], float), np.array(B[nm][1], float)
         seg = t - h
@@ -110,12 +165,15 @@ def skin_weights(obj, B, height, hand_reach=0.12):
         if side:
             w *= (x * side > -0.01 * k)
         if "Arm" in nm or "Hand" in nm:
-            torso = np.where(z > 1.28 * k, 0.15 * k, 0.21 * k)
-            # Only the limb itself: cloth hanging beside a fist (a sash) must not
-            # follow the hand. Wide sleeves around the middle of the arm do.
-            interior = ("Hand" not in nm) & (tt > 0.04) & (tt < 0.97)
-            reach = np.where(interior, 0.24 * k, (hand_reach if ("Hand" in nm or "LowerArm" in nm) else 0.12) * k)
-            w *= (x * side > torso) & (d < reach)
+            # A point is arm if it is closer to the arm bone than to the body's
+            # centre line and to the legs (arms that hang close to the body
+            # keep their inner side; a sash against the thigh stays put). Cloth hanging beside a fist (a sash) must not follow the
+            # hand; wide sleeves around the middle of the arm do.
+            if "Hand" in nm:
+                reach = np.full(n, hand_reach * k)
+            else:
+                reach = np.where((tt > 0.04) & (tt < 0.97), sleeve_reach * k, min(0.12, sleeve_reach) * k)
+            w *= (d < axis_d) & (d < legs_d) & (d < reach)
         if "Leg" in nm or "Foot" in nm:
             w *= (z < 1.05 * k) & (np.abs(x) < 0.5 * k)
         if nm == "Head":
@@ -126,6 +184,32 @@ def skin_weights(obj, B, height, hand_reach=0.12):
             arm_zone = (np.abs(x) > 0.24 * k) & (z > 0.75 * k) & (z < 1.3 * k)
             w *= ~arm_zone
         W[:, j] = w
+    allowed = W > 0                             # which bones may move each vertex
+    # Decide arm membership per texture piece (UV island), not per vertex:
+    # a glove and a sash that touch at rest are separate pieces of the
+    # texture layout, so each piece moves as one — with the arm only if most
+    # of it lies in the arm region.
+    isl = uv_islands(obj) if by_island else None
+    if isl is not None:
+        arm_cols_i = [j for j, nm in enumerate(names) if "Arm" in nm or "Hand" in nm]
+        arm_any = allowed[:, arm_cols_i].any(1)
+        for i in np.unique(isl):
+            m = isl == i
+            frac = arm_any[m].mean()
+            if frac < 0.5:
+                W[np.ix_(m, arm_cols_i)] = 0.0          # mostly not arm: the whole piece stays off the arm
+                allowed[np.ix_(m, arm_cols_i)] = False
+            elif frac < 1.0:
+                # mostly arm: let the rest of the piece follow its arm bones too
+                for j in arm_cols_i:
+                    if allowed[m, j].any():
+                        miss = m & ~allowed[:, j] & (W.sum(1) >= 0)
+                        h, t = np.array(B[names[j]][0], float), np.array(B[names[j]][1], float)
+                        seg = t - h
+                        tt = np.clip(((co[miss] - h) @ seg) / max(1e-9, seg @ seg), 0, 1)
+                        dd = np.linalg.norm(co[miss] - (h + tt[:, None] * seg), axis=1)
+                        W[miss, j] = 1.0 / np.maximum(dd - 0.03 * k, 0.01 * k) ** 4
+                        allowed[miss, j] = True
     orphan = W.sum(1) == 0                      # nothing allowed: hang it from the hips
     W[orphan, names.index("Hips")] = 1.0
     W /= np.maximum(W.sum(1, keepdims=True), 1e-12)
@@ -157,6 +241,28 @@ def skin_weights(obj, B, height, hand_reach=0.12):
         np.add.at(acc, e[:, 0], W[e[:, 1]])
         np.add.at(acc, e[:, 1], W[e[:, 0]])
         W = 0.5 * W + 0.5 * acc / np.maximum(deg, 1)[:, None]
+    # Smoothing softens joints but must not carry an arm onto cloth it may not
+    # move (a sash joined to the glove after mesh repair would lift with it).
+    arm_cols = np.array(["Arm" in nm or "Hand" in nm for nm in names])
+    W[:, arm_cols] *= allowed[:, arm_cols]
+    empty = W.sum(1) <= 1e-9
+    W[empty, names.index("Hips")] = 1.0
+    W /= np.maximum(W.sum(1, keepdims=True), 1e-12)
+    # Forearm and hand belong to the arm or to the body, never half and half:
+    # a glove smoothed together with the coat it touches would otherwise sit
+    # half on the moving hand and half on the still hips and stretch into
+    # strips. (Elbow and shoulder still blend: upper arm <-> chest is kept.)
+    fore = np.array([("LowerArm" in nm or "Hand" in nm) for nm in names])
+    upper = np.array([("UpperArm" in nm) for nm in names])
+    touched = W[:, fore].sum(1) > 1e-6
+    arm_share = W[:, fore | upper].sum(1)
+    to_arm = touched & (arm_share >= 0.5)
+    to_body = touched & ~to_arm
+    W[np.ix_(to_arm, ~(fore | upper))] = 0.0
+    W[np.ix_(to_body, fore)] = 0.0
+    empty = W.sum(1) <= 1e-9
+    W[empty, names.index("Hips")] = 1.0
+    W /= np.maximum(W.sum(1, keepdims=True), 1e-12)
     top = np.argsort(-W, axis=1)[:, :4]
     keep = np.zeros_like(W, dtype=bool)
     np.put_along_axis(keep, top, True, axis=1)
@@ -380,3 +486,54 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def separate_fused(obj, min_jump=0.5):
+    """Generated meshes sometimes fuse a hand to the coat beside it (faces
+    joining glove and coat). Once weighted, those faces stretch into strips
+    when the hand moves. Each face that straddles arm (forearm/hand weight
+    >= min_jump) and body (no arm weight) gets its own copy of its vertices,
+    weighted like the side most of the face belongs to. Nothing moves at
+    rest; at most a hairline seam opens where the parts separate.
+    Returns the number of faces separated."""
+    me = obj.data
+    names = {g.index: g.name for g in obj.vertex_groups}
+    arm_idx = {i for i, nm in names.items() if "LowerArm" in nm or "Hand" in nm}
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    dl = bm.verts.layers.deform.active
+    if dl is None:
+        bm.free()
+        return 0
+
+    def arm_w(v):
+        return sum(w for g, w in v[dl].items() if g in arm_idx)
+    mixed = []
+    for f in bm.faces:
+        ws = [arm_w(v) for v in f.verts]
+        if max(ws) >= min_jump and min(ws) < 1e-3:
+            mixed.append((f, sum(w >= min_jump for w in ws) * 2 >= len(ws)))
+    if not mixed:
+        bm.free()
+        return 0
+    faces = [f for f, _ in mixed]
+    side = {f: s for f, s in mixed}
+    ret = bmesh.ops.split(bm, geom=faces, use_only_faces=True)
+    new_faces = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMFace)]
+    # bmesh.ops.split keeps face order: pair new faces with the originals
+    for f_old, f_new in zip(faces, new_faces):
+        arm_side = side[f_old]
+        donors = [v for v in f_new.verts if (arm_w(v) >= min_jump) == arm_side]
+        if not donors:
+            continue
+        src = dict(donors[0][dl])
+        for v in f_new.verts:
+            if (arm_w(v) >= min_jump) != arm_side:
+                d = v[dl]
+                d.clear()
+                for g, w in src.items():
+                    d[g] = w
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    return len(faces)
