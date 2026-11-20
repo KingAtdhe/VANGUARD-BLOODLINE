@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Changed — menu redesign ("Blood Signet")
+- Menus, round 2: drifting embers and a crimson blade wipe as each screen arrives; the crest lands and the logo fades in; each main-menu mode previews its arena behind the menu (Story → Sanctuary, Arcade/Training → The Pit, Versus → Severed Line, Survival → Origin Chamber); a LIVE lore ticker; fighter select shows POWER / SPEED / REACH / HEALTH bars computed from each fighter's real data and a large name watermark in the fighter's colour.
 - New menu look: angled blade buttons and panels, crimson/ember/gold palette, Teko + Chakra Petch fonts, animated crest emblem, dark angled slab with a pulsing Origin vein behind the menus, fade-in and slide-out animations.
 - Main menu: crest + logo, player card, five numbered mode blades with a line of context each, compact Profile / Settings / Quit row.
 - Fighter and arena select: big display-type names; pause and results overlays use the same theme.

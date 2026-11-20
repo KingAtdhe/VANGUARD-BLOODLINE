@@ -79,6 +79,7 @@ func _ready() -> void:
 func _intro() -> void:
 	if not is_inside_tree():
 		return
+	chrome.play_wipe()
 	content.modulate.a = 0.0
 	header.modulate.a = 0.0
 	var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

@@ -6,12 +6,16 @@ extends MenuScreen
 ## routes (tested); the focused blade slides out and lights its index.
 
 const MODES: Array = [
-	["01", "Story", "Kairo's road to the Ascendant crown", "MenuStory"],
-	["02", "Arcade", "Five fights. One Warden.", "MenuArcade"],
-	["03", "Versus CPU", "Any fighter, any stage", "MenuVersus"],
-	["04", "Training", "Frame data, combos, a patient dummy", "MenuTraining"],
-	["05", "Survival", "How long does your bloodline last?", "MenuSurvival"],
+	["01", "Story", "Kairo's road to the Ascendant crown", "MenuStory", &"temple"],
+	["02", "Arcade", "Five fights. One Warden.", "MenuArcade", &"ascendant"],
+	["03", "Versus CPU", "Any fighter, any stage", "MenuVersus", &"neon"],
+	["04", "Training", "Frame data, combos, a patient dummy", "MenuTraining", &"ascendant"],
+	["05", "Survival", "How long does your bloodline last?", "MenuSurvival", &"origin"],
 ]
+
+var _fade: ColorRect
+var _want_arena: StringName = &"ascendant"
+var _switch_timer: float = -1.0
 
 
 func _build() -> void:
@@ -22,8 +26,42 @@ func _build() -> void:
 	backdrop.fighter_offset = 0.42
 	chrome.slab_start = 0.6
 	SessionSettings.ai_difficulty = int(SaveManager.setting("ai_difficulty"))
+	_fade = ColorRect.new()              # dips the backdrop to black while the arena changes
+	_fade.color = Color(0, 0, 0, 0)
+	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_fade)
+	move_child(_fade, backdrop.get_index() + 1)
 	_build_logo()
 	_build_column()
+	var ticker := LoreTicker.new()
+	ticker.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	ticker.offset_top = -48
+	ticker.offset_right = -800
+	content.add_child(ticker)
+
+
+## Each mode previews its arena behind the menu (after the focus rests a
+## moment, so scrolling through doesn't load every arena).
+func _preview(arena: StringName) -> void:
+	_want_arena = arena
+	_switch_timer = 0.3
+
+
+func _process(delta: float) -> void:
+	if _switch_timer < 0.0:
+		return
+	_switch_timer -= delta
+	if _switch_timer > 0.0 or _want_arena == backdrop.arena_id:
+		if _switch_timer <= 0.0:
+			_switch_timer = -1.0
+		return
+	_switch_timer = -1.0
+	var target: StringName = _want_arena
+	var tw := create_tween()
+	tw.tween_property(_fade, "color:a", 1.0, 0.14)
+	tw.tween_callback(func() -> void: backdrop.show_arena(target))
+	tw.tween_property(_fade, "color:a", 0.0, 0.35)
 
 
 func _build_logo() -> void:
@@ -34,7 +72,14 @@ func _build_logo() -> void:
 	content.add_child(logo)
 	var crest := CrestEmblem.new()
 	crest.custom_minimum_size = Vector2(200, 200)
+	crest.pivot_offset = Vector2(100, 100)
 	logo.add_child(crest)
+	# the crest lands, then the words slide in
+	crest.scale = Vector2(1.6, 1.6)
+	crest.modulate.a = 0.0
+	var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(crest, "scale", Vector2.ONE, 0.6)
+	tw.tween_property(crest, "modulate:a", 1.0, 0.3)
 	var words := VBoxContainer.new()
 	words.add_theme_constant_override("separation", -28)
 	logo.add_child(words)
@@ -55,11 +100,16 @@ func _build_logo() -> void:
 	tag_gap.custom_minimum_size = Vector2(0, 26)
 	words.add_child(tag_gap)
 	words.add_child(tag)
-	var info := make_label("v%s  ·  %s" % [AppInfo.game_version(), AppInfo.BUILD_LABEL], 20, Color(UiTheme.MUTED, 0.7))
+	words.modulate.a = 0.0
+	var tw2 := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw2.tween_interval(0.25)
+	tw2.tween_property(words, "modulate:a", 1.0, 0.4)
+	var info := make_label("v%s  ·  %s" % [AppInfo.game_version(), AppInfo.BUILD_LABEL], 18, Color(UiTheme.MUTED, 0.6))
 	info.autowrap_mode = TextServer.AUTOWRAP_OFF
-	info.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	info.position = Vector2(0, -30)
-	content.add_child(info)
+	var info_gap := Control.new()
+	info_gap.custom_minimum_size = Vector2(0, 30)
+	words.add_child(info_gap)
+	words.add_child(info)
 
 
 func _build_column() -> void:
@@ -75,6 +125,9 @@ func _build_column() -> void:
 			MatchSetup.Mode.TRAINING, MatchSetup.Mode.SURVIVAL][i]
 		var b := _blade(m[0], m[1], m[2], func() -> void: _enter(mode))
 		b.name = m[3]
+		var arena: StringName = m[4]
+		b.focus_entered.connect(func() -> void: _preview(arena))
+		b.mouse_entered.connect(func() -> void: _preview(arena))
 		col.add_child(b)
 		_stagger(b, i)
 	var row := HBoxContainer.new()
