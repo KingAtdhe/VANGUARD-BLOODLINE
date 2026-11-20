@@ -14,6 +14,7 @@ Record every third-party asset, font, sound, plugin or tool output here
 | `icon.svg` placeholder | Original, made for this project | Project-owned | Project icon | 2026-11-17 |
 | `assets/characters/{kairo,drakon,nox,seraphina,vexa,ryuen}/*.glb` and `assets/characters/_source/*.glb` | Supplied by the project owner (generated with Tripo; rigged); converted by `tools/blender/import_rigged.py` | Project-owned (owner-supplied) | Playable fighter models | 2026-11-20 |
 | `assets/characters/{sentinel,warden}/*.glb` | Generated from scratch by `tools/blender/character_builder.py` (no base mesh/external assets) | Project-owned | Boss models | 2026-11-18 |
+| Fighter animations in `assets/characters/{kairo,drakon,nox,seraphina,vexa,ryuen}/*.glb` | Retargeted from the CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu; BVH conversion by Bruce Hahne). "This data is free for all uses"; the conversion adds no restrictions. Clips: 13_17, 144_13, 144_20, 144_05, 113_08 | Free for all uses (CMU) | Fighter animation | 2026-11-20 |
 | `assets/arenas/*/*_arena.glb` | Generated from scratch by `tools/blender/arena_builder.py` | Project-owned | Arena geometry | 2026-11-18 |
 | `docs/art/reference_roster_sheet.png` | Character art sheet supplied by the project owner (source/tool to be recorded by the owner before release) | Owner-supplied — confirm rights before release | Approved design reference for the 3D models | 2026-11-18 |
 | Story text, signage text, fighter names | Original, written for this project | Project-owned | Story/arenas | 2026-11-18 |

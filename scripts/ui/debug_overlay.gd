@@ -19,6 +19,11 @@ signal hitboxes_toggle_requested
 func _ready() -> void:
 	_dummy_button.pressed.connect(func() -> void: dummy_cycle_requested.emit())
 	_hitbox_button.pressed.connect(func() -> void: hitboxes_toggle_requested.emit())
+	for b: Button in [_dummy_button, _hitbox_button]:
+		b.theme = UiTheme.get_theme()
+		b.add_theme_font_size_override("font_size", 30)
+		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_panel.theme = UiTheme.get_theme()
 
 
 func _unhandled_input(event: InputEvent) -> void:

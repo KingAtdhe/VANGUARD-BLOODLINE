@@ -442,6 +442,35 @@ measuring-grid render, and long sleeves around the middle of the arm follow
 the arm. The per-fighter settings live in `tools/blender/import_roster.sh`.
 **Accepted.**
 
+## D-056 — 2026-11-20 — All six launch fighters playable
+
+Drakon, Seraphina, Nox, Vexa and Ryuen were flagged non-playable until their
+own move sets (M8). They now have models and the full animation set, and
+every fighter shares Kairo's move set until M8, so all six are playable; the
+select screen shows "LOCKED" (no milestone jargon) for anything still locked.
+Bosses stay non-playable. **Accepted.**
+
+## D-057 — 2026-11-20 — Motion-capture animation; mesh inspection and repair
+
+The hand-keyed IK poses looked robotic on device. Fighter animations are now
+built from real motion capture (CMU Graphics Lab Motion Capture Database,
+BVH conversion; free for all uses) by `tools/blender/mocap_actions.py`:
+direction-based retargeting onto the 18-bone game skeleton (torso keeps the
+real hip/shoulder axes), strikes retimed so full extension lands on the
+move's active frames and guided onto the hitbox centre with two-bone IK,
+the boxer's guard as idle, generated footwork matched to the game's walk
+speed, and reactions / knockdown / get-up / defeat / victory built from
+captured poses with physical timing. Clips are fetched by
+`tools/mocap/fetch_clips.sh`, not stored in the repo.
+
+Every imported mesh is inspected and minimally repaired before skinning
+(`tools/blender/mesh_check.py`): the Tripo exports were split into thousands
+of pieces at texture seams (12–17k duplicate vertices), which tore the skin
+weights apart when bending; exact duplicates are merged (nothing moves, UVs
+kept), a few inward faces are turned outward. Triangle counts and shapes are
+unchanged. The 4096 px colour maps are kept at full size; fighter colour and
+normal maps use high-quality (ASTC on phones) compression. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

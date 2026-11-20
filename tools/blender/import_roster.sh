@@ -7,6 +7,7 @@
 #   BLENDER_PY=python tools/blender/import_roster.sh
 #
 # Why the flags:
+# - kairo: --hand-reach 0.06, his sash hangs right beside the hand at rest.
 # - kairo, nox: supplied joints are good, supplied weights are not (Kairo's sash
 #   was skinned to his arm, Nox's hood and cloak to his arms) -> --force-reskin.
 # - ryuen, vexa: supplied rigs are broken, and the joints measured on the body
@@ -17,9 +18,10 @@ set -euo pipefail
 PY="${BLENDER_PY:-python}"
 SRC=assets/characters/_source
 MOVES="${MOVES:-/tmp/kairo_moves.json}"
+MOCAP="${MOCAP:-/tmp/cmu_mocap}"          # tools/mocap/fetch_clips.sh
 OUT="${OUT:-assets/characters}"
-run() { "$PY" tools/blender/import_rigged.py --moves "$MOVES" --out "$OUT" "$@"; }
-run --src $SRC/kairo_heroic_warrior.glb --fighter kairo --force-reskin
+run() { "$PY" tools/blender/import_rigged.py --moves "$MOVES" --out "$OUT" --mocap-dir "$MOCAP" "$@"; }
+run --src $SRC/kairo_heroic_warrior.glb --fighter kairo --force-reskin --hand-reach 0.06
 run --src $SRC/drakon_armored_warrior.glb --fighter drakon
 run --src $SRC/nox_purple_hooded_warrior.glb --fighter nox --force-reskin
 run --src $SRC/seraphina_superhero_female.glb --fighter seraphina

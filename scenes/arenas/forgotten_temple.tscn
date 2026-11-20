@@ -15,6 +15,18 @@
 [ext_resource type="Texture2D" path="res://assets/arenas/decals/cloud_band.png" id="dcloud"]
 [ext_resource type="Shader" path="res://shaders/arena/scroll_layer.gdshader" id="sh_scroll"]
 
+[sub_resource type="Gradient" id="SoftDotGrad"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.55, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SoftDot"]
+gradient = SubResource("SoftDotGrad")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
 [sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
 panorama = ExtResource("9_sky")
 energy_multiplier = 0.72
@@ -73,6 +85,10 @@ vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 1)
 billboard_mode = 3
 billboard_keep_scale = true
+albedo_texture = SubResource("SoftDot")
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="EmberQuad"]
 material = SubResource("EmberMat2")
@@ -99,6 +115,10 @@ vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 1)
 billboard_mode = 3
 billboard_keep_scale = true
+albedo_texture = SubResource("SoftDot")
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="DustQuad"]
 material = SubResource("DustMat2")
@@ -125,6 +145,10 @@ vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 1)
 billboard_mode = 3
 billboard_keep_scale = true
+albedo_texture = SubResource("SoftDot")
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="LeafQuad"]
 material = SubResource("LeafMat2")
@@ -260,6 +284,9 @@ vertex_color_use_as_albedo = true
 albedo_texture = SubResource("SmokeDot")
 billboard_mode = 3
 billboard_keep_scale = true
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="SmokeQuad"]
 material = SubResource("SmokeMat2")
@@ -297,6 +324,9 @@ vertex_color_use_as_albedo = true
 albedo_texture = SubResource("DustDot")
 billboard_mode = 3
 billboard_keep_scale = true
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="DustQuad"]
 material = SubResource("DustMat2")
@@ -320,6 +350,9 @@ shading_mode = 0
 albedo_texture = ExtResource("8_bird")
 billboard_mode = 3
 billboard_keep_scale = true
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="BirdQuad"]
 material = SubResource("BirdMat2")

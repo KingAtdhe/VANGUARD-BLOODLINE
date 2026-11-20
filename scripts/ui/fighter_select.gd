@@ -32,7 +32,7 @@ func _build() -> void:
 	col.add_child(grid)
 	for id: StringName in Catalog.ROSTER:
 		var def: FighterDefinition = Catalog.fighter(id)
-		var b := make_button(def.display_name.to_upper() + ("" if def.playable else "\nLOCKED · M8"),
+		var b := make_button(def.display_name.to_upper() + ("" if def.playable else "\nLOCKED"),
 			_select.bind(id), Vector2(328, 118), 40)
 		b.name = "Card_%s" % id
 		b.alignment = HORIZONTAL_ALIGNMENT_CENTER

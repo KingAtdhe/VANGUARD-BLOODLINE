@@ -8,10 +8,10 @@ extends Node3D
 ## Presentation only — it never affects the simulation.
 
 ## Camera height above the floor and its fixed downward pitch.
-@export var height: float = 1.5
-@export_range(-30.0, 0.0) var pitch_degrees: float = -5.0
+@export var height: float = 1.4
+@export_range(-30.0, 0.0) var pitch_degrees: float = -4.0
 ## Distance range from the fighting plane (zoom bounds).
-@export var min_distance: float = 6.5
+@export var min_distance: float = 5.6
 @export var max_distance: float = 14.0
 ## Space kept between each fighter's centre and the screen edge (metres).
 @export var edge_margin: float = 1.5

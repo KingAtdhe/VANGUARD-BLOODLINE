@@ -163,7 +163,7 @@ func test_training_scene() -> Array[String]:
 	Input.action_release(InputActions.ATTACK_KICK)
 	_frames(scene, 2)
 	var stats: String = (panel.get_node("%StatsLabel") as Label).text
-	if not stats.contains("kairo_kick") or not stats.contains("on hit +2"):
+	if not stats.contains("KICK") or not stats.contains("9f startup") or not stats.contains("On hit +2"):
 		f.append("training panel missing move/frame data:\n%s" % stats)
 	var hist: String = (panel.get_node("%HistoryLabel") as Label).text
 	if not hist.contains("K"):

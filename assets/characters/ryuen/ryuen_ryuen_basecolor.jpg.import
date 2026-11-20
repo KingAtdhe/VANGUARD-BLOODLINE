@@ -3,25 +3,25 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://w4jn3br8rqcx"
-path.s3tc="res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.s3tc.ctex"
-path.etc2="res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.etc2.ctex"
+path.bptc="res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.bptc.ctex"
+path.astc="res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.astc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
-"md5": "6f7ddf7e31fb1d8562d922dcd2c2beca"
+"md5": "caba0dbe1df2ed2939163acdcbab63cc"
 }
 
 [deps]
 
 source_file="res://assets/characters/ryuen/ryuen_ryuen_basecolor.jpg"
-dest_files=["res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.s3tc.ctex", "res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.etc2.ctex"]
+dest_files=["res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.bptc.ctex", "res://.godot/imported/ryuen_ryuen_basecolor.jpg-ee9a268a0e5af3f7f2013ab609449bbb.astc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0

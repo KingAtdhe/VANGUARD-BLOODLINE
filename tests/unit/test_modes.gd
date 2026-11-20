@@ -77,8 +77,8 @@ func test_arcade_ladder_to_the_boss() -> Array[String]:
 	var f: Array[String] = []
 	if ModeFlow.begin(MatchSetup.Mode.ARCADE) != ScenePaths.FIGHTER_SELECT:
 		f.append("arcade must start at fighter select")
-	if ModeFlow.fighter_chosen(&"drakon") != "":
-		f.append("a locked fighter was accepted")
+	if ModeFlow.fighter_chosen(&"warden") != "":
+		f.append("a non-playable fighter (the boss) was accepted")
 	if ModeFlow.fighter_chosen(&"kairo") != ScenePaths.ARCADE:
 		f.append("arcade fighter select should lead to the ladder")
 	ModeFlow.start_arcade_stage()

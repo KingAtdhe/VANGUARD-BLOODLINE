@@ -70,8 +70,9 @@ func test_fighter_and_arena_select() -> Array[String]:
 	if s.find_children("Card_*", "Button", true, false).size() != 6:
 		f.append("fighter select should show the six launch fighters")
 	s.select(&"nox")
-	if not (s.find_child("ConfirmButton", true, false) as Button).disabled:
-		f.append("a locked fighter can be confirmed")
+	# D-056: all six launch fighters are playable (shared move set until M8)
+	if (s.find_child("ConfirmButton", true, false) as Button).disabled:
+		f.append("Nox cannot be confirmed")
 	if (s.backdrop as MenuBackdrop).fighter_id != &"nox":
 		f.append("backdrop does not show the highlighted fighter")
 	s.select(&"kairo")

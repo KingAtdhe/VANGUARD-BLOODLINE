@@ -149,7 +149,7 @@ def remove_pedestal(obj):
     return int(drop.sum()) + len(crumbs)
 
 
-def clean_image(img, path):
+def clean_image(img, path, max_size=2048):
     """Writes a packed texture as a plain file Godot's decoders accept."""
     from PIL import Image
     tmp = path + ".src"
@@ -160,8 +160,8 @@ def clean_image(img, path):
         img.save()
     im = Image.open(tmp)
     im = im.convert("RGB")
-    if max(im.size) > 2048:
-        im = im.resize((2048, 2048), Image.LANCZOS)
+    if max(im.size) > max_size:
+        im = im.resize((max_size, max_size), Image.LANCZOS)
     if path.endswith(".jpg"):
         im.save(path, quality=92)
     else:
@@ -182,6 +182,8 @@ def main():
                     help="override a measured left-side joint, metres on the final model: elbow=0.30,0,1.02 "
                          "(the middle value, depth, is taken from the mesh) "
                          "(shoulder, elbow, wrist, hand_tip, hip, knee, ankle, toe)")
+    ap.add_argument("--mocap-dir", default="",
+                    help="folder with the CMU BVH clips (tools/mocap/fetch_clips.sh); empty = old key poses")
     ap.add_argument("--hand-reach", type=float, default=0.12,
                     help="metres (for a 1.8 m figure): cloth this close to a hand follows it; raise for long sleeves")
     a = ap.parse_args(argv)
@@ -218,8 +220,20 @@ def main():
     for o in [o for o in bpy.data.objects if o != body]:
         bpy.data.objects.remove(o)
 
-    # 2. pedestal
+    # 2. pedestal, then inspection + minimal repair (mesh_check: merges only
+    # exact duplicates along texture seams, fixes winding; nothing moves)
     dropped = remove_pedestal(body)
+    import mesh_check
+    pre = mesh_check.inspect(body)
+    fixed = mesh_check.repair(body)
+    post = mesh_check.inspect(body)
+    keys = ("verts", "parts", "duplicate_verts", "overlapping_faces", "degenerate_faces", "loose_verts",
+            "nonmanifold_edges", "boundary_edges", "inconsistent_winding_edges", "long_edges_gt_20x_median")
+    print("[check] before " + " ".join(f"{k}={pre[k]}" for k in keys))
+    print("[check] fixed  " + " ".join(f"{k}={v}" for k, v in fixed.items()))
+    print("[check] after  " + " ".join(f"{k}={post[k]}" for k in keys))
+    print(f"[check] transform={pre['transform']} materials={pre['materials']} uv={pre['uv_layers']} "
+          f"uv_range={pre.get('uv_range')} textures={[(t['image'], t['size'], t['colorspace']) for t in pre['textures']]}")
 
     # 3. height, ground, centre
     co = np.zeros(len(body.data.vertices) * 3)
@@ -348,7 +362,9 @@ def main():
             kind = "normal" if "normal" in nm else ("rm" if "_rm" in nm or "rough" in nm or "metal" in nm else "basecolor")
             cs = node.image.colorspace_settings.name
             ext = ".png" if kind == "rm" else ".jpg"
-            node.image = clean_image(node.image, os.path.abspath(os.path.join(out_dir, f"{fid}_{kind}{ext}")))
+            # the colour map keeps its full 4K detail; roughness/metal and normal stay at their 2K
+            node.image = clean_image(node.image, os.path.abspath(os.path.join(out_dir, f"{fid}_{kind}{ext}")),
+                                     4096 if kind == "basecolor" else 2048)
             node.image.colorspace_settings.name = cs
     mat.name = f"{F}_Body"
     for p in body.data.polygons:
@@ -357,15 +373,20 @@ def main():
     # 5. animations
     moves = json.loads(open(a.moves).read())
     rig.animation_data_create()
-    targets = cb.setup_ik(rig)
-    actions = cb.build_actions(moves, H / cb.REF_HEIGHT, fid)
-    for name, keys in actions.items():
-        cb.key_action(rig, targets, name, keys)
-    for pb in rig.pose.bones:
-        for c in list(pb.constraints):
-            pb.constraints.remove(c)
-    for empty, _c in targets.values():
-        bpy.data.objects.remove(empty)
+    if a.mocap_dir:
+        # real motion capture (D-057)
+        import mocap_actions
+        actions = mocap_actions.build(rig, moves, fid, H, a.mocap_dir)
+    else:
+        targets = cb.setup_ik(rig)
+        actions = cb.build_actions(moves, H / cb.REF_HEIGHT, fid)
+        for name, keys in actions.items():
+            cb.key_action(rig, targets, name, keys)
+        for pb in rig.pose.bones:
+            for c in list(pb.constraints):
+                pb.constraints.remove(c)
+        for empty, _c in targets.values():
+            bpy.data.objects.remove(empty)
     rig.animation_data.action = bpy.data.actions[f"{F}_IDLE_A"]
     for pb in rig.pose.bones:
         pb.matrix_basis = Matrix.Identity(4)

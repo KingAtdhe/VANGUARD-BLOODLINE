@@ -13,6 +13,18 @@
 [ext_resource type="Texture2D" path="res://assets/arenas/decals/scorch.png" id="dscorch"]
 [ext_resource type="Shader" path="res://shaders/arena/light_shaft.gdshader" id="sh_shaft"]
 
+[sub_resource type="Gradient" id="SoftDotGrad"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.55, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SoftDot"]
+gradient = SubResource("SoftDotGrad")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
 [sub_resource type="Gradient" id="GradeGrad"]
 offsets = PackedFloat32Array(0, 0.5, 1)
 colors = PackedColorArray(0.02, 0.0, 0.01, 1, 0.55, 0.45, 0.45, 1, 1, 0.9, 0.9, 1)
@@ -64,6 +76,10 @@ vertex_color_use_as_albedo = true
 albedo_color = Color(1, 1, 1, 1)
 billboard_mode = 3
 billboard_keep_scale = true
+albedo_texture = SubResource("SoftDot")
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="EmberQuad"]
 material = SubResource("EmberMat2")
@@ -137,6 +153,9 @@ vertex_color_use_as_albedo = true
 albedo_texture = SubResource("DustDot")
 billboard_mode = 3
 billboard_keep_scale = true
+distance_fade_mode = 1
+distance_fade_min_distance = 0.6
+distance_fade_max_distance = 2.4
 
 [sub_resource type="QuadMesh" id="DustQuad"]
 material = SubResource("DustMat2")

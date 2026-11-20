@@ -17,6 +17,42 @@ var _last_move: MoveData = null
 
 func _ready() -> void:
 	%ResetButton.pressed.connect(func() -> void: reset_requested.emit())
+	_apply_style()
+
+
+## Blood Signet look: translucent dark panels with a crimson edge, compact
+## bold type, so the readout informs without covering the fight.
+func _apply_style() -> void:
+	for p: PanelContainer in [$SafeArea/Root/Info, $SafeArea/Root/History]:
+		var st := UiTheme.box(Color(0.03, 0.025, 0.035, 0.62), Color(1, 1, 1, 0.06), 0, 1, 14, UiTheme.SKEW * 0.15)
+		st.border_width_left = 5
+		st.border_color = Color(UiTheme.ACCENT, 0.9)
+		p.add_theme_stylebox_override("panel", st)
+	for l: Label in [_stats, _history]:
+		l.add_theme_font_override("font", UiTheme.bold_font())
+		l.add_theme_font_size_override("font_size", 21)
+		l.add_theme_color_override("font_color", UiTheme.TEXT)
+		l.add_theme_constant_override("line_spacing", -2)
+	_history.add_theme_color_override("font_color", UiTheme.MUTED)
+	var info := $SafeArea/Root/Info as Control
+	info.offset_top = 250.0
+	info.offset_right = 520.0
+	info.offset_bottom = 250.0          # grows with its text
+	var hist := $SafeArea/Root/History as Control
+	hist.offset_left = 540.0
+	hist.offset_top = 250.0
+	hist.offset_right = 700.0
+	hist.offset_bottom = 250.0
+	var reset := %ResetButton as Button
+	reset.theme = UiTheme.get_theme()
+	reset.text = "RESET"
+	reset.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	reset.add_theme_font_size_override("font_size", 34)
+
+
+static func _name_of(sim: CombatSimulation, id: StringName) -> String:
+	var m: MoveData = sim.definitions[0].move_for_id(id)
+	return m.display_name if m != null and m.display_name != "" else String(id)
 
 
 func clear() -> void:
@@ -36,9 +72,9 @@ func on_event(ev: CombatEvent, sim: CombatSimulation) -> void:
 		CombatEvent.Type.HIT:
 			_last_combo_hits = ev.combo_hits
 			_last_combo_damage = sim.fighters[1].combo_damage
-			_last_hit_text = "%s  %d dmg  (%d%%)" % [ev.move_id, ev.damage, ev.scaling_percent]
+			_last_hit_text = "%s  %d dmg  (%d%%)" % [_name_of(sim, ev.move_id), ev.damage, ev.scaling_percent]
 		CombatEvent.Type.BLOCK:
-			_last_hit_text = "%s  blocked  chip %d" % [ev.move_id, ev.damage]
+			_last_hit_text = "%s  blocked  chip %d" % [_name_of(sim, ev.move_id), ev.damage]
 
 
 func refresh(sim: CombatSimulation, history: InputHistory) -> void:
@@ -52,8 +88,8 @@ func refresh(sim: CombatSimulation, history: InputHistory) -> void:
 	if _last_move != null:
 		var m: MoveData = _last_move
 		var on_hit: String = "KD" if m.knockdown else "%+d" % m.advantage_on_hit()
-		frame = "Move  %s  S%d A%d R%d  total %d\n      on hit %s   on block %+d%s" % [
-			m.id, m.startup_frames, m.active_frames, m.recovery_frames, m.total_frames(),
-			on_hit, m.advantage_on_block(), "   meter %d" % m.meter_cost if m.meter_cost > 0 else ""]
-	_stats.text = "TRAINING\n%s\nLast hit  %s\n%s" % [combo, _last_hit_text, frame]
-	_history.text = "P1 input (newest first)\n" + "\n".join(history.lines(10))
+		frame = "%s   %df startup  ·  %d active  ·  %d recovery\nOn hit %s   ·   on block %+d%s" % [
+			(m.display_name if m.display_name != "" else String(m.id)).to_upper(), m.startup_frames, m.active_frames, m.recovery_frames,
+			on_hit, m.advantage_on_block(), "   ·   meter %d" % m.meter_cost if m.meter_cost > 0 else ""]
+	_stats.text = "%s\nLast hit  %s\n%s" % [combo, _last_hit_text, frame]
+	_history.text = "INPUTS\n" + "\n".join(history.lines(6))

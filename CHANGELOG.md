@@ -1,6 +1,15 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — real motion capture, cleaner meshes, fixes from the first phone test
+- Fighters move with real motion capture (CMU database): a boxer's bouncing guard, snapping jab, rotating cross, chambered front kick, lunging specials, a one-two combination ultimate, a real fall onto the back and a sit-up get-up. Every strike still lands on its frame-data active frames.
+- Imported meshes are inspected and repaired before use: surfaces split at texture seams are joined (no more torn strips around hands, sashes and boots), stray inward faces turned outward; shapes untouched.
+- Fighter colour textures kept at full 4K; sharper phone texture compression (ASTC).
+- All six fighters playable; "LOCKED · M8" removed.
+- Arena dust/ember particles were drawn as squares (and as big blurry blobs near the menu camera): they are now soft dots that fade out near the camera.
+- Fight camera closer, so fighters fill more of the screen.
+- Training readout restyled: compact, themed, move names instead of internal ids.
+- New tools: `tools/blender/mocap_actions.py`, `tools/mocap/bvh.py`, `tools/mocap/fetch_clips.sh`, `tools/blender/mesh_check.py`.
 ### Fixed — fighter models
 - Parts hanging out of the fighters: Kairo's sash no longer lifts out sideways with his guard (it hangs from the hip), Nox's hood and cloak no longer crush with his arms, and long strands from Ryuen's and Vexa's hands to their hips are gone (arm joints placed correctly; sleeves follow the arm).
 - Fighters are lit by their own key and rim lights, tuned per arena, so the painted models read clearly against bright or dark backgrounds.
