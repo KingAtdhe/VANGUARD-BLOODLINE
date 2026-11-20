@@ -8,8 +8,12 @@ signal pause_pressed
 ## How fast the white damage trail catches up (fraction of max per second).
 const TRAIL_SPEED: float = 0.6
 const ANNOUNCE_SECONDS: float = 1.2
-const PIP_ON := Color(1.0, 0.8, 0.2)
-const PIP_OFF := Color(0.25, 0.25, 0.28)
+const PIP_ON := Color(0.95, 0.74, 0.4)        # UiTheme.GOLD
+const PIP_OFF := Color(0.16, 0.15, 0.17, 0.9)
+## Health colour by remaining fraction (gold → ember → crimson).
+const HP_HIGH := Color(0.97, 0.78, 0.36)
+const HP_MID := Color(1.0, 0.45, 0.2)
+const HP_LOW := Color(0.9, 0.12, 0.16)
 
 @onready var _bars: Array[ProgressBar] = [%P1Health, %P2Health]
 @onready var _trails: Array[ProgressBar] = [%P1Trail, %P2Trail]
@@ -23,6 +27,8 @@ const PIP_OFF := Color(0.25, 0.25, 0.28)
 @onready var _meters: Array[ProgressBar] = [%P1Meter, %P2Meter]
 @onready var _meter_labels: Array[Label] = [%P1MeterLabel, %P2MeterLabel]
 var _accents: Array[Color] = [Color(1.0, 0.15, 0.1), Color(0.25, 0.6, 1.0)]
+var _hp_fill: Array[StyleBoxFlat] = []
+var _pip_styles: Array = [[], []]
 
 var _announce_left: float = 0.0
 var _hold_announce: bool = false
@@ -35,6 +41,65 @@ var _combo_linger: Array[float] = [0.0, 0.0]
 func _ready() -> void:
 	_pause_button.pressed.connect(func() -> void: pause_pressed.emit())
 	_announce.visible = false
+	_apply_style()
+
+
+## "Blood Signet" HUD look (presentation only): angled bars leaning away
+## from the centre, display type, a framed timer, crimson announcer.
+func _apply_style() -> void:
+	var display: Font = UiTheme.display_font()
+	for i: int in 2:
+		var lean: float = -UiTheme.SKEW if i == 0 else UiTheme.SKEW   # bars lean outwards
+		var frame := UiTheme.box(Color(0.03, 0.025, 0.035, 0.88), Color(1, 1, 1, 0.16), 0, 2, 0, lean)
+		frame.border_width_bottom = 4
+		frame.border_color = Color(UiTheme.ACCENT, 0.9)
+		frame.expand_margin_left = 6
+		frame.expand_margin_right = 6
+		frame.expand_margin_top = 4
+		frame.expand_margin_bottom = 4
+		_trails[i].add_theme_stylebox_override("background", frame)
+		_trails[i].add_theme_stylebox_override("fill", UiTheme.box(Color(1.0, 0.92, 0.85), Color(0, 0, 0, 0), 0, 0, 0, lean))
+		var fill := UiTheme.box(HP_HIGH, Color(1, 1, 1, 0.35), 0, 0, 0, lean)
+		fill.border_width_top = 5                            # bright top edge reads as a bevel
+		_hp_fill.append(fill)
+		_bars[i].add_theme_stylebox_override("fill", fill)
+		_bars[i].add_theme_stylebox_override("background", StyleBoxEmpty.new())
+		_meters[i].add_theme_stylebox_override("background",
+			UiTheme.box(Color(0.03, 0.025, 0.035, 0.85), Color(1, 1, 1, 0.12), 0, 1, 0, lean))
+		_meters[i].add_theme_stylebox_override("fill", UiTheme.box(Color.WHITE, Color(0, 0, 0, 0), 0, 0, 0, lean))
+		_names[i].uppercase = true
+		_names[i].add_theme_font_override("font", display)
+		_names[i].add_theme_font_size_override("font_size", 52)
+		_names[i].add_theme_constant_override("outline_size", 10)
+		_meter_labels[i].add_theme_font_override("font", UiTheme.bold_font())
+		_meter_labels[i].add_theme_color_override("font_color", UiTheme.GOLD)
+		_combo_labels[i].add_theme_font_override("font", display)
+		_combo_labels[i].add_theme_font_size_override("font_size", 84)
+		_combo_labels[i].add_theme_color_override("font_color", UiTheme.GOLD)
+		_combo_labels[i].add_theme_color_override("font_outline_color", UiTheme.ACCENT_DEEP)
+		_combo_labels[i].add_theme_constant_override("outline_size", 12)
+	# timer in a dark angled frame with a crimson cap
+	var tbox := UiTheme.box(Color(0.03, 0.025, 0.035, 0.9), Color(1, 1, 1, 0.12), 0, 1, 0, UiTheme.SKEW * 0.5)
+	tbox.border_width_top = 5
+	tbox.border_color = UiTheme.ACCENT
+	tbox.content_margin_left = 26
+	tbox.content_margin_right = 26
+	tbox.content_margin_top = -6
+	tbox.content_margin_bottom = -10
+	_timer.add_theme_stylebox_override("normal", tbox)
+	_timer.add_theme_font_override("font", display)
+	_timer.add_theme_font_size_override("font_size", 112)
+	_round.add_theme_font_override("font", UiTheme.bold_font())
+	_round.add_theme_color_override("font_color", UiTheme.EMBER)
+	_round.add_theme_font_size_override("font_size", 24)
+	_announce.add_theme_font_override("font", display)
+	_announce.add_theme_font_size_override("font_size", 220)
+	_announce.add_theme_color_override("font_color", Color(1, 0.96, 0.9))
+	_announce.add_theme_color_override("font_outline_color", UiTheme.ACCENT)
+	_announce.add_theme_constant_override("outline_size", 22)
+	_pause_button.theme = UiTheme.get_theme()
+	_pause_button.add_theme_font_size_override("font_size", 36)
+	_pause_button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 
 func setup(defs: Array[FighterDefinition], rounds_to_win: int, training: bool = false) -> void:
@@ -49,11 +114,15 @@ func setup(defs: Array[FighterDefinition], rounds_to_win: int, training: bool = 
 		_trails[i].value = defs[i].base_health
 		for c: Node in _pips[i].get_children():
 			c.queue_free()
+		_pip_styles[i] = []
 		for _r: int in rounds_to_win:
-			var pip := ColorRect.new()
-			pip.custom_minimum_size = Vector2(70, 30)
-			pip.color = PIP_OFF
+			var pip := Panel.new()
+			pip.custom_minimum_size = Vector2(64, 22)
+			var st := UiTheme.box(PIP_OFF, Color(1, 1, 1, 0.25), 0, 2, 0, UiTheme.SKEW * 1.4)
+			pip.add_theme_stylebox_override("panel", st)
+			_pip_styles[i].append(st)
 			_pips[i].add_child(pip)
+		_pips[i].alignment = BoxContainer.ALIGNMENT_BEGIN if i == 0 else BoxContainer.ALIGNMENT_END
 
 
 func refresh(sim: CombatSimulation, director: MatchDirector, delta: float) -> void:
@@ -65,9 +134,14 @@ func refresh(sim: CombatSimulation, director: MatchDirector, delta: float) -> vo
 			_trails[i].value = hp
 		elif director.phase != MatchDirector.Phase.INTRO:
 			_trails[i].value = maxf(hp, _trails[i].value - _trails[i].max_value * TRAIL_SPEED * delta)
-		var pips: Array[Node] = _pips[i].get_children()
-		for p: int in pips.size():
-			(pips[p] as ColorRect).color = PIP_ON if p < director.round_wins[i] else PIP_OFF
+		var styles: Array = _pip_styles[i]
+		for p: int in styles.size():
+			(styles[p] as StyleBoxFlat).bg_color = PIP_ON if p < director.round_wins[i] else PIP_OFF
+		# gold → ember → crimson as health drops
+		if i < _hp_fill.size():
+			var frac: float = hp / maxf(1.0, _bars[i].max_value)
+			_hp_fill[i].bg_color = HP_LOW.lerp(HP_MID, clampf(frac / 0.3, 0, 1)) if frac < 0.3 \
+				else HP_MID.lerp(HP_HIGH, clampf((frac - 0.3) / 0.3, 0, 1))
 	# Origin meter: label "MAX" when full, "SURGE" (pulsing) while active.
 	for i: int in 2:
 		var f: FighterState = sim.fighters[i]

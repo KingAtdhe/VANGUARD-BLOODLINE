@@ -48,7 +48,7 @@ signal touched
 
 
 func _ready() -> void:
-	_font = ThemeDB.fallback_font
+	_font = UiTheme.display_font()
 	_canvas = Control.new()
 	_canvas.name = "TouchCanvas"
 	_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -132,11 +132,11 @@ func _layout() -> void:
 	var cy: float = size.y - inset.size.y - margin - r - spacing * 0.9
 	var small: float = r * 0.75
 	var defs: Array = [
-		[InputActions.ATTACK_HEAVY, "H", Vector2(0, -spacing * 0.9), Color(0.95, 0.35, 0.25), r],
-		[InputActions.ATTACK_LIGHT, "L", Vector2(-spacing, 0), Color(0.95, 0.8, 0.3), r],
-		[InputActions.ATTACK_KICK, "K", Vector2(0, spacing * 0.9), Color(0.4, 0.85, 0.45), r],
-		[InputActions.BLOCK, "BLOCK", Vector2(spacing, 0), Color(0.45, 0.7, 1.0), r],
-		[InputActions.SPECIAL, "SP", Vector2(-spacing * 1.05, -spacing * 1.25), Color(1.0, 0.45, 0.2), small],
+		[InputActions.ATTACK_HEAVY, "H", Vector2(0, -spacing * 0.9), Color(0.9, 0.16, 0.2), r],
+		[InputActions.ATTACK_LIGHT, "L", Vector2(-spacing, 0), Color(0.95, 0.74, 0.4), r],
+		[InputActions.ATTACK_KICK, "K", Vector2(0, spacing * 0.9), Color(1.0, 0.45, 0.2), r],
+		[InputActions.BLOCK, "BLOCK", Vector2(spacing, 0), Color(0.78, 0.8, 0.86), r],
+		[InputActions.SPECIAL, "SP", Vector2(-spacing * 1.05, -spacing * 1.25), Color(1.0, 0.6, 0.3), small],
 		[InputActions.ULTIMATE, "ULT", Vector2(spacing * 1.05, -spacing * 1.25), Color(1.0, 0.15, 0.1), small],
 	]
 	var old_fingers: Dictionary = {}
@@ -274,22 +274,34 @@ func _release(action: StringName) -> void:
 
 
 func _draw_controls() -> void:
+	# "Blood Signet" pads: dark glass discs, a coloured rim with a thin inner
+	# ring, display-type labels. Pressed pads fill with their colour.
 	var a: float = opacity
-	# Stick
+	var glass := Color(0.03, 0.025, 0.035, 0.5 * a)
+	# Stick: dark base, crimson rim, eight direction ticks, bone-white knob.
 	var base: Vector2 = _stick.origin if _stick.finger != -1 else _stick.rest
-	_canvas.draw_circle(base, _stick.radius, Color(1, 1, 1, 0.12 * a))
-	_canvas.draw_arc(base, _stick.radius, 0.0, TAU, 48, Color(1, 1, 1, 0.6 * a), 4.0)
+	var rr: float = _stick.radius
+	_canvas.draw_circle(base, rr, glass)
+	_canvas.draw_arc(base, rr, 0.0, TAU, 64, Color(UiTheme.ACCENT, 0.85 * a), 5.0, true)
+	_canvas.draw_arc(base, rr * 0.9, 0.0, TAU, 64, Color(1, 1, 1, 0.12 * a), 2.0, true)
+	for k: int in 8:
+		var d := Vector2.RIGHT.rotated(TAU * k / 8.0)
+		_canvas.draw_line(base + d * rr * 0.78, base + d * rr * 0.88, Color(1, 1, 1, (0.5 if k % 2 == 0 else 0.25) * a), 3.0, true)
 	var knob: Vector2 = _stick.knob if _stick.finger != -1 else _stick.rest
-	_canvas.draw_circle(knob, KNOB_RADIUS * _stick.radius / STICK_RADIUS, Color(1, 1, 1, 0.55 * a))
+	var kr: float = KNOB_RADIUS * rr / STICK_RADIUS
+	_canvas.draw_circle(knob, kr, Color(UiTheme.TEXT, 0.6 * a))
+	_canvas.draw_arc(knob, kr, 0.0, TAU, 48, Color(UiTheme.ACCENT, 0.9 * a), 4.0, true)
 	# Buttons
 	for b: Dictionary in _buttons:
 		var pressed: bool = b.finger != -1
 		var col: Color = b.color
 		if _disabled.has(b.action):
 			col = Color(0.35, 0.35, 0.38)
-		_canvas.draw_circle(b.center, b.radius, Color(col, (0.75 if pressed else 0.3) * a))
-		_canvas.draw_arc(b.center, b.radius, 0.0, TAU, 48, Color(col.lightened(0.3), 0.9 * a), 5.0)
-		var fs: int = int(b.radius * (0.38 if String(b.label).length() > 2 else 0.6))
+		_canvas.draw_circle(b.center, b.radius, Color(col.darkened(0.35), 0.8 * a) if pressed else glass)
+		_canvas.draw_arc(b.center, b.radius, 0.0, TAU, 64, Color(col, 0.95 * a), 6.0, true)
+		_canvas.draw_arc(b.center, b.radius * 0.84, 0.0, TAU, 64, Color(col, 0.28 * a), 2.0, true)
+		var fs: int = int(b.radius * (0.5 if String(b.label).length() > 2 else 0.85))
 		var text_size: Vector2 = _font.get_string_size(b.label, HORIZONTAL_ALIGNMENT_CENTER, -1, fs)
-		_canvas.draw_string(_font, b.center + Vector2(-text_size.x * 0.5, fs * 0.35), b.label,
-			HORIZONTAL_ALIGNMENT_CENTER, -1, fs, Color(1, 1, 1, 0.95 * a))
+		var tc: Color = Color.WHITE if pressed else col.lightened(0.35)
+		_canvas.draw_string(_font, b.center + Vector2(-text_size.x * 0.5, fs * 0.32), b.label,
+			HORIZONTAL_ALIGNMENT_CENTER, -1, fs, Color(tc, 0.97 * a))

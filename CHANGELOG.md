@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — fight HUD and results
+- HUD in the Blood Signet style: angled health bars leaning outwards with a bevelled top edge, colour going gold → ember → crimson as health drops, white damage trail; fighter names, timer (in a framed box with a crimson cap), combo counter and announcer in display type; angled round markers; matching Origin meters.
+- Touch pads restyled: dark glass discs with coloured rims and display-type labels; the stick gets a crimson rim, direction ticks and a bone-white knob. Pad colours follow the game palette.
+- Blocking shows an energy barrier (hex lattice, glowing edges, rising ripple, flash on a blocked hit) in the fighter's colour instead of the old flat box. New shader `shaders/fx/block_shield.gdshader`.
+- Results: the winner's name in big type, "P1 WINS" under it, a scoreboard row and one tag per round with how it ended.
+- `tools/godot/fight_shot.gd`: screenshot of a real CPU fight (optional health/meter override).
 ### Changed — menus round 3
 - Story: chapter cards (big chapter number, arena and opponent, CLEARED / NEW / LOCKED tag) under a chapters-cleared progress bar; dialogue gets a crimson speaker nameplate and the backdrop switches to whoever is speaking (Ryuen, Kairo, the chapter's opponent).
 - Arcade: STAGE / SCORE / BEST tiles and a five-stage ladder (cleared, next, boss marked); Fight and End run side by side.

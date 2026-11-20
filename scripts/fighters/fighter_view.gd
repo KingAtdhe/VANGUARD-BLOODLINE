@@ -34,6 +34,8 @@ var _material: StandardMaterial3D
 var _flash_material: StandardMaterial3D
 var _model_meshes: Array[MeshInstance3D] = []
 var _accent_materials: Array[StandardMaterial3D] = []
+var _shield_mat: ShaderMaterial = null
+var _shield_hit: float = 0.0
 var _flash_left: float = 0.0
 var _fist_rest: Vector3
 
@@ -94,10 +96,49 @@ func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 					t2.albedo_color = Color.WHITE.lerp(accent_color, 0.45)
 					mi.set_surface_override_material(surf, t2)
 					_accent_materials.append(t2)
+	_make_energy_shield()
 	# The capsule placeholder hides; the shield stays as a block indicator.
 	_body.visible = false
 	_fist.visible = false
 	_aura.light_color = accent_color
+
+
+## Swaps the placeholder block box for a curved energy shell (an arc of a
+## cylinder wrapped in front of the fighter, so it reads from the side-on
+## fight camera), tinted with this fighter's accent. Presentation only.
+func _make_energy_shield() -> void:
+	var mi := _shield as MeshInstance3D
+	if mi == null:
+		return
+	const RADIUS: float = 0.62
+	const HEIGHT: float = 1.9
+	const SPAN: float = deg_to_rad(150.0)
+	const SEG: int = 18
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k: int in SEG:
+		var a0: float = -SPAN * 0.5 + SPAN * k / SEG
+		var a1: float = -SPAN * 0.5 + SPAN * (k + 1) / SEG
+		var p0 := Vector3(cos(a0) * RADIUS, 0, sin(a0) * RADIUS)
+		var p1 := Vector3(cos(a1) * RADIUS, 0, sin(a1) * RADIUS)
+		var u0: float = float(k) / SEG
+		var u1: float = float(k + 1) / SEG
+		var quad: Array = [[p0, u0, 0.0], [p1, u1, 0.0], [p1 + Vector3.UP * HEIGHT, u1, 1.0],
+			[p0, u0, 0.0], [p1 + Vector3.UP * HEIGHT, u1, 1.0], [p0 + Vector3.UP * HEIGHT, u0, 1.0]]
+		for v: Array in quad:
+			var pos: Vector3 = v[0]
+			st.set_normal(Vector3(pos.x, 0, pos.z).normalized())
+			st.set_uv(Vector2(v[1], 1.0 - v[2]))
+			st.add_vertex(pos)
+	mi.mesh = st.commit()
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/fx/block_shield.gdshader")
+	mat.set_shader_parameter("tint", accent_color)
+	mi.material_override = mat
+	mi.set_surface_override_material(0, null)
+	# centred on the body, feet to head (FacingMarker sits at y 1.5)
+	mi.position = Vector3(0.0, -1.5 + 0.05, 0.0)
+	_shield_mat = mat
 
 
 func has_model() -> bool:
@@ -118,6 +159,12 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 	position.x = x
 	_facing_marker.scale.x = float(current.facing)
 	_shield.visible = current.is_blocking()
+	if _shield_mat != null:
+		# flash when a blocked hit lands (block stun starts)
+		if current.action == FighterState.Action.BLOCKSTUN and previous.action != FighterState.Action.BLOCKSTUN:
+			_shield_hit = 1.0
+		_shield_hit = maxf(0.0, _shield_hit - delta * 4.0)
+		_shield_mat.set_shader_parameter("hit", _shield_hit)
 	if model != null:
 		# glTF models face +Z; turn to face the opponent (±X), slightly toward camera.
 		_model_root.rotation.y = deg_to_rad(profile_yaw_degrees) * float(current.facing)
