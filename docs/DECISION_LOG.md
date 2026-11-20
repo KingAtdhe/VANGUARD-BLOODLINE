@@ -387,6 +387,18 @@ staying phone-friendly:
 - **Colour grading:** a per-arena 1D colour-correction curve.
 **Accepted.**
 
+## D-053 — 2026-11-20 — Menu redesign: "Blood Signet"
+The menus get their own visual identity instead of generic rounded glass:
+angled blade buttons and panels (StyleBoxFlat skew), crimson Origin accent
+with ember and gold highlights, Teko for display type and Chakra Petch for
+body text (both OFL), an animated crest emblem (the V-in-a-broken-ring mark
+from The Pit), and a dark angled slab with a pulsing crimson "Origin vein"
+behind every menu column. The main menu becomes numbered mode blades with
+one line of context each, a player card, and a compact Profile / Settings /
+Quit row. Screens fade in; blades slide out when focused. The same theme is
+applied to the pause and results overlays. Navigation, node names and
+routes are unchanged (tests). **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

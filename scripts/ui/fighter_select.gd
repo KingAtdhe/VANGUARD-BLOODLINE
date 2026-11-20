@@ -24,7 +24,7 @@ func _build() -> void:
 	for id: StringName in Catalog.ROSTER:
 		var def: FighterDefinition = Catalog.fighter(id)
 		var b := make_button(def.display_name.to_upper() + ("" if def.playable else "\nLOCKED · M8"),
-			_select.bind(id), Vector2(328, 150), 34)
+			_select.bind(id), Vector2(328, 150), 44)
 		b.name = "Card_%s" % id
 		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var sb := (b.get_theme_stylebox("normal") as StyleBoxFlat).duplicate() as StyleBoxFlat
@@ -38,7 +38,7 @@ func _build() -> void:
 	var info := make_panel()
 	var il := VBoxContainer.new()
 	info.add_child(il)
-	_name = make_label("", 56, Color.WHITE)
+	_name = make_display("", 96, Color.WHITE)
 	_tag = make_label("", 30, UiTheme.MUTED)
 	_meta = make_label("", 28, UiTheme.GOLD)
 	il.add_child(_name)
@@ -79,11 +79,11 @@ func _select(id: StringName) -> void:
 	_tag.text = def.tagline
 	if def.playable:
 		_meta.text = "Mastery Lv %d" % Progression.mastery_level(id)
-		_confirm.text = "Confirm  ›"
+		_confirm.text = "CONFIRM  ›"
 		_confirm.disabled = false
 	else:
 		_meta.text = "Locked — %s" % def.locked_note
-		_confirm.text = "Not playable yet"
+		_confirm.text = "NOT PLAYABLE YET"
 		_confirm.disabled = true
 
 

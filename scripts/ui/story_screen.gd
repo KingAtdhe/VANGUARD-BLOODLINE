@@ -126,9 +126,9 @@ func _show_line() -> void:
 			_next.text = "FIGHT  ›"
 		else:
 			_rewards.text = "\n".join(ModeFlow.story_reward_lines)
-			_next.text = "Chapter complete  ›"
+			_next.text = "CHAPTER COMPLETE  ›"
 	else:
-		_next.text = "Next  ›"
+		_next.text = "NEXT  ›"
 	_skip.visible = not last
 	_next.grab_focus()
 

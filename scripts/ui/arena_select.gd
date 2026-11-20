@@ -24,7 +24,7 @@ func _build() -> void:
 	var info := make_panel()
 	var il := VBoxContainer.new()
 	info.add_child(il)
-	_name = make_label("", 48, Color.WHITE)
+	_name = make_display("", 72, Color.WHITE)
 	_tag = make_label("", 30, UiTheme.MUTED)
 	il.add_child(_name)
 	il.add_child(_tag)
@@ -56,12 +56,12 @@ func _select(id: StringName) -> void:
 	if Catalog.is_arena_unlocked(id):
 		_tag.text = cfg.tagline
 		_confirm.disabled = false
-		_confirm.text = "Training  ›" if ModeFlow.mode == MatchSetup.Mode.TRAINING else "Fight  ›"
+		_confirm.text = "TRAINING  ›" if ModeFlow.mode == MatchSetup.Mode.TRAINING else "FIGHT  ›"
 	else:
 		var hint: String = cfg.unlock_hint if cfg.unlock_hint != "" else "Keep playing Story and Arcade."
 		_tag.text = "%s\nUnlock: %s" % [cfg.tagline, hint]
 		_confirm.disabled = true
-		_confirm.text = "Locked"
+		_confirm.text = "LOCKED"
 
 
 func _confirm_pressed() -> void:

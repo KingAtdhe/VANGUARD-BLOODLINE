@@ -14,6 +14,8 @@ var header: HBoxContainer
 var title_label: Label
 var back_button: Button
 var content: Control
+var chrome: MenuChrome
+var eyebrow: Label
 ## Set by subclasses that don't want a Back button (main menu).
 var show_back: bool = true
 
@@ -29,12 +31,8 @@ func _ready() -> void:
 	add_child(bg)
 	backdrop = MenuBackdrop.new()
 	add_child(backdrop)
-	var shade := TextureRect.new()   # darkens the UI side for legibility
-	shade.texture = _gradient_texture()
-	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	shade.stretch_mode = TextureRect.STRETCH_SCALE
-	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(shade)
+	chrome = MenuChrome.new()          # angled slab + Origin vein behind the menu column
+	add_child(chrome)
 	safe = MarginContainer.new()
 	safe.set_anchors_preset(Control.PRESET_FULL_RECT)
 	safe.set_script(load("res://scripts/ui/safe_area_margin.gd"))
@@ -43,26 +41,49 @@ func _ready() -> void:
 	col.add_theme_constant_override("separation", 24)
 	safe.add_child(col)
 	header = HBoxContainer.new()
-	header.add_theme_constant_override("separation", 28)
+	header.add_theme_constant_override("separation", 36)
 	col.add_child(header)
 	back_button = Button.new()
 	back_button.name = "BackButton"
-	back_button.text = "‹  Back"
-	back_button.custom_minimum_size = Vector2(240, 96)
+	back_button.text = "◂  BACK"
+	back_button.custom_minimum_size = Vector2(230, 92)
+	back_button.add_theme_font_size_override("font_size", 40)
 	back_button.pressed.connect(go_back)
 	header.add_child(back_button)
-	title_label = Label.new()
-	title_label.add_theme_font_size_override("font_size", 64)
-	title_label.add_theme_color_override("font_color", Color.WHITE)
-	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	header.add_child(title_label)
+	var titles := VBoxContainer.new()
+	titles.add_theme_constant_override("separation", -10)
+	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(titles)
+	eyebrow = make_label("VANGUARD  //  BLOODLINE", 22, UiTheme.EMBER)
+	eyebrow.add_theme_font_override("font", UiTheme.bold_font())
+	eyebrow.autowrap_mode = TextServer.AUTOWRAP_OFF
+	titles.add_child(eyebrow)
+	title_label = make_display("", 96, Color.WHITE)
+	titles.add_child(title_label)
+	var bar := ColorRect.new()                 # crimson slash under the title
+	bar.color = UiTheme.ACCENT
+	bar.custom_minimum_size = Vector2(140, 6)
+	bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	titles.add_child(bar)
 	content = Control.new()
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	col.add_child(content)
 	_build()
 	back_button.visible = show_back
+	eyebrow.visible = title_label.text != ""
 	_focus_first()
+	_intro()
+
+
+## Screens arrive with a short slide/fade (presentation only).
+func _intro() -> void:
+	if not is_inside_tree():
+		return
+	content.modulate.a = 0.0
+	header.modulate.a = 0.0
+	var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(header, "modulate:a", 1.0, 0.25)
+	tw.tween_property(content, "modulate:a", 1.0, 0.35).set_delay(0.05)
 
 
 ## Override: populate [member content].
@@ -103,9 +124,9 @@ func _focus_first() -> void:
 
 # --- widgets ------------------------------------------------------------------------
 
-static func make_button(text: String, on_press: Callable, min_size: Vector2 = Vector2(560, 104), font: int = 40) -> Button:
+static func make_button(text: String, on_press: Callable, min_size: Vector2 = Vector2(560, 104), font: int = 44) -> Button:
 	var b := Button.new()
-	b.text = text
+	b.text = text.to_upper()
 	b.custom_minimum_size = min_size
 	b.add_theme_font_size_override("font_size", font)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -120,6 +141,14 @@ static func make_label(text: String, size: int = 34, color: Color = UiTheme.TEXT
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return l
+
+
+## Display type (Teko): titles, names, big numbers.
+static func make_display(text: String, size: int = 64, color: Color = Color.WHITE) -> Label:
+	var l := make_label(text, size, color)
+	l.add_theme_font_override("font", UiTheme.display_font())
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
 	return l
 
 
@@ -141,16 +170,3 @@ func side_column(w: float, right: bool = true) -> VBoxContainer:
 		v.offset_right = w
 	content.add_child(v)
 	return v
-
-
-static func _gradient_texture() -> GradientTexture2D:
-	var g := Gradient.new()
-	g.set_color(0, Color(0, 0, 0, 0.0))
-	g.set_color(1, Color(0, 0, 0, 0.78))
-	g.set_offset(0, 0.25)
-	g.set_offset(1, 0.75)
-	var t := GradientTexture2D.new()
-	t.gradient = g
-	t.width = 256
-	t.height = 4
-	return t

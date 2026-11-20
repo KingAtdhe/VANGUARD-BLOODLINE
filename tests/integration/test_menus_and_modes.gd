@@ -144,7 +144,7 @@ func test_mode_matches_run_in_the_combat_scene() -> Array[String]:
 		f.append("story opponent title not on the HUD: %s" % scene._hud.fighter_name(1))
 	_run_match(scene, true)
 	var labels: PackedStringArray = scene._results.button_labels()
-	if not labels.has("Continue") or scene.outcome == null or scene.outcome.continue_scene != ScenePaths.STORY:
+	if not labels.has("CONTINUE") or scene.outcome == null or scene.outcome.continue_scene != ScenePaths.STORY:
 		f.append("story win results should Continue to the story: %s" % labels)
 	if int(SaveManager.section("progress")["story_cleared"]) != 1:
 		f.append("story progress not saved by the match")
@@ -158,7 +158,7 @@ func test_mode_matches_run_in_the_combat_scene() -> Array[String]:
 		f.append("survival opening health/rules not applied (hp %d)" % scene.simulation.fighters[0].health)
 	_run_match(scene, false)
 	labels = scene._results.button_labels()
-	if labels.has("Rematch") or labels.has("Retry") or labels.is_empty():
+	if labels.has("REMATCH") or labels.has("RETRY") or labels.is_empty():
 		f.append("survival loss results wrong: %s" % labels)
 	_free(scene)
 	return f

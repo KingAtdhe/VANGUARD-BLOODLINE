@@ -104,7 +104,7 @@ func _slider(parent: Control, key: String, text: String, lo: float, hi: float, s
 func _reset_pressed() -> void:
 	if not _reset_armed:
 		_reset_armed = true
-		_reset_button.text = "Tap again to erase everything"
+		_reset_button.text = "TAP AGAIN TO ERASE EVERYTHING"
 		return
 	SaveManager.reset_all()
 	SessionSettings.ai_difficulty = int(SaveManager.setting("ai_difficulty"))

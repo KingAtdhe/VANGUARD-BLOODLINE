@@ -14,6 +14,7 @@ signal handedness_toggled
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
+	UiTheme.apply_overlay(self)
 	_resume.pressed.connect(func() -> void: resume_requested.emit())
 	%RestartButton.pressed.connect(func() -> void: restart_requested.emit())
 	%QuitButton.pressed.connect(func() -> void: quit_requested.emit())
@@ -22,11 +23,11 @@ func _ready() -> void:
 
 ## Training renames "Restart match" to "Reset positions".
 func set_training(training: bool) -> void:
-	(%RestartButton as Button).text = "Reset positions" if training else "Restart match"
+	(%RestartButton as Button).text = "RESET POSITIONS" if training else "RESTART MATCH"
 
 
 func set_left_handed(value: bool) -> void:
-	(%HandednessButton as Button).text = "Controls: left-handed" if value else "Controls: right-handed"
+	(%HandednessButton as Button).text = "CONTROLS: LEFT-HANDED" if value else "CONTROLS: RIGHT-HANDED"
 
 
 func open() -> void:

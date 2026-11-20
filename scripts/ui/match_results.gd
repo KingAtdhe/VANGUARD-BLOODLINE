@@ -19,6 +19,7 @@ signal continue_requested
 
 func _ready() -> void:
 	visible = false
+	UiTheme.apply_overlay(self)
 	_rematch.pressed.connect(func() -> void: rematch_requested.emit())
 	_menu.pressed.connect(func() -> void: menu_requested.emit())
 	_continue.pressed.connect(func() -> void: continue_requested.emit())
@@ -37,19 +38,19 @@ func show_results(director: MatchDirector, defs: Array[FighterDefinition], outco
 			"Draw" if r.winner < 0 else "P%d" % (r.winner + 1), _reason_text(r.reason)])
 	_detail.text = "\n".join(lines)
 	if outcome == null:
-		_rematch.text = "Rematch"
+		_rematch.text = "REMATCH"
 		_rematch.visible = true
 		_continue.visible = false
-		_menu.text = "Main menu"
+		_menu.text = "MAIN MENU"
 		_rewards.text = ""
 	else:
 		_title.text = outcome.headline
 		_rewards.text = "\n".join(outcome.lines)
-		_rematch.text = outcome.rematch_label
+		_rematch.text = outcome.rematch_label.to_upper()
 		_rematch.visible = outcome.rematch_label != ""
-		_continue.text = outcome.continue_label
+		_continue.text = outcome.continue_label.to_upper()
 		_continue.visible = outcome.continue_label != ""
-		_menu.text = outcome.quit_label
+		_menu.text = outcome.quit_label.to_upper()
 	_rewards.visible = _rewards.text != ""
 	visible = true
 	if _continue.visible:

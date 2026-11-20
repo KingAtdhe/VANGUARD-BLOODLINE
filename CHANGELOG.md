@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — menu redesign ("Blood Signet")
+- New menu look: angled blade buttons and panels, crimson/ember/gold palette, Teko + Chakra Petch fonts, animated crest emblem, dark angled slab with a pulsing Origin vein behind the menus, fade-in and slide-out animations.
+- Main menu: crest + logo, player card, five numbered mode blades with a line of context each, compact Profile / Settings / Quit row.
+- Fighter and arena select: big display-type names; pause and results overlays use the same theme.
+- `tools/godot/menu_shot.gd`: screenshots of any menu screen as the game shows it.
 ### Changed — arena pass 2
 - Baked bounce light and glow spill (neon on walls, lamp pools, Origin crack glow) on top of the real-time lights; new arena surface shader with grime in corners and no visible texture tiling.
 - Painted 360-degree backdrops: the neon city skyline and the Sanctuary's sea of clouds with distant floating islands.
