@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — menus round 3
+- Story: chapter cards (big chapter number, arena and opponent, CLEARED / NEW / LOCKED tag) under a chapters-cleared progress bar; dialogue gets a crimson speaker nameplate and the backdrop switches to whoever is speaking (Ryuen, Kairo, the chapter's opponent).
+- Arcade: STAGE / SCORE / BEST tiles and a five-stage ladder (cleared, next, boss marked); Fight and End run side by side.
+- Survival: DEFEATED / SCORE / BEST tiles, a health-carried-over meter that turns ember then crimson as it drops, and a next-opponent card.
+- Shared card, tag and stat-tile widgets in `MenuScreen`.
 ### Changed — new fighter models
 - The six playable fighters use the owner's rigged models: Kairo (heroic warrior), Drakon (armoured warrior), Nox (purple hooded warrior), Seraphina (superhero female), Vexa (female warrior), Ryuen (elder monk). Each keeps its own textures and shape, and has all 17 fight animations (idle, walk, punches, kick, specials, Origin Surge, ultimate, hits, block, knockdown, get-up, victory, defeat).
 - Their display bases were removed; three broken supplied rigs (Ryuen, Vexa, Seraphina) were re-skinned.

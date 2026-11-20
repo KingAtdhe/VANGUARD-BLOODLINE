@@ -159,6 +159,109 @@ static func make_panel(min_size: Vector2 = Vector2.ZERO) -> PanelContainer:
 	return p
 
 
+## Small-caps caption over a big display value, in an angled tile.
+static func stat_tile(caption: String, value: String, color: Color = Color.WHITE, min_w: float = 0.0,
+		value_size: int = 76) -> PanelContainer:
+	var p := PanelContainer.new()
+	p.custom_minimum_size = Vector2(min_w, 0)
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", -8)
+	p.add_child(v)
+	var c := make_label(caption.to_upper(), 22, UiTheme.MUTED)
+	c.add_theme_font_override("font", UiTheme.bold_font())
+	v.add_child(c)
+	v.add_child(make_display(value, value_size, color))
+	var st := (UiTheme.get_theme().get_stylebox("panel", "PanelContainer") as StyleBoxFlat).duplicate() as StyleBoxFlat
+	st.content_margin_top = 12
+	st.content_margin_bottom = 8
+	p.add_theme_stylebox_override("panel", st)
+	return p
+
+
+## Coloured tag ("BOSS", "CLEARED", "LOCKED") on a skewed chip.
+static func make_chip(text: String, color: Color) -> PanelContainer:
+	var chip := PanelContainer.new()
+	var st := UiTheme.box(Color(color, 0.22), color, 0, 2, 10, UiTheme.SKEW)
+	st.content_margin_top = 2
+	st.content_margin_bottom = 2
+	st.content_margin_left = 18
+	st.content_margin_right = 18
+	chip.add_theme_stylebox_override("panel", st)
+	var l := make_label(text.to_upper(), 24, color.lightened(0.25))
+	l.add_theme_font_override("font", UiTheme.bold_font())
+	l.autowrap_mode = TextServer.AUTOWRAP_OFF
+	chip.add_child(l)
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return chip
+
+
+## A card: big index on the left ("01"), title and a line of context, an
+## optional chip on the right. A Button when [param on_press] is valid
+## (focusable, themed blade), otherwise a static panel. [param emphasis]
+## marks the current item (crimson body, gold index).
+static func make_card(index: String, title: String, subtitle: String, chip: String = "",
+		chip_color: Color = UiTheme.ACCENT, on_press: Callable = Callable(),
+		min_size: Vector2 = Vector2(900, 110), emphasis: bool = false, dim: bool = false) -> Control:
+	var root: Control
+	if on_press.is_valid():
+		var b := Button.new()
+		b.pressed.connect(on_press)
+		root = b
+	else:
+		var pnl := PanelContainer.new()
+		pnl.add_theme_stylebox_override("panel", UiTheme.get_theme().get_stylebox("normal", "Button"))
+		root = pnl
+	root.custom_minimum_size = min_size
+	# cards set their own height: thin vertical padding instead of the blade's 22 px
+	var th: Theme = UiTheme.get_theme()
+	for state: String in (["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"] if root is Button else ["panel"]):
+		var src: StyleBox = th.get_stylebox("normal" if state == "panel" else state, "Button")
+		var sb := src.duplicate() as StyleBox
+		sb.content_margin_top = 6
+		sb.content_margin_bottom = 6
+		root.add_theme_stylebox_override(state, sb)
+	if emphasis:
+		var em := (UiTheme.get_theme().get_stylebox("hover", "Button") as StyleBoxFlat).duplicate() as StyleBoxFlat
+		em.content_margin_top = 6
+		em.content_margin_bottom = 6
+		root.add_theme_stylebox_override("normal" if root is Button else "panel", em)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 26)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if root is Button:
+		row.set_anchors_preset(Control.PRESET_FULL_RECT)
+		row.offset_left = 34
+		row.offset_right = -30
+	root.add_child(row)
+	var fade: Color = Color(1, 1, 1, 0.45) if dim else Color.WHITE
+	var h: float = min_size.y
+	var idx := make_display(index, int(h * 0.62), (UiTheme.GOLD if emphasis else UiTheme.ACCENT) * fade)
+	idx.custom_minimum_size = Vector2(h * 0.8, 0)
+	idx.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(idx)
+	var texts := VBoxContainer.new()
+	texts.add_theme_constant_override("separation", -6)
+	texts.alignment = BoxContainer.ALIGNMENT_CENTER
+	texts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	texts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(texts)
+	var t := make_display(title.to_upper(), int(h * 0.4), Color.WHITE * fade)
+	t.clip_text = true
+	texts.add_child(t)
+	if subtitle != "":
+		var sub := make_label(subtitle, clampi(int(h * 0.22), 18, 24), UiTheme.MUTED * fade)
+		sub.autowrap_mode = TextServer.AUTOWRAP_OFF
+		sub.clip_text = true
+		texts.add_child(sub)
+	if chip != "":
+		row.add_child(make_chip(chip, chip_color))
+	for n: Node in row.find_children("*", "Control", true, false):
+		(n as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return root
+
+
 ## Right-side column anchored inside [member content], width [param w] px.
 func side_column(w: float, right: bool = true) -> VBoxContainer:
 	var v := VBoxContainer.new()
