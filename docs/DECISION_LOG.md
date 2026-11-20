@@ -399,6 +399,32 @@ Quit row. Screens fade in; blades slide out when focused. The same theme is
 applied to the pause and results overlays. Navigation, node names and
 routes are unchanged (tests). **Accepted.**
 
+## D-054 — 2026-11-20 — Owner-supplied fighter models replace the generated roster
+
+The six playable fighters now use rigged models supplied by the owner
+(Tripo exports with Mixamo-style skeletons), replacing the procedurally
+generated ones: heroic warrior → Kairo, armoured warrior → Drakon, purple
+hooded warrior → Nox, superhero female → Seraphina, female warrior → Vexa,
+elder monk → Ryuen. Names, lore, move sets and balance are unchanged. The
+bosses (Origin Sentinel, Origin Warden) keep their generated models.
+
+`tools/blender/import_rigged.py` converts each one without changing its look:
+the displayed pose is baked in as the rest shape, the display pedestal is cut
+away, the mesh is scaled to the fighter's height (no decimation, 16–20k
+triangles), textures are kept (re-encoded as plain JPEG/PNG so Godot can read
+them) and the model is bound to the shared 18-bone fighter skeleton and given
+all 17 game animations. Where the supplied rig is sound (Kairo, Drakon, Nox)
+its skin weights are kept, folded onto the game bones. Three supplied rigs
+were broken (Ryuen and Vexa: skeleton fitted upside down; Seraphina: spine
+collapsed into the shoulders), so those are re-skinned from measured joints.
+The untouched sources are kept in `assets/characters/_source/` (not imported).
+
+Consequences: textured materials skip the toon shading and outline; a mirror
+match tints P2's texture (alternate-colour costume) since these models have no
+separate accent part; the Kairo skinning test allows up to 80% blended
+vertices (Tripo skinning is softer than ours); `character_builder.py` skips
+these six unless `--force`. **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

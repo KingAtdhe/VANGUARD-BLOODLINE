@@ -29,6 +29,10 @@ REF_HEIGHT = 1.8
 
 # ---------------------------------------------------------------- fighters --
 # Palettes: (r, g, b) linear-ish; accent is emissive Origin energy.
+## Playable fighters whose models are owner-supplied (tools/blender/import_rigged.py,
+## D-054). Their configs below still give height and animation scale.
+SUPPLIED = {"kairo", "drakon", "seraphina", "nox", "vexa", "ryuen"}
+
 FIGHTERS = {
     "kairo": dict(
         display="Kairo", height=1.80, shoulder=0.235, hip=0.105, build=1.0,
@@ -651,12 +655,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fighter", default="")
     ap.add_argument("--all", action="store_true")
+    ap.add_argument("--force", action="store_true", help="also rebuild owner-supplied fighters")
     ap.add_argument("--moves", required=True, help="JSON from tools/blender/export_move_timing.gd")
     ap.add_argument("--out", default="assets/characters")
     a = ap.parse_args(argv)
     moves = json.loads(open(a.moves).read())
     ids = list(FIGHTERS) if a.all else [a.fighter]
     for fid in ids:
+        if fid in SUPPLIED and not a.force:
+            print(f"[character] {fid}: skipped (owner-supplied model, see import_rigged.py; --force to rebuild)")
+            continue
         build_fighter(fid, moves, f"{a.out}/{fid}/{fid}.glb")
 
 

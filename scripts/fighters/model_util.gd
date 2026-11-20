@@ -14,7 +14,7 @@ static func enable_vertex_colors(model: Node) -> void:
 			continue
 		for s: int in mesh.get_surface_count():
 			var mat := mesh.surface_get_material(s) as StandardMaterial3D
-			if mat == null or mat.vertex_color_use_as_albedo:
+			if mat == null or mat.vertex_color_use_as_albedo or mat.albedo_texture != null:
 				continue
 			var colors: Variant = mesh.surface_get_arrays(s)[Mesh.ARRAY_COLOR]
 			if colors != null and (colors as PackedColorArray).size() > 0:
@@ -46,6 +46,10 @@ static func apply_toon_style(model: Node) -> void:
 		for s: int in mesh.get_surface_count():
 			var mat := mesh.surface_get_material(s) as StandardMaterial3D
 			if mat == null or mat.next_pass == _outline:
+				continue
+			# Painted (textured) hero models are shown exactly as authored:
+			# no toon banding, rim or outline that would change their look.
+			if mat.albedo_texture != null:
 				continue
 			mat.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
 			mat.specular_mode = BaseMaterial3D.SPECULAR_TOON

@@ -12,7 +12,8 @@ Record every third-party asset, font, sound, plugin or tool output here
 | Chakra Petch (Medium, Bold) — `assets/fonts/ChakraPetch-*.woff2` | Google Fonts via the @fontsource/chakra-petch npm package | SIL Open Font License 1.1 (`assets/fonts/OFL-ChakraPetch.txt`) | Menu body text | 2026-11-20 |
 | Arena textures, decals, lightmaps, panoramas, banner, poster | Generated from scratch by `tools/art/*.py` and `tools/blender/*.py` (the poster uses the owner's Kairo portrait) | Project-owned | Arenas | 2026-11-20 |
 | `icon.svg` placeholder | Original, made for this project | Project-owned | Project icon | 2026-11-17 |
-| `assets/characters/*/*.glb` (8 fighters) | Generated from scratch by `tools/blender/character_builder.py` (no base mesh/external assets) | Project-owned | Fighter models | 2026-11-18 |
+| `assets/characters/{kairo,drakon,nox,seraphina,vexa,ryuen}/*.glb` and `assets/characters/_source/*.glb` | Supplied by the project owner (generated with Tripo; rigged); converted by `tools/blender/import_rigged.py` | Project-owned (owner-supplied) | Playable fighter models | 2026-11-20 |
+| `assets/characters/{sentinel,warden}/*.glb` | Generated from scratch by `tools/blender/character_builder.py` (no base mesh/external assets) | Project-owned | Boss models | 2026-11-18 |
 | `assets/arenas/*/*_arena.glb` | Generated from scratch by `tools/blender/arena_builder.py` | Project-owned | Arena geometry | 2026-11-18 |
 | `docs/art/reference_roster_sheet.png` | Character art sheet supplied by the project owner (source/tool to be recorded by the owner before release) | Owner-supplied — confirm rights before release | Approved design reference for the 3D models | 2026-11-18 |
 | Story text, signage text, fighter names | Original, written for this project | Project-owned | Story/arenas | 2026-11-18 |

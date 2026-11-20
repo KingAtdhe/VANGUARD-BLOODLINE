@@ -83,6 +83,17 @@ func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 					m2.emission = accent_color
 				mi.set_surface_override_material(surf, m2)
 				_accent_materials.append(m2)
+		# Painted (textured) fighters have no separate accent part: in a mirror
+		# match P2 gets a light colour wash over the whole texture instead
+		# (an alternate-colour costume). Their own look is otherwise untouched.
+		if _accent_materials.is_empty() and recolor_accent:
+			for surf: int in mi.mesh.get_surface_count():
+				var tm := mi.get_active_material(surf) as StandardMaterial3D
+				if tm != null and tm.albedo_texture != null and tm.resource_name.ends_with("_Body"):
+					var t2 := tm.duplicate() as StandardMaterial3D
+					t2.albedo_color = Color.WHITE.lerp(accent_color, 0.45)
+					mi.set_surface_override_material(surf, t2)
+					_accent_materials.append(t2)
 	# The capsule placeholder hides; the shield stays as a block indicator.
 	_body.visible = false
 	_fist.visible = false

@@ -127,8 +127,10 @@ docs/     specification, decisions, milestones, pipeline docs
 
 ## Art pipeline
 
-All fighters and arenas are **built from scratch by script** (Blender 5,
-`tools/blender/character_builder.py` → `assets/characters/<id>/<id>.glb`,
+The six playable fighters are the **owner's own rigged models**, converted by
+`tools/blender/import_rigged.py` (look unchanged; game skeleton and animations
+added; sources in `assets/characters/_source/`). Bosses and arenas are
+**built from scratch by script** (Blender 5, `tools/blender/character_builder.py`,
 `tools/blender/arena_builder.py` → `assets/arenas/<id>/<id>_arena.glb`); no base meshes.
 Final art must follow [`docs/BLENDER_PIPELINE.md`](docs/BLENDER_PIPELINE.md);
 tests check animation lengths and that strikes line up with hitboxes.

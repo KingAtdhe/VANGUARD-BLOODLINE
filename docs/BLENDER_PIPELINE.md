@@ -4,7 +4,25 @@ Canonical source: `PRODUCTION_PACKAGE.md` §8.2–§8.4. Implemented in
 Milestone 6 with a **scripted blockout**; final art plugs into the same
 pipeline.
 
-## What exists now
+## Owner-supplied fighters (D-054)
+
+The playable roster uses rigged models supplied by the owner (Tripo exports,
+Mixamo-style skeleton, one textured material). Convert one with:
+
+```
+godot --headless --path . --script res://tools/blender/export_move_timing.gd -- /tmp/kairo_moves.json
+python tools/blender/import_rigged.py --src assets/characters/_source/kairo_heroic_warrior.glb \
+    --fighter kairo --moves /tmp/kairo_moves.json --out assets/characters
+```
+
+The look is not changed (no decimation, original textures). The script bakes
+the displayed pose as rest shape, cuts away a display pedestal, scales to the
+fighter's height, binds to the shared 18-bone skeleton (keeping the supplied
+weights when the rig is sound, re-skinning when it is broken;
+`--force-reskin` forces the latter) and adds all game animations.
+`character_builder.py` skips these fighters unless `--force`.
+
+## What exists now (generated fighters: bosses)
 
 `tools/blender/character_builder.py` builds Kairo **from scratch** (no
 base mesh, no external assets) and exports `assets/characters/<id>/<id>.glb`:

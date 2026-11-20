@@ -250,6 +250,10 @@ func test_roster_models_and_arenas() -> Array[String]:
 				var mat: Material = mesh.surface_get_material(s)
 				if mat != null and mat.resource_name.ends_with("_Accent"):
 					accent = true
+				# painted fighters: the textured body takes the mirror-match colour wash
+				var bm := mat as StandardMaterial3D
+				if bm != null and bm.albedo_texture != null and bm.resource_name.ends_with("_Body"):
+					accent = true
 		if tris > 45000:
 			f.append("%s: %d triangles exceeds the fighter budget" % [id, tris])
 		if not accent:

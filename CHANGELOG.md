@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — new fighter models
+- The six playable fighters use the owner's rigged models: Kairo (heroic warrior), Drakon (armoured warrior), Nox (purple hooded warrior), Seraphina (superhero female), Vexa (female warrior), Ryuen (elder monk). Each keeps its own textures and shape, and has all 17 fight animations (idle, walk, punches, kick, specials, Origin Surge, ultimate, hits, block, knockdown, get-up, victory, defeat).
+- Their display bases were removed; three broken supplied rigs (Ryuen, Vexa, Seraphina) were re-skinned.
+- Textured fighters are shown without toon outline; a mirror match gives P2 a colour-tinted costume.
+- `tools/blender/import_rigged.py` (convert a supplied rigged model), `tools/godot/roster_shot.gd` (in-engine roster screenshot).
 ### Changed — arena pass 3
 - Hand-placed decals behind and under the fighters: glowing impact cracks and invented-script paint on the Severed Line roof, cracks, leaves and stains in the Sanctuary, scorch marks and cracks on The Pit's stage, glowing fissures in the Origin Chamber floor.
 - Moving backdrop layers: sweeping searchlights and blinking aircraft lights over the city, drifting cloud banks in the Sanctuary, dust haze over The Pit's crowd, fake light shafts from the stage rigs and the Origin ceiling.
