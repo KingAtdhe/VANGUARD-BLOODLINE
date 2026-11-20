@@ -9,6 +9,11 @@
 [ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="7_pulse"]
 [ext_resource type="Texture2D" path="res://assets/arenas/temple/bird.png" id="8_bird"]
 [ext_resource type="Texture2D" path="res://assets/arenas/temple/temple_sky.png" id="9_sky"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack.png" id="dcrack"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/leaves.png" id="dleaves"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/stain.png" id="dstain"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/cloud_band.png" id="dcloud"]
+[ext_resource type="Shader" path="res://shaders/arena/scroll_layer.gdshader" id="sh_scroll"]
 
 [sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
 panorama = ExtResource("9_sky")
@@ -39,7 +44,7 @@ glow_hdr_threshold = 1.2
 glow_blend_mode = 1
 fog_enabled = true
 fog_light_color = Color(1.0, 0.75, 0.6, 1)
-fog_density = 0.0025
+fog_density = 0.0015
 fog_sky_affect = 0.2
 adjustment_enabled = true
 adjustment_contrast = 1.08
@@ -320,6 +325,29 @@ billboard_keep_scale = true
 material = SubResource("BirdMat2")
 size = Vector2(1.2, 0.6)
 
+[sub_resource type="ShaderMaterial" id="CloudNearMat"]
+render_priority = -1
+shader = ExtResource("sh_scroll")
+shader_parameter/layer_tex = ExtResource("dcloud")
+shader_parameter/tint = Color(1.0, 0.86, 0.75, 0.6)
+shader_parameter/speed = 0.0035
+shader_parameter/repeat_x = 2.0
+
+[sub_resource type="QuadMesh" id="CloudNearMesh"]
+material = SubResource("CloudNearMat")
+size = Vector2(520, 70)
+[sub_resource type="ShaderMaterial" id="CloudFarMat"]
+render_priority = -1
+shader = ExtResource("sh_scroll")
+shader_parameter/layer_tex = ExtResource("dcloud")
+shader_parameter/tint = Color(1.0, 0.9, 0.82, 0.45)
+shader_parameter/speed = 0.002
+shader_parameter/repeat_x = 3.0
+
+[sub_resource type="QuadMesh" id="CloudFarMesh"]
+material = SubResource("CloudFarMat")
+size = Vector2(700, 90)
+
 [node name="ForgottenTemple" type="Node3D"]
 script = ExtResource("1_view")
 config = ExtResource("4_cfg")
@@ -487,3 +515,71 @@ preprocess = 26.0
 visibility_aabb = AABB(-10, -20, -40, 200, 40, 80)
 process_material = SubResource("BirdMat")
 draw_pass_1 = SubResource("BirdQuad")
+
+[node name="Decals" type="Node3D" parent="."]
+
+[node name="Crack1" type="Decal" parent="Decals"]
+transform = Transform3D(0.9397, 0, 0.3420, 0, 1, 0, -0.3420, 0, 0.9397, 1.8, 0.3, -0.6)
+size = Vector3(3.5, 1, 3.5)
+texture_albedo = ExtResource("dcrack")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Crack2" type="Decal" parent="Decals"]
+transform = Transform3D(0.1736, 0, 0.9848, 0, 1, 0, -0.9848, 0, 0.1736, -3.2, 0.3, 1.4)
+size = Vector3(2.6, 1, 2.6)
+texture_albedo = ExtResource("dcrack")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Leaves1" type="Decal" parent="Decals"]
+transform = Transform3D(1.0000, 0, 0.0000, 0, 1, 0, -0.0000, 0, 1.0000, -3.2, 0.3, -4.4)
+size = Vector3(3, 1, 3)
+texture_albedo = ExtResource("dleaves")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Leaves2" type="Decal" parent="Decals"]
+transform = Transform3D(0.7071, 0, 0.7071, 0, 1, 0, -0.7071, 0, 0.7071, 3.8, 0.3, -4.6)
+size = Vector3(2.6, 1, 2.6)
+texture_albedo = ExtResource("dleaves")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Leaves3" type="Decal" parent="Decals"]
+transform = Transform3D(-0.6428, 0, 0.7660, 0, 1, 0, -0.7660, 0, -0.6428, 0.6, 0.3, -3.6)
+size = Vector3(2.2, 1, 2.2)
+texture_albedo = ExtResource("dleaves")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Stain1" type="Decal" parent="Decals"]
+transform = Transform3D(1.0000, 0, 0.0000, 0, 1, 0, -0.0000, 0, 1.0000, -7.5, 0.3, -3.2)
+size = Vector3(4, 1, 4)
+texture_albedo = ExtResource("dstain")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Stain2" type="Decal" parent="Decals"]
+transform = Transform3D(0.5000, 0, 0.8660, 0, 1, 0, -0.8660, 0, 0.5000, 6.6, 0.3, -3.6)
+size = Vector3(3.5, 1, 3.5)
+texture_albedo = ExtResource("dstain")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="CloudLayers" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+
+[node name="CloudFar" type="MeshInstance3D" parent="Ambience/CloudLayers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -8, -240)
+mesh = SubResource("CloudFarMesh")
+
+[node name="CloudNear" type="MeshInstance3D" parent="Ambience/CloudLayers"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -13, -160)
+mesh = SubResource("CloudNearMesh")

@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — arena pass 3
+- Hand-placed decals behind and under the fighters: glowing impact cracks and invented-script paint on the Severed Line roof, cracks, leaves and stains in the Sanctuary, scorch marks and cracks on The Pit's stage, glowing fissures in the Origin Chamber floor.
+- Moving backdrop layers: sweeping searchlights and blinking aircraft lights over the city, drifting cloud banks in the Sanctuary, dust haze over The Pit's crowd, fake light shafts from the stage rigs and the Origin ceiling.
+### Fixed
+- The Pit's carved crest ring arcs faced downward, so they were invisible (only their baked shadow showed as a dark smear). The full crest now shows.
+- Sanctuary baked bounce light was too strong (washed-out stone).
 ### Changed — menu redesign ("Blood Signet")
 - Menus, round 2: drifting embers and a crimson blade wipe as each screen arrives; the crest lands and the logo fades in; each main-menu mode previews its arena behind the menu (Story → Sanctuary, Arcade/Training → The Pit, Versus → Severed Line, Survival → Origin Chamber); a LIVE lore ticker; fighter select shows POWER / SPEED / REACH / HEALTH bars computed from each fighter's real data and a large name watermark in the fighter's colour.
 - New menu look: angled blade buttons and panels, crimson/ember/gold palette, Teko + Chakra Petch fonts, animated crest emblem, dark angled slab with a pulsing Origin vein behind the menus, fade-in and slide-out animations.

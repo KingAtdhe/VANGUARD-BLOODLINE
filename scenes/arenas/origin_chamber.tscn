@@ -8,6 +8,10 @@
 [ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
 [ext_resource type="Material" path="res://assets/arenas/origin/materials/ORI_Obsidian.tres" id="7_obs"]
 [ext_resource type="Material" path="res://assets/arenas/origin/materials/ORI_Origin.tres" id="8_glow"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack_glow.png" id="dglow"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack_glow_emission.png" id="dglowe"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/scorch.png" id="dscorch"]
+[ext_resource type="Shader" path="res://shaders/arena/light_shaft.gdshader" id="sh_shaft"]
 
 [sub_resource type="Gradient" id="GradeGrad"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -140,6 +144,22 @@ size = Vector2(0.35, 0.35)
 
 [sub_resource type="PrismMesh" id="FragMesh"]
 size = Vector3(0.6, 1.2, 0.4)
+
+[sub_resource type="ShaderMaterial" id="ColdShaftMat"]
+render_priority = 0
+shader = ExtResource("sh_shaft")
+shader_parameter/color = Color(0.55, 0.65, 1.0, 1.0)
+shader_parameter/strength = 0.05
+shader_parameter/source_at_top = true
+
+[sub_resource type="CylinderMesh" id="ColdShaftMesh"]
+material = SubResource("ColdShaftMat")
+top_radius = 1.5
+bottom_radius = 7.0
+height = 26
+cap_top = false
+cap_bottom = false
+radial_segments = 24
 
 [node name="OriginChamber" type="Node3D"]
 script = ExtResource("1_view")
@@ -335,3 +355,47 @@ surface_material_override/0 = ExtResource("7_obs")
 transform = Transform3D(1.02, 0, 0, 0, 1.83, 0, 0, 0, 1.02, 5.44, -1.34, -4.57)
 mesh = SubResource("FragMesh")
 surface_material_override/0 = ExtResource("7_obs")
+
+[node name="Decals" type="Node3D" parent="."]
+
+[node name="Glow1" type="Decal" parent="Decals"]
+transform = Transform3D(0.9848, 0, 0.1736, 0, 1, 0, -0.1736, 0, 0.9848, -2.4, 0.5, 0.6)
+size = Vector3(3.5, 1.5, 3.5)
+texture_albedo = ExtResource("dglow")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+texture_emission = ExtResource("dglowe")
+emission_energy = 2.0
+
+[node name="Glow2" type="Decal" parent="Decals"]
+transform = Transform3D(0.2588, 0, 0.9659, 0, 1, 0, -0.9659, 0, 0.2588, 2.8, 0.5, -1.4)
+size = Vector3(3.0, 1.5, 3.0)
+texture_albedo = ExtResource("dglow")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+texture_emission = ExtResource("dglowe")
+emission_energy = 2.0
+
+[node name="Glow3" type="Decal" parent="Decals"]
+transform = Transform3D(-0.7660, 0, 0.6428, 0, 1, 0, -0.6428, 0, -0.7660, 0.2, 0.5, 2.8)
+size = Vector3(2.6, 1.5, 2.6)
+texture_albedo = ExtResource("dglow")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+texture_emission = ExtResource("dglowe")
+emission_energy = 1.6
+
+[node name="Scorch1" type="Decal" parent="Decals"]
+transform = Transform3D(1.0000, 0, 0.0000, 0, 1, 0, -0.0000, 0, 1.0000, 0.8, 0.5, -0.2)
+size = Vector3(2.2, 1.5, 2.2)
+texture_albedo = ExtResource("dscorch")
+albedo_mix = 0.6
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="ColdShaft" type="MeshInstance3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, -5)
+mesh = SubResource("ColdShaftMesh")

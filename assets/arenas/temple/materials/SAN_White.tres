@@ -24,4 +24,4 @@ shader_parameter/grime = 0.5
 shader_parameter/ao_tex = ExtResource("6")
 shader_parameter/light_tex = ExtResource("7")
 shader_parameter/light_scale = 4.0
-shader_parameter/light_strength = 0.7
+shader_parameter/light_strength = 0.3

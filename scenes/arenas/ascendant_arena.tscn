@@ -6,6 +6,12 @@
 [ext_resource type="Resource" path="res://data/arenas/ascendant_arena.tres" id="4_cfg"]
 [ext_resource type="PackedScene" path="res://assets/arenas/ascendant/pit_crowd.glb" id="5_crowd"]
 [ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/scorch.png" id="dscorch"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack.png" id="dcrack"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/stain.png" id="dstain"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/dust_haze.png" id="dhaze"]
+[ext_resource type="Shader" path="res://shaders/arena/light_shaft.gdshader" id="sh_shaft"]
+[ext_resource type="Shader" path="res://shaders/arena/scroll_layer.gdshader" id="sh_scroll"]
 
 [sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
 sky_top_color = Color(0.01, 0.015, 0.05, 1)
@@ -128,6 +134,33 @@ billboard_mode = 1
 material = SubResource("FlashMat2")
 size = Vector2(0.22, 0.22)
 
+[sub_resource type="ShaderMaterial" id="ShaftMat"]
+render_priority = 0
+shader = ExtResource("sh_shaft")
+shader_parameter/color = Color(1.0, 0.9, 0.75, 1.0)
+shader_parameter/strength = 0.05
+shader_parameter/source_at_top = true
+
+[sub_resource type="CylinderMesh" id="ShaftMesh"]
+material = SubResource("ShaftMat")
+top_radius = 0.4
+bottom_radius = 3.6
+height = 7.4
+cap_top = false
+cap_bottom = false
+radial_segments = 24
+[sub_resource type="ShaderMaterial" id="HazeMat"]
+render_priority = -1
+shader = ExtResource("sh_scroll")
+shader_parameter/layer_tex = ExtResource("dhaze")
+shader_parameter/tint = Color(1.0, 0.85, 0.7, 0.5)
+shader_parameter/speed = 0.006
+shader_parameter/repeat_x = 2.0
+
+[sub_resource type="QuadMesh" id="HazeMesh"]
+material = SubResource("HazeMat")
+size = Vector2(70, 14)
+
 [node name="AscendantArena" type="Node3D"]
 script = ExtResource("1_view")
 config = ExtResource("4_cfg")
@@ -238,3 +271,59 @@ randomness = 1.0
 visibility_aabb = AABB(-30, -8, -10, 60, 16, 20)
 process_material = SubResource("FlashMat")
 draw_pass_1 = SubResource("FlashQuad")
+
+[node name="Decals" type="Node3D" parent="."]
+
+[node name="Scorch1" type="Decal" parent="Decals"]
+transform = Transform3D(1.0000, 0, 0.0000, 0, 1, 0, -0.0000, 0, 1.0000, -1.6, 0.5, 0.4)
+size = Vector3(2.6, 1.5, 2.6)
+texture_albedo = ExtResource("dscorch")
+albedo_mix = 0.8
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Scorch2" type="Decal" parent="Decals"]
+transform = Transform3D(0.6428, 0, 0.7660, 0, 1, 0, -0.7660, 0, 0.6428, 2.2, 0.5, -0.8)
+size = Vector3(2.0, 1.5, 2.0)
+texture_albedo = ExtResource("dscorch")
+albedo_mix = 0.7
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Crack1" type="Decal" parent="Decals"]
+transform = Transform3D(0.8660, 0, 0.5000, 0, 1, 0, -0.5000, 0, 0.8660, -4.2, 0.5, -2.0)
+size = Vector3(3.4, 1.5, 3.4)
+texture_albedo = ExtResource("dcrack")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Crack2" type="Decal" parent="Decals"]
+transform = Transform3D(-0.1736, 0, 0.9848, 0, 1, 0, -0.9848, 0, -0.1736, 4.6, 0.5, 1.6)
+size = Vector3(3.0, 1.5, 3.0)
+texture_albedo = ExtResource("dcrack")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Stain1" type="Decal" parent="Decals"]
+transform = Transform3D(1.0000, 0, 0.0000, 0, 1, 0, -0.0000, 0, 1.0000, 0, 0.5, 2.6)
+size = Vector3(5, 1.5, 3)
+texture_albedo = ExtResource("dstain")
+albedo_mix = 0.7
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Shafts" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+
+[node name="Shaft0" type="MeshInstance3D" parent="Ambience/Shafts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.06, 3.5, -1)
+mesh = SubResource("ShaftMesh")
+
+[node name="Shaft1" type="MeshInstance3D" parent="Ambience/Shafts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.06, 3.5, -1)
+mesh = SubResource("ShaftMesh")
+
+[node name="DustHaze" type="MeshInstance3D" parent="Ambience" groups=["arena_fx"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -17)
+mesh = SubResource("HazeMesh")

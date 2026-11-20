@@ -243,7 +243,7 @@ FLOW = {"ORI_Origin": 1.0, "PIT_Vein": 0.6, "SEV_Origin": 0.8}
 GRIME = {"SAN_Gold": 0.25, "PIT_Gold": 0.25, "SEV_Metal": 0.35, "PIT_Steel": 0.4, "ORI_Obsidian": 0.2,
          "SAN_Roof": 0.45, "SEV_RoofWet": 0.7, "PIT_Rock": 0.5, "SAN_White": 0.5}
 # How strongly the baked light is added, per arena (calibrated in-engine).
-LIGHT_STRENGTH = {"neon": 1.0, "temple": 0.7, "ascendant": 0.55, "origin": 1.6}
+LIGHT_STRENGTH = {"neon": 1.0, "temple": 0.3, "ascendant": 0.55, "origin": 1.6}
 
 
 def write_godot_materials(out_dir, mats, ao_rel, lm_rel=""):
@@ -463,7 +463,7 @@ def ascendant():
         M("PIT_Gravel", (0.2, 0.15, 0.11), 0.95),
         M("PIT_Dark", (0.075, 0.07, 0.07), 0.5, 0.5),             # cut bedrock stage, steel
         M("PIT_Paint", (0.2, 0.125, 0.025), 0.7, 0.3),            # weathered crane yellow
-        M("PIT_Gold", (0.75, 0.5, 0.18), 0.3, 1.0),
+        M("PIT_Gold", (0.75, 0.5, 0.18), 0.4, 0.45),
         M("PIT_Vein", (0.2, 0.0, 0.0), 0.5, 0.0, (1.0, 0.05, 0.02), 1.6),
         M("PIT_Lamp", (1.0, 0.95, 0.85), 0.5, 0.0, (1.0, 0.88, 0.7), 2.5),
         M("PIT_Steel", (0.12, 0.12, 0.13), 0.45, 0.8),
@@ -538,8 +538,8 @@ def ascendant():
                 t = a + math.radians(48) * s_ / n
                 out_.append(k.bm.verts.new(Vector((math.cos(t) * ro, math.sin(t) * ro, z))))
                 in_.append(k.bm.verts.new(Vector((math.cos(t) * ri, math.sin(t) * ri, z))))
-            for s_ in range(n):
-                k.bm.faces.new((in_[s_], in_[s_ + 1], out_[s_ + 1], out_[s_]))
+            for s_ in range(n):                           # wound to face up
+                k.bm.faces.new((in_[s_], out_[s_], out_[s_ + 1], in_[s_ + 1]))
             k._finish_new((0, 0, 0), (0, 0, 0), mat)
 
     def blade(hilt, tip, width=0.75):

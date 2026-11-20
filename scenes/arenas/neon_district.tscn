@@ -8,6 +8,14 @@
 [ext_resource type="Script" path="res://scripts/arenas/emission_pulse.gd" id="6_pulse"]
 [ext_resource type="Script" path="res://scripts/arenas/arena_drift.gd" id="7_drift"]
 [ext_resource type="Texture2D" path="res://assets/arenas/neon/neon_sky.png" id="9_sky"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack.png" id="dcrack"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack_glow.png" id="dglow"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/crack_glow_emission.png" id="dglowe"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/stain.png" id="dstain"]
+[ext_resource type="Texture2D" path="res://assets/arenas/decals/glyph_paint.png" id="dglyph"]
+[ext_resource type="Shader" path="res://shaders/arena/light_shaft.gdshader" id="sh_shaft"]
+[ext_resource type="Script" path="res://scripts/arenas/arena_sweep.gd" id="sc_sweep"]
+[ext_resource type="Script" path="res://scripts/arenas/blink.gd" id="sc_blink"]
 
 [sub_resource type="PanoramaSkyMaterial" id="SkyMat"]
 panorama = ExtResource("9_sky")
@@ -201,6 +209,30 @@ material = SubResource("DroneGreen")
 radius = 0.07
 height = 0.14
 
+[sub_resource type="ShaderMaterial" id="SearchMat"]
+render_priority = 0
+shader = ExtResource("sh_shaft")
+shader_parameter/color = Color(0.75, 0.85, 1.0, 1.0)
+shader_parameter/strength = 0.06
+shader_parameter/source_at_top = true
+
+[sub_resource type="CylinderMesh" id="SearchMesh"]
+material = SubResource("SearchMat")
+top_radius = 0.4
+bottom_radius = 6.0
+height = 110
+cap_top = false
+cap_bottom = false
+radial_segments = 24
+[sub_resource type="StandardMaterial3D" id="AirLightMat"]
+shading_mode = 0
+albedo_color = Color(4, 0.3, 0.2, 1)
+
+[sub_resource type="SphereMesh" id="AirLight"]
+material = SubResource("AirLightMat")
+radius = 0.35
+height = 0.7
+
 [node name="NeonDistrict" type="Node3D"]
 script = ExtResource("1_view")
 config = ExtResource("4_cfg")
@@ -388,3 +420,123 @@ mesh = SubResource("DroneLampR")
 [node name="LampG" type="MeshInstance3D" parent="Ambience/Drone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.12, 0)
 mesh = SubResource("DroneLampG")
+
+[node name="Decals" type="Node3D" parent="."]
+
+[node name="ImpactCracks" type="Decal" parent="Decals"]
+transform = Transform3D(0.9659, 0, 0.2588, 0, 1, 0, -0.2588, 0, 0.9659, -4.6, 0.3, -3.4)
+size = Vector3(7, 1, 6)
+texture_albedo = ExtResource("dglow")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+texture_emission = ExtResource("dglowe")
+emission_energy = 2.5
+
+[node name="Glyph1" type="Decal" parent="Decals"]
+transform = Transform3D(0.9903, 0, -0.1392, 0, 1, 0, 0.1392, 0, 0.9903, 2.6, 0.3, -2.2)
+size = Vector3(3.2, 1, 1.6)
+texture_albedo = ExtResource("dglyph")
+albedo_mix = 0.85
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Glyph2" type="Decal" parent="Decals"]
+transform = Transform3D(0.9781, 0, 0.2079, 0, 1, 0, -0.2079, 0, 0.9781, -9.5, 0.3, 0.8)
+size = Vector3(2.4, 1, 1.2)
+texture_albedo = ExtResource("dglyph")
+albedo_mix = 0.7
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Stain1" type="Decal" parent="Decals"]
+transform = Transform3D(0.7660, 0, 0.6428, 0, 1, 0, -0.6428, 0, 0.7660, 5.5, 0.3, -0.5)
+size = Vector3(4, 1, 4)
+texture_albedo = ExtResource("dstain")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Stain2" type="Decal" parent="Decals"]
+transform = Transform3D(-0.3420, 0, 0.9397, 0, 1, 0, -0.9397, 0, -0.3420, -2, 0.3, 2.5)
+size = Vector3(3, 1, 3)
+texture_albedo = ExtResource("dstain")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Crack1" type="Decal" parent="Decals"]
+transform = Transform3D(0.3420, 0, 0.9397, 0, 1, 0, -0.9397, 0, 0.3420, 3.5, 0.3, 1.8)
+size = Vector3(3, 1, 3)
+texture_albedo = ExtResource("dcrack")
+albedo_mix = 1.0
+upper_fade = 0.2
+lower_fade = 0.2
+
+[node name="Searchlights" type="Node3D" parent="Ambience" groups=["arena_fx"]]
+
+[node name="Pivot0" type="Node3D" parent="Ambience/Searchlights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, -12, -55)
+script = ExtResource("sc_sweep")
+axis = Vector3(0.3, 0, 1)
+angle = 28.0
+period = 11.0
+phase = 0.0
+
+[node name="Beam" type="MeshInstance3D" parent="Ambience/Searchlights/Pivot0"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 55, 0)
+mesh = SubResource("SearchMesh")
+
+[node name="Pivot1" type="Node3D" parent="Ambience/Searchlights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, -12, -62)
+script = ExtResource("sc_sweep")
+axis = Vector3(0.3, 0, 1)
+angle = 28.0
+period = 14.0
+phase = 2.1
+
+[node name="Beam" type="MeshInstance3D" parent="Ambience/Searchlights/Pivot1"]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 55, 0)
+mesh = SubResource("SearchMesh")
+
+[node name="AirLight0" type="MeshInstance3D" parent="Ambience"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 38, -80)
+mesh = SubResource("AirLight")
+script = ExtResource("sc_blink")
+period = 1.4
+phase = 0.00
+
+[node name="AirLight1" type="MeshInstance3D" parent="Ambience"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 52, -95)
+mesh = SubResource("AirLight")
+script = ExtResource("sc_blink")
+period = 1.6
+phase = 0.37
+
+[node name="AirLight2" type="MeshInstance3D" parent="Ambience"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 44, -88)
+mesh = SubResource("AirLight")
+script = ExtResource("sc_blink")
+period = 1.8
+phase = 0.74
+
+[node name="AirLight3" type="MeshInstance3D" parent="Ambience"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46, 33, -76)
+mesh = SubResource("AirLight")
+script = ExtResource("sc_blink")
+period = 2.0
+phase = 1.11
+
+[node name="AirLight4" type="MeshInstance3D" parent="Ambience"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62, 29, -70)
+mesh = SubResource("AirLight")
+script = ExtResource("sc_blink")
+period = 2.2
+phase = 1.48
+
+[node name="AirLight5" type="MeshInstance3D" parent="Ambience"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 41, -90)
+mesh = SubResource("AirLight")
+script = ExtResource("sc_blink")
+period = 2.4
+phase = 1.85

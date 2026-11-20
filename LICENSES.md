@@ -10,7 +10,7 @@ Record every third-party asset, font, sound, plugin or tool output here
 | Default Godot UI font | Bundled with Godot | (engine default font license — verify before release) | Fallback only (HUD, debug) | 2026-11-17 |
 | Teko (SemiBold, Medium) — `assets/fonts/Teko-*.woff2` | Google Fonts via the @fontsource/teko npm package | SIL Open Font License 1.1 (`assets/fonts/OFL-Teko.txt`) | Menu display type: titles, buttons | 2026-11-20 |
 | Chakra Petch (Medium, Bold) — `assets/fonts/ChakraPetch-*.woff2` | Google Fonts via the @fontsource/chakra-petch npm package | SIL Open Font License 1.1 (`assets/fonts/OFL-ChakraPetch.txt`) | Menu body text | 2026-11-20 |
-| Arena textures, lightmaps, panoramas, banner, poster | Generated from scratch by `tools/art/*.py` and `tools/blender/*.py` (the poster uses the owner's Kairo portrait) | Project-owned | Arenas | 2026-11-20 |
+| Arena textures, decals, lightmaps, panoramas, banner, poster | Generated from scratch by `tools/art/*.py` and `tools/blender/*.py` (the poster uses the owner's Kairo portrait) | Project-owned | Arenas | 2026-11-20 |
 | `icon.svg` placeholder | Original, made for this project | Project-owned | Project icon | 2026-11-17 |
 | `assets/characters/*/*.glb` (8 fighters) | Generated from scratch by `tools/blender/character_builder.py` (no base mesh/external assets) | Project-owned | Fighter models | 2026-11-18 |
 | `assets/arenas/*/*_arena.glb` | Generated from scratch by `tools/blender/arena_builder.py` | Project-owned | Arena geometry | 2026-11-18 |
