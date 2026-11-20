@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cadpfqfkjass0"
-path="res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.ctex"
+path.s3tc="res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.s3tc.ctex"
+path.etc2="res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "de705bdccfe536f1b8b2be67f24e1c5e"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/drakon/drakon_drakon_basecolor.jpg"
-dest_files=["res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.ctex"]
+dest_files=["res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.s3tc.ctex", "res://.godot/imported/drakon_drakon_basecolor.jpg-52b79471b39633abf432d10486d3d06e.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

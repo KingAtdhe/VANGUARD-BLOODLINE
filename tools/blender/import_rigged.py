@@ -374,9 +374,12 @@ def main():
                               export_animation_mode="ACTIONS", export_force_sampling=True, export_frame_step=1,
                               export_skins=True, export_def_bones=False, export_yup=True, export_apply=False,
                               export_materials="EXPORT", export_image_format="AUTO")
-    for f in os.listdir(out_dir):
-        if f.startswith(f"{fid}_") and f.split(".")[-1] in ("jpg", "png"):
-            os.remove(os.path.join(out_dir, f))   # embedded in the GLB
+    # only this script's own texture copies (now embedded in the GLB); Godot's
+    # extracted textures next to the model (<fid>_<fid>_*.jpg) must stay
+    for kind in ("basecolor.jpg", "rm.png", "normal.jpg"):
+        f = os.path.join(out_dir, f"{fid}_{kind}")
+        if os.path.exists(f):
+            os.remove(f)
     print(f"[rigged] {fid}: tris={tris} actions={len(actions)} -> {out_path}")
 
 

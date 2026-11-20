@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk1trvgiodigg"
-path="res://.godot/imported/nox_nox_basecolor.jpg-bbe5b8d76dd0d041c64a99d99204a975.ctex"
+path.s3tc="res://.godot/imported/nox_nox_basecolor.jpg-bbe5b8d76dd0d041c64a99d99204a975.s3tc.ctex"
+path.etc2="res://.godot/imported/nox_nox_basecolor.jpg-bbe5b8d76dd0d041c64a99d99204a975.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "bb079cb29715f74abda8e4ded41c8cde"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/nox/nox_nox_basecolor.jpg"
-dest_files=["res://.godot/imported/nox_nox_basecolor.jpg-bbe5b8d76dd0d041c64a99d99204a975.ctex"]
+dest_files=["res://.godot/imported/nox_nox_basecolor.jpg-bbe5b8d76dd0d041c64a99d99204a975.s3tc.ctex", "res://.godot/imported/nox_nox_basecolor.jpg-bbe5b8d76dd0d041c64a99d99204a975.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

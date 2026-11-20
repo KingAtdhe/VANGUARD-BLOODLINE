@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cksw0gtpydxt5"
-path="res://.godot/imported/drakon_drakon_normal.jpg-6f81051641847423448d15d9748c5158.ctex"
+path.s3tc="res://.godot/imported/drakon_drakon_normal.jpg-6f81051641847423448d15d9748c5158.s3tc.ctex"
+path.etc2="res://.godot/imported/drakon_drakon_normal.jpg-6f81051641847423448d15d9748c5158.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "fb38c08e33db4799855b7c737437d713"
@@ -14,17 +16,17 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/drakon/drakon_drakon_normal.jpg"
-dest_files=["res://.godot/imported/drakon_drakon_normal.jpg-6f81051641847423448d15d9748c5158.ctex"]
+dest_files=["res://.godot/imported/drakon_drakon_normal.jpg-6f81051641847423448d15d9748c5158.s3tc.ctex", "res://.godot/imported/drakon_drakon_normal.jpg-6f81051641847423448d15d9748c5158.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

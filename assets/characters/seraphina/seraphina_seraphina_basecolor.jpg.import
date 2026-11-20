@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bpu1o6e3vujro"
-path="res://.godot/imported/seraphina_seraphina_basecolor.jpg-0f0f624c134df0a37d7d840375dabfed.ctex"
+path.s3tc="res://.godot/imported/seraphina_seraphina_basecolor.jpg-0f0f624c134df0a37d7d840375dabfed.s3tc.ctex"
+path.etc2="res://.godot/imported/seraphina_seraphina_basecolor.jpg-0f0f624c134df0a37d7d840375dabfed.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "749e73cb50c22f74c704f265f2744b99"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/seraphina/seraphina_seraphina_basecolor.jpg"
-dest_files=["res://.godot/imported/seraphina_seraphina_basecolor.jpg-0f0f624c134df0a37d7d840375dabfed.ctex"]
+dest_files=["res://.godot/imported/seraphina_seraphina_basecolor.jpg-0f0f624c134df0a37d7d840375dabfed.s3tc.ctex", "res://.godot/imported/seraphina_seraphina_basecolor.jpg-0f0f624c134df0a37d7d840375dabfed.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
