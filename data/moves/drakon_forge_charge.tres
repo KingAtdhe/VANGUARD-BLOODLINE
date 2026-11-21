@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"drakon_forge_charge"
+display_name = "Forge Charge"
+input_pattern = &"FORWARD_SPECIAL"
+animation = &"DRAKON_SPECIAL_FORGE_CHARGE"
+startup_frames = 16
+active_frames = 8
+recovery_frames = 26
+hitstun_frames = 24
+blockstun_frames = 18
+hitstop_frames = 11
+damage = 100
+chip_damage = 10
+pushback = 0.7
+hit_level = 1
+hitbox_center = Vector2(0.6, 1.2)
+hitbox_size = Vector2(0.6, 0.6)
+tags = PackedStringArray("special")
+cancel_tags = PackedStringArray()
+move_distance = 2.4
+move_start_frame = 5
+move_end_frame = 20
+meter_gain_on_hit = 10
+meter_gain_on_block = 5
+meter_cost = 25
+knockdown = true
+armor_start_frame = 5
+armor_end_frame = 23
+armor_hits = 1

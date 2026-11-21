@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Drakon's own move set
+- Hammer Fist (L), Haymaker (H), Shoulder Check (down + H), Stomp (K, low), Anvil Slam (SP, unblockable grab), Forge Charge (toward + SP, absorbs one hit), Quake Stomp (away + SP, low, long reach), ultimate Molten Colossus (grab).
+- Drakon has more health (1150), takes half chip damage when blocking and walks slower.
+- Throws and armour in the combat engine.
 ### Added — Kairo's own move set
 - Low Kick (K): must be blocked low. Body Hook (down + H): combos after the jab. Slip Counter (back + SP): slips a punch and answers with a hook; low attacks beat it.
 - Counter stances in the combat engine.

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"drakon_shoulder_check"
+display_name = "Shoulder Check"
+input_pattern = &"DOWN_HEAVY"
+animation = &"DRAKON_ATTACK_SHOULDER_CHECK_01"
+startup_frames = 11
+active_frames = 4
+recovery_frames = 18
+hitstun_frames = 22
+blockstun_frames = 20
+hitstop_frames = 9
+damage = 70
+chip_damage = 6
+pushback = 0.45
+hit_level = 1
+hitbox_center = Vector2(0.55, 1.25)
+hitbox_size = Vector2(0.5, 0.5)
+tags = PackedStringArray("normal", "shoulder")
+cancel_tags = PackedStringArray("special")
+move_distance = 0.5
+move_start_frame = 4
+move_end_frame = 10
+meter_gain_on_hit = 9
+meter_gain_on_block = 5

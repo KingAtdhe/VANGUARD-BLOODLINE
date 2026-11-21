@@ -32,7 +32,7 @@ const _BUTTON_FOR: Dictionary = {&"LIGHT": L, &"HEAVY": H, &"KICK": K,
 	&"SPECIAL": S, &"FORWARD_SPECIAL": S, &"ULTIMATE": U,
 	&"DOWN_LIGHT": L, &"DOWN_HEAVY": H, &"DOWN_KICK": K, &"DOWN_SPECIAL": S, &"BACK_SPECIAL": S}
 const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL", &"FORWARD_SPECIAL",
-	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL"]
+	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL", &"BACK_SPECIAL"]
 ## Extra distance at which a visible attack is treated as a threat.
 const THREAT_MARGIN: float = 0.35
 
@@ -384,7 +384,7 @@ func _moves_in_range(dist: float) -> Array[StringName]:
 ## In range and affordable (meter/Surge as seen on the HUD).
 func _move_in_range(pattern: StringName, dist: float, surge_move: bool) -> bool:
 	for m: MoveData in me_def.moves_for(pattern):
-		if m.activates_surge or m.requires_surge != surge_move:
+		if m.activates_surge or m.requires_surge != surge_move or m.is_counter():
 			continue
 		var reach: float = _reach(m, opp_def) + m.move_distance
 		if dist <= reach - 0.05 and _affordable_move(m):

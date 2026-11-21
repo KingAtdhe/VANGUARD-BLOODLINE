@@ -89,11 +89,27 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var counter_followup: MoveData = null
 @export var counter_stun_frames: int = 16
 
+@export_group("Armour")
+## Armour (D-063): on frames armor_start_frame..armor_end_frame the move
+## absorbs up to armor_hits attacks — damage is taken, but the move is not
+## interrupted and there is no stun or pushback. Throws ignore armour.
+@export var armor_start_frame: int = 0
+@export var armor_end_frame: int = 0
+@export var armor_hits: int = 0
+
 @export_group("Reserved for later milestones")
 @export var launch: bool = false
 @export var airborne_allowed: bool = false
 ## Only if the move design genuinely needs one (0 = none).
 @export var cooldown_frames: int = 0
+
+
+func is_throw() -> bool:
+	return hit_level == HitLevel.THROW
+
+
+func has_armor_on(frame: int) -> bool:
+	return armor_hits > 0 and frame >= armor_start_frame and frame <= armor_end_frame
 
 
 func is_counter() -> bool:
@@ -181,6 +197,10 @@ func validate() -> Array[String]:
 	if is_counter() and (counter_start_frame < 1 or counter_end_frame < counter_start_frame
 			or counter_end_frame > total_frames() or counter_levels.is_empty()):
 		p.append("%s: invalid counter window" % id)
+	if armor_hits > 0 and (armor_start_frame < 1 or armor_end_frame < armor_start_frame):
+		p.append("%s: invalid armour window" % id)
+	if is_throw() and chip_damage != 0:
+		p.append("%s: a throw cannot be blocked, chip must be 0" % id)
 	if not activates_surge and not is_counter() and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
 		p.append("%s: hitbox_size must be positive" % id)
 	if move_distance < 0.0 or move_end_frame < move_start_frame:

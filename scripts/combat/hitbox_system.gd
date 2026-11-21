@@ -54,6 +54,11 @@ static func find_contacts(defs: Array[FighterDefinition], states: Array[FighterS
 		var hurt_rect: Rect2 = hurtbox(defs[d], states[d])
 		if not hurt_rect.has_area() or not hit_rect.intersects(hurt_rect):
 			continue
+		# Throws cannot grab a fighter who is reeling from a hit or a blocked
+		# attack (no unblockable combos, no grabbing out of blockstun).
+		if states[a].move.is_throw() and (states[d].action == FighterState.Action.HITSTUN
+				or states[d].action == FighterState.Action.BLOCKSTUN):
+			continue
 		var c := Contact.new()
 		c.attacker = a
 		c.defender = d

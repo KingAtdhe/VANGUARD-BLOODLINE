@@ -21,6 +21,11 @@ extends RefCounted
 ##     defender gains a percentage of damage taken / a flat amount on block.
 ##   - A `knockdown` move that HITS knocks the defender down (no hurtbox while
 ##     down and getting up), which ends the combo.
+##   - Armour: a defender whose move has armour on this frame takes the
+##     damage but is not interrupted, stunned or pushed (throws ignore it).
+##   - Throws (HitLevel.THROW) cannot be blocked and do not connect on a
+##     fighter in hitstun or blockstun (HitboxSystem).
+##   - Blocking fighters take chip x their definition's chip_taken_percent.
 ##   - Counter: if the defender is in a counter stance that catches the move
 ##     (MoveData.counters), nothing above applies — see _counter().
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
@@ -42,6 +47,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 	var blocked: Array[bool] = []
 	var in_combo: Array[bool] = []
 	var countered: Array[bool] = []
+	var armored: Array[bool] = []
 	for c: HitboxSystem.Contact in contacts:
 		var move: MoveData = states[c.attacker].move
 		moves.append(move)
@@ -50,6 +56,8 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		var d: FighterState = states[c.defender]
 		countered.append(d.action == FighterState.Action.ATTACK and d.move != null
 				and d.move.counters(d.move_frame, move.hit_level))
+		armored.append(d.action == FighterState.Action.ATTACK and d.move != null and d.armor_left > 0
+				and d.move.has_armor_on(d.move_frame) and not move.is_throw())
 
 	var hitstop: int = 0
 	for i: int in contacts.size():
@@ -67,7 +75,8 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		var dmg: int
 		var percent: int = 100
 		if blocked[i]:
-			dmg = OriginMeter.surge_damage(move.chip_damage, attacker, attacker_def)
+			dmg = OriginMeter.surge_damage(move.chip_damage, attacker, attacker_def) \
+					* sim.definitions[c.defender].chip_taken_percent / 100
 			defender.combo_hits = 0
 			defender.combo_damage = 0
 		else:
@@ -99,10 +108,17 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		ev.hitstop = move.hitstop_frames
 		ev.combo_hits = 0 if blocked[i] else defender.combo_hits
 		ev.scaling_percent = percent
+		ev.armored = armored[i] and defender.health > 0
 		sim.combat_log.add(ev)
 
 		if defender.health == 0:
 			_knock_out(defender, c.defender, sim)
+			continue
+		if armored[i]:
+			# Armour: the damage above stands, the move carries on.
+			defender.armor_left -= 1
+			defender.combo_hits = 0
+			defender.combo_damage = 0
 			continue
 
 		# Interrupt whatever the defender was doing (including its own attack,

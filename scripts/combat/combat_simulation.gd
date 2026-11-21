@@ -325,6 +325,7 @@ func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
 	f.move = move
 	f.move_frame = 1
 	f.move_connected = false
+	f.armor_left = move.armor_hits
 	f.move_x = 0
 	if is_cancel:
 		f.chain.append(move.id)

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"drakon_molten_colossus"
+display_name = "Molten Colossus"
+input_pattern = &"ULTIMATE"
+animation = &"DRAKON_ULTIMATE_MOLTEN_COLOSSUS"
+startup_frames = 10
+active_frames = 3
+recovery_frames = 50
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 60
+damage = 340
+chip_damage = 0
+pushback = 0.3
+hit_level = 3
+hitbox_center = Vector2(0.6, 1.3)
+hitbox_size = Vector2(0.55, 0.6)
+tags = PackedStringArray("ultimate", "throw")
+cancel_tags = PackedStringArray()
+meter_cost = 30
+consumes_all_meter = true
+requires_surge = true
+knockdown = true

@@ -560,6 +560,34 @@ First fighter built from `docs/FIGHTER_COMBAT_DESIGN.md`.
 - **Not built from the design:** the low kick's brief walk-speed slow.
 **Accepted.**
 
+## D-063 — 2026-11-21 — Drakon's own move set; throws and armour
+
+Second fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
+- **Moves (data/moves/drakon_*):** Hammer Fist (LIGHT), Haymaker (HEAVY,
+  knocks down), Shoulder Check (DOWN + HEAVY), Stomp (KICK, LOW), Anvil Slam
+  (SPECIAL, throw), Forge Charge (FORWARD + SPECIAL, armoured, 25 meter),
+  Quake Stomp (BACK + SPECIAL, LOW, long reach), Molten Colossus (ultimate,
+  throw). Only the Surge activation is still shared with Kairo.
+- **Fighter values:** 1150 health, `chip_taken_percent = 50` (new field),
+  own movement profile (walk 1.9 / 1.4 m/s, wider pushbox).
+- **Throws (engine):** `HitLevel.THROW` cannot be blocked, ignores armour and
+  counter stances, and does not connect on a fighter in hitstun or blockstun.
+  A throw is a single hit with knockdown: there is no held/thrown state, so
+  the victim simply goes down at the moment of the grab.
+- **Armour (engine):** `MoveData.armor_start_frame/_end_frame/_hits`,
+  `FighterState.armor_left`; damage is taken, the move is not interrupted
+  (`CombatEvent.armored`).
+- **Animation:** the haymaker is a captured wide rear swing (boxer clip, frame
+  2436). Everything else is keyed from his guard with `track()`/`sink()` in
+  `tools/blender/mocap_actions.py` (`drakon_set`): no capture of hammer blows,
+  tackles or grabs exists in the library. Anvil Slam is a collar grab driven
+  straight to the floor, not the overhead lift of the design, and the
+  ultimate pounds a floored opponent: the victim only has its normal
+  knockdown animation, so nothing is carried or lifted. Walk cycles are now
+  generated at each fighter's own walk speed.
+- **Not built:** scorch mark / shockwave effects.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

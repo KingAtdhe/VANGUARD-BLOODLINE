@@ -21,6 +21,8 @@ var cancel_from: StringName = &""
 ## HIT: which hit of the combo this was (1 = first) and scaling applied.
 var combo_hits: int = 0
 var scaling_percent: int = 100
+## HIT: the target's armour absorbed it (damage taken, no stun).
+var armored: bool = false
 
 
 func type_name() -> String:
@@ -37,7 +39,7 @@ func to_text() -> String:
 		Type.HIT:
 			var combo: String = "" if combo_hits <= 1 else "  combo %d (%d%%)" % [combo_hits, scaling_percent]
 			return "t%d %s %s HIT P%d  -%d  (hp %d)  stop %d%s" % [
-				tick, who, move_id, target + 1, damage, target_health, hitstop, combo]
+				tick, who, move_id, target + 1, damage, target_health, hitstop, combo + ("  ARMOUR" if armored else "")]
 		Type.BLOCK:
 			return "t%d %s %s BLOCKED by P%d  chip %d  (hp %d)  stop %d" % [
 				tick, who, move_id, target + 1, damage, target_health, hitstop]

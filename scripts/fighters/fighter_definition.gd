@@ -6,6 +6,8 @@ extends Resource
 @export var fighter_id: StringName = &""
 @export var display_name: String = ""
 @export var base_health: int = 1000
+## Share of chip damage this fighter takes while blocking (100 = normal).
+@export_range(0, 200) var chip_taken_percent: int = 100
 @export var movement: FighterMovementProfile
 ## Standing hurtbox: half-width around the centre and height from the floor.
 @export var hurtbox_half_width: float = 0.3

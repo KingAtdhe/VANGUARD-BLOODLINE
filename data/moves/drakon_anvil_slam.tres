@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"drakon_anvil_slam"
+display_name = "Anvil Slam"
+input_pattern = &"SPECIAL"
+animation = &"DRAKON_SPECIAL_ANVIL_SLAM"
+startup_frames = 9
+active_frames = 2
+recovery_frames = 34
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 14
+damage = 120
+chip_damage = 0
+pushback = 0.2
+hit_level = 3
+hitbox_center = Vector2(0.55, 1.3)
+hitbox_size = Vector2(0.45, 0.5)
+tags = PackedStringArray("special", "throw")
+cancel_tags = PackedStringArray()
+meter_gain_on_hit = 12
+knockdown = true

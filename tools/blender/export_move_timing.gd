@@ -22,6 +22,8 @@ func _initialize() -> void:
 		if not data.has(slot):
 			data[slot] = entry
 		data[String(m.id).substr(String(m.id).find("_") + 1)] = entry
+	if def.movement != null:
+		data["walk"] = [def.movement.walk_forward_speed, def.movement.walk_backward_speed]
 	var f := FileAccess.open(out_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(data, "  "))
 	f.close()

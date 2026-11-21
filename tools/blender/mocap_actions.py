@@ -378,6 +378,7 @@ HANDS = {
 HANDS_BY_ACTION = {
     "SPECIAL_ORIGIN_PALM": (0.05, 0.05),         # open-palm strike
     "KNOCKDOWN": (0.35, 0.35), "GETUP": (0.35, 0.35), "DEFEAT": (0.3, 0.3),
+    "SPECIAL_ANVIL_SLAM": (0.45, 0.45),          # grabbing hands
 }
 
 
@@ -437,6 +438,161 @@ def hand_curls(fid, action, n):
         w = ease(min(f, n - 1 - f) / 5.0)
         out.append(tuple(round(b + (t - b) * w, 3) for b, t in zip(base, tgt)))
     return out
+
+
+# --------------------------------------------------------------------------- keyed moves
+
+def track(t, keys):
+    """Value at frame t of a keyed track [(frame, value), ...], eased between keys."""
+    if t <= keys[0][0]:
+        return keys[0][1]
+    for (f0, v0), (f1, v1) in zip(keys, keys[1:]):
+        if t <= f1:
+            w = ease((t - f0) / max(1e-6, f1 - f0))
+            return v0 + (v1 - v0) * w
+    return keys[-1][1]
+
+
+BODY = UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"]
+
+
+def sink(P, base, depth):
+    """Lower the body by `depth`, feet stay where they are in `base` (knees bend)."""
+    P = shift(P, BODY, np.array([0, 0, -depth]))
+    for sd in ("Left", "Right"):
+        P = move_foot(P, sd, base[sd + "Foot"])
+    return P
+
+
+def frames_of(mv):
+    total = mv["startup"] + mv["active"] - 1 + mv["recovery"]
+    return total, mv["startup"] - 1, mv["startup"] + mv["active"] - 2     # total, first / last active index
+
+
+def drakon_set(c):
+    """Drakon: Ironclad. Heavy boxing and wrestling. Everything except the
+    haymaker (a captured wide rear swing) is keyed from his own guard: no
+    capture of hammer blows, tackles or grabs exists in the library."""
+    H, G, moves, pose_of, box = c["H"], c["guard_P"], c["moves"], c["pose_of"], c["box"]
+    v = lambda x, y, z: np.array([x, y, z]) * H          # noqa: E731  body-relative offsets
+    gl, gr, head = G["LeftHand"], G["RightHand"], G["Head"]
+    lf, rf = G["LeftFoot"], G["RightFoot"]
+    out = {}
+
+    def keyed(mv, fn):
+        total, a0, a1 = frames_of(mv)
+        poses = [pose_of(fn(t, total, a0, a1), box) for t in range(total)]
+        for t in range(max(0, total - 6), total):
+            poses[t] = Pose.blend(poses[t], c["guard"], ease((t - (total - 6)) / 6))
+        return poses
+
+    def hit_point(mv, side_x=0.0, dz=0.0):
+        return np.array([side_x * H, -mv["hc"][0], mv["hc"][1] + dz * H])
+
+    # Hammer Fist: lead gauntlet lifts above the head and drops like a hammer
+    mv = moves["hammer_fist"]
+    def hammer(t, total, a0, a1, mv=mv):
+        hand = track(t, [(0, gl), (max(1, a0 - 3), head + v(0.1, 0.02, 0.2)), (a0, hit_point(mv, 0.03)),
+                         (a1, hit_point(mv, 0.03, -0.04)), (total - 1, gl)])
+        P = sink(G, G, track(t, [(0, 0.0), (a0, 0.05 * H), (a1, 0.05 * H), (total - 1, 0.0)]))
+        P = lean(P, track(t, [(0, 0.0), (max(1, a0 - 3), 7.0), (a0, -15.0), (a1, -15.0), (total - 1, 0.0)]))
+        return move_hand(P, "Left", hand, 1.0, pole_out=0.5)
+    out[c["anim_of"](mv)] = keyed(mv, hammer)
+
+    # Haymaker: the captured wide rear swing, with a long wind-up
+    mv = moves["haymaker"]
+    out[c["anim_of"](mv)] = c["strike"](box, 2436, "Right", "hand", mv, pre=40, post=50, blend_in=5,
+                                        extra=lambda P, t, T: lean(P, -9 * math.sin(math.pi * min(1, t / T))))
+
+    # Shoulder Check: drops behind the lead shoulder and rams it forward
+    mv = moves["shoulder_check"]
+    def check(t, total, a0, a1):
+        w = track(t, [(0, 0.0), (a0, 1.0), (a1, 1.0), (total - 1, 0.0)])
+        chest = G["Head"] - v(0, 0, 0.3)
+        P = sink(G, G, 0.07 * H * w)
+        P = lean(P, track(t, [(0, 0.0), (4, 6.0), (a0, -30.0), (a1, -30.0), (total - 1, 0.0)]), roll_deg=14 * w)
+        P = move_hand(P, "Left", gl + (chest + v(0.1, -0.12, -0.02) - gl) * w, 1.0, pole_out=0.5)
+        return move_hand(P, "Right", gr + (chest + v(-0.08, -0.08, -0.04) - gr) * w, 1.0, pole_out=0.3)
+    out[c["anim_of"](mv)] = keyed(mv, check)
+
+    # Stomp: the knee comes up high, then the boot drives down at shin height
+    mv = moves["stomp"]
+    def stomp(t, total, a0, a1, mv=mv):
+        down = np.array([rf[0], -mv["hc"][0] + 0.08, mv["hc"][1] * 0.5])
+        foot = track(t, [(0, rf), (a0 - 5, rf + v(0, -0.14, 0.4)), (a0, down), (a1, down), (a1 + 9, rf), (total - 1, rf)])
+        P = lean(G, track(t, [(0, 0.0), (a0 - 5, 7.0), (a0, -12.0), (a1, -12.0), (total - 1, 0.0)]))
+        return move_foot(P, "Right", foot)
+    out[c["anim_of"](mv)] = keyed(mv, stomp)
+
+    # Forge Charge: head down behind the lead shoulder, driving steps (the
+    # game moves him across the floor on frames 5..20)
+    mv = moves["forge_charge"]
+    def charge(t, total, a0, a1):
+        w = track(t, [(0, 0.0), (5, 1.0), (a1, 1.0), (total - 1, 0.0)])
+        run = track(t, [(0, 0.0), (5, 1.0), (a1 - 2, 1.0), (a1 + 4, 0.0), (total - 1, 0.0)])
+        chest = G["Head"] - v(0, 0, 0.3)
+        P = shift(G, BODY, np.array([0, 0, -0.11 * H * w]))
+        for sd, ph, base in (("Left", 0.0, lf), ("Right", math.pi, rf)):
+            a = 2 * math.pi * t / 12.0 + ph
+            P = move_foot(P, sd, base + v(0, -0.13 * math.cos(a), 0.11 * max(0.0, math.sin(a))) * run)
+        P = lean(P, -34 * w, roll_deg=10 * w)
+        P = move_hand(P, "Left", gl + (chest + v(0.12, -0.16, -0.04) - gl) * w, 1.0, pole_out=0.5)
+        return move_hand(P, "Right", gr + (chest + v(-0.1, -0.04, -0.1) - gr) * w, 1.0, pole_out=0.3)
+    out[c["anim_of"](mv)] = keyed(mv, charge)
+
+    # Anvil Slam: two-hand collar grab, then the opponent is driven to the floor
+    mv = moves["anvil_slam"]
+    def slam(t, total, a0, a1, mv=mv):
+        d = a1 + 9                                           # the opponent hits the floor
+        drive = track(t, [(0, 0.0), (a1, 0.0), (d, 1.0), (d + 9, 1.0), (total - 1, 0.0)])
+        P = sink(G, G, 0.17 * H * drive)
+        P = lean(P, track(t, [(0, 0.0), (a0, -8.0), (a1, -8.0), (d, -46.0), (d + 9, -46.0), (total - 1, 0.0)]))
+        for sd, sg, g in (("Left", 1, gl), ("Right", -1, gr)):
+            grab = hit_point(mv, 0.09 * sg, 0.04)
+            floor = np.array([0.11 * sg * H, -mv["hc"][0] - 0.1 * H, 0.28 * H])
+            hand = track(t, [(0, g), (a0, grab), (a1, grab), (d, floor), (d + 9, floor), (total - 1, g)])
+            P = move_hand(P, sd, hand, 1.0, pole_out=0.45)
+        return P
+    out[c["anim_of"](mv)] = keyed(mv, slam)
+
+    # Quake Stomp: both gauntlets go overhead, then hammer the floor
+    mv = moves["quake_stomp"]
+    def quake(t, total, a0, a1):
+        up = a0 - 7
+        P = sink(G, G, track(t, [(0, 0.0), (up, 0.0), (a0, 0.27 * H), (a1 + 6, 0.27 * H), (total - 1, 0.0)]))
+        P = lean(P, track(t, [(0, 0.0), (up, 9.0), (a0, -52.0), (a1 + 6, -52.0), (total - 1, 0.0)]))
+        for sd, sg, g in (("Left", 1, gl), ("Right", -1, gr)):
+            floor = v(0.12 * sg, -0.42, 0.1)
+            hand = track(t, [(0, g), (up, head + v(0.1 * sg, -0.02, 0.26)), (a0, floor), (a1 + 6, floor), (total - 1, g)])
+            P = move_hand(P, sd, hand, 1.0, pole_out=0.5)
+        return P
+    out[c["anim_of"](mv)] = keyed(mv, quake)
+
+    # Molten Colossus: grab, slam to the floor, three hammer blows into the
+    # fallen opponent, then he straightens up over them
+    mv = moves["molten_colossus"]
+    def colossus(t, total, a0, a1, mv=mv):
+        d = a1 + 8
+        blows = [d + 10, d + 20, d + 30]                     # impact frames, alternating hands
+        end = blows[-1] + 5
+        P = sink(G, G, track(t, [(0, 0.0), (a1, 0.0), (d, 0.19 * H), (end, 0.19 * H), (total - 1, 0.0)]))
+        P = lean(P, track(t, [(0, 0.0), (a0, -8.0), (a1, -8.0), (d, -46.0), (end, -46.0), (total - 1, 0.0)]))
+        for sd, sg, g in (("Left", 1, gl), ("Right", -1, gr)):
+            grab = hit_point(mv, 0.09 * sg, 0.04)
+            floor = np.array([0.1 * sg * H, -mv["hc"][0] - 0.08 * H, 0.26 * H])
+            high = floor + v(0.04 * sg, 0.12, 0.5)
+            keys = [(0, g), (a0, grab), (a1, grab), (d, floor)]
+            for k, b in enumerate(blows):
+                if (k % 2 == 0) == (sd == "Right"):          # right, left, right
+                    keys += [(b - 6, high), (b, floor)]
+            keys += [(end, floor), (total - 1, g)]
+            P = move_hand(P, sd, track(t, keys), 1.0, pole_out=0.45)
+        return P
+    out[c["anim_of"](mv)] = keyed(mv, colossus)
+    return out
+
+
+OWN_SETS = {"drakon": drakon_set}
 
 
 # --------------------------------------------------------------------------- the actions
@@ -556,11 +712,18 @@ def build(rig_obj, moves, fid, height, clip_dir):
             poses[t] = Pose.blend(poses[t], guard, ease((t - (n - 8)) / 8))
         return poses
 
-    A[f"{F}_ATTACK_LIGHT_01"] = strike(box, 1214, "Left", "hand", moves["LIGHT"], pre=20, post=30)
-    A[f"{F}_ATTACK_HEAVY_01"] = strike(box, 3368, "Right", "hand", moves["HEAVY"], pre=28, post=40)
+    # The shared set is built only for the slots a fighter has not replaced
+    # with a move (and animation) of its own.
+    def shared(slot, suffix):
+        return slot in moves and moves[slot]["animation"].endswith(suffix)
+    if shared("LIGHT", "ATTACK_LIGHT_01"):
+        A[f"{F}_ATTACK_LIGHT_01"] = strike(box, 1214, "Left", "hand", moves["LIGHT"], pre=20, post=30)
+    if shared("HEAVY", "ATTACK_HEAVY_01"):
+        A[f"{F}_ATTACK_HEAVY_01"] = strike(box, 3368, "Right", "hand", moves["HEAVY"], pre=28, post=40)
     # the kick is named by its move (a fighter's own kick replaces the shared one)
-    kick_name = F + moves["KICK"].get("animation", "KAIRO_KICK_01")[len("KAIRO"):]
-    A[kick_name] = strike(kick, 1240, "Right", "foot", moves["KICK"], pre=40, post=60)
+    if shared("KICK", "KICK_01") or shared("KICK", "KICK_LOW_01"):
+        kick_name = F + moves["KICK"]["animation"][moves["KICK"]["animation"].find("_"):]
+        A[kick_name] = strike(kick, 1240, "Right", "foot", moves["KICK"], pre=40, post=60)
 
     # ---- moves only some fighters have (their own move data, D-062)
     def anim_of(mv):
@@ -588,34 +751,37 @@ def build(rig_obj, moves, fid, height, clip_dir):
             P = lean(P, 18 * w, roll_deg=-32 * w)
             slip.append(pose_of(P, box))
         A[anim_of(mv)] = slip
-    A[f"{F}_SPECIAL_ORIGIN_PALM"] = strike(art, 439, "Left", "hand", moves["SPECIAL"], pre=34, post=46)
-    A[f"{F}_SPECIAL_RIFT_BREAK"] = strike(art_r, 645, "Right", "hand", moves["FORWARD_SPECIAL"], pre=36, post=50,
-                                          extra=lambda P, t, T: lean(P, -10 * math.sin(math.pi * min(1, t / T))))
+    if shared("SPECIAL", "SPECIAL_ORIGIN_PALM"):
+        A[f"{F}_SPECIAL_ORIGIN_PALM"] = strike(art, 439, "Left", "hand", moves["SPECIAL"], pre=34, post=46)
+    if shared("FORWARD_SPECIAL", "SPECIAL_RIFT_BREAK"):
+        A[f"{F}_SPECIAL_RIFT_BREAK"] = strike(art_r, 645, "Right", "hand", moves["FORWARD_SPECIAL"], pre=36, post=50,
+                                              extra=lambda P, t, T: lean(P, -10 * math.sin(math.pi * min(1, t / T))))
 
     # ultimate: the one-two lands on the active frames, then a flurry in recovery
-    mv = moves["ULTIMATE"]
-    total = mv["startup"] + mv["active"] - 1 + mv["recovery"]
-    first = strike(box, 366, "Left", "hand", mv, pre=16, post=16)
-    flurry_src = [(391, 22), (1214, 26), (1238, 26), (3368, 30)]   # cross, jab, cross, finishing cross
-    tail = []
-    for pk, span in flurry_src:
-        anchor = box.at(pk - span)["Hips"][:2]
-        for k in range(span):
-            P = src(box, pk - span + 2 * k, facing_frame=pk, anchor=anchor)
-            P = shift(P, list(P.keys()), np.array([-P["Hips"][0], -P["Hips"][1] * 0.6, 0]))
-            tail.append(pose_of(P, box))
-    a1 = mv["startup"] + mv["active"] - 2
-    seq = first[:a1 + 3]
-    need = total - len(seq)
-    # resample the flurry to fill the recovery, ending in the guard
-    for t in range(need):
-        u = t / max(1, need - 1)
-        idx = u * (len(tail) - 1)
-        p = Pose.blend(tail[int(idx)], tail[min(len(tail) - 1, int(idx) + 1)], idx - int(idx))
-        if t > need - 10:
-            p = Pose.blend(p, guard, ease((t - (need - 10)) / 10))
-        seq.append(p)
-    A[f"{F}_ULTIMATE_ORIGIN_BREAK"] = seq
+    if shared("ULTIMATE", "ULTIMATE_ORIGIN_BREAK"):
+        mv = moves["ULTIMATE"]
+        total = mv["startup"] + mv["active"] - 1 + mv["recovery"]
+        first = strike(box, 366, "Left", "hand", mv, pre=16, post=16)
+        flurry_src = [(391, 22), (1214, 26), (1238, 26), (3368, 30)]   # cross, jab, cross, finishing cross
+        tail = []
+        for pk, span in flurry_src:
+            anchor = box.at(pk - span)["Hips"][:2]
+            for k in range(span):
+                P = src(box, pk - span + 2 * k, facing_frame=pk, anchor=anchor)
+                P = shift(P, list(P.keys()), np.array([-P["Hips"][0], -P["Hips"][1] * 0.6, 0]))
+                tail.append(pose_of(P, box))
+        a1 = mv["startup"] + mv["active"] - 2
+        seq = first[:a1 + 3]
+        need = total - len(seq)
+        # resample the flurry to fill the recovery, ending in the guard
+        for t in range(need):
+            u = t / max(1, need - 1)
+            idx = u * (len(tail) - 1)
+            p = Pose.blend(tail[int(idx)], tail[min(len(tail) - 1, int(idx) + 1)], idx - int(idx))
+            if t > need - 10:
+                p = Pose.blend(p, guard, ease((t - (need - 10)) / 10))
+            seq.append(p)
+        A[f"{F}_ULTIMATE_ORIGIN_BREAK"] = seq
 
     # ---- surge: sink and draw the fists to the hips, then explode open
     mv = moves["SURGE"]
@@ -662,7 +828,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
         chest = P["Spine2"] if "Spine2" in P else P["Head"] - np.array([0, 0, 0.28 * H])
         P = move_hand(P, "Left", chest + np.array([0.06 * H, -0.22 * H, -0.16 * H]), w, pole_out=0.25)
         P = move_hand(P, "Right", chest + np.array([-0.07 * H, -0.2 * H, 0.0]), w, pole_out=0.25)
-        P = lean(P, 14 * w)
+        P = lean(P, -8 * w)
         blk_low.append(pose_of(P, box))
     A[f"{F}_BLOCK_LOW"] = blk_low
 
@@ -785,8 +951,15 @@ def build(rig_obj, moves, fid, height, clip_dir):
             out.append(pose_of(P, box, ground=False))
         # same loop seam handling as the idle
         return out
-    A[f"{F}_WALK_FORWARD"] = walk(2.6, True)
-    A[f"{F}_WALK_BACKWARD"] = walk(2.0, False)
+    wf, wb = moves.get("walk", (2.6, 2.0))
+    A[f"{F}_WALK_FORWARD"] = walk(wf, True)
+    A[f"{F}_WALK_BACKWARD"] = walk(wb, False)
+
+    # ---- fighters with their own move sets (docs/FIGHTER_COMBAT_DESIGN.md)
+    if fid in OWN_SETS:
+        ctx = dict(H=H, F=F, moves=moves, guard_P=guard_P, guard=guard, box=box, pose_of=pose_of, strike=strike,
+                   anim_of=lambda mv: F + mv["animation"][mv["animation"].find("_"):])
+        A.update(OWN_SETS[fid](ctx))
 
     acts = {}
     for name, poses in A.items():

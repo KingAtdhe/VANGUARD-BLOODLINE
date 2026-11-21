@@ -1,25 +1,28 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
-[ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
-[ext_resource type="Resource" path="res://data/moves/kairo_light_punch.tres" id="3_l"]
-[ext_resource type="Resource" path="res://data/moves/kairo_heavy_punch.tres" id="4_h"]
-[ext_resource type="Resource" path="res://data/moves/kairo_kick.tres" id="5_k"]
-[ext_resource type="Resource" path="res://data/moves/kairo_origin_palm.tres" id="6_palm"]
-[ext_resource type="Resource" path="res://data/moves/kairo_rift_break.tres" id="7_rift"]
+[ext_resource type="Resource" path="res://data/fighters/drakon_movement.tres" id="2_move"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
-[ext_resource type="Resource" path="res://data/moves/kairo_origin_break.tres" id="9_break"]
 [ext_resource type="PackedScene" path="res://assets/characters/drakon/drakon.glb" id="10_model"]
+[ext_resource type="Resource" path="res://data/moves/drakon_hammer_fist.tres" id="m_hammer_fist"]
+[ext_resource type="Resource" path="res://data/moves/drakon_haymaker.tres" id="m_haymaker"]
+[ext_resource type="Resource" path="res://data/moves/drakon_stomp.tres" id="m_stomp"]
+[ext_resource type="Resource" path="res://data/moves/drakon_anvil_slam.tres" id="m_anvil_slam"]
+[ext_resource type="Resource" path="res://data/moves/drakon_forge_charge.tres" id="m_forge_charge"]
+[ext_resource type="Resource" path="res://data/moves/drakon_molten_colossus.tres" id="m_molten_colossus"]
+[ext_resource type="Resource" path="res://data/moves/drakon_shoulder_check.tres" id="m_shoulder_check"]
+[ext_resource type="Resource" path="res://data/moves/drakon_quake_stomp.tres" id="m_quake_stomp"]
 
 [resource]
 script = ExtResource("1_def")
 fighter_id = &"drakon"
 display_name = "Drakon"
-base_health = 1000
+base_health = 1150
+chip_taken_percent = 50
 movement = ExtResource("2_move")
-hurtbox_half_width = 0.3
+hurtbox_half_width = 0.35
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break")])
+moves = Array[Resource]([ExtResource("m_hammer_fist"), ExtResource("m_haymaker"), ExtResource("m_stomp"), ExtResource("m_anvil_slam"), ExtResource("m_forge_charge"), ExtResource("8_surge"), ExtResource("m_molten_colossus"), ExtResource("m_shoulder_check"), ExtResource("m_quake_stomp")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -37,6 +40,5 @@ anim_victory = &"KAIRO_VICTORY"
 anim_defeat = &"KAIRO_DEFEAT"
 anim_prefix = &"DRAKON"
 playable = true
-locked_note = "Moveset arrives in Milestone 8"
 accent_color = Color(1.0, 0.42, 0.05, 1)
 tagline = "Armoured powerhouse. Slow, crushing, unshakable."
