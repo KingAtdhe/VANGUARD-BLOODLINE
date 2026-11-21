@@ -9,3 +9,7 @@ display_name = "Drakon"
 walk_forward_speed = 1.9
 walk_backward_speed = 1.4
 pushbox_half_width = 0.4
+dash_forward_distance = 1.0
+dash_forward_ticks = 18
+dash_back_distance = 0.8
+dash_back_ticks = 20

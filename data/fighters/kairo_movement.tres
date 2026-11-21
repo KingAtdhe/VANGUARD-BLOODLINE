@@ -9,3 +9,7 @@ display_name = "Kairo (placeholder)"
 walk_forward_speed = 2.6
 walk_backward_speed = 2.0
 pushbox_half_width = 0.35
+dash_forward_distance = 1.4
+dash_forward_ticks = 13
+dash_back_distance = 1.1
+dash_back_ticks = 17

@@ -9,3 +9,7 @@ display_name = "Vexa"
 walk_forward_speed = 2.4
 walk_backward_speed = 2.2
 pushbox_half_width = 0.35
+dash_forward_distance = 1.3
+dash_forward_ticks = 14
+dash_back_distance = 1.2
+dash_back_ticks = 17

@@ -32,6 +32,9 @@ extends Resource
 @export var anim_walk_forward: StringName = &""
 @export var anim_walk_backward: StringName = &""
 @export var anim_block: StringName = &""
+## Dashes (D-071). Empty = the walk in that direction is shown instead.
+@export var anim_dash_forward: StringName = &""
+@export var anim_dash_back: StringName = &""
 ## Low block pose (down + block). Empty = the standing block is shown.
 @export var anim_block_low: StringName = &""
 @export var anim_hit_light: StringName = &""
@@ -99,7 +102,7 @@ func required_animations() -> Array[StringName]:
 	for a: StringName in [anim_idle, anim_walk_forward, anim_walk_backward, anim_block,
 			anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]:
 		out.append(resolve_anim(a))
-	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low]:
+	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low, anim_dash_forward, anim_dash_back]:
 		if extra != &"":
 			out.append(resolve_anim(extra))
 	for m: MoveData in moves:

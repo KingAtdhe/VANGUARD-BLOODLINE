@@ -25,6 +25,7 @@ save_for_surge_above = 80
 ultimate_chance = 0.3
 block_reaction_chance = 0.6
 low_block_chance = 0.5
+dash_chance = 0.25
 projectile_chance = 0.5
 counter_chance = 0.12
 guard_chance = 0.35

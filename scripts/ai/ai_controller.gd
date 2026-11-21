@@ -37,6 +37,8 @@ const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL
 const THREAT_MARGIN: float = 0.35
 ## Start guarding an incoming projectile this many ticks before it arrives.
 const PROJECTILE_GUARD_TICKS: float = 10.0
+## Only dash toward an opponent further away than this (metres).
+const DASH_IN_DISTANCE: float = 2.6
 
 var profile: AIProfile
 var index: int
@@ -61,6 +63,8 @@ var _counter_key: int = -1
 ## Projectile currently being judged (id) and whether we block it.
 var _shot_key: int = -1
 var _shot_block: bool = false
+## Directions still to emit for a dash (tap, release, tap).
+var _dash_seq: Array[int] = []
 ## Guard height chosen for the attack currently seen (true = low block).
 var _block_low: bool = false
 ## The next emitted frame holds down (down + button command).
@@ -105,6 +109,7 @@ func reset() -> void:
 	_idle_ticks = 0
 	_threat_key = -1
 	_shot_key = -1
+	_dash_seq.clear()
 	_punish_key = -1
 	_route_commit = false
 	_route_pressed_for = -1
@@ -178,6 +183,12 @@ func next_input() -> FighterInputFrame:
 			return _emit(0, hold)
 		FighterState.Action.ATTACK:
 			return _attacking(delayed, me)
+
+	# A dash in progress: finish the double tap (three ticks), then ride it.
+	if not _dash_seq.is_empty():
+		return _emit(_dash_seq.pop_front(), 0)
+	if me.action == FighterState.Action.DASH:
+		return _emit(0, 0)
 
 	# --- neutral: block what we see coming ---------------------------------
 	var opp_move: MoveData = opp_def.move_for_id(opp.move_id) if opp.move_id != &"" else null
@@ -352,6 +363,10 @@ func _decide(dist: float, opp: AIObservation.Seen) -> void:
 	if in_range.is_empty():
 		if r < aggression:
 			_set_intent(State.APPROACH, "far (d=%.2f)" % dist)
+			# far enough that a dash will not run into the opponent's attacks
+			if profile.dash_chance > 0.0 and dist > DASH_IN_DISTANCE and _rng.randf() < profile.dash_chance:
+				_dash_seq = [_toward, 0, _toward]
+				decision_log.add(_tick, State.keys()[state], "dash in")
 		elif r < aggression + profile.retreat_chance:
 			_set_intent(State.RETREAT, "far, backing off")
 		else:
@@ -368,6 +383,9 @@ func _decide(dist: float, opp: AIObservation.Seen) -> void:
 		_set_intent(State.BLOCK, "close, guarding %d" % profile.guard_ticks)
 	elif r < aggression + guard + profile.retreat_chance:
 		_set_intent(State.RETREAT, "close, backing off")
+		if profile.dash_chance > 0.0 and _rng.randf() < profile.dash_chance:
+			_dash_seq = [-_toward, 0, -_toward]
+			decision_log.add(_tick, State.keys()[state], "dash back")
 	else:
 		_set_intent(State.NEUTRAL, "close, waiting")
 

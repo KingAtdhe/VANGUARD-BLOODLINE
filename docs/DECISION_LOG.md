@@ -828,6 +828,36 @@ line), then rendered with every move.
   are still each performer's captured breathing and bounce.
 **Accepted.**
 
+## D-071 — 2026-11-21 — Forward and back dashes
+
+Second item of the Tekken / Street Fighter comparison; dashes were already
+in the specification's animation list but had never been built.
+- **Input:** a direction tapped twice (`CombatTuning.dash_tap_hold_ticks` 9,
+  `dash_tap_window_ticks` 10), read by the simulation from `move_x`, so
+  keyboard, gamepad, the touch stick and the CPU all dash the same way. On
+  the touch stick that is two flicks. Not while holding BLOCK or down. A
+  detected dash waits up to the input-buffer time for the fighter to be free.
+- **State:** `FighterState.Action.DASH` (added at the end of the enum).
+  Distance and length per fighter in `FighterMovementProfile`
+  (`dash_forward_distance/_ticks`, `dash_back_distance/_ticks`); most of the
+  distance is covered early (`dash_step`). Pushboxes and walls apply.
+- **Rules:** no blocking during a dash and a normal hurtbox throughout (no
+  invulnerability). A forward dash can be cut short by an attack from
+  `dash_cancel_frame` (5); a back dash is committed to the end.
+- **Values (forward / back, metres in ticks):** Kairo 1.4 in 13 / 1.1 in 17;
+  Drakon 1.0 in 18 / 0.8 in 20; Seraphina 1.3 in 13 / 1.5 in 16; Nox 1.7 in
+  12 / 1.4 in 15; Vexa 1.3 in 14 / 1.2 in 17; Ryuen 0.9 in 14 / 0.9 in 16.
+- **Animation:** `<F>_DASH_FORWARD` / `<F>_DASH_BACK`, one frame per tick,
+  generated like the walks (one driving step keyed on the guard), seeked
+  from the simulation like attacks. Fighters without them (bosses) show
+  their walk at double speed.
+- **AI:** `AIProfile.dash_chance` (0 / 0.25 / 0.5): dashes in from beyond
+  2.6 m and sometimes dashes back at close range. A CPU can also dash by
+  accident when its walking decisions happen to form a double tap.
+- Not built: a dedicated dash button for touch (two flicks may prove
+  awkward on a phone — only the owner can tell), running, dash attacks.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

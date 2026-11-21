@@ -24,6 +24,7 @@ func _initialize() -> void:
 		data[String(m.id).substr(String(m.id).find("_") + 1)] = entry
 	if def.movement != null:
 		data["walk"] = [def.movement.walk_forward_speed, def.movement.walk_backward_speed]
+		data["dash"] = [def.movement.dash_forward_ticks, def.movement.dash_back_ticks]
 	var f := FileAccess.open(out_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(data, "  "))
 	f.close()

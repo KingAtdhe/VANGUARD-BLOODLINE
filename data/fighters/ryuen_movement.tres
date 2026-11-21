@@ -9,3 +9,7 @@ display_name = "Ryuen"
 walk_forward_speed = 2.1
 walk_backward_speed = 1.6
 pushbox_half_width = 0.35
+dash_forward_distance = 0.9
+dash_forward_ticks = 14
+dash_back_distance = 0.9
+dash_back_ticks = 16

@@ -4,10 +4,10 @@ Branch: `arena-severed-line`. Last task done: Ryuen's move set (D-068) —
 all six fighters now have their own sets.
 Hit feel (D-069: counter-hits, reactions by height, effects, KO slow
 motion) is built on top of that.
+Dashes (D-071) followed.
 **Next task: the owner chooses.** Remaining from the Tekken / Street Fighter
-comparison of 2026-11-21, in the order offered: forward and back dashes
-(already in the spec); a throw and throw escape for every fighter;
-multi-hit ultimates. Do not start one without the owner's choice.
+comparison of 2026-11-21, in the order offered: a throw and throw escape
+for every fighter; multi-hit ultimates. Do not start one without the owner's choice.
 
 ## State
 
@@ -22,7 +22,7 @@ multi-hit ultimates. Do not start one without the owner's choice.
   side-switching counters, a counter-stance ultimate and a deflecting block
   (D-068). New keyed moves should use the `Kit` class in `mocap_actions.py`
   (`ryuen_set` is the example; check which side the fighter leads with).
-- Tests: 189 passing with D-069 (183 after Ryuen) (146 before Vexa, 168 before
+- Tests: 196 passing with D-071 (189 after hit feel, 183 after Ryuen) (146 before Vexa, 168 before
   Ryuen). A full run takes about 10 minutes on 2 cores, a first asset
   import about 12.
 - D-067 (owner feedback): raised stages are lowered to the fighters' feet

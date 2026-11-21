@@ -50,6 +50,7 @@ UI scales with `canvas_items` / `expand` stretch.
 | Action | Keyboard | Gamepad |
 |---|---|---|
 | Move left / right | A / D, ← / → | D-pad, left stick |
+| Dash forward / back | tap the direction twice | tap the direction twice |
 | Up (jump) / Down (crouch) | W / S, ↑ / ↓ | D-pad, left stick |
 | Light / Heavy / Kick | J / K / L | X / Y / A |
 | Block (hold Down for a low block) | Space | B |
@@ -69,7 +70,7 @@ nothing yet.
 ### Touch controls (phones)
 
 - **Left side:** touch anywhere in the lower-left area and drag to walk
-  (floating stick).
+  (floating stick). Flick it twice in one direction to dash.
 - **Right side:** **L** light, **H** heavy, **K** kick, **BLOCK** (hold),
   **SP** special (hold the stick toward the opponent for Rift Break), **ULT**
   (lights up at full meter: Origin Surge, then Origin Break).

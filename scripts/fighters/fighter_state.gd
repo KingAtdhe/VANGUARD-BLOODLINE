@@ -4,7 +4,7 @@ extends RefCounted
 ## Plain data only — no nodes — so it can be copied, compared and tested.
 
 ## High-level action state. Neutral states (IDLE, WALK, BLOCK) can act.
-enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP, LAUNCHED }
+enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP, LAUNCHED, DASH }
 
 ## Position of the fighter's centre on the fighting plane (metres).
 var position_x: float = 0.0
@@ -49,6 +49,21 @@ var armor_left: int = 0
 var juggle_hits: int = 0
 var launch_total: int = 0
 var juggle_exhausted: bool = false
+
+## DASH: 1-based tick of the dash, its world direction and whether it goes
+## toward the opponent.
+var dash_frame: int = 0
+var dash_dir: int = 0
+var dash_forward: bool = false
+## Double-tap detection: direction held last tick and for how long, the
+## direction of the last short tap and ticks since it was released (-1 =
+## none), and a detected dash waiting for the fighter to be free (with age).
+var stick_dir: int = 0
+var stick_held_ticks: int = 0
+var tap_dir: int = 0
+var tap_age: int = -1
+var dash_pending: int = 0
+var dash_pending_age: int = 0
 
 ## Buttons held on the last processed tick (for press-edge detection).
 var held_buttons: int = 0
@@ -98,6 +113,15 @@ func copy() -> FighterState:
 	s.juggle_hits = juggle_hits
 	s.launch_total = launch_total
 	s.juggle_exhausted = juggle_exhausted
+	s.dash_frame = dash_frame
+	s.dash_dir = dash_dir
+	s.dash_forward = dash_forward
+	s.stick_dir = stick_dir
+	s.stick_held_ticks = stick_held_ticks
+	s.tap_dir = tap_dir
+	s.tap_age = tap_age
+	s.dash_pending = dash_pending
+	s.dash_pending_age = dash_pending_age
 	s.held_buttons = held_buttons
 	s.buffer = buffer.duplicate()
 	s.chain = chain.duplicate()

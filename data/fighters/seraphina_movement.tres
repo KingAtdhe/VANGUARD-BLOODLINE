@@ -9,3 +9,7 @@ display_name = "Seraphina"
 walk_forward_speed = 2.8
 walk_backward_speed = 2.7
 pushbox_half_width = 0.33
+dash_forward_distance = 1.3
+dash_forward_ticks = 13
+dash_back_distance = 1.5
+dash_back_ticks = 16

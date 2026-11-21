@@ -145,6 +145,8 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 		var f: FighterState = fighters[i]
 		if f.action == FighterState.Action.ATTACK and f.move != null and f.move.moves_on_frame(f.move_frame):
 			f.position_x += f.facing * f.move.move_step()
+		if f.action == FighterState.Action.DASH:
+			f.position_x += f.dash_dir * profile(i).dash_step(f.dash_forward, f.dash_frame)
 		if f.action == FighterState.Action.WALK and f.move_x != 0:
 			var speed: float = profile(i).walk_forward_speed if f.is_moving_forward() \
 					else profile(i).walk_backward_speed
@@ -277,6 +279,7 @@ func _fire_projectiles() -> void:
 func _update_state(i: int, input: FighterInputFrame) -> void:
 	var f: FighterState = fighters[i]
 	_register_presses(f, input)
+	_read_dash_taps(f, input)
 	if OriginMeter.tick_surge(f, definitions[i], tuning):
 		_log_simple(CombatEvent.Type.SURGE_END, i)
 
@@ -289,6 +292,10 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 			f.move_frame += 1
 			if f.move_frame > f.move.total_frames():
 				_end_attack(i)
+		FighterState.Action.DASH:
+			f.dash_frame += 1
+			if f.dash_frame > profile(i).dash_ticks(f.dash_forward):
+				_to_idle(f)
 		FighterState.Action.KNOCKDOWN:
 			# On the ground (no hurtbox), then get up.
 			if f.stun_remaining <= 0:
@@ -328,6 +335,16 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 		_age_buffer(f)
 		return
 
+	if f.action == FighterState.Action.DASH:
+		# A forward dash can be cut short by an attack; a back dash cannot.
+		f.move_x = 0
+		if f.dash_forward and f.dash_frame >= tuning.dash_cancel_frame:
+			var out_of_dash: MoveData = _take_buffered(i, func(_m: MoveData) -> bool: return true)
+			if out_of_dash != null:
+				_start_attack(i, out_of_dash, false)
+		_age_buffer(f)
+		return
+
 	if not f.is_neutral():
 		f.move_x = 0
 		_age_buffer(f)
@@ -336,6 +353,23 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 	var move: MoveData = _take_buffered(i, func(_m: MoveData) -> bool: return true)
 	if move != null:
 		_start_attack(i, move, false)
+		_age_buffer(f)
+		return
+
+	# A double-tapped direction dashes (not while holding block or down).
+	if f.dash_pending != 0 and not input.is_held(FighterInputFrame.BUTTON_BLOCK) and input.move_y >= 0:
+		f.action = FighterState.Action.DASH
+		f.dash_dir = f.dash_pending
+		f.dash_forward = f.dash_pending == f.facing
+		f.dash_frame = 1
+		f.dash_pending = 0
+		f.move_x = 0
+		var ev := CombatEvent.new()
+		ev.tick = tick
+		ev.type = CombatEvent.Type.DASH
+		ev.actor = i
+		ev.move_id = &"dash_forward" if f.dash_forward else &"dash_back"
+		combat_log.add(ev)
 		_age_buffer(f)
 		return
 
@@ -367,6 +401,40 @@ func _register_presses(f: FighterState, input: FighterInputFrame) -> void:
 				code = FighterInputFrame.CMD_FORWARD_SPECIAL if move_x == f.facing \
 						else FighterInputFrame.CMD_BACK_SPECIAL
 			f.buffer.append(Vector2i(code, 0))
+
+
+## Double-tap detection on the horizontal direction (see CombatTuning "Dash").
+## A detected dash waits (dash_pending) for at most the input buffer time
+## until the fighter is free to start it.
+func _read_dash_taps(f: FighterState, input: FighterInputFrame) -> void:
+	var dir: int = clampi(input.move_x, -1, 1) if input != null else 0
+	if dir != f.stick_dir:
+		if dir != 0:
+			if f.tap_dir == dir and f.tap_age >= 0 and f.tap_age <= tuning.dash_tap_window_ticks:
+				f.dash_pending = dir
+				f.dash_pending_age = 0
+				f.tap_dir = 0
+				f.tap_age = -1
+			f.stick_held_ticks = 0
+		elif f.stick_dir != 0:
+			if f.stick_held_ticks <= tuning.dash_tap_hold_ticks:
+				f.tap_dir = f.stick_dir
+				f.tap_age = 0
+			else:
+				f.tap_dir = 0
+				f.tap_age = -1
+		f.stick_dir = dir
+	elif dir != 0:
+		f.stick_held_ticks += 1
+	elif f.tap_age >= 0:
+		f.tap_age += 1
+		if f.tap_age > tuning.dash_tap_window_ticks:
+			f.tap_dir = 0
+			f.tap_age = -1
+	if f.dash_pending != 0:
+		f.dash_pending_age += 1
+		if f.dash_pending_age > tuning.input_buffer_ticks + 1:
+			f.dash_pending = 0
 
 
 ## Advances buffer ages by one tick and drops expired presses.
@@ -511,6 +579,7 @@ func _to_idle(f: FighterState) -> void:
 	f.move_frame = 0
 	f.move_connected = false
 	f.stun_remaining = 0
+	f.dash_frame = 0
 	f.chain.clear()
 
 

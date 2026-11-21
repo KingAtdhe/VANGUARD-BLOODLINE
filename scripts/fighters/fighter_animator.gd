@@ -87,6 +87,15 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			_show(def.anim_knockdown, BLEND_REACTION, _entered_time(s, def.anim_knockdown, dt), false)
 		FighterState.Action.WAKEUP:
 			_show(def.anim_getup, BLEND_DEFAULT, _entered_time(s, def.anim_getup, dt), false)
+		FighterState.Action.DASH:
+			# Seeked from the simulation like an attack: frame N of the dash = tick N.
+			var dash_anim: StringName = def.anim_dash_forward if s.dash_forward else def.anim_dash_back
+			if _has(dash_anim):
+				var dash_t: float = (s.dash_frame - 1 + (0.0 if frozen else alpha)) / CombatConstants.TICK_RATE
+				_show(dash_anim, BLEND_ATTACK, dash_t, false)
+			else:
+				var fallback: StringName = def.anim_walk_forward if s.dash_forward else def.anim_walk_backward
+				_show(fallback, BLEND_DEFAULT, _advance_if_same(fallback, dt * 2.0), true)
 		FighterState.Action.WALK:
 			var walk: StringName = def.anim_walk_forward if s.is_moving_forward() else def.anim_walk_backward
 			_show(walk, BLEND_DEFAULT, _advance_if_same(walk, dt), true)

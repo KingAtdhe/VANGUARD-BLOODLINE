@@ -52,6 +52,9 @@ extends Resource
 ## fire it rather than play the distance like other fighters (walk in, back
 ## off, wait). Only fighters with a projectile. D-066.
 @export_range(0.0, 1.0) var projectile_chance: float = 0.5
+## Chance, each time it decides to close in from far away or to back off at
+## close range, that it dashes instead of walking (D-071).
+@export_range(0.0, 1.0) var dash_chance: float = 0.0
 ## Chance to pre-emptively guard when close and undecided.
 @export_range(0.0, 1.0) var guard_chance: float = 0.3
 @export_range(1, 120) var guard_ticks: int = 18

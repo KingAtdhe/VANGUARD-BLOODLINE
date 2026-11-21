@@ -1934,6 +1934,36 @@ def build(rig_obj, moves, fid, height, clip_dir):
             out.append(pose_of(P, box, ground=False))
         # same loop seam handling as the idle
         return out
+    # ---- dashes (D-071): one driving step. The game moves the fighter (most
+    # of the distance early), so the feet are keyed relative to the body:
+    # forward, the lead foot shoots out and the body lands on it while the
+    # rear foot skims in behind; back, the rear foot reaches and the lead
+    # foot is dragged after it. One frame per tick of the dash.
+    def dash(n, forward):
+        base = idle_P(0)
+        lf0, rf0 = base["LeftFoot"].copy(), base["RightFoot"].copy()
+        lead = "Left" if lf0[1] < rf0[1] else "Right"
+        rear = "Right" if lead == "Left" else "Left"
+        first, second = (lead, rear) if forward else (rear, lead)
+        sgn = -1.0 if forward else 1.0                    # toward -Y (the opponent) or away
+        out = []
+        for t in range(n):
+            u = t / max(1, n - 1)
+            reach = math.sin(math.pi * min(1.0, u / 0.55))            # first foot out and planted again
+            follow = math.sin(math.pi * min(1.0, max(0.0, (u - 0.35) / 0.6)))   # second foot skims after it
+            low = math.sin(math.pi * u)
+            P = shift(base, list(base.keys()), np.array([0, 0, -0.06 * H * low]))
+            P = move_foot(P, first, base[first + "Foot"] + np.array([0, sgn * 0.2 * H * reach, 0.05 * H * reach]))
+            P = move_foot(P, second, base[second + "Foot"] + np.array([0, -sgn * 0.1 * H * follow, 0.04 * H * follow]))
+            P = lean(P, (-13 if forward else 9) * low)
+            out.append(pose_of(P, box))
+        for t in range(max(0, n - 3), n):
+            out[t] = Pose.blend(out[t], guard, ease((t - (n - 3) + 1) / 3.0))
+        return out
+    df, db = moves.get("dash", (14, 18))
+    A[f"{F}_DASH_FORWARD"] = dash(int(df), True)
+    A[f"{F}_DASH_BACK"] = dash(int(db), False)
+
     wf, wb = moves.get("walk", (2.6, 2.0))
     A[f"{F}_WALK_FORWARD"] = walk(wf, True)
     A[f"{F}_WALK_BACKWARD"] = walk(wb, False)

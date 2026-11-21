@@ -7,6 +7,15 @@ extends Resource
 ## Buffer age does not advance during hitstop.
 @export var input_buffer_ticks: int = 6
 
+@export_group("Dash")
+## A dash is a direction tapped twice: the first tap held at most
+## dash_tap_hold_ticks, the second pressed within dash_tap_window_ticks of
+## its release.
+@export var dash_tap_hold_ticks: int = 9
+@export var dash_tap_window_ticks: int = 10
+## From this frame of a FORWARD dash a buffered attack may cut it short.
+@export var dash_cancel_frame: int = 5
+
 @export_group("Cancels")
 ## Cancels are allowed on contact (hit or block), from the contact frame until
 ## this many frames after the move's last active frame.
