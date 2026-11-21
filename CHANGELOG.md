@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — legs in the floor, Kairo's and Vexa's stances
+- Fighters no longer stand shin-deep in the stage in The Pit and the Origin Chamber (the raised stage is lowered to their feet).
+- Kairo stands in a staggered boxer's stance instead of a squat with his feet together; Vexa stands tall with her hands high (Muay Thai). The two no longer share a pose.
 ### Added — Vexa's own move set
 - Piston Jab (L, longest light), Teep (H, pushes far away), Cut Kick (K, low), Slashing Elbow (down + H, steps in, cancels into the knee), Pulse Shot (SP, a projectile that crosses the stage, one at a time), Overclock Knee (toward + SP, flying knee, punishable on block), Arc Guard (away + SP, parries one high or mid hit; lows and throws beat it), ultimate System Overdrive. 1000 health, even walk speed both ways.
 - Projectiles and parries in the combat engine. Counter stances do not catch projectiles; armour absorbs them; two that meet cancel out.

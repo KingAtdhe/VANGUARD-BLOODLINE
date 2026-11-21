@@ -22,6 +22,11 @@ after each (CLAUDE.md).
 - Tests: 167 passing with the D-066 changes (146 before, at `91a4352`): 21
   new in `tests/unit/test_vexa_moves.gd`. The full run took about 10 minutes
   on a 2-core machine, an asset import about 12.
+- D-067 (owner feedback): raised stages are lowered to the fighters' feet
+  (`ArenaConfig.stage_height`), Kairo and Vexa have reshaped stances
+  (`STYLES` + `shape_stance()`; preview a stance on the real skeleton before
+  a 5-minute rebuild by measuring knee angles and foot spacing). Drakon,
+  Seraphina, Nox and Ryuen stances untouched.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.

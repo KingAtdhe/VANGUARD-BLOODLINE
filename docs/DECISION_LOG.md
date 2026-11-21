@@ -702,6 +702,33 @@ Fifth fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
   the projectile is a plain glowing ball (labelled placeholder).
 **Accepted.**
 
+## D-067 — 2026-11-21 — Raised stages meet the fighters; Kairo's and Vexa's stances
+
+Owner feedback on the D-066 build: legs under the floor, Kairo and Vexa in
+the same squat that "does not look like a fighting stance".
+- **Floor:** The Pit's stage top is 0.2 m and the Origin Chamber's 0.305 m
+  above the arena origin, while fighters stand on y = 0 — shins were inside
+  the stage in both. `ArenaConfig.stage_height` (presentation only); the
+  combat scene lowers the arena by it. `tests/integration/test_arena_floor.gd`
+  ray-tests every arena's solid floor along the fighting line against it
+  (within 3 cm). Sanctuary and Severed Line were already at 0.
+- **Stances:** `shape_stance()` (was a local in `build()`) with new knobs
+  `stride`, `weight`, `lead_hand`, `rear_hand`, `elbows`. Measured on the
+  game skeleton, Kairo's guard had knees at 111-116 degrees and feet 9 cm
+  apart along the fight line; Vexa's 111-122 degrees and 29 cm (the other
+  four: 50 cm or more). Now Kairo: staggered orthodox boxer (47 cm, knees
+  128/145, hands at the chin); Vexa: upright Muay Thai (48 cm, knees
+  140/165, hands high and wide). Every animation that starts or ends in the
+  guard follows.
+- **Bug fixed on the way:** the old shaping moved the hips without the
+  knees, so the leg IK worked with stretched bones and `crouch` did far less
+  than its number said. The whole figure is moved now. Drakon's and Nox's
+  `crouch` values were reduced (0.06 to 0.02, 0.1 to 0.035) so a rebuild
+  gives the stance they already have; their models were NOT rebuilt.
+- Not done: Vexa's tapping front foot; the stances of Drakon, Seraphina, Nox
+  and Ryuen were left as they are.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

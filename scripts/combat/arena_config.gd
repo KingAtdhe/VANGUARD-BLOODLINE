@@ -19,6 +19,12 @@ extends Resource
 ## Arena scene (root = ArenaView). Stored as a path so the scene can hold a
 ## reference back to this config without a load cycle.
 @export_file("*.tscn") var scene_path: String = ""
+## Height (m) of the arena model's floor under the fighting line, above the
+## arena scene's origin. Presentation only: in a match the arena is lowered by
+## this much, so fighters (who always stand on y = 0) stand ON a raised stage
+## instead of inside it. tests/integration/test_arena_floor.gd checks it
+## against the real mesh.
+@export var stage_height: float = 0.0
 ## One line for the arena select screen.
 @export var tagline: String = ""
 ## Unlocked from the start (false = earned through Story/Arcade).

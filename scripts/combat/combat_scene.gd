@@ -525,6 +525,8 @@ func _spawn_arena() -> void:
 		remove_child(old)
 		old.queue_free()
 	inst.name = "ArenaRoot"
+	# Fighters stand on y = 0; a raised stage is brought down to meet them.
+	inst.position.y = -arena_config.stage_height
 	add_child(inst)
 	move_child(inst, 0)
 	arena_view = inst

@@ -40,16 +40,49 @@ FPS_SRC = 120
 # share of the captured bounce kept, crouch / extra stance width (x height/1.8),
 # upper-body lean (deg, + = back) and hand offset (out, back, up).
 STYLES = {
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35),                       # crouched boxer
-    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.06, width=0.06, lean=4,  # heavy, wide, upright
+    # crouched orthodox boxer: left foot forward, weight a little over it, lead fist at eye level
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35, crouch=-0.02, stride=0.62, weight=0.05, lean=7,
+                  lead_hand=(0.0, -0.08, -0.05), rear_hand=(0.0, 0.0, -0.05)),
+    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.02, width=0.06, lean=4,  # heavy, wide, upright
                    hands=(0.03, 0.0, 0.04)),
     "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180),                               # karate side stance
-    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.1, width=0.04, lean=-10,    # low predatory crouch
+    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.035, width=0.04, lean=-10,    # low predatory crouch
                 hands=(0.0, -0.04, -0.06)),
-    "vexa": dict(clip="14_01", frame=2700, amp=0.6),                                     # light, bouncy boxer
+    # upright Muay Thai: tall, weight back on the rear leg, hands high and wide by the temples
+    "vexa": dict(clip="14_01", frame=2700, amp=0.6, crouch=-0.1, stride=0.2, weight=-0.04, lean=3,
+                 hands=(0.07, 0.03, 0.15), elbows=0.6),
     "ryuen": dict(clip="144_13", frame=150, amp=0.15, lean=2, hands=(0.04, -0.10, -0.16)),                           # calm upright master
 }
 FPS_OUT = 60
+
+
+def shape_stance(P, st, H):
+    """Shapes a captured guard into a fighter's own stance (STYLES knobs, all
+    in metres x height/1.8 unless noted):
+      crouch  body lower (+) or taller (-); the feet stay put, knees follow
+      stride  feet further apart along the fight line (lead forward, rear back)
+      width   feet further apart across it
+      weight  body carried toward the lead foot (+) or the rear foot (-)
+      lean    upper body pitch in degrees (+ = back)
+      hands / lead_hand / rear_hand   hand offsets (out to the side, back, up)"""
+    feet = {sd: P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+    lead = "Left" if feet["Left"][1] < feet["Right"][1] else "Right"
+    # the whole figure moves, then the feet are put back with IK: the leg
+    # bones keep their length and only the knee angle changes
+    P = shift(P, list(P.keys()), np.array([0, -st.get("weight", 0.0) * H, -st.get("crouch", 0.0) * H]))
+    P = lean(P, st.get("lean", 0.0))
+    for sd, sg in (("Left", 1), ("Right", -1)):
+        along = (-0.5 if sd == lead else 0.5) * st.get("stride", 0.0) * H
+        tgt = feet[sd] + np.array([sg * st.get("width", 0.0) * H, along, 0])
+        P = move_foot(P, sd, tgt, 1.0)
+    for sd, sg in (("Left", 1), ("Right", -1)):
+        off = np.array(st.get("hands", (0, 0, 0)), float) \
+            + np.array(st.get("lead_hand" if sd == lead else "rear_hand", (0, 0, 0)), float)
+        if off.any():
+            P = move_hand(P, sd, P[sd + "Hand"] + np.array([sg * off[0], off[1], off[2]]) * H, 1.0,
+                          pole_out=st.get("elbows", 0.35))
+    return P
+
 
 # game bone -> (source head joint, source tail joint) for the direction it points
 LIMB = {
@@ -1240,18 +1273,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     raw = [raw_idle_P(t) for t in range(n_idle)]
     mean = {k: np.mean([r[k] for r in raw], 0) for k in raw[0]}
     def shape(P):
-        feet = {sd: P[sd + "Foot"].copy() for sd in ("Left", "Right")}
-        body = UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"]
-        P = shift(P, body, np.array([0, 0, -st.get("crouch", 0.0) * H]))
-        P = lean(P, st.get("lean", 0.0))
-        for sd, sg in (("Left", 1), ("Right", -1)):
-            tgt = feet[sd] + np.array([sg * st.get("width", 0.0) * H, 0, 0])
-            P = move_foot(P, sd, tgt, 1.0)
-        for sd, sg in (("Left", 1), ("Right", -1)):
-            off = st.get("hands", (0, 0, 0))
-            if any(off):
-                P = move_hand(P, sd, P[sd + "Hand"] + np.array([sg * off[0], off[1], off[2]]) * H, 1.0)
-        return P
+        return shape_stance(P, st, H)
     def idle_P(t):
         r = raw[int(t) % n_idle]
         amp = st.get("amp", 0.35)

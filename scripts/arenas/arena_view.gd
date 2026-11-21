@@ -76,7 +76,8 @@ func react(kind: StringName, x: float, strength: float) -> void:
 		var dust: Node = get_node_or_null("Reactions/ImpactDust")
 		if dust is GPUParticles3D:
 			var p: GPUParticles3D = dust
-			p.position = Vector3(x, 0.05, 0.0)   # Reactions sits at the arena origin
+			# Reactions sits at the arena origin; the fight is on top of the stage
+			p.position = Vector3(x, 0.05 + (config.stage_height if config != null else 0.0), 0.0)
 			p.amount_ratio = clampf(0.4 + strength * 0.6, 0.4, 1.0)
 			p.restart()
 	_excite = maxf(_excite, 1.0 if kind == &"ko" else (0.6 if kind == &"knockdown" else 0.25 * strength))
