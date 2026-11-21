@@ -51,7 +51,7 @@ Balance values go in `data/`, never in controller code.
 
 1. Keep the source rigs' finger bones in the game skeleton so fists close. **Done (D-060).**
 2. Per-fighter move data, low attacks and low block. **Engine done (D-061): low block, hit levels, direction + button inputs. Move data per fighter follows with each fighter's set.**
-3. Kairo's full set; owner tests on device before the rest follow.
+3. Kairo's full set; owner tests on device before the rest follow. **Built (D-062), awaiting owner test.**
 4. One fighter at a time with the mechanic it needs: Drakon (throws, armour),
    Seraphina (evade, launch), Nox (side switch, overhead), Vexa (projectile,
    parry), Ryuen (counters).

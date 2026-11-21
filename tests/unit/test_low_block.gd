@@ -120,7 +120,8 @@ func test_down_button_uses_its_own_move_or_falls_back() -> Array[String]:
 
 func test_back_special_falls_back_to_special() -> Array[String]:
 	var f: Array[String] = []
-	var sim: CombatSimulation = _sim(_kairo(MoveData.HitLevel.MID))
+	# Drakon has no BACK_SPECIAL move (Kairo's is Slip Counter).
+	var sim: CombatSimulation = _sim(load("res://data/fighters/drakon.tres"))
 	sim.fighters[0].meter = 100
 	# P1 faces right (+1): holding left is "back".
 	sim.step([FighterInputFrame.with_buttons(S, -1), FighterInputFrame.neutral()])

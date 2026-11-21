@@ -82,9 +82,13 @@ func test_forward_special_is_rift_break_and_moves() -> Array[String]:
 	if absf(sim.fighters[0].position_x - x0 - rift.move_distance) > 1e-4:
 		f.append("Rift Break travelled %.4f m, expected %.4f" % [sim.fighters[0].position_x - x0, rift.move_distance])
 	var sim2 := _sim(5.0, 60)
-	_step(sim2, S, 0, 1, -1)  # back+special = Origin Palm
-	if _started(sim2, &"kairo_origin_palm") != 1:
-		f.append("back+special should be Origin Palm")
+	_step(sim2, S, 0, 1, -1)  # back+special = Slip Counter (D-062)
+	if _started(sim2, &"kairo_slip_counter") != 1:
+		f.append("back+special should be Slip Counter")
+	var sim3 := _sim(5.0, 60)
+	_step(sim3, S, 0, 1, 0)   # neutral special = Origin Palm
+	if _started(sim3, &"kairo_origin_palm") != 1:
+		f.append("neutral special should be Origin Palm")
 	return f
 
 
@@ -161,7 +165,7 @@ func test_origin_surge_activation_drain_and_bonus() -> Array[String]:
 	# Specials are free in Surge, and damage is boosted.
 	var meter_before: int = sim2.fighters[0].meter
 	sim2.fighters[0].position_x = sim2.fighters[1].position_x - 0.9
-	_step(sim2, S, 0, 1, -1)
+	_step(sim2, S, 0, 1, 0)
 	if _started(sim2, &"kairo_origin_palm") != 1:
 		f.append("Origin Palm did not start in Surge")
 	elif sim2.fighters[0].meter < meter_before - 1:

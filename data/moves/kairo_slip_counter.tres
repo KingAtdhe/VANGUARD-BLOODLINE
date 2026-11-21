@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+[ext_resource type="Resource" path="res://data/moves/kairo_counter_hook.tres" id="2_hook"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_slip_counter"
+display_name = "Slip Counter"
+input_pattern = &"BACK_SPECIAL"
+animation = &"KAIRO_SPECIAL_SLIP_COUNTER"
+startup_frames = 4
+active_frames = 13
+recovery_frames = 14
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 0
+damage = 0
+chip_damage = 0
+pushback = 0.0
+hit_level = 1
+hitbox_center = Vector2(0.4, 1.4)
+hitbox_size = Vector2(0.1, 0.1)
+tags = PackedStringArray("special", "counter")
+cancel_tags = PackedStringArray()
+counter_start_frame = 4
+counter_end_frame = 16
+counter_levels = Array[int]([0, 1])
+counter_followup = ExtResource("2_hook")
+counter_stun_frames = 16

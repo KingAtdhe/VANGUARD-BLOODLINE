@@ -342,6 +342,11 @@ func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
 		_log_simple(CombatEvent.Type.SURGE_END, i)
 
 
+## Starts a move that is not triggered by input (a counter's follow-up).
+func start_followup(i: int, move: MoveData) -> void:
+	_start_attack(i, move, false)
+
+
 func _end_attack(i: int) -> void:
 	var f: FighterState = fighters[i]
 	if f.move.activates_surge:

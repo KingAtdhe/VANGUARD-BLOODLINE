@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_counter_hook"
+display_name = "Counter Hook"
+input_pattern = &"FOLLOWUP"
+animation = &"KAIRO_ATTACK_COUNTER_HOOK_01"
+startup_frames = 5
+active_frames = 3
+recovery_frames = 16
+hitstun_frames = 22
+blockstun_frames = 14
+hitstop_frames = 10
+damage = 90
+chip_damage = 5
+pushback = 0.45
+hit_level = 1
+hitbox_center = Vector2(0.6, 1.45)
+hitbox_size = Vector2(0.55, 0.35)
+tags = PackedStringArray("followup")
+cancel_tags = PackedStringArray("special")
+meter_gain_on_hit = 12
+meter_gain_on_block = 5

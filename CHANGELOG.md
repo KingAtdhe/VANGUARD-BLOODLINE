@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Kairo's own move set
+- Low Kick (K): must be blocked low. Body Hook (down + H): combos after the jab. Slip Counter (back + SP): slips a punch and answers with a hook; low attacks beat it.
+- Counter stances in the combat engine.
 ### Added — low block and direction commands
 - Low block: hold the stick down + BLOCK. Low attacks must be blocked low, overheads standing, everything else either way. No fighter has a low or overhead attack yet; they arrive with the per-fighter move sets.
 - Down + attack buttons and back + SP are now separate inputs (unused until each fighter's new moves are built; until then they act as the plain button).

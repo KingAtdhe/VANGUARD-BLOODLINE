@@ -21,6 +21,8 @@ extends RefCounted
 ##     defender gains a percentage of damage taken / a flat amount on block.
 ##   - A `knockdown` move that HITS knocks the defender down (no hurtbox while
 ##     down and getting up), which ends the combo.
+##   - Counter: if the defender is in a counter stance that catches the move
+##     (MoveData.counters), nothing above applies — see _counter().
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
 ##     sim.ko_enabled == false (training) health stops at 1.
 ## All decisions are taken from the state BEFORE any contact is applied, so
@@ -39,11 +41,15 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 	var moves: Array[MoveData] = []
 	var blocked: Array[bool] = []
 	var in_combo: Array[bool] = []
+	var countered: Array[bool] = []
 	for c: HitboxSystem.Contact in contacts:
 		var move: MoveData = states[c.attacker].move
 		moves.append(move)
 		blocked.append(states[c.defender].is_blocking() and move.blocked_by(states[c.defender].block_low))
 		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN)
+		var d: FighterState = states[c.defender]
+		countered.append(d.action == FighterState.Action.ATTACK and d.move != null
+				and d.move.counters(d.move_frame, move.hit_level))
 
 	var hitstop: int = 0
 	for i: int in contacts.size():
@@ -53,6 +59,9 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		var move: MoveData = moves[i]
 		attacker.move_connected = true
 		hitstop = maxi(hitstop, move.hitstop_frames)
+		if countered[i]:
+			_counter(c, sim)
+			continue
 
 		var attacker_def: FighterDefinition = sim.definitions[c.attacker]
 		var dmg: int
@@ -126,6 +135,35 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		defender.pushback_remaining = away * move.pushback
 		defender.pushback_step = move.pushback / PUSHBACK_TICKS
 	return hitstop
+
+
+## The defender's counter stance caught the attack: no damage, the attacker
+## is frozen (a zero-damage stagger that the follow-up combos from) and the
+## defender goes straight into the counter's follow-up attack.
+static func _counter(c: HitboxSystem.Contact, sim: CombatSimulation) -> void:
+	var attacker: FighterState = sim.fighters[c.attacker]
+	var defender: FighterState = sim.fighters[c.defender]
+	var stance: MoveData = defender.move
+	var ev := CombatEvent.new()
+	ev.tick = sim.tick
+	ev.type = CombatEvent.Type.COUNTER
+	ev.actor = c.defender
+	ev.target = c.attacker
+	ev.move_id = stance.id
+	ev.point = c.point
+	ev.target_health = attacker.health
+	sim.combat_log.add(ev)
+	attacker.move = null
+	attacker.move_frame = 0
+	attacker.move_x = 0
+	attacker.chain.clear()
+	attacker.combo_hits = 0
+	attacker.combo_damage = 0
+	attacker.action = FighterState.Action.HITSTUN
+	attacker.stun_remaining = stance.counter_stun_frames
+	defender.move_connected = true
+	if stance.counter_followup != null:
+		sim.start_followup(c.defender, stance.counter_followup)
 
 
 static func _knock_out(f: FighterState, index: int, sim: CombatSimulation) -> void:

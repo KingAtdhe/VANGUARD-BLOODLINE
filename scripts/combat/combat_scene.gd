@@ -377,6 +377,10 @@ func _present_new_events() -> void:
 			CombatEvent.Type.BLOCK:
 				_effects.spawn_for(ev)
 				_camera_rig.add_shake(0.008)
+			CombatEvent.Type.COUNTER:
+				# the caught attacker flashes; the follow-up brings its own hit
+				_fighter_views[ev.target].flash()
+				_camera_rig.add_shake(0.012)
 		_arena_react(ev)
 	_seen_events = combat_log.total_count()
 

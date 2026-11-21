@@ -77,6 +77,8 @@ func on_event(ev: CombatEvent, sim: CombatSimulation) -> void:
 				play(&"hit_heavy" if ev.damage >= 60 else &"hit_light", 1.0 + 0.04 * ev.combo_hits)
 		CombatEvent.Type.BLOCK:
 			play(&"block")
+		CombatEvent.Type.COUNTER:
+			play(&"block", 1.35)
 		CombatEvent.Type.SURGE_START:
 			play(&"surge")
 		CombatEvent.Type.KNOCKDOWN:

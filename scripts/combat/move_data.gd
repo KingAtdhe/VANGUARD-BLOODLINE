@@ -77,11 +77,33 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## invulnerable), ending any combo.
 @export var knockdown: bool = false
 
+@export_group("Counter")
+## Counter stance (D-062): while this move is on frames counter_start_frame..
+## counter_end_frame, an incoming attack whose hit level is listed in
+## counter_levels does no damage; its user is frozen for counter_stun_frames
+## and this fighter immediately starts counter_followup. 0 = not a counter.
+## A counter move has no hitbox of its own.
+@export var counter_start_frame: int = 0
+@export var counter_end_frame: int = 0
+@export var counter_levels: Array[HitLevel] = []
+@export var counter_followup: MoveData = null
+@export var counter_stun_frames: int = 16
+
 @export_group("Reserved for later milestones")
 @export var launch: bool = false
 @export var airborne_allowed: bool = false
 ## Only if the move design genuinely needs one (0 = none).
 @export var cooldown_frames: int = 0
+
+
+func is_counter() -> bool:
+	return counter_end_frame > 0
+
+
+## True if this counter stance catches an attack of [param level] on [param frame].
+func counters(frame: int, level: HitLevel) -> bool:
+	return is_counter() and frame >= counter_start_frame and frame <= counter_end_frame \
+			and counter_levels.has(level)
 
 
 func total_frames() -> int:
@@ -156,7 +178,10 @@ func validate() -> Array[String]:
 		p.append("%s: pushback must be >= 0" % id)
 	if tags.is_empty():
 		p.append("%s: tags is empty" % id)
-	if not activates_surge and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
+	if is_counter() and (counter_start_frame < 1 or counter_end_frame < counter_start_frame
+			or counter_end_frame > total_frames() or counter_levels.is_empty()):
+		p.append("%s: invalid counter window" % id)
+	if not activates_surge and not is_counter() and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
 		p.append("%s: hitbox_size must be positive" % id)
 	if move_distance < 0.0 or move_end_frame < move_start_frame:
 		p.append("%s: invalid movement" % id)

@@ -533,6 +533,33 @@ First mechanic of the per-fighter designs (`docs/FIGHTER_COMBAT_DESIGN.md`).
   shield drops with the guard.
 **Accepted.**
 
+## D-062 — 2026-11-21 — Kairo's own move set; counter stances
+
+First fighter built from `docs/FIGHTER_COMBAT_DESIGN.md`.
+- **Moves (data/moves/):** `kairo_low_kick` (KICK, LOW, replaces the shared
+  front kick for Kairo only), `kairo_body_hook` (DOWN + HEAVY),
+  `kairo_slip_counter` (BACK + SPECIAL) and its follow-up
+  `kairo_counter_hook` (no input of its own). Jab now also cancels into the
+  body hook; low kick cancels into jab. The other five fighters and the bosses
+  keep the shared `kairo_*` set (incl. `kairo_kick`) until their own sets.
+- **Counter stance (engine):** `MoveData.counter_start_frame/_end_frame/
+  _levels/_followup/_stun_frames`. A counter move has no hitbox; an attack of
+  a listed hit level that connects during the window does no damage, its user
+  is frozen (`counter_stun_frames`) and the follow-up starts at once
+  (`CombatEvent.Type.COUNTER`). Slip Counter catches HIGH and MID, so lows
+  (and later throws) beat it.
+- **Animation:** body hook and counter hook are captured hooks from the boxer
+  clip (frames 2214 and 3342, found by elbow angle and lateral hand speed);
+  the slip is keyed from his guard; the low kick is the captured front kick
+  guided to shin height — a low push kick, not the roundhouse low kick of the
+  design (no capture of one).
+- **Pipeline:** `export_move_timing.gd <out> <fighter>`; each fighter is
+  animated from its own move data (`/tmp/moves_<id>.json`).
+- **AI:** uses DOWN + button moves it has; `AIProfile.counter_chance`
+  (standard 0.12, expert 0.3).
+- **Not built from the design:** the low kick's brief walk-speed slow.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

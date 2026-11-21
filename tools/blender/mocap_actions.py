@@ -514,7 +514,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     box_stand = box.stand_hips
 
     # ---- strikes retimed to frame data, limb guided onto the hitbox
-    def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None):
+    def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None, blend_in=0):
         start, total = mv["startup"], mv["startup"] + mv["active"] - 1 + mv["recovery"]
         a0, a1 = mv["startup"] - 1, mv["startup"] + mv["active"] - 2
         mid = (a0 + a1) / 2
@@ -550,13 +550,44 @@ def build(rig_obj, moves, fid, height, clip_dir):
             poses.append(pose_of(P, c))
         # settle into the guard over the last frames so the next move blends cleanly
         n = len(poses)
+        for t in range(min(blend_in, n)):      # captures that do not start in a guard
+            poses[t] = Pose.blend(guard, poses[t], ease((t + 1) / (blend_in + 1)))
         for t in range(max(0, n - 8), n):
             poses[t] = Pose.blend(poses[t], guard, ease((t - (n - 8)) / 8))
         return poses
 
     A[f"{F}_ATTACK_LIGHT_01"] = strike(box, 1214, "Left", "hand", moves["LIGHT"], pre=20, post=30)
     A[f"{F}_ATTACK_HEAVY_01"] = strike(box, 3368, "Right", "hand", moves["HEAVY"], pre=28, post=40)
-    A[f"{F}_KICK_01"] = strike(kick, 1240, "Right", "foot", moves["KICK"], pre=40, post=60)
+    # the kick is named by its move (a fighter's own kick replaces the shared one)
+    kick_name = F + moves["KICK"].get("animation", "KAIRO_KICK_01")[len("KAIRO"):]
+    A[kick_name] = strike(kick, 1240, "Right", "foot", moves["KICK"], pre=40, post=60)
+
+    # ---- moves only some fighters have (their own move data, D-062)
+    def anim_of(mv):
+        return F + mv["animation"][mv["animation"].find("_"):]
+    if "body_hook" in moves:        # captured rear hook to the body
+        mv = moves["body_hook"]
+        A[anim_of(mv)] = strike(box, 2214, "Right", "hand", mv, pre=22, post=34, blend_in=4)
+    if "counter_hook" in moves:     # captured lead hook at head height
+        mv = moves["counter_hook"]
+        A[anim_of(mv)] = strike(box, 3342, "Left", "hand", mv, pre=16, post=30, blend_in=2)
+    if "slip_counter" in moves:
+        # slip: the head leaves the centre line (outside the opponent's lead
+        # hand), knees bend, hands stay home; held for the counter window
+        mv = moves["slip_counter"]
+        total = mv["startup"] + mv["active"] - 1 + mv["recovery"]
+        c0, c1 = mv["counter"]
+        feet = {sd: guard_P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+        slip = []
+        for t in range(total):
+            w = ease(min(1.0, (t + 1) / max(1, c0)), "out") if t < c1 else 1.0 - ease((t - c1) / max(1, total - 1 - c1))
+            P = shift(guard_P, UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"],
+                      np.array([0, 0, -0.07 * H * w]))
+            for sd in ("Left", "Right"):
+                P = move_foot(P, sd, feet[sd])
+            P = lean(P, 18 * w, roll_deg=-32 * w)
+            slip.append(pose_of(P, box))
+        A[anim_of(mv)] = slip
     A[f"{F}_SPECIAL_ORIGIN_PALM"] = strike(art, 439, "Left", "hand", moves["SPECIAL"], pre=34, post=46)
     A[f"{F}_SPECIAL_RIFT_BREAK"] = strike(art_r, 645, "Right", "hand", moves["FORWARD_SPECIAL"], pre=36, post=50,
                                           extra=lambda P, t, T: lean(P, -10 * math.sin(math.pi * min(1, t / T))))

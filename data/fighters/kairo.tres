@@ -1,10 +1,13 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
 [ext_resource type="Resource" path="res://data/moves/kairo_light_punch.tres" id="3_l"]
 [ext_resource type="Resource" path="res://data/moves/kairo_heavy_punch.tres" id="4_h"]
-[ext_resource type="Resource" path="res://data/moves/kairo_kick.tres" id="5_k"]
+[ext_resource type="Resource" path="res://data/moves/kairo_low_kick.tres" id="5_k"]
+[ext_resource type="Resource" path="res://data/moves/kairo_body_hook.tres" id="11_hook"]
+[ext_resource type="Resource" path="res://data/moves/kairo_slip_counter.tres" id="12_slip"]
+[ext_resource type="Resource" path="res://data/moves/kairo_counter_hook.tres" id="13_chook"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_palm.tres" id="6_palm"]
 [ext_resource type="Resource" path="res://data/moves/kairo_rift_break.tres" id="7_rift"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
@@ -19,7 +22,7 @@ base_health = 1000
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break")])
+moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break"), ExtResource("11_hook"), ExtResource("12_slip"), ExtResource("13_chook")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true

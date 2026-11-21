@@ -29,8 +29,10 @@ const B: int = FighterInputFrame.BUTTON_BLOCK
 const S: int = FighterInputFrame.BUTTON_SPECIAL
 const U: int = FighterInputFrame.BUTTON_ULTIMATE
 const _BUTTON_FOR: Dictionary = {&"LIGHT": L, &"HEAVY": H, &"KICK": K,
-	&"SPECIAL": S, &"FORWARD_SPECIAL": S, &"ULTIMATE": U}
-const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL", &"FORWARD_SPECIAL"]
+	&"SPECIAL": S, &"FORWARD_SPECIAL": S, &"ULTIMATE": U,
+	&"DOWN_LIGHT": L, &"DOWN_HEAVY": H, &"DOWN_KICK": K, &"DOWN_SPECIAL": S, &"BACK_SPECIAL": S}
+const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL", &"FORWARD_SPECIAL",
+	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL"]
 ## Extra distance at which a visible attack is treated as a threat.
 const THREAT_MARGIN: float = 0.35
 
@@ -53,8 +55,11 @@ var _last_buttons: int = 0
 var _idle_ticks: int = 0
 var _threat_key: int = -1
 var _threat_block: bool = false
+var _counter_key: int = -1
 ## Guard height chosen for the attack currently seen (true = low block).
 var _block_low: bool = false
+## The next emitted frame holds down (down + button command).
+var _tap_down: bool = false
 var _punish_key: int = -1
 var _route_commit: bool = false
 var _route_pos: int = 0
@@ -182,6 +187,15 @@ func next_input() -> FighterInputFrame:
 				_block_low = (opp_move.hit_level == MoveData.HitLevel.LOW) == right_height
 			decision_log.add(_tick, State.keys()[state], "sees %s (f%d, d=%.2f) → %s" % [
 				opp.move_id, opp.move_frame, dist, "BLOCK" if _threat_block else "no block"])
+		# Counter stance instead of a block, if this fighter has one that
+		# catches the attack (rolled once per attack seen).
+		if key != _counter_key:
+			_counter_key = key
+			var stance: MoveData = me_def.move_for(&"BACK_SPECIAL")
+			if _threat_block and profile.counter_chance > 0.0 and stance != null and stance.is_counter() \
+					and stance.counter_levels.has(opp_move.hit_level) and _rng.randf() < profile.counter_chance:
+				_set_state(State.BLOCK, "counter stance")
+				return _tap(&"BACK_SPECIAL", "counter %s" % opp.move_id, 0)
 		if _threat_block or _guard_left > 0:
 			_set_state(State.BLOCK, "reaction")
 			return _emit(0, B)
@@ -472,6 +486,9 @@ func _tap(pattern: StringName, reason: String, move_x: int) -> FighterInputFrame
 	# Specials are direction-sensitive: forward = toward the opponent.
 	if pattern == &"FORWARD_SPECIAL":
 		move_x = _toward
+	elif pattern == &"BACK_SPECIAL":
+		move_x = -_toward
+	_tap_down = String(pattern).begins_with("DOWN_")
 	decision_log.add(_tick, State.keys()[state], "press %s (%s)" % [pattern, reason])
 	if _last_buttons & button:
 		_pending = button
@@ -488,4 +505,6 @@ func _emit(move_x: int, buttons: int) -> FighterInputFrame:
 		_idle_ticks += 1
 	else:
 		_idle_ticks = 0
-	return FighterInputFrame.with_buttons(buttons, move_x, -1 if (_block_low and (buttons & B) != 0) else 0)
+	var down: bool = _tap_down or (_block_low and (buttons & B) != 0)
+	_tap_down = false
+	return FighterInputFrame.with_buttons(buttons, move_x, -1 if down else 0)

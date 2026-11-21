@@ -53,7 +53,8 @@ UI scales with `canvas_items` / `expand` stretch.
 | Up (jump) / Down (crouch) | W / S, ↑ / ↓ | D-pad, left stick |
 | Light / Heavy / Kick | J / K / L | X / Y / A |
 | Block (hold Down for a low block) | Space | B |
-| Special (Origin Palm) / toward + Special (Rift Break) | U | RB |
+| Special (Origin Palm) / toward + Special (Rift Break) / away + Special (Slip Counter) | U | RB |
+| Down + Heavy (Body Hook) | S + K | Down + Y |
 | Ultimate: Origin Surge at full meter, Origin Break during Surge | O | RT |
 | Special / Ultimate | U / O | RB / RT |
 | Pause / resume | Esc, P (or on-screen **II**, Android back) | Start |

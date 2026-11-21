@@ -1,26 +1,27 @@
 extends SceneTree
-## Writes Kairo's move timings + hitbox centres to JSON for the Blender
+## Writes one fighter's move timings + hitbox centres to JSON for the Blender
 ## build script, so animation timing always comes from the real move data.
 ##
-## Run: godot --headless --path . --script res://tools/blender/export_move_timing.gd -- <out.json>
-
-const KEYS: Dictionary = {
-	&"kairo_light_punch": "LIGHT", &"kairo_heavy_punch": "HEAVY", &"kairo_kick": "KICK",
-	&"kairo_origin_palm": "SPECIAL", &"kairo_rift_break": "FORWARD_SPECIAL",
-	&"kairo_origin_surge": "SURGE", &"kairo_origin_break": "ULTIMATE",
-}
+## Run: godot --headless --path . --script res://tools/blender/export_move_timing.gd -- <out.json> [fighter_id]
 
 
 func _initialize() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	var out_path: String = args[0] if args.size() > 0 else "/tmp/kairo_moves.json"
-	var def: FighterDefinition = load("res://data/fighters/kairo.tres")
+	# Second argument: fighter id (each fighter's own move set, D-062).
+	var fighter: String = args[1] if args.size() > 1 else "kairo"
+	var def: FighterDefinition = load("res://data/fighters/%s.tres" % fighter)
 	var data: Dictionary = {}
 	for m: MoveData in def.moves:
-		if KEYS.has(m.id):
-			data[KEYS[m.id]] = {"startup": m.startup_frames, "active": m.active_frames,
-				"recovery": m.recovery_frames, "hc": [m.hitbox_center.x, m.hitbox_center.y],
-				"animation": String(m.animation)}
+		var entry: Dictionary = {"startup": m.startup_frames, "active": m.active_frames,
+			"recovery": m.recovery_frames, "hc": [m.hitbox_center.x, m.hitbox_center.y],
+			"animation": String(m.animation), "counter": [m.counter_start_frame, m.counter_end_frame]}
+		# Standard slots by input (SURGE = the surge activation), plus every
+		# move under its own id without the owner prefix ("body_hook").
+		var slot: String = "SURGE" if m.activates_surge else String(m.input_pattern)
+		if not data.has(slot):
+			data[slot] = entry
+		data[String(m.id).substr(String(m.id).find("_") + 1)] = entry
 	var f := FileAccess.open(out_path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(data, "  "))
 	f.close()

@@ -21,9 +21,14 @@ func _sim(separation: float = 0.9) -> CombatSimulation:
 	return sim
 
 
+## P2 guards low when _p2_down is set (LOW attacks need a low block, D-061).
+var _p2_down: bool = false
+
+
 func _step(sim: CombatSimulation, p1_buttons: int, p2_buttons: int, times: int = 1) -> void:
 	for _i: int in times:
-		sim.step([FighterInputFrame.with_buttons(p1_buttons), FighterInputFrame.with_buttons(p2_buttons)])
+		sim.step([FighterInputFrame.with_buttons(p1_buttons),
+			FighterInputFrame.with_buttons(p2_buttons, 0, -1 if _p2_down else 0)])
 
 
 func _count(sim: CombatSimulation, type: CombatEvent.Type) -> int:
@@ -135,7 +140,9 @@ func test_block_rules() -> Array[String]:
 		var m: MoveData = _move(pattern)
 		var button: int = {&"LIGHT": L, &"HEAVY": H, &"KICK": K}[pattern]
 		var sim := _sim(0.9)
+		_p2_down = m.hit_level == MoveData.HitLevel.LOW
 		_step(sim, button, B, m.startup_frames)
+		_p2_down = false
 		var d: FighterState = sim.fighters[1]
 		if _count(sim, CombatEvent.Type.BLOCK) != 1 or _count(sim, CombatEvent.Type.HIT) != 0:
 			f.append("%s: not blocked" % m.id)
@@ -170,8 +177,10 @@ func test_frame_advantage_matches_data() -> Array[String]:
 		var button: int = {&"LIGHT": L, &"HEAVY": H, &"KICK": K}[pattern]
 		for blocking: bool in [false, true]:
 			var sim := _sim(0.9)
+			_p2_down = m.hit_level == MoveData.HitLevel.LOW
 			_step(sim, button, B if blocking else 0, m.startup_frames)  # contact tick
 			var free: Array[int] = _free_ticks(sim, 0, B if blocking else 0)
+			_p2_down = false
 			var measured: int = free[0] - free[1]  # >0 = attacker free later = defender advantage
 			var expected: int = m.advantage_on_block() if blocking else m.advantage_on_hit()
 			if -measured != expected:

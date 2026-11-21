@@ -151,7 +151,7 @@ func test_documented_route_light_light_kick() -> Array[String]:
 	var hits: Array[CombatEvent] = _events(sim, CombatEvent.Type.HIT, 0)
 	if hits.size() != 3:
 		return ["route L,L,K should hit 3 times, log:\n%s" % sim.combat_log.to_text()]
-	var expected_dmg: Array[int] = [35, 35, 48]   # kick scaled to 80 %
+	var expected_dmg: Array[int] = [35, 35, 40]   # low kick (50) scaled to 80 %
 	var expected_pct: Array[int] = [100, 100, 80]
 	for h: int in 3:
 		if hits[h].combo_hits != h + 1 or hits[h].damage != expected_dmg[h] or hits[h].scaling_percent != expected_pct[h]:
@@ -159,8 +159,8 @@ func test_documented_route_light_light_kick() -> Array[String]:
 	var starts_ev: Array[CombatEvent] = _events(sim, CombatEvent.Type.ATTACK_START, 0)
 	if starts_ev[1].cancel_from != &"kairo_light_punch" or starts_ev[2].cancel_from != &"kairo_light_punch":
 		f.append("route was not performed through cancels")
-	if sim.fighters[1].combo_hits != 0 or sim.fighters[1].health != 1000 - 118:
-		f.append("after combo: P2 combo %d (should reset on recovery), hp %d (expected 882)" % [
+	if sim.fighters[1].combo_hits != 0 or sim.fighters[1].health != 1000 - 110:
+		f.append("after combo: P2 combo %d (should reset on recovery), hp %d (expected 890)" % [
 			sim.fighters[1].combo_hits, sim.fighters[1].health])
 	return f
 
@@ -170,7 +170,8 @@ func test_invalid_cancel_routes_rejected() -> Array[String]:
 	# [first, second, expect_cancel]
 	var cases: Array = [
 		[L, H, false],   # light cannot cancel into heavy
-		[K, L, false],   # kick cannot cancel into light
+		[K, H, false],   # kick cannot cancel into heavy
+		[K, L, true],    # Kairo's low kick cancels into the jab (D-062)
 		[H, L, false],   # heavy cannot cancel into light
 		[L, K, true],
 		[L, L, true],
