@@ -2,9 +2,10 @@ class_name HitResolver
 extends RefCounted
 ## Applies detected contacts: hit vs block, damage, combo scaling, stun,
 ## pushback, hitstop and KO. Rules (docs/COMBAT_FRAME_DATA.md):
-##   - Blocked if the defender is in BLOCK or BLOCKSTUN and the move is
-##     standing-blockable (HIGH, MID, PROJECTILE). Fighters always face each
-##     other, so every attack comes from the front.
+##   - Blocked if the defender is in BLOCK or BLOCKSTUN and its guard height
+##     stops the move (MoveData.blocked_by): MID/PROJECTILE either guard, HIGH
+##     standing only, LOW low block only. Fighters always face each other, so
+##     every attack comes from the front.
 ##   - Hit: if the defender was already in HITSTUN it is the next hit of a
 ##     combo, otherwise a new combo starts at hit 1. Damage is scaled by the
 ##     hit number (CombatTuning). Defender enters HITSTUN; any attack it was
@@ -41,7 +42,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 	for c: HitboxSystem.Contact in contacts:
 		var move: MoveData = states[c.attacker].move
 		moves.append(move)
-		blocked.append(states[c.defender].is_blocking() and move.is_blockable_standing())
+		blocked.append(states[c.defender].is_blocking() and move.blocked_by(states[c.defender].block_low))
 		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN)
 
 	var hitstop: int = 0

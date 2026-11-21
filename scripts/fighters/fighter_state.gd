@@ -28,6 +28,10 @@ var move_connected: bool = false
 ## Remaining hitstun/blockstun ticks. The fighter becomes actionable on the
 ## tick AFTER this reaches 0, so a stun of N means N full ticks of no control.
 var stun_remaining: int = 0
+## Guard height while in BLOCK / BLOCKSTUN: true = low block (down held).
+## A low block stops LOW and MID attacks and loses to HIGH (overheads); a
+## standing block stops HIGH and MID and loses to LOW.
+var block_low: bool = false
 
 ## Buttons held on the last processed tick (for press-edge detection).
 var held_buttons: int = 0
@@ -65,6 +69,7 @@ func copy() -> FighterState:
 	s.move_frame = move_frame
 	s.move_connected = move_connected
 	s.stun_remaining = stun_remaining
+	s.block_low = block_low
 	s.held_buttons = held_buttons
 	s.buffer = buffer.duplicate()
 	s.chain = chain.duplicate()

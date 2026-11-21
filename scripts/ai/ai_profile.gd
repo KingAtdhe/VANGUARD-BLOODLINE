@@ -42,6 +42,9 @@ extends Resource
 @export_group("Defence")
 ## Chance to block an attack it SEES starting (subject to reaction delay).
 @export_range(0.0, 1.0) var block_reaction_chance: float = 0.6
+## Chance that a block against a LOW attack it sees is a low block (and a
+## standing one against an overhead); otherwise it guards at the wrong height.
+@export_range(0.0, 1.0) var low_block_chance: float = 0.5
 ## Chance to pre-emptively guard when close and undecided.
 @export_range(0.0, 1.0) var guard_chance: float = 0.3
 @export_range(1, 120) var guard_ticks: int = 18

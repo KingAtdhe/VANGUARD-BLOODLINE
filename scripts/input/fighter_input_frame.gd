@@ -17,9 +17,20 @@ const BUTTON_ULTIMATE: int = 32
 ## Internal buffer command (never pressed directly): SPECIAL pressed while
 ## holding toward the opponent. Resolved by the simulation from move_x+facing.
 const CMD_FORWARD_SPECIAL: int = 64
+## Internal buffer commands for the other direction + button presses. Down
+## wins over forward/back. A fighter without a move for the command falls
+## back to the plain button (see CombatSimulation._FALLBACK).
+const CMD_BACK_SPECIAL: int = 128
+const CMD_DOWN_SPECIAL: int = 256
+const CMD_DOWN_LIGHT: int = 512
+const CMD_DOWN_HEAVY: int = 1024
+const CMD_DOWN_KICK: int = 2048
 
 ## World-space horizontal direction: -1 = left, 0 = none, +1 = right.
 var move_x: int = 0
+## Vertical direction: -1 = down (low block, down + button moves), 0 = none,
+## +1 = up (reserved).
+var move_y: int = 0
 ## Bitmask of BUTTON_* currently held.
 var buttons: int = 0
 
@@ -38,7 +49,8 @@ static func moving(direction: int) -> FighterInputFrame:
 	return f
 
 
-static func with_buttons(held: int, direction: int = 0) -> FighterInputFrame:
+static func with_buttons(held: int, direction: int = 0, vertical: int = 0) -> FighterInputFrame:
 	var f := moving(direction)
+	f.move_y = clampi(vertical, -1, 1)
 	f.buttons = held
 	return f

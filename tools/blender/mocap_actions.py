@@ -618,6 +618,23 @@ def build(rig_obj, moves, fid, height, clip_dir):
         blk.append(pose_of(P, box))
     A[f"{F}_BLOCK_HIGH"] = blk
 
+    # ---- low block: drops onto bent knees, forearms cover the body and the
+    # lead thigh, chin tucked behind the lead shoulder
+    blk_low = []
+    for t in range(13):
+        w = ease(min(1, t / 5), "out")
+        feet = {sd: guard_P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+        P = shift(guard_P, UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"],
+                  np.array([0, 0, -0.17 * H * w]))
+        for sd in ("Left", "Right"):
+            P = move_foot(P, sd, feet[sd])      # feet stay planted, knees bend
+        chest = P["Spine2"] if "Spine2" in P else P["Head"] - np.array([0, 0, 0.28 * H])
+        P = move_hand(P, "Left", chest + np.array([0.06 * H, -0.22 * H, -0.16 * H]), w, pole_out=0.25)
+        P = move_hand(P, "Right", chest + np.array([-0.07 * H, -0.2 * H, 0.0]), w, pole_out=0.25)
+        P = lean(P, 14 * w)
+        blk_low.append(pose_of(P, box))
+    A[f"{F}_BLOCK_LOW"] = blk_low
+
     # ---- hit reactions: head and chest snap back, then recover (spring)
     def hit(n, amp, twist):
         # snap back within 2-3 frames, then a damped recovery to the guard

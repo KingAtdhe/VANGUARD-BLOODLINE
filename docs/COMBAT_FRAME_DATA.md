@@ -23,7 +23,8 @@ the implemented conventions and the current numbers. Updated: Milestone 6.
 |---|---|
 | Hit detection | Rect overlap on the fighting plane, sampled once per tick after movement (D-017). |
 | One hit per attack | `move_connected` set on hit or block; hitbox can't connect again. |
-| Block | Hold BLOCK in a neutral state. Blocks HIGH, MID, PROJECTILE. LOW needs crouch-block, THROW can't be blocked (both arrive later; no such moves exist yet). Attacking fighters cannot block. |
+| Block | Hold BLOCK in a neutral state: standing block. Hold DOWN + BLOCK: low block. MID and PROJECTILE are stopped by either; HIGH (overheads) only by a standing block; LOW only by a low block; THROW by neither (throws arrive later). Guard height is read live, also during blockstun. Attacking fighters cannot block. Ordinary punches are MID; HIGH is reserved for overheads. No LOW or HIGH move exists in the shipped data yet (they arrive with the per-fighter move sets). |
+| Direction + button | DOWN + LIGHT/HEAVY/KICK/SPECIAL and BACK + SPECIAL are their own input patterns (`DOWN_LIGHT`, `DOWN_HEAVY`, `DOWN_KICK`, `DOWN_SPECIAL`, `BACK_SPECIAL`; FORWARD + SPECIAL as before). Down wins over forward/back. A fighter with no move for the pattern gets the plain button's move. |
 | Damage | Hit: `damage`. Block: `chip_damage`; chip **can** KO. |
 | Trades | All contacts in a tick are judged on the pre-resolution state → both fighters get hit. No clash/priority system. |
 | Interrupts | Getting hit cancels the defender's own attack (startup or recovery). |

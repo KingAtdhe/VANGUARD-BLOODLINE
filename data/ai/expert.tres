@@ -24,6 +24,7 @@ surge_chance = 0.7
 save_for_surge_above = 60
 ultimate_chance = 0.6
 block_reaction_chance = 0.9
+low_block_chance = 0.9
 guard_chance = 0.35
 guard_ticks = 18
 punish_chance = 0.95

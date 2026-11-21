@@ -121,11 +121,23 @@ func advantage_on_block() -> int:
 	return blockstun_frames - (active_frames - 1 + recovery_frames)
 
 
-## True if a standing block stops this move. Crouch-block (lows) and throws
-## arrive with crouching/throws; until then LOW and THROW are not blockable.
+## True if a standing block stops this move.
 func is_blockable_standing() -> bool:
-	return hit_level == HitLevel.HIGH or hit_level == HitLevel.MID \
-			or hit_level == HitLevel.PROJECTILE
+	return blocked_by(false)
+
+
+## Guard rule (docs/COMBAT_FRAME_DATA.md): MID and PROJECTILE are stopped by
+## either guard; HIGH (overheads) only by a standing block; LOW only by a low
+## block; THROW by neither.
+func blocked_by(low_block: bool) -> bool:
+	match hit_level:
+		HitLevel.MID, HitLevel.PROJECTILE:
+			return true
+		HitLevel.HIGH:
+			return not low_block
+		HitLevel.LOW:
+			return low_block
+	return false
 
 
 func validate() -> Array[String]:

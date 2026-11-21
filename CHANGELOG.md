@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — low block and direction commands
+- Low block: hold the stick down + BLOCK. Low attacks must be blocked low, overheads standing, everything else either way. No fighter has a low or overhead attack yet; they arrive with the per-fighter move sets.
+- Down + attack buttons and back + SP are now separate inputs (unused until each fighter's new moves are built; until then they act as the plain button).
+- AI guards low/high with a per-difficulty chance.
 ### Added — hands
 - Fists close: the fighters keep their finger bones. Kairo, Drakon and Vexa guard with fists, Seraphina with an open lead hand, Nox with loose hands, Ryuen with open palms; the palm strike opens the hand.
 - `docs/FIGHTER_COMBAT_DESIGN.md`: per-fighter combat design summary (not yet implemented).

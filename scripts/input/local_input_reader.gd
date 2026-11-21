@@ -9,6 +9,8 @@ static func read() -> FighterInputFrame:
 	var left: bool = Input.is_action_pressed(InputActions.MOVE_LEFT)
 	var right: bool = Input.is_action_pressed(InputActions.MOVE_RIGHT)
 	frame.move_x = int(right) - int(left)
+	frame.move_y = int(Input.is_action_pressed(InputActions.MOVE_UP)) \
+			- int(Input.is_action_pressed(InputActions.MOVE_DOWN))
 	if Input.is_action_pressed(InputActions.ATTACK_LIGHT):
 		frame.buttons |= FighterInputFrame.BUTTON_LIGHT
 	if Input.is_action_pressed(InputActions.ATTACK_HEAVY):

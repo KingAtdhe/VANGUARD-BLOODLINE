@@ -512,6 +512,27 @@ knuckle positions, no mesh change. Bosses keep the 18-bone skeleton.
 `--no-fingers` restores the old folding. Cost on device unmeasured (KI-048).
 **Accepted.**
 
+## D-061 — 2026-11-21 — Guard height and direction + button commands
+
+First mechanic of the per-fighter designs (`docs/FIGHTER_COMBAT_DESIGN.md`).
+- **Low block:** DOWN + BLOCK (`FighterState.block_low`). MID/PROJECTILE are
+  stopped by either guard, HIGH only standing, LOW only low, THROW by neither
+  (`MoveData.blocked_by`). Guard height is read live during blockstun. There
+  is no crouch state: hurtboxes do not change.
+- **HIGH now means overhead.** Kairo's jab changed from HIGH to MID so a low
+  block still stops ordinary punches; nothing else changes for existing play
+  because no LOW or HIGH move exists in the data yet.
+- **Commands:** `FighterInputFrame.move_y`; DOWN + LIGHT/HEAVY/KICK/SPECIAL and
+  BACK + SPECIAL are separate input patterns that fall back to the plain
+  button when a fighter has no such move. This gives each fighter room for
+  four normals and three specials on the existing six touch buttons.
+- **AI:** `AIProfile.low_block_chance` (beginner 0.15, standard 0.5, expert
+  0.9) decides whether it guards a LOW/HIGH attack at the right height.
+- **Animation:** `<FIGHTER>_BLOCK_LOW` for the six playable fighters
+  (`anim_block_low`; bosses fall back to the standing block); the block
+  shield drops with the guard.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

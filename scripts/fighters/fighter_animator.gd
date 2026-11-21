@@ -66,7 +66,9 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			var anim: StringName = def.anim_hit_heavy if _heavy_hit else def.anim_hit_light
 			_show(anim, BLEND_REACTION, 0.0 if new_hit else _entered_time(s, anim, dt), false)
 		FighterState.Action.BLOCK, FighterState.Action.BLOCKSTUN:
-			_show(def.anim_block, BLEND_REACTION, _entered_time(s, def.anim_block, dt), false)
+			var block_anim: StringName = def.anim_block_low \
+					if (s.block_low and def.anim_block_low != &"") else def.anim_block
+			_show(block_anim, BLEND_REACTION, _entered_time(s, block_anim, dt), false)
 		FighterState.Action.KNOCKDOWN, FighterState.Action.KO:
 			_show(def.anim_knockdown, BLEND_REACTION, _entered_time(s, def.anim_knockdown, dt), false)
 		FighterState.Action.WAKEUP:

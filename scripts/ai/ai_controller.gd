@@ -53,6 +53,8 @@ var _last_buttons: int = 0
 var _idle_ticks: int = 0
 var _threat_key: int = -1
 var _threat_block: bool = false
+## Guard height chosen for the attack currently seen (true = low block).
+var _block_low: bool = false
 var _punish_key: int = -1
 var _route_commit: bool = false
 var _route_pos: int = 0
@@ -173,6 +175,11 @@ func next_input() -> FighterInputFrame:
 		if key != _threat_key:
 			_threat_key = key
 			_threat_block = _rng.randf() < minf(1.0, profile.block_reaction_chance)
+			# Guard height: only LOW and HIGH attacks need a read (and a roll).
+			_block_low = false
+			if opp_move.hit_level == MoveData.HitLevel.LOW or opp_move.hit_level == MoveData.HitLevel.HIGH:
+				var right_height: bool = _rng.randf() < profile.low_block_chance
+				_block_low = (opp_move.hit_level == MoveData.HitLevel.LOW) == right_height
 			decision_log.add(_tick, State.keys()[state], "sees %s (f%d, d=%.2f) → %s" % [
 				opp.move_id, opp.move_frame, dist, "BLOCK" if _threat_block else "no block"])
 		if _threat_block or _guard_left > 0:
@@ -481,4 +488,4 @@ func _emit(move_x: int, buttons: int) -> FighterInputFrame:
 		_idle_ticks += 1
 	else:
 		_idle_ticks = 0
-	return FighterInputFrame.with_buttons(buttons, move_x)
+	return FighterInputFrame.with_buttons(buttons, move_x, -1 if (_block_low and (buttons & B) != 0) else 0)

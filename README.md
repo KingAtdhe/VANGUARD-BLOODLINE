@@ -52,7 +52,7 @@ UI scales with `canvas_items` / `expand` stretch.
 | Move left / right | A / D, ← / → | D-pad, left stick |
 | Up (jump) / Down (crouch) | W / S, ↑ / ↓ | D-pad, left stick |
 | Light / Heavy / Kick | J / K / L | X / Y / A |
-| Block | Space | B |
+| Block (hold Down for a low block) | Space | B |
 | Special (Origin Palm) / toward + Special (Rift Break) | U | RB |
 | Ultimate: Origin Surge at full meter, Origin Break during Surge | O | RT |
 | Special / Ultimate | U / O | RB / RT |

@@ -36,6 +36,7 @@ var _model_meshes: Array[MeshInstance3D] = []
 var _accent_materials: Array[StandardMaterial3D] = []
 var _shield_mat: ShaderMaterial = null
 var _shield_hit: float = 0.0
+var _shield_rest_y: float = 0.0
 var _flash_left: float = 0.0
 var _fist_rest: Vector3
 
@@ -98,6 +99,7 @@ func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 					mi.set_surface_override_material(surf, t2)
 					_accent_materials.append(t2)
 	_make_energy_shield()
+	_shield_rest_y = _shield.position.y
 	# The capsule placeholder hides; the shield stays as a block indicator.
 	_body.visible = false
 	_fist.visible = false
@@ -192,6 +194,9 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 	position.x = x
 	_facing_marker.scale.x = float(current.facing)
 	_shield.visible = current.is_blocking()
+	# Low block: the shield drops to cover the legs.
+	_shield.position.y = lerpf(_shield.position.y, _shield_rest_y - (0.45 if current.block_low else 0.0),
+			minf(1.0, delta * 18.0))
 	if _shield_mat != null:
 		# flash when a blocked hit lands (block stun starts)
 		if current.action == FighterState.Action.BLOCKSTUN and previous.action != FighterState.Action.BLOCKSTUN:

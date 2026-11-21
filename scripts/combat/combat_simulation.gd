@@ -40,6 +40,26 @@ const _PATTERNS: Dictionary = {
 	FighterInputFrame.BUTTON_SPECIAL: &"SPECIAL",
 	FighterInputFrame.CMD_FORWARD_SPECIAL: &"FORWARD_SPECIAL",
 	FighterInputFrame.BUTTON_ULTIMATE: &"ULTIMATE",
+	FighterInputFrame.CMD_BACK_SPECIAL: &"BACK_SPECIAL",
+	FighterInputFrame.CMD_DOWN_SPECIAL: &"DOWN_SPECIAL",
+	FighterInputFrame.CMD_DOWN_LIGHT: &"DOWN_LIGHT",
+	FighterInputFrame.CMD_DOWN_HEAVY: &"DOWN_HEAVY",
+	FighterInputFrame.CMD_DOWN_KICK: &"DOWN_KICK",
+}
+## Direction + button commands a fighter has no move for act as the plain
+## button, so holding a direction never eats an attack.
+const _FALLBACK: Dictionary = {
+	FighterInputFrame.CMD_BACK_SPECIAL: FighterInputFrame.BUTTON_SPECIAL,
+	FighterInputFrame.CMD_DOWN_SPECIAL: FighterInputFrame.BUTTON_SPECIAL,
+	FighterInputFrame.CMD_DOWN_LIGHT: FighterInputFrame.BUTTON_LIGHT,
+	FighterInputFrame.CMD_DOWN_HEAVY: FighterInputFrame.BUTTON_HEAVY,
+	FighterInputFrame.CMD_DOWN_KICK: FighterInputFrame.BUTTON_KICK,
+}
+const _DOWN_COMMANDS: Dictionary = {
+	FighterInputFrame.BUTTON_SPECIAL: FighterInputFrame.CMD_DOWN_SPECIAL,
+	FighterInputFrame.BUTTON_LIGHT: FighterInputFrame.CMD_DOWN_LIGHT,
+	FighterInputFrame.BUTTON_HEAVY: FighterInputFrame.CMD_DOWN_HEAVY,
+	FighterInputFrame.BUTTON_KICK: FighterInputFrame.CMD_DOWN_KICK,
 }
 
 
@@ -192,6 +212,10 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 			else:
 				f.stun_remaining -= 1
 		FighterState.Action.WAKEUP, FighterState.Action.HITSTUN, FighterState.Action.BLOCKSTUN:
+			# Guard height can be switched during blockstun (read live), so a
+			# high/low string has to be blocked hit by hit.
+			if f.action == FighterState.Action.BLOCKSTUN and input != null:
+				f.block_low = input.move_y < 0
 			# Actionable on the tick after stun reaches 0 (N ticks of no control).
 			if f.stun_remaining <= 0:
 				_recover(f)
@@ -220,6 +244,7 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 
 	if input.is_held(FighterInputFrame.BUTTON_BLOCK):
 		f.action = FighterState.Action.BLOCK
+		f.block_low = input.move_y < 0
 		f.move_x = 0
 	else:
 		f.move_x = clampi(input.move_x, -1, 1)
@@ -233,13 +258,17 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 func _register_presses(f: FighterState, input: FighterInputFrame) -> void:
 	var held: int = input.buttons if input != null else 0
 	var move_x: int = input.move_x if input != null else 0
+	var move_y: int = input.move_y if input != null else 0
 	var pressed: int = held & ~f.held_buttons
 	f.held_buttons = held
 	for button: int in _BUFFER_ORDER:
 		if pressed & button:
 			var code: int = button
-			if button == FighterInputFrame.BUTTON_SPECIAL and move_x != 0 and move_x == f.facing:
-				code = FighterInputFrame.CMD_FORWARD_SPECIAL
+			if move_y < 0 and _DOWN_COMMANDS.has(button):
+				code = _DOWN_COMMANDS[button]
+			elif button == FighterInputFrame.BUTTON_SPECIAL and move_x != 0:
+				code = FighterInputFrame.CMD_FORWARD_SPECIAL if move_x == f.facing \
+						else FighterInputFrame.CMD_BACK_SPECIAL
 			f.buffer.append(Vector2i(code, 0))
 
 
@@ -259,7 +288,10 @@ func _age_buffer(f: FighterState) -> void:
 func _take_buffered(i: int, accept: Callable) -> MoveData:
 	var f: FighterState = fighters[i]
 	for k: int in range(f.buffer.size() - 1, -1, -1):
-		for move: MoveData in definitions[i].moves_for(_PATTERNS.get(f.buffer[k].x, &"")):
+		var code: int = f.buffer[k].x
+		if _FALLBACK.has(code) and definitions[i].moves_for(_PATTERNS[code]).is_empty():
+			code = _FALLBACK[code]
+		for move: MoveData in definitions[i].moves_for(_PATTERNS.get(code, &"")):
 			# Meter/Surge conditions first: an unaffordable move stays buffered.
 			if OriginMeter.can_use(f, definitions[i], move, tuning) and accept.call(move):
 				f.buffer.remove_at(k)
