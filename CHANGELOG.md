@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed / changed — stances and floor contact
+- Each fighter has their own guard from a different motion-capture performer, shaped to the character: Kairo crouched boxer, Drakon heavy wide brawler, Seraphina karate side stance, Nox low predatory crouch, Vexa bouncy boxer, Ryuen calm open-palm master.
+- Feet no longer sink into (or float above) the floor: every frame of every animation is fitted so the lowest point of the actual mesh touches the ground (was off by up to 25 cm, worst while walking).
+- Kairo's twisted arm and hair spike fixed: the converter assumed mirror-symmetric skeletons; it now uses each side's own joints (his shoulders are not symmetric).
+- Importer: `--rebuild-joints` (ignore a misplaced supplied skeleton but keep its weights); torso-based centring.
 ### Changed — new fighter roster
 - All six fighters replaced by the owner's new Tripo models (T-pose, Mixamo rig, 4K textures): no more torn strips or stuck cloth when they move.
 - Importer: FBX support with separate roughness/metal maps; normals only flipped where actually wrong; 60 fps enforced after FBX import.

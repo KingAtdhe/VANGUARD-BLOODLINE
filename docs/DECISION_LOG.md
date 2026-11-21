@@ -484,6 +484,21 @@ wrongly flipped 4,682 correct faces on Kairo's open garments). FBX import
 sets the scene to 60 fps (it silently reset it to the file's 24 fps).
 Sources: `assets/characters/_source/<id>/<id>.fbx` + textures. **Accepted.**
 
+## D-059 — 2026-11-21 — Per-side joints, mesh-based grounding, per-fighter guards
+
+- The converter no longer assumes a mirror-symmetric skeleton: each side's
+  joints come from that side of the source rig. Averaging the two sides
+  twisted Kairo's arm and hair (his shoulders differ by ~20 cm in depth);
+  stretched edges in his idle went from 101 to 1.
+- Every frame of every action (walks included) is grounded on the lowest
+  vertex of the skinned mesh, not on the foot bone, so soles no longer sink
+  into the arena floor (error ≤ 0.2 cm).
+- Each fighter's guard is taken from a different captured pose and shaped
+  per fighter (`STYLES` in `tools/blender/mocap_actions.py`). This is a
+  visual stop-gap only: move sets are still shared (KI-049) until the
+  designs in `docs/FIGHTER_COMBAT_DESIGN.md` are approved and built.
+  **Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

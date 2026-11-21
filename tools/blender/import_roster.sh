@@ -11,6 +11,6 @@ SRC=assets/characters/_source
 MOVES="${MOVES:-/tmp/kairo_moves.json}"
 MOCAP="${MOCAP:-/tmp/cmu_mocap}"
 OUT="${OUT:-assets/characters}"
-for f in kairo drakon seraphina nox vexa ryuen; do
-  "$PY" tools/blender/import_rigged.py --src "$SRC/$f/$f.fbx" --fighter "$f" --moves "$MOVES" --out "$OUT" --mocap-dir "$MOCAP"
-done
+run() { "$PY" tools/blender/import_rigged.py --src "$SRC/$1/$1.fbx" --fighter "$1" --moves "$MOVES" --out "$OUT" --mocap-dir "$MOCAP" "${@:2}"; }
+run kairo
+for f in drakon seraphina nox vexa ryuen; do run "$f"; done

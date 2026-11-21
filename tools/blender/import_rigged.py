@@ -149,6 +149,44 @@ def remove_pedestal(obj):
     return int(drop.sum()) + len(crumbs)
 
 
+def ground_actions(rig, body, actions):
+    """Puts the lowest point of the actual mesh on the floor (z = 0) in every
+    frame of every action, by moving the hips. Bone-based grounding ignores
+    boot soles and garments (fighters floated or sank 2-25 cm)."""
+    sc = bpy.context.scene
+    hb = rig.data.bones["Hips"]
+    to_local = np.array(hb.matrix_local.to_3x3()).T      # world delta -> hips bone space
+    worst = 0.0
+    for name in actions:
+        act = bpy.data.actions[name]
+        rig.animation_data.action = act
+        f0, f1 = int(act.frame_range[0]), int(act.frame_range[1])
+        dz = {}
+        for f in range(f0, f1 + 1):
+            sc.frame_set(f)
+            ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get())
+            co = np.zeros(len(ev.data.vertices) * 3)
+            ev.data.vertices.foreach_get("co", co)
+            dz[f] = -float(co.reshape(-1, 3)[:, 2].min())
+            worst = max(worst, abs(dz[f]))
+        d = {f: to_local @ np.array([0.0, 0.0, v]) for f, v in dz.items()}
+        if hasattr(act, "fcurves"):
+            all_fc = list(act.fcurves)
+        else:                                   # Blender 4.4+/5: layered actions
+            all_fc = [fc for layer in act.layers for strip in layer.strips
+                      for bag in strip.channelbags for fc in bag.fcurves]
+        fcs = [fc for fc in all_fc if fc.data_path == 'pose.bones["Hips"].location']
+        for fc in fcs:
+            for kp in fc.keyframe_points:
+                f = int(round(kp.co[0]))
+                if f in d:
+                    kp.co[1] += d[f][fc.array_index]
+                    kp.handle_left[1] += d[f][fc.array_index]
+                    kp.handle_right[1] += d[f][fc.array_index]
+            fc.update()
+    print(f"[rigged] grounded on the mesh: largest correction {worst * 100:.1f} cm")
+
+
 def clean_image(img, path, max_size=2048):
     """Writes a packed texture as a plain file Godot's decoders accept."""
     from PIL import Image
@@ -178,6 +216,8 @@ def main():
     ap.add_argument("--moves", required=True)
     ap.add_argument("--out", default="assets/characters")
     ap.add_argument("--force-reskin", action="store_true")
+    ap.add_argument("--rebuild-joints", action="store_true",
+                    help="ignore the supplied joint positions (offset/lopsided rig) but keep its weights")
     ap.add_argument("--joint", action="append", default=[],
                     help="override a measured left-side joint, metres on the final model: elbow=0.30,0,1.02 "
                          "(the middle value, depth, is taken from the mesh) "
@@ -215,8 +255,8 @@ def main():
 
     # Posed joint positions (what the viewer shows), world space.
     P = {pb.name.split(":")[-1]: src_arm.matrix_world @ pb.head for pb in src_arm.pose.bones}
-    sound = rig_is_sound(P)                    # joints usable
-    keep_weights = sound and not a.force_reskin
+    sound = rig_is_sound(P) and not a.rebuild_joints     # supplied joint positions usable
+    keep_weights = rig_is_sound(P) and not a.force_reskin
 
     # 1. bake the displayed pose into the mesh, then drop the source rig
     bpy.context.view_layer.objects.active = body
@@ -253,7 +293,12 @@ def main():
     co = co.reshape(-1, 3)
     zmin, zmax = co[:, 2].min(), co[:, 2].max()
     s = H / (zmax - zmin)
-    cx, cy = (P["Hips"].x, P["Hips"].y) if sound else (np.median(co[:, 0]), np.median(co[:, 1]))
+    if sound:
+        cx, cy = P["Hips"].x, P["Hips"].y
+    else:                                       # centre on the torso (legs/arms may be asymmetric)
+        zr = co[:, 2] - co[:, 2].min()
+        band = (zr > 0.55 * (zr.max())) & (zr < 0.72 * zr.max())
+        cx, cy = np.median(co[band, 0]), np.median(co[band, 1])
     T = Matrix.Scale(s, 4) @ Matrix.Translation((-cx, -cy, -zmin))
     body.data.transform(T)
     body.data.update()
@@ -276,8 +321,8 @@ def main():
         J["hand_tip"] = J["wrist"] + (J["wrist"] - J["elbow"]).normalized() * 0.1 * k
         toe = sym("ToeBase") if "LeftToeBase" in P and "RightToeBase" in P else J["ankle"] + Vector((0, -0.14 * k, -0.06 * k))
         J["toe"] = Vector((toe.x, min(toe.y, J["ankle"].y - 0.08 * k), max(0.02 * k, toe.z)))
-        spine = [Vector((0, P[n].y, P[n].z)) for n in ("Hips", "Spine", "Spine2", "Neck", "Head")]
-        top = Vector((0, spine[-1].y, co[:, 2].max()))
+        spine = [Vector(P[n]) for n in ("Hips", "Spine", "Spine2", "Neck", "Head")]
+        top = Vector((spine[-1].x, spine[-1].y, co[:, 2].max()))
     else:
         J = ih.joints_from_mesh(co, H)
         hips = Vector((0, -0.02, J["hip"].z + 0.02 * k))
@@ -302,15 +347,34 @@ def main():
         "Neck": (tuple(spine[3]), tuple(spine[4]), "Chest", True),
         "Head": (tuple(spine[4]), tuple(top), "Neck", True),
     }
+    # Per-side joints: generated characters are rarely perfect mirror images
+    # (Kairo's left shoulder sits ~20 cm behind his right), so each side uses
+    # its own joints from the supplied rig; mirrored only when joints were
+    # measured or overridden by hand.
+    overridden = {spec.split("=")[0] for spec in a.joint}
+    RIGJ = {"shoulder": "Arm", "elbow": "ForeArm", "wrist": "Hand", "hip": "UpLeg", "knee": "Leg", "ankle": "Foot"}
     for side, sg in (("Left", 1), ("Right", -1)):
         def m(v):
             return (v.x * sg, v.y, v.z)
-        B[f"{side}UpperArm"] = (m(J["shoulder"]), m(J["elbow"]), "Chest", False)
-        B[f"{side}LowerArm"] = (m(J["elbow"]), m(J["wrist"]), f"{side}UpperArm", True)
-        B[f"{side}Hand"] = (m(J["wrist"]), m(J["hand_tip"]), f"{side}LowerArm", True)
-        B[f"{side}UpperLeg"] = (m(J["hip"]), m(J["knee"]), "Hips", False)
-        B[f"{side}LowerLeg"] = (m(J["knee"]), m(J["ankle"]), f"{side}UpperLeg", True)
-        B[f"{side}Foot"] = (m(J["ankle"]), m(J["toe"]), f"{side}LowerLeg", True)
+        Js = {jn: m(v) for jn, v in J.items()}
+        if sound:
+            for jn, bn in RIGJ.items():
+                if jn not in overridden:
+                    Js[jn] = tuple(P[side + bn])
+            if "hand_tip" not in overridden:
+                w_, e_ = Vector(Js["wrist"]), Vector(Js["elbow"])
+                Js["hand_tip"] = tuple(w_ + (w_ - e_).normalized() * 0.1 * k)
+            if "toe" not in overridden:
+                an = Vector(Js["ankle"])
+                tb = P.get(side + "ToeBase")
+                toe = Vector(tb) if tb is not None else an + Vector((0, -0.14 * k, -0.06 * k))
+                Js["toe"] = (toe.x, min(toe.y, an.y - 0.08 * k), max(0.02 * k, toe.z))
+        B[f"{side}UpperArm"] = (Js["shoulder"], Js["elbow"], "Chest", False)
+        B[f"{side}LowerArm"] = (Js["elbow"], Js["wrist"], f"{side}UpperArm", True)
+        B[f"{side}Hand"] = (Js["wrist"], Js["hand_tip"], f"{side}LowerArm", True)
+        B[f"{side}UpperLeg"] = (Js["hip"], Js["knee"], "Hips", False)
+        B[f"{side}LowerLeg"] = (Js["knee"], Js["ankle"], f"{side}UpperLeg", True)
+        B[f"{side}Foot"] = (Js["ankle"], Js["toe"], f"{side}LowerLeg", True)
     B = {n: B[n] for n in GAME_BONES}
 
     arm_data = bpy.data.armatures.new(f"{F}_Skeleton")
@@ -444,6 +508,7 @@ def main():
                 pb.constraints.remove(c)
         for empty, _c in targets.values():
             bpy.data.objects.remove(empty)
+    ground_actions(rig, body, actions)
     rig.animation_data.action = bpy.data.actions[f"{F}_IDLE_A"]
     for pb in rig.pose.bones:
         pb.matrix_basis = Matrix.Identity(4)

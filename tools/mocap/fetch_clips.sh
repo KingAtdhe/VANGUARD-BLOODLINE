@@ -10,7 +10,8 @@ mkdir -p "$DIR"
 BASE=https://raw.githubusercontent.com/sfd158/cmu-mocap/master/data
 # 13_17 boxer (guard, jab, cross, combos)   144_13 / 144_20 martial-arts straight punches
 # 144_05 front kicks                         113_08 lie down and get up
-for c in 13_17 144_13 144_20 144_05 113_08; do
+# 14_01 / 14_02 / 144_07 other performers' guards (per-fighter stances)
+for c in 13_17 144_13 144_20 144_05 113_08 14_01 14_02 144_07; do
   s=${c%%_*}
   [ -s "$DIR/$c.bvh" ] || curl -sSL --fail -o "$DIR/$c.bvh" "$BASE/$s/$c.bvh"
 done

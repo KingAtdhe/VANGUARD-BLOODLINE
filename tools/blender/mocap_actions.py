@@ -35,6 +35,20 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from bvh import BVH  # noqa: E402
 
 FPS_SRC = 120
+
+# Per-fighter guard (idle stance): source clip and frame of a calm guard,
+# share of the captured bounce kept, crouch / extra stance width (x height/1.8),
+# upper-body lean (deg, + = back) and hand offset (out, back, up).
+STYLES = {
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35),                       # crouched boxer
+    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.06, width=0.06, lean=4,  # heavy, wide, upright
+                   hands=(0.03, 0.0, 0.04)),
+    "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180),                               # karate side stance
+    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.1, width=0.04, lean=-10,    # low predatory crouch
+                hands=(0.0, -0.04, -0.06)),
+    "vexa": dict(clip="14_01", frame=2700, amp=0.6),                                     # light, bouncy boxer
+    "ryuen": dict(clip="144_13", frame=150, amp=0.15, lean=2, hands=(0.04, -0.10, -0.16)),                           # calm upright master
+}
 FPS_OUT = 60
 
 # game bone -> (source head joint, source tail joint) for the direction it points
@@ -372,34 +386,52 @@ def build(rig_obj, moves, fid, height, clip_dir):
 
     A = {}
 
-    # ---- idle: the boxer's guard bounce, 1 s, looped with a cross-fade
-    i0, n_idle = 840, 60
-    anchor_idle = box.at(i0)["Hips"][:2]
-    def raw_idle_P(t):      # t in output frames (60 fps), loops
+    # ---- idle: each fighter's own guard (different performer / stance),
+    # shaped to the character: crouch depth, stance width, lean, and how much
+    # of the captured bounce is kept. 1 s loop with a cross-fade.
+    st = STYLES.get(fid, STYLES["kairo"])
+    gclip = clip(st["clip"])
+    i0, n_idle = st["frame"], 60
+    anchor_idle = gclip.at(i0)["Hips"][:2]
+    def raw_idle_P(t):
         f = i0 + (t % n_idle) * 2
-        P = src(box, f, facing_frame=900, anchor=anchor_idle)
-        # keep the hips over the origin (no drift in a loop)
+        P = src(gclip, f, facing_frame=st.get("facing", i0), anchor=anchor_idle)
         P = shift(P, list(P.keys()), np.array([-P["Hips"][0], -P["Hips"][1], 0]))
+        if st.get("turn"):
+            R = np.array(Matrix.Rotation(math.radians(st["turn"]), 3, "Z"))
+            P = {k: R @ v for k, v in P.items()}
         return P
-    # The captured boxer bounces and shifts constantly (shadow boxing), which
-    # reads as dancing on a select screen: keep a steady guard with ~35% of
-    # the captured motion around the average pose (breathing, small bob).
     raw = [raw_idle_P(t) for t in range(n_idle)]
     mean = {k: np.mean([r[k] for r in raw], 0) for k in raw[0]}
+    def shape(P):
+        feet = {sd: P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+        body = UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"]
+        P = shift(P, body, np.array([0, 0, -st.get("crouch", 0.0) * H]))
+        P = lean(P, st.get("lean", 0.0))
+        for sd, sg in (("Left", 1), ("Right", -1)):
+            tgt = feet[sd] + np.array([sg * st.get("width", 0.0) * H, 0, 0])
+            P = move_foot(P, sd, tgt, 1.0)
+        for sd, sg in (("Left", 1), ("Right", -1)):
+            off = st.get("hands", (0, 0, 0))
+            if any(off):
+                P = move_hand(P, sd, P[sd + "Hand"] + np.array([sg * off[0], off[1], off[2]]) * H, 1.0)
+        return P
     def idle_P(t):
         r = raw[int(t) % n_idle]
-        return {k: mean[k] + (r[k] - mean[k]) * 0.35 for k in r}
+        amp = st.get("amp", 0.35)
+        return shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r})
     idle_poses = []
     fade = 14
     for t in range(n_idle + 1):
-        p = pose_of(idle_P(t), box)
-        if t > n_idle - fade:       # blend the tail into the head for a seamless loop
+        p = pose_of(idle_P(t), gclip)
+        if t > n_idle - fade:
             w = ease((t - (n_idle - fade)) / fade)
-            p = Pose.blend(p, pose_of(idle_P(t - n_idle), box), w)
+            p = Pose.blend(p, pose_of(idle_P(t - n_idle), gclip), w)
         idle_poses.append(p)
     A[f"{F}_IDLE_A"] = idle_poses
     guard_P = idle_P(0)
     guard = idle_poses[0]
+    box_stand = box.stand_hips
 
     # ---- strikes retimed to frame data, limb guided onto the hitbox
     def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None):
