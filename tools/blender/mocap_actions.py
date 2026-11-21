@@ -41,25 +41,46 @@ FPS_SRC = 120
 # upper-body lean (deg, + = back) and hand offset (out, back, up).
 STYLES = {
     # crouched orthodox boxer: left foot forward, weight a little over it, lead fist at eye level
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35, crouch=-0.02, stride=0.62, weight=0.05, lean=7,
-                  lead_hand=(0.0, -0.08, -0.05), rear_hand=(0.0, 0.0, -0.05)),
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35, crouch=-0.05, stride=0.58, weight=0.03, lean=15,
+                  lead_hand=(0.0, -0.1, -0.13), rear_hand=(0.0, 0.02, -0.12), bob=0.014),
     # square and wide, knees bent, weight low and even, head forward behind both gauntlets
     "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.03, width=0.07, stride=-0.12, lean=-4,
-                   hands=(0.03, 0.0, 0.04)),
+                   hands=(0.03, 0.0, 0.04), sway=0.035),
     # side-on and tall, weight on the rear leg, lead hand out as a range-finder, rear hand at the chin
-    "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180, crouch=0.01, weight=-0.03, lean=2,
-                      lead_hand=(0.0, -0.16, -0.02), rear_hand=(0.0, 0.02, 0.1)),
+    "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180, crouch=0.035, weight=-0.04, lean=1,
+                      lead_hand=(0.0, -0.16, -0.02), rear_hand=(0.0, 0.02, 0.1), bob=0.022, bob_beats=2),
     # deep, wide crouch over the lead knee, both knees bent, hands low and open, head down
     "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.07, width=0.05, stride=-0.16, weight=0.05, lean=-16,
-                lead_hand=(0.02, 0.1, -0.2), rear_hand=(0.02, -0.02, -0.14)),
+                lead_hand=(0.03, 0.17, -0.34), rear_hand=(0.03, 0.12, -0.32), sway=0.022),
     # upright Muay Thai: tall, weight back on the rear leg, hands high and wide by the temples
     "vexa": dict(clip="14_01", frame=2700, amp=0.6, crouch=-0.1, stride=0.2, weight=-0.04, lean=3,
-                 hands=(0.07, 0.03, 0.15), elbows=0.6),
+                 hands=(0.07, 0.03, 0.15), elbows=0.6, tap=0.04),
     # upright and relaxed on soft knees, lead palm forward on the centre line, rear palm by the lead elbow
     "ryuen": dict(clip="144_13", frame=150, amp=0.15, lean=2, stride=-0.16, hands=(0.04, -0.10, -0.16),
                   lead_hand=(-0.05, -0.06, 0.06), rear_hand=(-0.04, 0.05, -0.05)),
 }
 FPS_OUT = 60
+
+
+def idle_motion(P, st, H, u):
+    """The character's own idle habit on top of the captured breathing, from
+    the design doc (STYLES knobs; u = 0..1 through the one-second loop, and
+    every habit is zero at u = 0 so the guard pose is unchanged):
+      bob   knees dip this far, bob_beats times per loop (Kairo, Seraphina)
+      sway  body rocks this far to each side over planted feet (Drakon, Nox)
+      tap   the lead foot lifts this high twice per loop (Vexa)"""
+    feet = {sd: P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+    dx = st.get("sway", 0.0) * H * math.sin(2 * math.pi * u)
+    dz = -st.get("bob", 0.0) * H * 0.5 * (1 - math.cos(2 * math.pi * u * st.get("bob_beats", 1)))
+    if dx != 0.0 or dz != 0.0:
+        P = shift(P, list(P.keys()), np.array([dx, 0, dz]))
+        for sd in ("Left", "Right"):
+            P = move_foot(P, sd, feet[sd])
+    if st.get("tap"):
+        lead = "Left" if feet["Left"][1] < feet["Right"][1] else "Right"
+        lift = st["tap"] * H * max(0.0, math.sin(2 * math.pi * u * 2)) ** 2
+        P = move_foot(P, lead, feet[lead] + np.array([0, 0, lift]))
+    return P
 
 
 def shape_stance(P, st, H):
@@ -1596,7 +1617,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     def idle_P(t):
         r = raw[int(t) % n_idle]
         amp = st.get("amp", 0.35)
-        return shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r})
+        return idle_motion(shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r}), st, H, (int(t) % n_idle) / float(n_idle))
     idle_poses = []
     fade = 14
     for t in range(n_idle + 1):

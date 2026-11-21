@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — stances, second pass
+- Kairo stands more upright with his fists at his chin; Nox's hands hang low; Seraphina's knees are softer.
+- Each fighter has their own idle habit: Kairo bobs, Seraphina bounces, Drakon and Nox rock from side to side, Vexa taps her front foot, Ryuen stays still.
 ### Added — dashes
 - Tap a direction twice (flick the stick twice) to dash forward or back. Each fighter has their own dash: Nox the longest, Seraphina the best back dash, Drakon and Ryuen short ones. You cannot block while dashing; a forward dash can go straight into an attack, a back dash cannot.
 - The CPU dashes in from range and sometimes dashes away (Standard and Expert).

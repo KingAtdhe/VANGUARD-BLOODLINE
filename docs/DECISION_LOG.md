@@ -858,6 +858,25 @@ in the specification's animation list but had never been built.
   awkward on a phone — only the owner can tell), running, dash attacks.
 **Accepted.**
 
+## D-072 — 2026-11-21 — Stance pass 2 and idle habits
+
+The owner looked at all six stances side by side and asked for them to be
+improved, without naming specifics; these are the implementer's choices
+against the design doc.
+- **Kairo:** much less forward hunch (upper-body lean 7 to 15 degrees back
+  from the captured pose), slightly shorter stance, fists at chin and cheek
+  instead of above the head.
+- **Nox:** both hands dropped to hip height (were at chest; one arm was
+  held straight out).
+- **Seraphina:** softer knees (143/138 degrees, were 153/148).
+- **Idle habits from the design** (`idle_motion()`, STYLES `bob`, `sway`,
+  `tap`; all zero on the first frame, so the guard every move starts from
+  is unchanged): Kairo bobs from the knees, Seraphina bounces twice a
+  second, Drakon and Nox rock side to side over planted feet, Vexa taps her
+  lead foot. Ryuen stays still, as designed. Amounts are 1.4 to 4 cm.
+- Drakon, Vexa and Ryuen keep their D-067 / D-070 poses.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).
