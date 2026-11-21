@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Ryuen's own move set (all six fighters now have their own)
+- Palm Heel (L), Chain Punch (H, three hits), Shin Stamp (K, low), Sinking Elbow (down + H), Mountain Push (SP, sends them across the stage), Flowing Step (toward + SP, evasive), Returning Wave (away + SP, catches any strike, turns the attacker round and palms them in the back), Wrist Throw (down + SP), ultimate Thousand Rivers (a counter stance: struck during it, he answers; otherwise the meter is wasted).
+- His block pushes attackers back. Slowest walk after Drakon.
+- Multi-hit moves and side-switching counters in the combat engine.
 ### Fixed — legs in the floor, Kairo's and Vexa's stances
 - Fighters no longer stand shin-deep in the stage in The Pit and the Origin Chamber (the raised stage is lowered to their feet).
 - Kairo stands in a staggered boxer's stance instead of a squat with his feet together; Vexa stands tall with her hands high (Muay Thai). The two no longer share a pose.

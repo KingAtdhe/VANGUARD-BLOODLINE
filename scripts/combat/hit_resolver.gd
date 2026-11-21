@@ -40,6 +40,12 @@ extends RefCounted
 ##     hurtbox (invulnerable frames, knocked down). The projectile is used
 ##     up by the contact. Pushback follows its direction of travel and is
 ##     not handed to the attacker when the defender is against a wall.
+##   - Multi-hit moves (MoveData.rehit_interval) connect once per hit window;
+##     every hit is resolved on its own like a separate attack.
+##   - A counter with counter_switches_sides puts the caught attacker behind
+##     the countering fighter before the follow-up starts.
+##   - A defender whose definition has block_pushes_attacker slides the
+##     attacker back by that distance on every blocked strike.
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
 ##     sim.ko_enabled == false (training) health stops at 1.
 ## All decisions are taken from the state BEFORE any contact is applied, so
@@ -82,6 +88,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			c.projectile.spent = true
 		else:
 			attacker.move_connected = true
+			attacker.last_hit_window = move.hit_window(attacker.move_frame)
 		if defender.action == FighterState.Action.KO:
 			continue  # already knocked out by an earlier contact this tick
 		hitstop = maxi(hitstop, move.hitstop_frames)
@@ -180,6 +187,15 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		else:
 			defender.action = FighterState.Action.HITSTUN
 			defender.stun_remaining = move.hitstun_frames
+		# A deflecting guard (Ryuen) sends the attacker sliding back as well.
+		if blocked[i] and c.projectile == null and sim.definitions[c.defender].block_pushes_attacker > 0.0 \
+				and attacker.action != FighterState.Action.KO:
+			var back: float = signf(attacker.position_x - defender.position_x)
+			if back == 0.0:
+				back = -float(attacker.facing)
+			attacker.pushback_transfers = false
+			attacker.pushback_remaining = back * sim.definitions[c.defender].block_pushes_attacker
+			attacker.pushback_step = sim.definitions[c.defender].block_pushes_attacker / PUSHBACK_TICKS
 		# Push away from the attacker.
 		var away: float = signf(defender.position_x - attacker.position_x)
 		if away == 0.0:
@@ -216,6 +232,9 @@ static func _counter(c: HitboxSystem.Contact, sim: CombatSimulation) -> void:
 	attacker.combo_damage = 0
 	attacker.action = FighterState.Action.HITSTUN
 	attacker.stun_remaining = stance.counter_stun_frames
+	attacker.pushback_remaining = 0.0
+	if stance.counter_switches_sides:
+		sim.switch_sides(c.defender)
 	defender.move_connected = true
 	if stance.counter_followup != null:
 		sim.start_followup(c.defender, stance.counter_followup)

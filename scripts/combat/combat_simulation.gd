@@ -425,6 +425,7 @@ func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
 	f.move = move
 	f.move_frame = 1
 	f.move_connected = false
+	f.last_hit_window = -1
 	f.armor_left = move.armor_hits
 	f.move_x = 0
 	if is_cancel:
@@ -446,6 +447,24 @@ func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
 ## Starts a move that is not triggered by input (a counter's follow-up).
 func start_followup(i: int, move: MoveData) -> void:
 	_start_attack(i, move, false)
+
+
+## The opponent of fighter [param i] is put on [param i]'s other side, at the
+## same distance (less if a wall is in the way), still facing the way it
+## was going; [param i] turns round to face its back. Used by counters that
+## turn the attacker past them.
+func switch_sides(i: int) -> void:
+	var me: FighterState = fighters[i]
+	var other: FighterState = fighters[1 - i]
+	var gap: float = maxf(absf(other.position_x - me.position_x),
+		profile(0).pushbox_half_width + profile(1).pushbox_half_width)
+	var side: float = -signf(other.position_x - me.position_x)
+	if side == 0.0:
+		side = -float(me.facing)
+	other.position_x = _clamped_x(1 - i, me.position_x + side * gap)
+	# against a wall there is less room: the countering fighter gives way
+	me.position_x = _clamped_x(i, other.position_x - side * gap)
+	me.facing = int(side)
 
 
 ## Ends fighter [param i]'s current move at once (a successful parry).

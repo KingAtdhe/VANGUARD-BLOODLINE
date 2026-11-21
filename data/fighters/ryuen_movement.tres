@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FighterMovementProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fighters/fighter_movement_profile.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+fighter_id = &"ryuen"
+display_name = "Ryuen"
+walk_forward_speed = 2.1
+walk_backward_speed = 1.6
+pushbox_half_width = 0.35

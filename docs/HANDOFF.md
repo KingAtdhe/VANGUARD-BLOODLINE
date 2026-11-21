@@ -1,27 +1,30 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`. Last task done: Vexa's move set (D-066).
-**Exact next task: Ryuen's move set** (counters, throw, evasive step, chain
-punch), from `docs/FIGHTER_COMBAT_DESIGN.md` and the owner's design doc
-linked there. He is the last fighter. One fighter per task; stop and report
-after each (CLAUDE.md).
+Branch: `arena-severed-line`. Last task done: Ryuen's move set (D-068) —
+all six fighters now have their own sets.
+**Next task: the owner chooses.** Offered on 2026-11-21 after a comparison
+with Tekken / Street Fighter, in this order: (1) hit feel — reactions by hit
+height, counter-hits, stronger hit effect, slow-motion KO; (2) forward and
+back dashes (already in the spec); (3) a throw and throw escape for every
+fighter; (4) multi-hit ultimates. Also open: the stance pass for Drakon,
+Seraphina, Nox and Ryuen. Do not start one without the owner's choice.
 
 ## State
 
 - Own move sets built: Kairo (D-062), Drakon (D-063), Seraphina (D-064),
-  Nox (D-065), Vexa (D-066). Ryuen still uses the shared `kairo_*` set.
+  Nox (D-065), Vexa (D-066), Ryuen (D-068).
 - Engine mechanics in place: low block and hit levels, direction + button
   inputs (D-061), counter stances (D-062), throws, armour, per-fighter chip
   (D-063), launch/juggle, invulnerable frames, backward moves (D-064),
   pass-through moves (D-065), projectiles and parries (D-066: a parry is a
   counter stance without a follow-up; projectiles are never countered, so
-  "projectiles beat Returning Wave" already holds). Still missing for Ryuen:
-  multi-hit moves (Chain Punch 2+2+2), a counter that turns the attacker
-  round, a block with extra pushback, and an ultimate that is itself a
-  counter stance.
-- Tests: 167 passing with the D-066 changes (146 before, at `91a4352`): 21
-  new in `tests/unit/test_vexa_moves.gd`. The full run took about 10 minutes
-  on a 2-core machine, an asset import about 12.
+  "projectiles beat Returning Wave" already holds), multi-hit moves,
+  side-switching counters, a counter-stance ultimate and a deflecting block
+  (D-068). New keyed moves should use the `Kit` class in `mocap_actions.py`
+  (`ryuen_set` is the example; check which side the fighter leads with).
+- Tests: 183 passing with the D-068 changes (146 before Vexa, 168 before
+  Ryuen). A full run takes about 10 minutes on 2 cores, a first asset
+  import about 12.
 - D-067 (owner feedback): raised stages are lowered to the fighters' feet
   (`ArenaConfig.stage_height`), Kairo and Vexa have reshaped stances
   (`STYLES` + `shape_stance()`; preview a stance on the real skeleton before

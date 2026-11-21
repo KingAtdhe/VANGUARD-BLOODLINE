@@ -1,8 +1,7 @@
 # Fighter Combat Design (summary)
 
-Status: **five of six fighters built (Kairo, Drakon, Seraphina, Nox, Vexa — D-062
-to D-066), awaiting the owner's test on a phone. Ryuen still uses the shared
-set (KI-049).**
+Status: **all six fighters built (D-062 to D-068), awaiting the owner's test
+on a phone.**
 
 The full design (stance, footwork, attack tables with frame data, specials,
 combos, defence, ultimate and animation personality per fighter) lives in the
@@ -55,7 +54,7 @@ Balance values go in `data/`, never in controller code.
 3. Kairo's full set; owner tests on device before the rest follow. **Built (D-062), awaiting owner test.**
 4. One fighter at a time with the mechanic it needs: Drakon (throws, armour — **built, D-063**),
    Seraphina (evade, launch — **built, D-064**), Nox (side switch, overhead — **built, D-065**), Vexa (projectile,
-   parry — **built, D-066**), Ryuen (counters).
+   parry — **built, D-066**), Ryuen (counters — **built, D-068**).
 5. A test build after every fighter.
 
 ## Vexa as built (D-066)
@@ -76,6 +75,24 @@ Cut Kick, Elbow, Knee (3 hits, needs 25 meter); Arc Guard parry, Elbow, Knee.
 Missing against the design: counter-hit stagger on the Cut Kick, the
 head-pull of the knee, separate hits and a beam in the ultimate, shield and
 beam effects.
+
+## Ryuen as built (D-068)
+
+| Move | Input | Frames | Notes |
+| --- | --- | --- | --- |
+| Palm Heel | L | 5 / 3 / 10 | -1 on block. Cancels into itself, Chain Punch, Sinking Elbow. Captured (mirrored). |
+| Chain Punch | H | 9 / 2+2+2 / 16 | Three hits, most meter per use of any normal. Cancels into specials. Keyed. |
+| Shin Stamp | K | 8 / 3 / 14 | LOW. Cancels into Palm Heel. Keyed. |
+| Sinking Elbow | down + H | 10 / 3 / 16 | 80 damage, cancels into Chain Punch. Keyed. |
+| Mountain Push | SP | 15 / 4 / 22 | 2.6 m pushback, knockdown, 25 meter. Keyed. |
+| Flowing Step | toward + SP | 20 total | No hurtbox on frames 2-11, no attack. Keyed. |
+| Returning Wave | away + SP | counter 3-18 of 36 | Catches high, mid and low strikes; attacker ends behind him and takes a palm in the back. Throws and projectiles beat it. Stance keyed, palm captured. |
+| Wrist Throw | down + SP | 7 / 2 / 28 | Unblockable, knockdown. Keyed. |
+| Thousand Rivers | ULT in Surge | counter 4-30 of 44 | Spends the meter at once; struck, he answers for 310. Keyed. |
+
+His block pushes the attacker back 0.3 m. Combos checked by tests: Palm
+Heel, Chain Punch, Mountain Push (5 hits); Returning Wave, Sinking Elbow,
+Chain Punch (5 hits).
 
 ## Animation sources and limits
 

@@ -729,6 +729,48 @@ the same squat that "does not look like a fighting stance".
   and Ryuen were left as they are.
 **Accepted.**
 
+## D-068 — 2026-11-21 — Ryuen's own move set; multi-hit moves, side-switching counters
+
+Sixth and last fighter from `docs/FIGHTER_COMBAT_DESIGN.md`. No fighter uses
+the shared `kairo_*` attacks any more (only the Surge activation is shared).
+- **Moves (data/moves/ryuen_*):** Palm Heel (LIGHT, 5/3/10, -1 on block),
+  Chain Punch (HEAVY, 9 / 2+2+2 / 16, three hits), Shin Stamp (KICK, 8/3/14,
+  LOW), Sinking Elbow (DOWN + HEAVY, 10/3/16), Mountain Push (SPECIAL,
+  15/4/22, 2.6 m pushback and knockdown, 25 meter), Flowing Step (FORWARD +
+  SPECIAL, 20 frames, no hurtbox on 2-11, no attack), Returning Wave (BACK +
+  SPECIAL, counter on 3-18 of 36), Wrist Throw (DOWN + SPECIAL), Thousand
+  Rivers (ultimate: a counter stance on frames 4-30 of 44). 1000 health,
+  walk 2.1 / 1.6 m/s (slowest after Drakon).
+- **Multi-hit (engine):** `MoveData.rehit_interval`; a move connects once
+  per hit window (`FighterState.last_hit_window`), each hit resolved as its
+  own contact (damage, scaling, stun, hitstop, meter, armour).
+- **Side-switching counter (engine):** `MoveData.counter_switches_sides` +
+  `CombatSimulation.switch_sides()`: the caught attacker is put on the other
+  side at the same distance (walls respected) with its back to Ryuen, who
+  turns and strikes. Returning Wave catches HIGH, MID and LOW; throws and
+  projectiles beat it (D-066 rule). Counter follow-ups now travel
+  (`move_distance`), so an attacker caught at long range is still reached.
+- **Counter ultimate:** Thousand Rivers is an ordinary counter stance with
+  `requires_surge` + `consumes_all_meter`: the meter is gone when the stance
+  starts, whether or not anything hits him. Its answer
+  (`ryuen_thousand_rivers_strike`, 310 damage) is the counter's follow-up.
+- **Deflecting block:** `FighterDefinition.block_pushes_attacker` (0.3 m for
+  Ryuen): the attacker of every blocked strike slides back too.
+- **AI:** in Surge, a fighter whose ultimate is a counter stance uses it on
+  an attack it would have blocked (`ultimate_chance`).
+- **Animation:** Palm Heel and the palm after Returning Wave are captured
+  straight strikes (CMU 144_13, 144_20), mirrored because he stands right
+  side forward. Everything else is keyed (`ryuen_set`, on the new shared
+  `Kit` of model-space helpers).
+- **Not built from the design:** Shin Stamp does not stop the opponent's
+  forward movement; Sinking Elbow has no crumple on counter-hit (no
+  counter-hit state); the attacker is not visibly turned or thrown — it is
+  moved to the other side and plays its normal hit / fall; Flowing Step does
+  not end at the attacker's flank (there is no flank in a 2.5D plane) — it
+  is an evasive step forward; the twelve punches of the ultimate are
+  animation after a single hit; no gold ripple effect.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

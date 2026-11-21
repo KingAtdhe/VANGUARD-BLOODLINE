@@ -24,6 +24,9 @@ var move_frame: int = 0
 ## True once the current attack has hit or been blocked: it cannot connect
 ## again (one hit per attack per target).
 var move_connected: bool = false
+## Multi-hit moves (MoveData.rehit_interval): the hit window that last
+## connected (-1 = none yet). The move can connect again in a later window.
+var last_hit_window: int = -1
 
 ## Remaining hitstun/blockstun ticks. The fighter becomes actionable on the
 ## tick AFTER this reaches 0, so a stun of N means N full ticks of no control.
@@ -79,6 +82,7 @@ func copy() -> FighterState:
 	s.move = move
 	s.move_frame = move_frame
 	s.move_connected = move_connected
+	s.last_hit_window = last_hit_window
 	s.stun_remaining = stun_remaining
 	s.block_low = block_low
 	s.armor_left = armor_left

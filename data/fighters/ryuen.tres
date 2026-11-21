@@ -1,25 +1,31 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
-[ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
-[ext_resource type="Resource" path="res://data/moves/kairo_light_punch.tres" id="3_l"]
-[ext_resource type="Resource" path="res://data/moves/kairo_heavy_punch.tres" id="4_h"]
-[ext_resource type="Resource" path="res://data/moves/kairo_kick.tres" id="5_k"]
-[ext_resource type="Resource" path="res://data/moves/kairo_origin_palm.tres" id="6_palm"]
-[ext_resource type="Resource" path="res://data/moves/kairo_rift_break.tres" id="7_rift"]
+[ext_resource type="Resource" path="res://data/fighters/ryuen_movement.tres" id="2_move"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
-[ext_resource type="Resource" path="res://data/moves/kairo_origin_break.tres" id="9_break"]
 [ext_resource type="PackedScene" path="res://assets/characters/ryuen/ryuen.glb" id="10_model"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_palm_heel.tres" id="m_palm_heel"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_chain_punch.tres" id="m_chain_punch"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_shin_stamp.tres" id="m_shin_stamp"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_mountain_push.tres" id="m_mountain_push"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_flowing_step.tres" id="m_flowing_step"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_thousand_rivers.tres" id="m_thousand_rivers"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_sinking_elbow.tres" id="m_sinking_elbow"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_returning_wave.tres" id="m_returning_wave"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_wrist_throw.tres" id="m_wrist_throw"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_wave_palm.tres" id="m_wave_palm"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_thousand_rivers_strike.tres" id="m_thousand_rivers_strike"]
 
 [resource]
 script = ExtResource("1_def")
 fighter_id = &"ryuen"
 display_name = "Ryuen"
 base_health = 1000
+block_pushes_attacker = 0.3
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break")])
+moves = Array[Resource]([ExtResource("m_palm_heel"), ExtResource("m_chain_punch"), ExtResource("m_shin_stamp"), ExtResource("m_mountain_push"), ExtResource("m_flowing_step"), ExtResource("8_surge"), ExtResource("m_thousand_rivers"), ExtResource("m_sinking_elbow"), ExtResource("m_returning_wave"), ExtResource("m_wrist_throw"), ExtResource("m_wave_palm"), ExtResource("m_thousand_rivers_strike")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -37,6 +43,5 @@ anim_victory = &"KAIRO_VICTORY"
 anim_defeat = &"KAIRO_DEFEAT"
 anim_prefix = &"RYUEN"
 playable = true
-locked_note = "Moveset arrives in Milestone 8"
 accent_color = Color(1.0, 0.75, 0.15, 1)
 tagline = "Old master of the Forgotten Temple. Counters and patience."

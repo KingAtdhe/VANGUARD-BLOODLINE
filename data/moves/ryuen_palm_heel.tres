@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"ryuen_palm_heel"
+display_name = "Palm Heel"
+input_pattern = &"LIGHT"
+animation = &"RYUEN_ATTACK_PALM_HEEL_01"
+startup_frames = 5
+active_frames = 3
+recovery_frames = 10
+hitstun_frames = 15
+blockstun_frames = 12
+hitstop_frames = 5
+damage = 30
+chip_damage = 0
+pushback = 0.2
+hit_level = 1
+hitbox_center = Vector2(0.65, 1.4)
+hitbox_size = Vector2(0.5, 0.3)
+tags = PackedStringArray("normal", "light")
+cancel_tags = PackedStringArray("light", "heavy", "elbow")
+meter_gain_on_hit = 6
+meter_gain_on_block = 3

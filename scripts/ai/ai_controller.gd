@@ -199,6 +199,14 @@ func next_input() -> FighterInputFrame:
 		# catches the attack (rolled once per attack seen).
 		if key != _counter_key:
 			_counter_key = key
+			# In Surge, a fighter whose ultimate is itself a counter stance
+			# (Ryuen) answers a caught attack with it, as often as others
+			# use their ultimate.
+			var ult: MoveData = _surge_counter()
+			if _threat_block and me.in_surge and ult != null and ult.counter_levels.has(opp_move.hit_level) \
+					and not opp_move.is_projectile() and _rng.randf() < profile.ultimate_chance:
+				_set_state(State.BLOCK, "counter ultimate")
+				return _tap(&"ULTIMATE", "ultimate vs %s" % opp.move_id, 0)
 			var stance: MoveData = me_def.move_for(&"BACK_SPECIAL")
 			if _threat_block and profile.counter_chance > 0.0 and stance != null and stance.is_counter() \
 					and stance.counter_levels.has(opp_move.hit_level) and _rng.randf() < profile.counter_chance:
@@ -402,6 +410,14 @@ func _set_intent(s: State, reason: String) -> void:
 static func _reach(m: MoveData, target: FighterDefinition) -> float:
 	return m.hitbox_center.x + m.hitbox_size.x * 0.5 + target.hurtbox_half_width \
 			+ (m.projectile_range if m.is_projectile() else 0.0)
+
+
+## This fighter's Surge ultimate if it is a counter stance, else null.
+func _surge_counter() -> MoveData:
+	for m: MoveData in me_def.moves_for(&"ULTIMATE"):
+		if m.requires_surge and m.is_counter():
+			return m
+	return null
 
 
 func _only_projectiles(patterns: Array[StringName]) -> bool:

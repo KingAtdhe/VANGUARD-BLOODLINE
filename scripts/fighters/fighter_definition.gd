@@ -8,6 +8,9 @@ extends Resource
 @export var base_health: int = 1000
 ## Share of chip damage this fighter takes while blocking (100 = normal).
 @export_range(0, 200) var chip_taken_percent: int = 100
+## Deflecting guard: every strike this fighter blocks slides the attacker
+## back by this many metres (0 = an ordinary block). D-068.
+@export var block_pushes_attacker: float = 0.0
 @export var movement: FighterMovementProfile
 ## Standing hurtbox: half-width around the centre and height from the floor.
 @export var hurtbox_half_width: float = 0.3

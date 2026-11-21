@@ -92,6 +92,9 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var counter_levels: Array[HitLevel] = []
 @export var counter_followup: MoveData = null
 @export var counter_stun_frames: int = 16
+## The caught attacker is turned past this fighter and ends up on the other
+## side with its back to them; the follow-up strikes from behind (D-068).
+@export var counter_switches_sides: bool = false
 
 @export_group("Armour")
 ## Armour (D-063): on frames armor_start_frame..armor_end_frame the move
@@ -120,6 +123,12 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var launch: bool = false
 @export var launch_frames: int = 46
 
+@export_group("Multi-hit")
+## > 0: the move hits again every this many frames while it is active
+## (D-068). active_frames 6 with rehit_interval 2 = three hits ("2+2+2").
+## Each hit is a full contact of its own (damage, stun, hitstop, meter).
+@export var rehit_interval: int = 0
+
 @export_group("Projectile")
 ## > 0: this move fires a projectile (D-066) on its first active frame instead
 ## of having a hitbox on the fighter. Speed in metres per second. The
@@ -138,6 +147,19 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var airborne_allowed: bool = false
 ## Only if the move design genuinely needs one (0 = none).
 @export var cooldown_frames: int = 0
+
+
+## Which hit of a multi-hit move [param frame] belongs to (0 = first).
+func hit_window(frame: int) -> int:
+	if rehit_interval <= 0:
+		return 0
+	return maxi(0, frame - startup_frames) / rehit_interval
+
+
+func hit_count() -> int:
+	if rehit_interval <= 0:
+		return 1
+	return (active_frames + rehit_interval - 1) / rehit_interval
 
 
 func is_projectile() -> bool:
@@ -250,6 +272,8 @@ func validate() -> Array[String]:
 		p.append("%s: PROJECTILE hit level needs projectile_speed" % id)
 	if counter_levels.has(HitLevel.PROJECTILE) or counter_levels.has(HitLevel.THROW):
 		p.append("%s: projectiles and throws cannot be countered" % id)
+	if rehit_interval < 0 or (rehit_interval > 0 and (is_projectile() or is_throw() or is_counter())):
+		p.append("%s: invalid multi-hit move" % id)
 	if is_throw() and chip_damage != 0:
 		p.append("%s: a throw cannot be blocked, chip must be 0" % id)
 	if not activates_surge and not is_counter() and not no_hitbox and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):

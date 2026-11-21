@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"ryuen_chain_punch"
+display_name = "Chain Punch"
+input_pattern = &"HEAVY"
+animation = &"RYUEN_ATTACK_CHAIN_PUNCH_01"
+startup_frames = 9
+active_frames = 6
+recovery_frames = 16
+hitstun_frames = 22
+blockstun_frames = 18
+hitstop_frames = 3
+damage = 26
+chip_damage = 2
+pushback = 0.08
+hit_level = 1
+hitbox_center = Vector2(0.65, 1.35)
+hitbox_size = Vector2(0.55, 0.4)
+tags = PackedStringArray("normal", "heavy")
+cancel_tags = PackedStringArray("special")
+rehit_interval = 2
+meter_gain_on_hit = 7
+meter_gain_on_block = 3

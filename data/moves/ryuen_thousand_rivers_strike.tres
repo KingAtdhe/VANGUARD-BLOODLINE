@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"ryuen_thousand_rivers_strike"
+display_name = "Thousand Rivers"
+input_pattern = &"FOLLOWUP_ULTIMATE"
+animation = &"RYUEN_ULTIMATE_THOUSAND_RIVERS_STRIKE"
+startup_frames = 6
+active_frames = 4
+recovery_frames = 50
+hitstun_frames = 1
+blockstun_frames = 20
+hitstop_frames = 60
+damage = 310
+chip_damage = 0
+pushback = 0.3
+hit_level = 1
+hitbox_center = Vector2(0.6, 1.3)
+hitbox_size = Vector2(0.7, 0.9)
+tags = PackedStringArray("followup", "ultimate")
+cancel_tags = PackedStringArray()
+move_distance = 1.4
+move_start_frame = 1
+move_end_frame = 5
+knockdown = true

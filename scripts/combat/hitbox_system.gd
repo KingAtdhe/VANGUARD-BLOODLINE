@@ -36,9 +36,14 @@ static func hitbox(s: FighterState) -> Rect2:
 	return Rect2(c - s.move.hitbox_size * 0.5, s.move.hitbox_size)
 
 
-## True if the attacker's hitbox is live and has not connected yet.
+## True if the attacker's hitbox is live and has not connected yet (a
+## multi-hit move: not yet in the current hit window).
 static func can_hit(s: FighterState) -> bool:
-	return not s.move_connected and hitbox(s).has_area()
+	if not hitbox(s).has_area():
+		return false
+	if s.move.rehit_interval > 0:
+		return s.last_hit_window < s.move.hit_window(s.move_frame)
+	return not s.move_connected
 
 
 ## One detected contact.

@@ -417,6 +417,9 @@ HANDS_BY_ACTION = {
     "ATTACK_RISING_BACKFIST_01": (0.3, 1.0),
     # Vexa: the cyber hand opens to fire; the shield hand is a flat blade
     "SPECIAL_PULSE_SHOT": (0.08, 0.9), "SPECIAL_ARC_GUARD": (0.15, 0.9),
+    # Ryuen: open palms throughout, fists only for the chain punches, closing hands for the throw
+    "ATTACK_CHAIN_PUNCH_01": (0.95, 0.95), "ULTIMATE_THOUSAND_RIVERS_STRIKE": (0.8, 0.8),
+    "SPECIAL_WRIST_THROW": (0.5, 0.5),
 }
 
 
@@ -1221,7 +1224,316 @@ def vexa_set(c):
     return out
 
 
-OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set, "vexa": vexa_set}
+class Kit:
+    """Helpers for keyed moves aimed in MODEL space (first used for Vexa,
+    D-066; shared from Ryuen on). c["joints"](P) gives the game skeleton's
+    joints for a source pose; because the retarget copies limb directions, a
+    point the model's wrist, elbow, knee or ankle must reach converts to a
+    source-space IK target by the ratio of the limb lengths."""
+
+    FWD = np.array([0.0, -1.0, 0.0])
+
+    def __init__(self, c):
+        self.c, self.H, self.G = c, c["H"], c["guard_P"]
+        self.joints = c["joints"]
+        g_m, G = self.joints(self.G)[0], self.G
+        def length(P, chain):
+            return sum(np.linalg.norm(P[b] - P[a]) for a, b in zip(chain, chain[1:]))
+        sides = ("Left", "Right")
+        self.ARM = {sd: length(g_m, [sd + "UpperArm", sd + "LowerArm", sd + "Hand"])
+                    / length(G, [sd + "Arm", sd + "ForeArm", sd + "Hand"]) for sd in sides}
+        self.UPPER_ARM = {sd: length(g_m, [sd + "UpperArm", sd + "LowerArm"]) / length(G, [sd + "Arm", sd + "ForeArm"])
+                          for sd in sides}
+        self.LEG = {sd: length(g_m, [sd + "UpperLeg", sd + "LowerLeg", sd + "Foot"])
+                    / length(G, [sd + "UpLeg", sd + "Leg", sd + "Foot"]) for sd in sides}
+        self.THIGH = {sd: length(g_m, [sd + "UpperLeg", sd + "LowerLeg"]) / length(G, [sd + "UpLeg", sd + "Leg"])
+                      for sd in sides}
+        self.FIST = 0.07 * self.H                         # wrist to the middle of the fist / palm
+
+    def v(self, x, y, z):
+        return np.array([x, y, z]) * self.H
+
+    @staticmethod
+    def at(x, fwd, z):
+        """A point in model space: x to the fighter's left, fwd toward the opponent, z above the floor."""
+        return np.array([x, -fwd, z])
+
+    def model(self, P):
+        return self.joints(P)[0]
+
+    def wrist_src(self, P, side, target_m):
+        return P[side + "Arm"] + (np.array(target_m) - self.model(P)[side + "UpperArm"]) / self.ARM[side]
+
+    def elbow_src(self, P, side, target_m):
+        return P[side + "Arm"] + (np.array(target_m) - self.model(P)[side + "UpperArm"]) / self.UPPER_ARM[side]
+
+    def knee_src(self, P, side, target_m):
+        return P[side + "UpLeg"] + (np.array(target_m) - self.model(P)[side + "UpperLeg"]) / self.THIGH[side]
+
+    def ankle_src(self, P, side, target_m):
+        return P[side + "UpLeg"] + (np.array(target_m) - self.model(P)[side + "UpperLeg"]) / self.LEG[side]
+
+    def arm_to(self, P, side, wrist_m, w=1.0, pole_out=0.2, fingers=None):
+        """Wrist of `side` to a model-space point (weight w); fingers: direction the hand points."""
+        if w <= 0:
+            return P
+        Q = move_hand(P, side, self.wrist_src(P, side, wrist_m), w, pole_out=pole_out)
+        return point_hand(Q, side, fingers) if fingers is not None and w > 0.5 else Q
+
+    def elbow_to(self, P, side, elbow_m, fold):
+        """Elbow of `side` to a model-space point; the wrist sits `fold` (source metres) from the elbow."""
+        e = self.elbow_src(P, side, elbow_m)
+        return bend_to(P, side + "Arm", side + "ForeArm", side + "Hand", e, e + np.array(fold),
+                       [side + k for k in HAND_CARRY] + [side[0] + "Thumb"])
+
+    def foot_to(self, P, side, ankle_m, w=1.0):
+        if w <= 0:
+            return P
+        return move_foot(P, side, self.ankle_src(P, side, ankle_m), w)
+
+    @staticmethod
+    def lunge(P, fwd, down=0.0):
+        """The body travels toward the opponent (and sinks) over planted feet."""
+        Q = shift(P, list(P.keys()), np.array([0, -fwd, -down]))
+        for sd in ("Left", "Right"):
+            Q = move_foot(Q, sd, P[sd + "Foot"])
+        return Q
+
+    @staticmethod
+    def twist(P, deg):
+        """Turn the shoulders (not the hips) about the spine; + brings the right shoulder forward."""
+        o = np.array([P["Hips"][0], P["Hips"][1], 0.0])
+        R = np.array(Matrix.Rotation(math.radians(deg), 3, "Z"))
+        Q = dict(P)
+        for k in UPPER:
+            if k in Q:
+                Q[k] = R @ (Q[k] - o) + o
+        return Q
+
+    @staticmethod
+    def snap(t, keys):
+        """A keyed track without easing (linear between keys)."""
+        if t <= keys[0][0]:
+            return keys[0][1]
+        for (f0, v0), (f1, v1) in zip(keys, keys[1:]):
+            if t <= f1:
+                return v0 + (v1 - v0) * ((t - f0) / max(1e-6, f1 - f0))
+        return keys[-1][1]
+
+    def keyed(self, mv, fn, lift=None, settle=6):
+        """Poses for every frame of a move from fn(t, total, a0, a1) -> source pose, settling into the guard."""
+        c = self.c
+        total, a0, a1 = frames_of(mv)
+        poses = []
+        for t in range(total):
+            pose = c["pose_of"](fn(t, total, a0, a1), c["box"])
+            up = lift(t) if lift else 0.0
+            if up > 0.005:
+                pose = Pose(pose.D, pose.hips + np.array([0, 0, up]))
+            poses.append(pose)
+        for t in range(max(0, total - settle), total):
+            poses[t] = Pose.blend(poses[t], c["guard"], ease((t - (total - settle)) / settle))
+        return poses
+
+
+def ryuen_set(c):
+    """Ryuen: Still Water. Tai Chi, Wing Chun and Aikido; everything returns
+    to the same quiet guard. Palm Heel and the palm that follows Returning
+    Wave are captured straight strikes (CMU 144_13 lead hand, 144_20 rear
+    hand) thrown with an open hand. Everything else is keyed from his guard:
+    the library has no chain punches, palm pushes, stamps, elbows, circling
+    parries or throws."""
+    k = Kit(c)
+    H, G, moves, v, at = k.H, k.G, c["moves"], k.v, k.at
+    gl, gr = G["LeftHand"], G["RightHand"]
+    lf, rf = G["LeftFoot"], G["RightFoot"]
+    # He stands right side forward; the captures are left-lead, so they are mirrored.
+    LEAD = "Left" if lf[1] < rf[1] else "Right"
+    REAR = "Right" if LEAD == "Left" else "Left"
+    SG = 1 if REAR == "Right" else -1                     # sign that brings the REAR shoulder forward in twist()
+    art, art_r = c["clip"]("144_13"), c["clip"]("144_20")
+    if LEAD == "Right":
+        art, art_r = mirrored(art), mirrored(art_r)
+    FWD, UP = Kit.FWD, np.array([0.0, -0.25, 1.0])
+    out = {}
+    home = k.model(G)
+    hl, hr = home["LeftHand"], home["RightHand"]          # the guard's hands, in model space
+    base_of = {"Left": hl, "Right": hr}
+
+    def lowered(mv, by):
+        """The shared strike helper aims in capture space; this model's hand ends higher by about `by`."""
+        return dict(mv, hc=[mv["hc"][0], mv["hc"][1] - by])
+
+    # Palm Heel: captured lead straight, open hand
+    mv = moves["palm_heel"]
+    out[c["anim_of"](mv)] = c["strike"](art, 439, LEAD, "hand", lowered(mv, 0.1), pre=30, post=40, blend_in=3)
+
+    # Chain Punch: three vertical fists rolling over each other down the
+    # centre line, one per hit (lead, rear, lead); the elbows stay low and in
+    mv = moves["chain_punch"]
+    def chain(t, total, a0, a1, mv=mv):
+        beats = [a0, a0 + 2, a0 + 4]
+        go = track(t, [(0, 0.0), (a0, 1.0), (a1, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, 0.15 * H * go, 0.03 * H * go)
+        tip = at(0.0, mv["hc"][0] + 0.04 - k.FIST, mv["hc"][1] + 0.03)
+        chest = k.model(P)["Chest"] + v(0.0, -0.2, 0.12)                     # fist held back at the sternum
+        keys = {"Left": [(0, hl), (a0 - 3, chest)], "Right": [(0, hr), (a0 - 2, chest + v(0, 0.0, -0.05))]}
+        for i, b in enumerate(beats):
+            sd, other = (LEAD, REAR) if i % 2 == 0 else (REAR, LEAD)
+            keys[sd] += [(b, tip + v(0.0, 0.0, -0.03 * i))]
+            keys[other] += [(b, chest)]
+        for sd, base in (("Left", hl), ("Right", hr)):
+            keys[sd] += [(a1 + 3, chest), (total - 1, base)]
+        for sd in ("Left", "Right"):
+            P = k.arm_to(P, sd, Kit.snap(t, keys[sd]), 1.0 if 0 < t < total - 1 else 0.0, pole_out=0.5, fingers=FWD)
+        return P
+    out[c["anim_of"](mv)] = k.keyed(mv, chain)
+
+    # Shin Stamp: the lead knee barely lifts, then the heel is driven
+    # straight down and forward into the opponent's shin
+    mv = moves["shin_stamp"]
+    def stamp(t, total, a0, a1, mv=mv):
+        w = track(t, [(0, 0.0), (a0 - 3, 1.0), (a1 + 2, 1.0), (total - 1, 0.0)])
+        P = lean(G, 5 * w)                                                   # weight settles onto the rear leg
+        ankle0 = k.model(P)[LEAD + "Foot"]
+        lift = ankle0 + v(0.0, -0.08, 0.22)
+        hit = at(ankle0[0], mv["hc"][0] - 0.06, mv["hc"][1] - 0.06)
+        tgt = track(t, [(0, ankle0), (a0 - 3, lift), (a0, hit), (a1, hit + v(0, 0, -0.04)), (a1 + 6, ankle0)])
+        return k.foot_to(P, LEAD, tgt, 1.0 if 0 < t <= a1 + 6 else 0.0)
+    out[c["anim_of"](mv)] = k.keyed(mv, stamp)
+
+    # Sinking Elbow: half a step in (the game carries him), the whole body
+    # drops and the rear elbow is driven level into the ribs
+    mv = moves["sinking_elbow"]
+    def elbow(t, total, a0, a1, mv=mv):
+        w = track(t, [(0, 0.0), (a0, 1.0), (a1, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, 0.12 * H * w, 0.11 * H * w)
+        P = Kit.twist(P, 58 * SG * w)
+        m = k.model(P)
+        tip = at(-0.03 * H * SG, mv["hc"][0] - 0.05, mv["hc"][1])
+        e = track(t, [(0, m[REAR + "LowerArm"]), (a0 - 4, m[REAR + "UpperArm"] + v(-0.12 * SG, 0.08, -0.12)), (a0, tip),
+                      (a1, tip), (total - 1, m[REAR + "LowerArm"])])
+        fold = track(t, [(0, 0.0), (a0 - 4, 1.0), (a1 + 2, 1.0), (total - 1, 0.0)])
+        if fold > 0:
+            wrist_now = P[REAR + "Hand"] - k.elbow_src(P, REAR, m[REAR + "LowerArm"])
+            folded = v(0.18 * SG, 0.16, 0.06) / k.UPPER_ARM[REAR]             # forearm folded back against the chest
+            P = k.elbow_to(P, REAR, e, wrist_now * (1 - fold) + folded * fold)
+        return k.arm_to(P, LEAD, base_of[LEAD] + v(0.0, 0.08, -0.03) * w, 1.0 if w > 0 else 0.0, pole_out=0.3)
+    out[c["anim_of"](mv)] = k.keyed(mv, elbow)
+
+    # Mountain Push: both feet rooted, the palms gather at the ribs and the
+    # whole body goes through them
+    mv = moves["mountain_push"]
+    def push(t, total, a0, a1, mv=mv):
+        gather = track(t, [(0, 0.0), (a0 - 6, 1.0), (a0 - 2, 1.0), (a0, 0.0)])
+        drive = track(t, [(0, 0.0), (a0 - 2, 0.0), (a0, 1.0), (a1 + 4, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, (-0.06 * gather + 0.1 * drive) * H, (0.07 * gather + 0.05 * drive) * H)
+        P = lean(P, 5 * gather - 9 * drive)
+        m = k.model(P)
+        for sd, sg, base in (("Left", 1, hl), ("Right", -1, hr)):
+            ribs = m["Chest"] + v(0.16 * sg, -0.12, -0.02)
+            far = at(0.11 * H * sg, mv["hc"][0] + 0.12, mv["hc"][1] - 0.06)        # past his reach: the arms lock out
+            tgt = track(t, [(0, base), (a0 - 6, ribs), (a0 - 2, ribs), (a0, far), (a1 + 4, far), (total - 1, base)])
+            P = k.arm_to(P, sd, tgt, 1.0 if 0 < t < total - 1 else 0.0, pole_out=0.45, fingers=UP)
+        return P
+    out[c["anim_of"](mv)] = k.keyed(mv, push)
+
+    # Flowing Step: a quarter turn off the line with soft knees, arms
+    # trailing round, then back to face the opponent
+    mv = moves["flowing_step"]
+    def flow(t, total, a0, a1):
+        w = track(t, [(0, 0.0), (4, 1.0), (11, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, 0.0, 0.06 * H * w)
+        P = turn(P, -80 * w)
+        m = k.model(P)
+        P = k.arm_to(P, "Left", m["LeftHand"] + v(0.0, 0.0, -0.1) * w, w, pole_out=0.4)
+        return k.arm_to(P, "Right", m["RightHand"] + v(0.0, 0.0, -0.06) * w, w, pole_out=0.4)
+    out[c["anim_of"](mv)] = k.keyed(mv, flow)
+
+    # Returning Wave: the open palms circle each other in front of the chest
+    # (one full, slow turn across the counter window), knees soft
+    mv = moves["returning_wave"]
+    c0, c1 = mv["counter"]
+    def wave(t, total, a0, a1):
+        w = track(t, [(0, 0.0), (c0, 1.0), (c1, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, 0.0, 0.05 * H * w)
+        m = k.model(P)
+        centre = m["Chest"] + v(0.0, -0.36, 0.02)
+        ang = 2 * math.pi * (t - c0) / max(1, c1 - c0)
+        for sd, ph, base in (("Left", 0.0, m["LeftHand"]), ("Right", math.pi, m["RightHand"])):
+            ring = centre + v(0.13 * math.cos(ang + ph), 0.05 * math.sin(ang + ph), 0.15 * math.sin(ang + ph))
+            P = k.arm_to(P, sd, base + (ring - base) * w, 1.0 if w > 0 else 0.0, pole_out=0.45, fingers=UP if w > 0.5 else None)
+        return P
+    out[c["anim_of"](mv)] = k.keyed(mv, wave)
+
+    # ... and its answer: captured rear straight with an open hand, into the back
+    mv = moves["wave_palm"]
+    out[c["anim_of"](mv)] = c["strike"](art_r, 645, REAR, "hand", lowered(mv, 0.1), pre=30, post=44, blend_in=3)
+
+    # Wrist Throw: both hands take the wrist, the hips turn and the arm is
+    # led down and across (the victim only has its normal fall)
+    mv = moves["wrist_throw"]
+    def throw(t, total, a0, a1, mv=mv):
+        reach = track(t, [(0, 0.0), (a0, 1.0), (a1 + 2, 1.0), (a1 + 12, 0.0)])
+        lead = track(t, [(0, 0.0), (a1 + 1, 0.0), (a1 + 11, 1.0), (total - 8, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, 0.1 * H * reach, 0.06 * H * (reach + lead))
+        P = turn(P, -70 * lead)
+        m = k.model(P)
+        for sd, sg, base in (("Left", 1, m["LeftHand"]), ("Right", -1, m["RightHand"])):
+            grab = at(0.05 * H * sg, mv["hc"][0] - k.FIST, mv["hc"][1] - 0.05)
+            down = m["Hips"] + v(0.1 * sg - 0.25, -0.2, -0.25)                # led down past his own hip
+            tgt = base + (grab - base) * reach + (down - base) * lead
+            P = k.arm_to(P, sd, tgt, 1.0 if (reach + lead) > 0 else 0.0, pole_out=0.4)
+        return P
+    out[c["anim_of"](mv)] = k.keyed(mv, throw, settle=8)
+
+    # Thousand Rivers: he lowers his hands and stands open through the whole
+    # counter window
+    mv = moves["thousand_rivers"]
+    c0, c1 = mv["counter"]
+    def rivers(t, total, a0, a1):
+        w = track(t, [(0, 0.0), (c0, 1.0), (c1, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, -0.02 * H * w, -0.02 * H * w)                       # stands a little taller
+        P = lean(P, 2 * w)
+        m = k.model(P)
+        for sd, sg in (("Left", 1), ("Right", -1)):
+            rest = m["Hips"] + v(0.24 * sg, -0.06, -0.12 + 0.01 * math.sin(t * 0.25))   # open hands by the hips, breathing
+            P = k.arm_to(P, sd, m[sd + "Hand"] + (rest - m[sd + "Hand"]) * w, 1.0 if w > 0 else 0.0, pole_out=0.5,
+                         fingers=np.array([0.0, -0.3, -1.0]) if w > 0.5 else None)
+        return P
+    out[c["anim_of"](mv)] = k.keyed(mv, rivers, settle=8)
+
+    # ... struck: a redirecting palm on the active frames, twelve chain
+    # punches (one every three frames), then the one-inch palm
+    mv = moves["thousand_rivers_strike"]
+    def strike12(t, total, a0, a1, mv=mv):
+        beats = [a1 + 3 + 3 * i for i in range(12)]
+        inch = beats[-1] + 6
+        go = track(t, [(0, 0.0), (a0, 1.0), (inch + 3, 1.0), (total - 1, 0.0)])
+        surge = track(t, [(0, 0.0), (inch - 3, 0.0), (inch, 1.0), (inch + 3, 1.0), (total - 1, 0.0)])
+        P = Kit.lunge(G, (0.1 * go + 0.08 * surge) * H, 0.05 * H * go)
+        P = lean(P, -3 * go - 5 * surge)
+        m = k.model(P)
+        tip = at(0.0, mv["hc"][0] + 0.02 - k.FIST, mv["hc"][1] + 0.05)
+        chest = m["Chest"] + v(0.0, -0.2, 0.12)
+        near = at(0.02 * H, mv["hc"][0] - 0.2, mv["hc"][1])                 # the palm rests on the chest ...
+        keys = {LEAD: [(0, m[LEAD + "Hand"]), (a0, tip), (a1, tip)], REAR: [(0, m[REAR + "Hand"]), (a1, chest)]}
+        for i, b in enumerate(beats):
+            sd, other = (REAR, LEAD) if i % 2 == 0 else (LEAD, REAR)
+            keys[sd] += [(b, tip + v(0.0, 0.0, 0.05 - 0.012 * i))]
+            keys[other] += [(b, chest)]
+        keys[REAR] += [(inch - 3, near), (inch, near + v(0.0, -0.12, 0.0)), (inch + 3, near + v(0.0, -0.12, 0.0)),   # ... and goes through it
+                       (total - 1, m[REAR + "Hand"])]
+        keys[LEAD] += [(inch - 3, chest + v(-0.1 * SG, 0.05, -0.15)), (total - 1, m[LEAD + "Hand"])]
+        for sd in ("Left", "Right"):
+            P = k.arm_to(P, sd, Kit.snap(t, keys[sd]), 1.0 if 0 < t < total - 1 else 0.0, pole_out=0.5,
+                         fingers=UP if (sd == REAR and t >= inch - 3) or t <= a1 else FWD)
+        return P
+    out[c["anim_of"](mv)] = k.keyed(mv, strike12, settle=8)
+    return out
+
+
+OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set, "vexa": vexa_set, "ryuen": ryuen_set}
 # {action name: (first, last) airborne frame}; filled by build(), read by the
 # importer's grounding pass so jumps are not flattened onto the floor.
 AIRBORNE = {}

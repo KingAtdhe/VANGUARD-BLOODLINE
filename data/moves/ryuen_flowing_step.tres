@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"ryuen_flowing_step"
+display_name = "Flowing Step"
+input_pattern = &"FORWARD_SPECIAL"
+animation = &"RYUEN_SPECIAL_FLOWING_STEP"
+startup_frames = 1
+active_frames = 1
+recovery_frames = 19
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 0
+damage = 0
+chip_damage = 0
+pushback = 0.0
+hit_level = 1
+hitbox_center = Vector2(0.4, 1.2)
+hitbox_size = Vector2(0.1, 0.1)
+tags = PackedStringArray("special", "step")
+cancel_tags = PackedStringArray()
+move_distance = 0.5
+move_start_frame = 2
+move_end_frame = 10
+invuln_start_frame = 2
+invuln_end_frame = 11
+no_hitbox = true
