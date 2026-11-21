@@ -877,6 +877,33 @@ against the design doc.
 - Drakon, Vexa and Ryuen keep their D-067 / D-070 poses.
 **Accepted.**
 
+## D-073 — 2026-11-21 — Stances posed by hand
+
+Owner: "all of them look way worse than stances from popular fighting
+games". The earlier passes (D-067, D-070, D-072) only nudged a captured
+boxing guard; this one sets the pose itself.
+- `pose_stance()` + a `pose` entry per fighter in `STYLES`: where each foot
+  stands, hip height and weight, chest turn, chin, a lifted lead heel, and
+  where each hand is held relative to the head. The captured guard now only
+  supplies natural shoulders, spine and breathing.
+- **Kairo** is orthodox as designed (`lead="Left"`; the capture stood right
+  foot forward): long base, chin down, compact guard.
+  **Drakon:** low, wide, hunched, both gauntlets reaching forward.
+  **Seraphina:** bladed on a long narrow base, lead heel up, lead hand out,
+  rear hand at the chin. **Nox:** a very low, long lunge with the chest over
+  the lead knee, lead hand reaching low. **Vexa:** upright, short base, long
+  guard with both hands high, lead foot light. **Ryuen:** weight on the rear
+  leg, lead foot on its toes, lead palm out, rear palm low.
+- Idle habits from D-072 are kept. Every move was re-rendered on its first
+  active frame for all six: strikes still land in their hitboxes.
+- Honest limit: these are poses built from numbers and judged in renders by
+  the implementer, without reference footage and without an animator. They
+  read more clearly than before; they are not at the level of a commercial
+  fighting game, whose stances are hand-animated loops with secondary
+  motion (cloth, hair, fingers, breathing through the whole body). Closing
+  that gap needs authored animation or capture of the actual stances.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

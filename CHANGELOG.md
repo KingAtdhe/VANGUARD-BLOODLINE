@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — stances posed by hand
+- All six stances rebuilt as designed poses instead of adjusted boxing guards: Drakon hunched and reaching, Nox in a very low lunge, Vexa in a high Muay Thai guard, Seraphina bladed with her lead heel up, Ryuen sunk on his rear leg, Kairo orthodox (left foot forward).
 ### Changed — stances, second pass
 - Kairo stands more upright with his fists at his chin; Nox's hands hang low; Seraphina's knees are softer.
 - Each fighter has their own idle habit: Kairo bobs, Seraphina bounces, Drakon and Nox rock from side to side, Vexa taps her front foot, Ryuen stays still.
