@@ -7,7 +7,8 @@ name: Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    # every push to main and to the working branch gets its own test build
+    branches: [main, arena-severed-line]
     tags: ["m*"]
 
 permissions:
@@ -67,9 +68,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(grep -oP 'config/version="\K[^"]+' project.godot)
-          TAG="apk-${VERSION}"
-          cp build/android/vanguard-bloodline-debug.apk "vanguard-bloodline-${VERSION}-debug.apk"
+          SHORT=$(git rev-parse --short HEAD)
+          # One release per build (newest on top of the Releases page), so an
+          # older build is never silently replaced.
+          TAG="apk-${VERSION}-${SHORT}"
+          APK="vanguard-bloodline-${VERSION}-${SHORT}.apk"
+          cp build/android/vanguard-bloodline-debug.apk "$APK"
+          {
+            echo "Test build for sideloading on Android (arm64). Not a store release."
+            echo
+            echo "Built from \`${GITHUB_REF_NAME}\` at ${SHORT}: $(git log -1 --pretty=%s)"
+            echo
+            echo "**Uninstall the previous test app first.** Every build is signed with a fresh debug key, so Android will not install it over an older one."
+          } > notes.md
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" --prerelease \
-            --title "Test build ${VERSION} (debug APK)" \
-            --notes "Debug-signed test build for sideloading on Android (arm64). Not a store release."
-          gh release upload "$TAG" "vanguard-bloodline-${VERSION}-debug.apk" --clobber
+            --title "Test build ${VERSION} (${SHORT}, ${GITHUB_REF_NAME})" --notes-file notes.md
+          gh release upload "$TAG" "$APK" --clobber

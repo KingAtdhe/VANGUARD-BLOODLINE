@@ -31,6 +31,17 @@ after each (CLAUDE.md).
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.
 
+## Test builds go to GitHub (owner's request, 2026-11-21)
+
+The owner wants every test APK from GitHub, not as a file in the chat.
+`.github/workflows/android.yml` builds on every push to this branch and
+publishes a release named `Test build <version> (<short sha>, <branch>)`
+with the APK attached: https://github.com/KingAtdhe/vanguard-bloodline/releases
+After pushing, wait for that run, check it is green, and send the owner the
+release link. Each run signs with a fresh debug key, so the owner must
+uninstall the previous test app every time; a fixed key would need the owner
+to add a keystore as a repository secret.
+
 ## How a fighter gets its own set (pattern to follow)
 
 1. `data/moves/<id>_*.tres`, `data/fighters/<id>_movement.tres`, edit
