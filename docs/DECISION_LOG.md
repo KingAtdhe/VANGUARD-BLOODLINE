@@ -806,6 +806,28 @@ First item of the Tekken / Street Fighter comparison the owner asked for.
   everyone; nobody has played with it. CPU difficulty was not re-tuned.
 **Accepted.**
 
+## D-070 — 2026-11-21 — Stances of Drakon, Seraphina, Nox and Ryuen brought to their designs
+
+Owner's request after D-067 (Kairo and Vexa). Measured on each game
+skeleton before and after (knee angles lead/rear, feet apart along the fight
+line), then rendered with every move.
+- **Drakon:** lower, feet squarer (54 to 38 cm stagger, 84 cm wide), head
+  forward behind the gauntlets instead of leaning back. Knees 148/128 to
+  131/123.
+- **Seraphina:** lead hand held out as a range-finder, rear hand at the
+  chin, weight on the rear leg. Feet unchanged (already side-on, in line).
+- **Nox:** a real crouch: both knees bent (131/175 to 115/137, the rear leg
+  was locked straight), stance shortened (62 to 41 cm), torso further over
+  the lead knee, hands low.
+- **Ryuen:** shorter, more upright stance (52 to 37 cm), lead palm forward
+  on the centre line, rear palm by the lead elbow.
+- `legacy_legs` (D-069) is gone: all six stances now use the corrected leg
+  maths. All moves were re-rendered; strikes still land in their hitboxes.
+- Not done: idle character motion from the designs (Drakon rocking side to
+  side, Seraphina bouncing, Vexa's tapping foot, Nox swaying) — the idles
+  are still each performer's captured breathing and bounce.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

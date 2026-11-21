@@ -7,8 +7,7 @@ motion) is built on top of that.
 **Next task: the owner chooses.** Remaining from the Tekken / Street Fighter
 comparison of 2026-11-21, in the order offered: forward and back dashes
 (already in the spec); a throw and throw escape for every fighter;
-multi-hit ultimates. Also open: the stance pass for Drakon,
-Seraphina, Nox and Ryuen. Do not start one without the owner's choice.
+multi-hit ultimates. Do not start one without the owner's choice.
 
 ## State
 
@@ -29,8 +28,9 @@ Seraphina, Nox and Ryuen. Do not start one without the owner's choice.
 - D-067 (owner feedback): raised stages are lowered to the fighters' feet
   (`ArenaConfig.stage_height`), Kairo and Vexa have reshaped stances
   (`STYLES` + `shape_stance()`; preview a stance on the real skeleton before
-  a 5-minute rebuild by measuring knee angles and foot spacing). Drakon,
-  Seraphina, Nox and Ryuen stances untouched.
+  a 5-minute rebuild by measuring knee angles and foot spacing). The
+  other four followed in D-070; all six stances now match the design doc
+  except for the idle motion described there.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.

@@ -43,15 +43,21 @@ STYLES = {
     # crouched orthodox boxer: left foot forward, weight a little over it, lead fist at eye level
     "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35, crouch=-0.02, stride=0.62, weight=0.05, lean=7,
                   lead_hand=(0.0, -0.08, -0.05), rear_hand=(0.0, 0.0, -0.05)),
-    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.06, width=0.06, lean=4, legacy_legs=True,  # heavy, wide, upright
+    # square and wide, knees bent, weight low and even, head forward behind both gauntlets
+    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.03, width=0.07, stride=-0.12, lean=-4,
                    hands=(0.03, 0.0, 0.04)),
-    "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180),                               # karate side stance
-    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.1, width=0.04, lean=-10, legacy_legs=True,    # low predatory crouch
-                hands=(0.0, -0.04, -0.06)),
+    # side-on and tall, weight on the rear leg, lead hand out as a range-finder, rear hand at the chin
+    "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180, crouch=0.01, weight=-0.03, lean=2,
+                      lead_hand=(0.0, -0.16, -0.02), rear_hand=(0.0, 0.02, 0.1)),
+    # deep, wide crouch over the lead knee, both knees bent, hands low and open, head down
+    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.07, width=0.05, stride=-0.16, weight=0.05, lean=-16,
+                lead_hand=(0.02, 0.1, -0.2), rear_hand=(0.02, -0.02, -0.14)),
     # upright Muay Thai: tall, weight back on the rear leg, hands high and wide by the temples
     "vexa": dict(clip="14_01", frame=2700, amp=0.6, crouch=-0.1, stride=0.2, weight=-0.04, lean=3,
                  hands=(0.07, 0.03, 0.15), elbows=0.6),
-    "ryuen": dict(clip="144_13", frame=150, amp=0.15, lean=2, hands=(0.04, -0.10, -0.16)),                           # calm upright master
+    # upright and relaxed on soft knees, lead palm forward on the centre line, rear palm by the lead elbow
+    "ryuen": dict(clip="144_13", frame=150, amp=0.15, lean=2, stride=-0.16, hands=(0.04, -0.10, -0.16),
+                  lead_hand=(-0.05, -0.06, 0.06), rear_hand=(-0.04, 0.05, -0.05)),
 }
 FPS_OUT = 60
 
@@ -70,11 +76,6 @@ def shape_stance(P, st, H):
     # the whole figure moves, then the feet are put back with IK: the leg
     # bones keep their length and only the knee angle changes
     moved = list(P.keys())
-    if st.get("legacy_legs"):
-        # Drakon and Nox were shaped before D-067, when only the upper body and
-        # hips were moved (the leg IK then worked with stretched bones). Their
-        # stances are kept exactly as built until the owner asks for a change.
-        moved = UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"]
     P = shift(P, moved, np.array([0, -st.get("weight", 0.0) * H, -st.get("crouch", 0.0) * H]))
     P = lean(P, st.get("lean", 0.0))
     for sd, sg in (("Left", 1), ("Right", -1)):

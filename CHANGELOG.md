@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — stances of Drakon, Seraphina, Nox and Ryuen
+- Drakon stands lower and squarer with his head forward; Seraphina holds her lead hand out and her rear hand at the chin; Nox crouches on two bent knees with low hands; Ryuen stands shorter and more upright with his lead palm forward.
 ### Added — hit feel
 - Counter-hits: hitting an opponent out of their own attack does 20% more damage, stuns longer and freezes longer; the HUD shows COUNTER. Vexa's Cut Kick staggers and Ryuen's Sinking Elbow knocks down on counter-hit.
 - Fighters react to where they are hit: head snaps back, body hits fold them over, leg hits knock the lead leg away.
