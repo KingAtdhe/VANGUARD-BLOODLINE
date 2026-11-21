@@ -54,6 +54,7 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var cancel_tags: PackedStringArray = PackedStringArray()
 
 @export_group("Movement")
+## Negative = backward (evasive steps).
 ## Distance (m) the attacker travels forward during the move, spread evenly
 ## over frames move_start_frame..move_end_frame. Pushboxes still apply.
 @export var move_distance: float = 0.0
@@ -97,8 +98,20 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var armor_end_frame: int = 0
 @export var armor_hits: int = 0
 
-@export_group("Reserved for later milestones")
+@export_group("Evasion")
+## The user has no hurtbox on frames invuln_start_frame..invuln_end_frame
+## (0 = never). D-064.
+@export var invuln_start_frame: int = 0
+@export var invuln_end_frame: int = 0
+
+@export_group("Launch")
+## On hit the defender is launched: airborne for launch_frames, can be hit
+## again while in the air (juggle, limits in CombatTuning), then lands
+## knocked down. D-064.
 @export var launch: bool = false
+@export var launch_frames: int = 46
+
+@export_group("Reserved for later milestones")
 @export var airborne_allowed: bool = false
 ## Only if the move design genuinely needs one (0 = none).
 @export var cooldown_frames: int = 0
@@ -132,10 +145,14 @@ func is_active_frame(frame: int) -> bool:
 
 
 func moves_on_frame(frame: int) -> bool:
-	return move_distance > 0.0 and frame >= move_start_frame and frame <= move_end_frame
+	return move_distance != 0.0 and frame >= move_start_frame and frame <= move_end_frame
 
 
-## Forward distance per moving frame.
+func is_invulnerable_on(frame: int) -> bool:
+	return invuln_end_frame > 0 and frame >= invuln_start_frame and frame <= invuln_end_frame
+
+
+## Forward distance per moving frame (negative = backward, an evasive step).
 func move_step() -> float:
 	return move_distance / float(move_end_frame - move_start_frame + 1)
 
@@ -203,7 +220,7 @@ func validate() -> Array[String]:
 		p.append("%s: a throw cannot be blocked, chip must be 0" % id)
 	if not activates_surge and not is_counter() and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
 		p.append("%s: hitbox_size must be positive" % id)
-	if move_distance < 0.0 or move_end_frame < move_start_frame:
+	if move_end_frame < move_start_frame:
 		p.append("%s: invalid movement" % id)
 	if activates_surge and requires_surge:
 		p.append("%s: cannot both activate and require surge" % id)

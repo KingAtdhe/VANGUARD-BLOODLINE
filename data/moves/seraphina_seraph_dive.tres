@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"seraphina_seraph_dive"
+display_name = "Seraph Dive"
+input_pattern = &"FORWARD_SPECIAL"
+animation = &"SERAPHINA_SPECIAL_SERAPH_DIVE"
+startup_frames = 18
+active_frames = 5
+recovery_frames = 20
+hitstun_frames = 22
+blockstun_frames = 16
+hitstop_frames = 10
+damage = 85
+chip_damage = 8
+pushback = 0.4
+hit_level = 0
+hitbox_center = Vector2(0.6, 1.0)
+hitbox_size = Vector2(0.7, 0.9)
+tags = PackedStringArray("special")
+cancel_tags = PackedStringArray()
+move_distance = 2.2
+move_start_frame = 4
+move_end_frame = 18
+meter_gain_on_hit = 10
+meter_gain_on_block = 5

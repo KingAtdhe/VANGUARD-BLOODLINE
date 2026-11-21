@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FighterMovementProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fighters/fighter_movement_profile.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+fighter_id = &"seraphina"
+display_name = "Seraphina"
+walk_forward_speed = 2.8
+walk_backward_speed = 2.7
+pushbox_half_width = 0.33

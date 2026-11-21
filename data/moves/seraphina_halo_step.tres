@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"seraphina_halo_step"
+display_name = "Halo Step"
+input_pattern = &"BACK_SPECIAL"
+animation = &"SERAPHINA_SPECIAL_HALO_STEP"
+startup_frames = 20
+active_frames = 4
+recovery_frames = 20
+hitstun_frames = 20
+blockstun_frames = 12
+hitstop_frames = 9
+damage = 75
+chip_damage = 6
+pushback = 0.5
+hit_level = 1
+hitbox_center = Vector2(1.05, 1.15)
+hitbox_size = Vector2(0.8, 0.35)
+tags = PackedStringArray("special")
+cancel_tags = PackedStringArray()
+move_distance = -1.1
+move_start_frame = 2
+move_end_frame = 10
+meter_gain_on_hit = 8
+meter_gain_on_block = 4
+invuln_start_frame = 3
+invuln_end_frame = 12

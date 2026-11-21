@@ -53,7 +53,7 @@ Balance values go in `data/`, never in controller code.
 2. Per-fighter move data, low attacks and low block. **Engine done (D-061): low block, hit levels, direction + button inputs. Move data per fighter follows with each fighter's set.**
 3. Kairo's full set; owner tests on device before the rest follow. **Built (D-062), awaiting owner test.**
 4. One fighter at a time with the mechanic it needs: Drakon (throws, armour — **built, D-063**),
-   Seraphina (evade, launch), Nox (side switch, overhead), Vexa (projectile,
+   Seraphina (evade, launch — **built, D-064**), Nox (side switch, overhead), Vexa (projectile,
    parry), Ryuen (counters).
 5. A test build after every fighter.
 

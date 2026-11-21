@@ -211,6 +211,18 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 				f.stun_remaining = tuning.wakeup_ticks
 			else:
 				f.stun_remaining -= 1
+		FighterState.Action.LAUNCHED:
+			# In the air; lands knocked down, which ends the combo.
+			if f.stun_remaining <= 0:
+				f.action = FighterState.Action.KNOCKDOWN
+				f.stun_remaining = tuning.knockdown_ticks
+				f.combo_hits = 0
+				f.combo_damage = 0
+				f.juggle_hits = 0
+				f.juggle_exhausted = false
+				f.launch_total = 0
+			else:
+				f.stun_remaining -= 1
 		FighterState.Action.WAKEUP, FighterState.Action.HITSTUN, FighterState.Action.BLOCKSTUN:
 			# Guard height can be switched during blockstun (read live), so a
 			# high/low string has to be blocked hit by hit.

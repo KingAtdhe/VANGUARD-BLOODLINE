@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"seraphina_crescent_arc"
+display_name = "Crescent Arc"
+input_pattern = &"SPECIAL"
+animation = &"SERAPHINA_SPECIAL_CRESCENT_ARC"
+startup_frames = 9
+active_frames = 6
+recovery_frames = 28
+hitstun_frames = 20
+blockstun_frames = 14
+hitstop_frames = 10
+damage = 70
+chip_damage = 6
+pushback = 0.15
+hit_level = 1
+hitbox_center = Vector2(0.7, 1.3)
+hitbox_size = Vector2(0.6, 1.0)
+tags = PackedStringArray("special")
+cancel_tags = PackedStringArray()
+meter_gain_on_hit = 8
+meter_gain_on_block = 4
+meter_cost = 25
+launch = true
+launch_frames = 46

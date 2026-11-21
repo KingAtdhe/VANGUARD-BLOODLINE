@@ -4,7 +4,7 @@ extends RefCounted
 ## Plain data only — no nodes — so it can be copied, compared and tested.
 
 ## High-level action state. Neutral states (IDLE, WALK, BLOCK) can act.
-enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP }
+enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP, LAUNCHED }
 
 ## Position of the fighter's centre on the fighting plane (metres).
 var position_x: float = 0.0
@@ -34,6 +34,11 @@ var stun_remaining: int = 0
 var block_low: bool = false
 ## Hits the current move's armour can still absorb (set when the move starts).
 var armor_left: int = 0
+## LAUNCHED: hits taken in the air so far, and the length of the current
+## float (stun_remaining counts it down) — the view draws the arc from these.
+var juggle_hits: int = 0
+var launch_total: int = 0
+var juggle_exhausted: bool = false
 
 ## Buttons held on the last processed tick (for press-edge detection).
 var held_buttons: int = 0
@@ -73,6 +78,9 @@ func copy() -> FighterState:
 	s.stun_remaining = stun_remaining
 	s.block_low = block_low
 	s.armor_left = armor_left
+	s.juggle_hits = juggle_hits
+	s.launch_total = launch_total
+	s.juggle_exhausted = juggle_exhausted
 	s.held_buttons = held_buttons
 	s.buffer = buffer.duplicate()
 	s.chain = chain.duplicate()
@@ -94,6 +102,15 @@ func in_surge() -> bool:
 
 
 ## On the ground or getting up: cannot be hit.
+## Height above the floor (m) of a launched fighter: a simple arc over the
+## current float. Presentation only — hurtboxes do not move.
+func launch_height() -> float:
+	if action != Action.LAUNCHED or launch_total <= 0:
+		return 0.0
+	var u: float = clampf(1.0 - float(stun_remaining) / float(launch_total), 0.0, 1.0)
+	return sin(u * PI) * (0.95 if juggle_hits == 0 else 0.45)
+
+
 func is_downed() -> bool:
 	return action == Action.KNOCKDOWN or action == Action.WAKEUP
 

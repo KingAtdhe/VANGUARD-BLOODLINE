@@ -592,7 +592,133 @@ def drakon_set(c):
     return out
 
 
-OWN_SETS = {"drakon": drakon_set}
+def turn(P, deg):
+    """Spin the whole figure about the vertical axis through the hips."""
+    R = np.array(Matrix.Rotation(math.radians(deg), 3, "Z"))
+    o = np.array([P["Hips"][0], P["Hips"][1], 0.0])
+    return {k: R @ (v - o) + o for k, v in P.items()}
+
+
+def hump(t, t0, t1):
+    """0 outside t0..t1, a smooth arc (peak 1) between."""
+    if t <= t0 or t >= t1:
+        return 0.0
+    return math.sin(math.pi * (t - t0) / (t1 - t0))
+
+
+def seraphina_set(c):
+    """Seraphina: Skyblade. Taekwondo / karate kicker. The side kick,
+    roundhouse and rising kick are captured kicks (CMU 143_24, 86_08, 135_04),
+    aimed so the kicking leg points at the opponent; the knife-hand, sweep,
+    dive and the airborne part of the ultimate are keyed from her guard."""
+    H, G, moves, pose_of, box = c["H"], c["guard_P"], c["moves"], c["pose_of"], c["box"]
+    v = lambda x, y, z: np.array([x, y, z]) * H          # noqa: E731
+    gl, gr = G["LeftHand"], G["RightHand"]
+    lf, rf = G["LeftFoot"], G["RightFoot"]
+    side_c, round_c, rise_c = c["clip"]("143_24"), c["clip"]("86_08"), c["clip"]("135_04")
+    out = {}
+
+    def aim(cl, peak, side):
+        d = (cl.at(peak)[side + "Foot"] - cl.at(peak)["Hips"])[:2]
+        return d / (np.linalg.norm(d) + 1e-9)
+
+    def keyed(mv, fn, lift=None):
+        total, a0, a1 = frames_of(mv)
+        poses = []
+        for t in range(total):
+            P = fn(t, total, a0, a1)
+            pose = pose_of(P, box)
+            up = lift(t) if lift else 0.0
+            if up > 0.005:
+                pose = Pose(pose.D, pose.hips + np.array([0, 0, up]))
+            poses.append(pose)
+        for t in range(max(0, total - 6), total):
+            poses[t] = Pose.blend(poses[t], c["guard"], ease((t - (total - 6)) / 6))
+        return poses
+
+    # Knife-hand: the extended lead hand flicks out and back along one line
+    mv = moves["knife_hand"]
+    def knife(t, total, a0, a1, mv=mv):
+        hit = np.array([0.02 * H, -mv["hc"][0], mv["hc"][1]])
+        P = lean(G, track(t, [(0, 0.0), (a0, -5.0), (a1, -5.0), (total - 1, 0.0)]))
+        return move_hand(P, "Left", track(t, [(0, gl), (a0, hit), (a1, hit), (total - 1, gl)]), 1.0)
+    out[c["anim_of"](mv)] = keyed(mv, knife)
+
+    # Side Kick and Roundhouse: captured, turned so the leg points at the opponent
+    mv = moves["side_kick"]
+    out[c["anim_of"](mv)] = c["strike"](side_c, 294, "Left", "foot", mv, pre=30, post=40, blend_in=4,
+                                        aim=aim(side_c, 294, "Left"))
+    mv = moves["roundhouse"]
+    out[c["anim_of"](mv)] = c["strike"](round_c, 4061, "Right", "foot", mv, pre=36, post=44, blend_in=4,
+                                        aim=aim(round_c, 4061, "Right"))
+
+    # Low Sweep: drops low, the lead leg scythes across the floor
+    mv = moves["low_sweep"]
+    def sweep(t, total, a0, a1, mv=mv):
+        P = sink(G, G, track(t, [(0, 0.0), (a0 - 3, 0.26 * H), (a1 + 3, 0.26 * H), (total - 1, 0.0)]))
+        P = lean(P, track(t, [(0, 0.0), (a0, -18.0), (a1, -18.0), (total - 1, 0.0)]))
+        foot = track(t, [(0, lf), (a0 - 4, lf + v(0.2, 0.08, 0.03)), (a0, np.array([0.12 * H, -mv["hc"][0], 0.07])),
+                         (a1, np.array([-0.16 * H, -mv["hc"][0] + 0.12, 0.07])), (a1 + 8, lf), (total - 1, lf)])
+        return move_foot(P, "Left", foot)
+    out[c["anim_of"](mv)] = keyed(mv, sweep)
+
+    # Crescent Arc: the captured rising kick, thrown from a jump
+    mv = moves["crescent_arc"]
+    total, a0, a1 = frames_of(mv)
+    name = c["anim_of"](mv)
+    out[name] = c["strike"](rise_c, 584, "Left", "foot", mv, pre=30, post=44, blend_in=3,
+                            lift=lambda t, a0=a0, a1=a1: 0.26 * H * hump(t, a0 - 4, a1 + 9))
+    c["air"](name, a0 - 3, a1 + 8)
+
+    # Halo Step: leans away as she slides back (the game moves her), then the side kick
+    mv = moves["halo_step"]
+    out[c["anim_of"](mv)] = c["strike"](side_c, 294, "Left", "foot", mv, pre=34, post=40, blend_in=3,
+                                        aim=aim(side_c, 294, "Left"),
+                                        extra=lambda P, t, T: lean(P, 15 * hump(t, 1, 13)))
+
+    # Seraph Dive: hops forward (the game carries her) and comes down heel first
+    mv = moves["seraph_dive"]
+    total, a0, a1 = frames_of(mv)
+    def dive(t, total, a0, a1, mv=mv):
+        heel = np.array([rf[0], -mv["hc"][0] + 0.05, 0.5])
+        P = lean(G, track(t, [(0, 0.0), (5, 8.0), (a0, -16.0), (a1, -16.0), (total - 1, 0.0)]))
+        P = move_foot(P, "Left", lf + v(0, 0.06, 0.2) * hump(t, 2, a0 + 3))
+        return move_foot(P, "Right", track(t, [(0, rf), (7, rf + v(0, -0.06, 0.2)), (a0, heel), (a1, heel),
+                                               (a1 + 7, rf), (total - 1, rf)]))
+    name = c["anim_of"](mv)
+    out[name] = keyed(mv, dive, lift=lambda t, a0=a0: 0.36 * H * hump(t, 2, a0 + 2))
+    c["air"](name, 3, a0 + 1)
+
+    # Radiant Ascension: rising kick, two spinning kicks in the air, axe kick down
+    mv = moves["radiant_ascension"]
+    total, a0, a1 = frames_of(mv)
+    first = c["strike"](rise_c, 584, "Left", "foot", mv, pre=26, post=20, blend_in=2)
+    up0, land = a1 + 2, total - 9                     # leaves the floor / axe kick lands
+    def ascend(t, total, a0, a1):
+        u = (t - up0) / max(1, land - 4 - up0)                    # 0..1 over the spins
+        spin = 720.0 * ease(min(1.0, max(0.0, u)))
+        leg_out = hump(t, up0, land - 3)
+        P = move_foot(G, "Right", rf + v(-0.05, -0.36, 0.5) * leg_out)       # kicking leg held out
+        P = move_foot(P, "Left", lf + v(0, 0.05, 0.22) * leg_out)            # other leg tucked
+        P = turn(P, spin)
+        axe = track(t, [(0, 0.0), (land - 6, 0.0), (land - 3, 1.0), (land, 0.0), (total - 1, 0.0)])
+        if axe > 0 and t >= land - 6:
+            P = move_foot(P, "Left", lf + v(0, -0.3, 0.75) * axe)            # leg whips up, then drops
+        return P
+    air_pose = keyed(mv, ascend, lift=lambda t: 0.5 * H * hump(t, up0 - 1, land))
+    seq = first[:up0] + air_pose[up0:]
+    for k in range(3):                                # ease from the captured kick into the air phase
+        seq[up0 + k] = Pose.blend(first[min(len(first) - 1, up0 + k)], air_pose[up0 + k], (k + 1) / 4.0)
+    name = c["anim_of"](mv)
+    out[name] = seq
+    c["air"](name, up0, land - 1)
+    return out
+
+
+OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set}
+# {action name: (first, last) airborne frame}; filled by build(), read by the
+# importer's grounding pass so jumps are not flattened onto the floor.
+AIRBORNE = {}
 
 
 # --------------------------------------------------------------------------- the actions
@@ -608,9 +734,10 @@ def build(rig_obj, moves, fid, height, clip_dir):
     lay = clip("113_08")         # lie down / get up (on the back)
     H = height / 1.8
 
-    def src(c, f, facing_frame=None, anchor=None):
+    def src(c, f, facing_frame=None, anchor=None, fd=None):
         P = c.at(f)
-        fd = c.opponent_dir(int(facing_frame if facing_frame is not None else f))
+        if fd is None:
+            fd = c.opponent_dir(int(facing_frame if facing_frame is not None else f))
         a = anchor if anchor is not None else P["Hips"][:2]
         return align(P, fd, a)
 
@@ -670,7 +797,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
     box_stand = box.stand_hips
 
     # ---- strikes retimed to frame data, limb guided onto the hitbox
-    def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None, blend_in=0):
+    def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None, blend_in=0,
+               aim=None, lift=None):
+        """aim: horizontal direction of the capture that must point at the
+        opponent (kicks thrown sideways from the hips); lift(t): metres the
+        whole body is raised on frame t (jumps; those frames are not grounded)."""
         start, total = mv["startup"], mv["startup"] + mv["active"] - 1 + mv["recovery"]
         a0, a1 = mv["startup"] - 1, mv["startup"] + mv["active"] - 2
         mid = (a0 + a1) / 2
@@ -684,7 +815,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 f = (peak - pre) + (t / max(1e-6, mid)) * pre
             else:
                 f = peak + (t - mid) / max(1e-6, total - 1 - mid) * post
-            P = src(c, f, facing_frame=facing or peak, anchor=anchor)
+            P = src(c, f, facing_frame=facing or peak, anchor=anchor, fd=aim)
             # body stays near the game position: keep 40% of the lunge
             dx = np.array([-P["Hips"][0], -P["Hips"][1] * 0.6, 0])
             P = shift(P, list(P.keys()), dx)
@@ -703,7 +834,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 P = move_foot(P, side, np.array([cur[0], tgt_fwd + 0.08, tgt_h]), w)
             if extra:
                 P = extra(P, t, total)
-            poses.append(pose_of(P, c))
+            pose = pose_of(P, c)
+            up = lift(t) if lift else 0.0
+            if up > 0.005:                    # grounded pose first, then raised
+                pose = Pose(pose.D, pose.hips + np.array([0, 0, up]))
+            poses.append(pose)
         # settle into the guard over the last frames so the next move blends cleanly
         n = len(poses)
         for t in range(min(blend_in, n)):      # captures that do not start in a guard
@@ -957,7 +1092,10 @@ def build(rig_obj, moves, fid, height, clip_dir):
 
     # ---- fighters with their own move sets (docs/FIGHTER_COMBAT_DESIGN.md)
     if fid in OWN_SETS:
+        def air(name, first, last):
+            AIRBORNE[name] = (int(first), int(last))
         ctx = dict(H=H, F=F, moves=moves, guard_P=guard_P, guard=guard, box=box, pose_of=pose_of, strike=strike,
+                   clip=clip, air=air,
                    anim_of=lambda mv: F + mv["animation"][mv["animation"].find("_"):])
         A.update(OWN_SETS[fid](ctx))
 

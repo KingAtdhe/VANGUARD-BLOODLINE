@@ -157,7 +157,7 @@ def remove_pedestal(obj):
     return int(drop.sum()) + len(crumbs)
 
 
-def ground_actions(rig, body, actions):
+def ground_actions(rig, body, actions, airborne=None):
     """Puts the lowest point of the actual mesh on the floor (z = 0) in every
     frame of every action, by moving the hips. Bone-based grounding ignores
     boot soles and garments (fighters floated or sank 2-25 cm)."""
@@ -177,6 +177,14 @@ def ground_actions(rig, body, actions):
             ev.data.vertices.foreach_get("co", co)
             dz[f] = -float(co.reshape(-1, 3)[:, 2].min())
             worst = max(worst, abs(dz[f]))
+        if airborne and name in airborne:
+            # A jump: keep the keyed height. The correction is carried across
+            # the airborne frames from the grounded frames on either side.
+            a0 = max(f0 + 1, airborne[name][0])
+            a1 = min(f1 - 1, airborne[name][1])
+            for f in range(a0, a1 + 1):
+                u = (f - (a0 - 1)) / float(a1 + 1 - (a0 - 1))
+                dz[f] = dz[a0 - 1] * (1 - u) + dz[a1 + 1] * u
         d = {f: to_local @ np.array([0.0, 0.0, v]) for f, v in dz.items()}
         if hasattr(act, "fcurves"):
             all_fc = list(act.fcurves)
@@ -538,7 +546,8 @@ def main():
                 pb.constraints.remove(c)
         for empty, _c in targets.values():
             bpy.data.objects.remove(empty)
-    ground_actions(rig, body, actions)
+    airborne = sys.modules["mocap_actions"].AIRBORNE if "mocap_actions" in sys.modules else None
+    ground_actions(rig, body, actions, airborne)
     rig.animation_data.action = bpy.data.actions[f"{F}_IDLE_A"]
     for pb in rig.pose.bones:
         pb.matrix_basis = Matrix.Identity(4)

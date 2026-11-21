@@ -28,6 +28,13 @@ extends Resource
 @export var knockdown_ticks: int = 45
 @export var wakeup_ticks: int = 20
 
+@export_group("Juggle")
+## Air time (ticks) after each further hit on a launched fighter.
+@export var juggle_refloat_ticks: int = 22
+## Hits a launched fighter can take in the air; after that it cannot be hit
+## again until it has landed and got up.
+@export var max_juggle_hits: int = 3
+
 @export_group("Combo scaling")
 ## Damage percent for the 1st, 2nd, 3rd… hit of a combo.
 @export var combo_scaling_percent: PackedInt32Array = PackedInt32Array([100, 100, 80, 70, 60, 50])

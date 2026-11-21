@@ -69,6 +69,10 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			var block_anim: StringName = def.anim_block_low \
 					if (s.block_low and def.anim_block_low != &"") else def.anim_block
 			_show(block_anim, BLEND_REACTION, _entered_time(s, block_anim, dt), false)
+		FighterState.Action.LAUNCHED:
+			# Reeling in the air; each new hit restarts the reaction.
+			var air_hit: bool = _last_action != s.action or s.combo_hits != _last_combo
+			_show(def.anim_hit_heavy, BLEND_REACTION, 0.0 if air_hit else _entered_time(s, def.anim_hit_heavy, dt), false)
 		FighterState.Action.KNOCKDOWN, FighterState.Action.KO:
 			_show(def.anim_knockdown, BLEND_REACTION, _entered_time(s, def.anim_knockdown, dt), false)
 		FighterState.Action.WAKEUP:

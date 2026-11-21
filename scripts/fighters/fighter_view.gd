@@ -188,10 +188,13 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 		return
 	var x: float = lerpf(previous.position_x, current.position_x, alpha)
 	var victim: bool = current.action == FighterState.Action.HITSTUN \
+			or current.action == FighterState.Action.LAUNCHED \
 			or current.action == FighterState.Action.BLOCKSTUN
 	if frozen and victim:
 		x += sin(Time.get_ticks_msec() * 0.09) * HITSTOP_SHAKE
 	position.x = x
+	# A launched fighter is drawn on its arc (presentation only).
+	position.y = lerpf(previous.launch_height(), current.launch_height(), alpha)
 	_facing_marker.scale.x = float(current.facing)
 	_shield.visible = current.is_blocking()
 	# Low block: the shield drops to cover the legs.

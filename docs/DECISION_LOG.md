@@ -588,6 +588,34 @@ Second fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
 - **Not built:** scorch mark / shockwave effects.
 **Accepted.**
 
+## D-064 — 2026-11-21 — Seraphina's own move set; launch, juggle, evasion
+
+Third fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
+- **Moves (data/moves/seraphina_*):** Knife-hand (LIGHT), Side Kick (HEAVY,
+  longest normal), Roundhouse (KICK), Low Sweep (DOWN + KICK, LOW, knocks
+  down), Crescent Arc (SPECIAL, launcher, 25 meter), Seraph Dive (FORWARD +
+  SPECIAL, overhead: HIGH), Halo Step (BACK + SPECIAL, slides back
+  invulnerable, then a side kick), Radiant Ascension (ultimate, launches).
+  900 health, own movement profile (2.8 / 2.7 m/s).
+- **Launch and juggle (engine):** `MoveData.launch/launch_frames`,
+  `FighterState.Action.LAUNCHED` (+ `juggle_hits`, `launch_total`,
+  `juggle_exhausted`), `CombatTuning.juggle_refloat_ticks` (22) and
+  `max_juggle_hits` (3). A launched fighter can be hit again (combo
+  continues, shorter float), cannot be thrown, and lands knocked down. Its
+  height is presentation only (`FighterState.launch_height`): hurtboxes stay
+  on the ground plane, so ordinary standing attacks hit it.
+- **Evasion (engine):** `MoveData.invuln_start_frame/_end_frame` (no hurtbox)
+  and negative `move_distance` (backward).
+- **Animation:** side kick (CMU 143_24), roundhouse (86_08) and the rising
+  kick (135_04) are captured kicks, turned so the kicking leg points at the
+  opponent (`strike(aim=...)`). Knife-hand, sweep, dive and the airborne part
+  of the ultimate are keyed. Jumps: `strike/keyed(lift=...)`; the importer's
+  grounding pass leaves the frames listed in `mocap_actions.AIRBORNE` in the
+  air. The ultimate is one hit followed by her air sequence while the
+  opponent floats; the air kicks do not hit separately. Light-ring effects
+  are not built.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

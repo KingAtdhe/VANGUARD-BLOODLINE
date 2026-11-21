@@ -152,6 +152,8 @@ func next_input() -> FighterInputFrame:
 		FighterState.Action.KO:
 			_set_state(State.KNOCKDOWN, "KO")
 			return _emit(0, 0)
+		FighterState.Action.LAUNCHED:
+			return _emit(0, 0)
 		FighterState.Action.HITSTUN, FighterState.Action.BLOCKSTUN:
 			if not _was_stunned:
 				_was_stunned = true

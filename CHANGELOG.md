@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Seraphina's own move set
+- Knife-hand (L), Side Kick (H), Roundhouse (K), Low Sweep (down + K), Crescent Arc (SP, launches), Seraph Dive (toward + SP, overhead), Halo Step (away + SP, evasive), ultimate Radiant Ascension. 900 health, fastest backward walk.
+- Launching and air hits, invulnerable frames and backward-moving attacks in the combat engine.
 ### Added — Drakon's own move set
 - Hammer Fist (L), Haymaker (H), Shoulder Check (down + H), Stomp (K, low), Anvil Slam (SP, unblockable grab), Forge Charge (toward + SP, absorbs one hit), Quake Stomp (away + SP, low, long reach), ultimate Molten Colossus (grab).
 - Drakon has more health (1150), takes half chip damage when blocking and walks slower.

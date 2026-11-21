@@ -21,6 +21,10 @@ extends RefCounted
 ##     defender gains a percentage of damage taken / a flat amount on block.
 ##   - A `knockdown` move that HITS knocks the defender down (no hurtbox while
 ##     down and getting up), which ends the combo.
+##   - Launch: a `launch` move that HITS puts the defender in LAUNCHED for
+##     launch_frames; hits on a launched fighter continue the combo and
+##     re-float it (CombatTuning juggle values); a knockdown move spikes it
+##     straight to KNOCKDOWN; when the float ends it lands knocked down.
 ##   - Armour: a defender whose move has armour on this frame takes the
 ##     damage but is not interrupted, stunned or pushed (throws ignore it).
 ##   - Throws (HitLevel.THROW) cannot be blocked and do not connect on a
@@ -52,7 +56,8 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		var move: MoveData = states[c.attacker].move
 		moves.append(move)
 		blocked.append(states[c.defender].is_blocking() and move.blocked_by(states[c.defender].block_low))
-		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN)
+		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN
+				or states[c.defender].action == FighterState.Action.LAUNCHED)
 		var d: FighterState = states[c.defender]
 		countered.append(d.action == FighterState.Action.ATTACK and d.move != null
 				and d.move.counters(d.move_frame, move.hit_level))
@@ -128,9 +133,22 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		defender.move_connected = false
 		defender.move_x = 0
 		defender.chain.clear()
+		var airborne: bool = defender.action == FighterState.Action.LAUNCHED
 		if blocked[i]:
 			defender.action = FighterState.Action.BLOCKSTUN
 			defender.stun_remaining = move.blockstun_frames
+		elif airborne and not move.knockdown:
+			# Juggle: another hit in the air gives a shorter float, up to the limit.
+			defender.juggle_hits += 1
+			defender.juggle_exhausted = defender.juggle_hits >= sim.tuning.max_juggle_hits
+			defender.stun_remaining = sim.tuning.juggle_refloat_ticks
+			defender.launch_total = defender.stun_remaining
+		elif move.launch:
+			defender.action = FighterState.Action.LAUNCHED
+			defender.juggle_hits = 0
+			defender.juggle_exhausted = false
+			defender.stun_remaining = move.launch_frames
+			defender.launch_total = move.launch_frames
 		elif move.knockdown:
 			defender.action = FighterState.Action.KNOCKDOWN
 			defender.stun_remaining = sim.tuning.knockdown_ticks

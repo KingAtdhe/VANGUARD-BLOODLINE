@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"seraphina_roundhouse"
+display_name = "Roundhouse"
+input_pattern = &"KICK"
+animation = &"SERAPHINA_KICK_ROUNDHOUSE_01"
+startup_frames = 10
+active_frames = 4
+recovery_frames = 18
+hitstun_frames = 21
+blockstun_frames = 15
+hitstop_frames = 9
+damage = 80
+chip_damage = 6
+pushback = 0.4
+hit_level = 1
+hitbox_center = Vector2(0.8, 1.5)
+hitbox_size = Vector2(0.7, 0.35)
+tags = PackedStringArray("normal", "kick")
+cancel_tags = PackedStringArray("special")
+meter_gain_on_hit = 10
+meter_gain_on_block = 5

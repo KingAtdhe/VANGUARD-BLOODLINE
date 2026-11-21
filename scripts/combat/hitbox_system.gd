@@ -13,6 +13,11 @@ extends RefCounted
 static func hurtbox(def: FighterDefinition, s: FighterState) -> Rect2:
 	if s.action == FighterState.Action.KO or s.is_downed():
 		return Rect2()
+	# Evasive moves, and a launched fighter that has taken its juggle limit.
+	if s.action == FighterState.Action.ATTACK and s.move != null and s.move.is_invulnerable_on(s.move_frame):
+		return Rect2()
+	if s.action == FighterState.Action.LAUNCHED and s.juggle_exhausted:
+		return Rect2()
 	return Rect2(s.position_x - def.hurtbox_half_width, 0.0,
 		def.hurtbox_half_width * 2.0, def.hurtbox_height)
 
@@ -57,7 +62,8 @@ static func find_contacts(defs: Array[FighterDefinition], states: Array[FighterS
 		# Throws cannot grab a fighter who is reeling from a hit or a blocked
 		# attack (no unblockable combos, no grabbing out of blockstun).
 		if states[a].move.is_throw() and (states[d].action == FighterState.Action.HITSTUN
-				or states[d].action == FighterState.Action.BLOCKSTUN):
+				or states[d].action == FighterState.Action.BLOCKSTUN
+				or states[d].action == FighterState.Action.LAUNCHED):
 			continue
 		var c := Contact.new()
 		c.attacker = a
