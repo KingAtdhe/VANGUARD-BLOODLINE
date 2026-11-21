@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Nox's own move set
+- Fang Jab (L), Rising Backfist (H), Scythe Sweep (K, low), Drop Heel (down + H, overhead), Shade Step (SP, passes through the opponent), Throat Pierce (toward + SP), Feint Fang (away + SP, fake overhead into a low), ultimate Eclipse. 850 health, fastest forward walk, takes extra chip damage.
+- Pass-through moves in the combat engine.
 ### Added — Seraphina's own move set
 - Knife-hand (L), Side Kick (H), Roundhouse (K), Low Sweep (down + K), Crescent Arc (SP, launches), Seraph Dive (toward + SP, overhead), Halo Step (away + SP, evasive), ultimate Radiant Ascension. 900 health, fastest backward walk.
 - Launching and air hits, invulnerable frames and backward-moving attacks in the combat engine.

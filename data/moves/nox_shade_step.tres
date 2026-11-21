@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"nox_shade_step"
+display_name = "Shade Step"
+input_pattern = &"SPECIAL"
+animation = &"NOX_SPECIAL_SHADE_STEP"
+startup_frames = 1
+active_frames = 1
+recovery_frames = 23
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 0
+damage = 0
+chip_damage = 0
+pushback = 0.0
+hit_level = 1
+hitbox_center = Vector2(0.4, 1.2)
+hitbox_size = Vector2(0.1, 0.1)
+tags = PackedStringArray("special", "step")
+cancel_tags = PackedStringArray()
+move_distance = 2.4
+move_start_frame = 4
+move_end_frame = 14
+invuln_start_frame = 4
+invuln_end_frame = 14
+passes_through = true
+no_hitbox = true

@@ -104,6 +104,12 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var invuln_start_frame: int = 0
 @export var invuln_end_frame: int = 0
 
+## The user's pushbox is ignored while this move is moving it, so it can
+## pass through the opponent and end up behind them (side switch). D-065.
+@export var passes_through: bool = false
+## A pure movement move: it never has a hitbox.
+@export var no_hitbox: bool = false
+
 @export_group("Launch")
 ## On hit the defender is launched: airborne for launch_frames, can be hit
 ## again while in the air (juggle, limits in CombatTuning), then lands
@@ -218,7 +224,7 @@ func validate() -> Array[String]:
 		p.append("%s: invalid armour window" % id)
 	if is_throw() and chip_damage != 0:
 		p.append("%s: a throw cannot be blocked, chip must be 0" % id)
-	if not activates_surge and not is_counter() and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
+	if not activates_surge and not is_counter() and not no_hitbox and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):
 		p.append("%s: hitbox_size must be positive" % id)
 	if move_end_frame < move_start_frame:
 		p.append("%s: invalid movement" % id)

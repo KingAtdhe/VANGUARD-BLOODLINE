@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"nox_rising_backfist"
+display_name = "Rising Backfist"
+input_pattern = &"HEAVY"
+animation = &"NOX_ATTACK_RISING_BACKFIST_01"
+startup_frames = 10
+active_frames = 3
+recovery_frames = 17
+hitstun_frames = 20
+blockstun_frames = 14
+hitstop_frames = 9
+damage = 65
+chip_damage = 5
+pushback = 0.35
+hit_level = 1
+hitbox_center = Vector2(0.7, 1.4)
+hitbox_size = Vector2(0.6, 0.4)
+tags = PackedStringArray("normal", "heavy")
+cancel_tags = PackedStringArray("special")
+meter_gain_on_hit = 9
+meter_gain_on_block = 5

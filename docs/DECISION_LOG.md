@@ -616,6 +616,26 @@ Third fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
   are not built.
 **Accepted.**
 
+## D-065 — 2026-11-21 — Nox's own move set; pass-through side switch
+
+Fourth fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
+- **Moves (data/moves/nox_*):** Fang Jab (LIGHT, 4-frame startup, fastest in
+  the game), Rising Backfist (HEAVY), Scythe Sweep (KICK, LOW, knocks down),
+  Drop Heel (DOWN + HEAVY, overhead: HIGH), Shade Step (SPECIAL, passes
+  through the opponent, invulnerable frames 4-14), Throat Pierce (FORWARD +
+  SPECIAL, 2.6 m lunge, 25 meter), Feint Fang (BACK + SPECIAL: starts like
+  the Drop Heel, hits LOW on frame 22), Eclipse (ultimate). 850 health,
+  `chip_taken_percent = 150`, hurtbox height 1.55 m, walk 3.1 / 2.2 m/s.
+- **Engine:** `MoveData.passes_through` (pushboxes ignored while the move
+  travels; fighters re-face each other when it ends) and `no_hitbox`.
+- **Animation:** all keyed from his crouched guard (`nox_set`); the library
+  has no spear hands, floor sweeps or spinning backfists.
+- **Not built from the design:** Eclipse does not make him vanish or end
+  behind the opponent — it is one hit followed by strikes with half-turns on
+  the spot. Feint Fang cannot be "completed" as the overhead; the real Drop
+  Heel is the other half of that guess. The AI does not use Shade Step.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

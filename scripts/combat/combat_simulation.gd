@@ -453,6 +453,11 @@ func _resolve_pushboxes() -> void:
 	var overlap: float = min_dist - absf(dx)
 	if overlap <= 0.0:
 		return
+	# A pass-through move (side switch) ignores pushboxes while it travels.
+	for f: FighterState in fighters:
+		if f.action == FighterState.Action.ATTACK and f.move != null and f.move.passes_through \
+				and f.move.moves_on_frame(f.move_frame):
+			return
 	# Exactly on top of each other: keep the previous left/right order.
 	var dir: float = signf(dx) if dx != 0.0 else float(a.facing)
 	a.position_x -= dir * overlap * 0.5

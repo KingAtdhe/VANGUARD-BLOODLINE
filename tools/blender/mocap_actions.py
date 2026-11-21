@@ -379,6 +379,9 @@ HANDS_BY_ACTION = {
     "SPECIAL_ORIGIN_PALM": (0.05, 0.05),         # open-palm strike
     "KNOCKDOWN": (0.35, 0.35), "GETUP": (0.35, 0.35), "DEFEAT": (0.3, 0.3),
     "SPECIAL_ANVIL_SLAM": (0.45, 0.45),          # grabbing hands
+    # Nox: spear hands (straight fingers), a closed fist only for the backfist
+    "ATTACK_FANG_JAB_01": (0.03, 0.3), "SPECIAL_THROAT_PIERCE": (0.3, 0.03), "ULTIMATE_ECLIPSE": (0.03, 0.03),
+    "ATTACK_RISING_BACKFIST_01": (0.3, 1.0),
 }
 
 
@@ -715,7 +718,145 @@ def seraphina_set(c):
     return out
 
 
-OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set}
+def nox_set(c):
+    """Nox: Umbral Fang. Ninjutsu movement, Silat strikes; low and deceptive.
+    Entirely keyed from his own crouched guard: the library has no capture
+    of spear hands, sweeps from the floor or spinning backfists."""
+    H, G, moves, pose_of, box = c["H"], c["guard_P"], c["moves"], c["pose_of"], c["box"]
+    v = lambda x, y, z: np.array([x, y, z]) * H          # noqa: E731
+    gl, gr = G["LeftHand"], G["RightHand"]
+    lf, rf = G["LeftFoot"], G["RightFoot"]
+    hips = G["Hips"]
+    out = {}
+
+    def keyed(mv, fn, lift=None):
+        total, a0, a1 = frames_of(mv)
+        poses = []
+        for t in range(total):
+            pose = pose_of(fn(t, total, a0, a1), box)
+            up = lift(t) if lift else 0.0
+            if up > 0.005:
+                pose = Pose(pose.D, pose.hips + np.array([0, 0, up]))
+            poses.append(pose)
+        for t in range(max(0, total - 6), total):
+            poses[t] = Pose.blend(poses[t], c["guard"], ease((t - (total - 6)) / 6))
+        return poses
+
+    def hit_point(mv, x=0.0, dz=0.0):
+        return np.array([x * H, -mv["hc"][0], mv["hc"][1] + dz * H])
+
+    # Fang Jab: a spear-hand flick from the low guard up to the throat
+    mv = moves["fang_jab"]
+    def jab(t, total, a0, a1, mv=mv):
+        tip = hit_point(mv, 0.02, 0.05)
+        return move_hand(G, "Left", track(t, [(0, gl), (a0, tip), (a1, tip), (total - 1, gl)]), 1.0, pole_out=0.15)
+    out[c["anim_of"](mv)] = keyed(mv, jab)
+
+    # Rising Backfist: coils lower, then uncoils through a full turn into a backfist
+    mv = moves["rising_backfist"]
+    def backfist(t, total, a0, a1, mv=mv):
+        P = sink(G, G, track(t, [(0, 0.0), (3, 0.08 * H), (a0, -0.06 * H), (a1, -0.06 * H), (total - 1, 0.0)]))
+        P = turn(P, 360.0 * ease(min(1.0, t / float(a0))))
+        fist = hit_point(mv, -0.04, 0.02)
+        return move_hand(P, "Right", track(t, [(0, gr), (a0 - 3, P["RightArm"] + v(-0.2, 0.05, 0.0)), (a0, fist),
+                                               (a1, fist), (total - 1, gr)]), 1.0 if t >= a0 - 3 else 0.0, pole_out=0.5)
+    out[c["anim_of"](mv)] = keyed(mv, backfist)
+
+    # Scythe Sweep: drops onto one hand, the rear leg scythes at ankle height
+    def sweep_pose(P, t, s0, s1, mv):
+        """Hand on the floor and the sweeping leg, between frames s0 (start) and s1 (end of the arc)."""
+        down = track(t, [(s0 - 5, 0.0), (s0, 1.0), (s1 + 3, 1.0), (s1 + 10, 0.0)])
+        P = sink(P, G, 0.3 * H * down)
+        P = lean(P, -30 * down, roll_deg=18 * down)
+        P = move_hand(P, "Left", gl + (np.array([0.26 * H, -0.12 * H, 0.06]) - gl) * down, 1.0, pole_out=0.4)
+        arc = track(t, [(s0 - 5, rf), (s0 - 1, rf + v(-0.22, -0.05, 0.02)), (s0, np.array([-0.14 * H, -mv["hc"][0], 0.07])),
+                        (s1, np.array([0.18 * H, -mv["hc"][0] + 0.1, 0.07])), (s1 + 9, rf)])
+        return move_foot(P, "Right", arc)
+    mv = moves["scythe_sweep"]
+    out[c["anim_of"](mv)] = keyed(mv, lambda t, total, a0, a1, mv=mv: sweep_pose(G, t, a0, a1, mv))
+
+    # Drop Heel: a small hop, the heel goes up over the head and chops down
+    def heel_up(P, t, top, mv, drop=None):
+        """Right leg rising to its peak at frame `top`; with `drop`, the chop lands there."""
+        peak = np.array([rf[0], -0.42 * H, 0.92 * H])
+        keys = [(0, rf), (top, peak)]
+        if drop is not None:
+            keys += [(drop, np.array([rf[0], -mv["hc"][0] + 0.05, mv["hc"][1] - 0.1])), (drop + 3, np.array(
+                [rf[0], -mv["hc"][0] + 0.05, mv["hc"][1] - 0.2])), (drop + 11, rf)]
+        return move_foot(lean(P, 10 * hump(t, 0, top + 4)), "Right", track(t, keys))
+    mv = moves["drop_heel"]
+    total, a0, a1 = frames_of(mv)
+    name = c["anim_of"](mv)
+    out[name] = keyed(mv, lambda t, total, a0, a1, mv=mv: heel_up(G, t, a0 - 5, mv, drop=a0),
+                      lift=lambda t, a0=a0: 0.12 * H * hump(t, 3, a0 + 1))
+    c["air"](name, 4, a0)
+
+    # Feint Fang: the same rise as the Drop Heel, abandoned for the sweep
+    mv = moves["feint_fang"]
+    total, a0, a1 = frames_of(mv)
+    def feint(t, total, a0, a1, mv=mv):
+        fake = 12                                         # frames of the false overhead
+        if t <= fake:
+            return heel_up(G, t, fake, mv)
+        P = sweep_pose(G, t, a0, a1, mv)
+        w = ease(min(1.0, (t - fake) / 5.0))              # the raised leg is pulled back under him
+        up = heel_up(G, fake, fake, mv)
+        return {k: up[k] * (1 - w) + P[k] * w for k in P}
+    out[c["anim_of"](mv)] = keyed(mv, feint)
+
+    # Shade Step: a low glide (the game carries him through the opponent)
+    mv = moves["shade_step"]
+    def glide(t, total, a0, a1):
+        w = track(t, [(0, 0.0), (4, 1.0), (14, 1.0), (total - 1, 0.0)])
+        P = shift(G, BODY, np.array([0, 0, -0.14 * H * w]))
+        for sd, ph, base in (("Left", 0.0, lf), ("Right", math.pi, rf)):
+            a = 2 * math.pi * t / 10.0 + ph
+            P = move_foot(P, sd, base + v(0, -0.16 * math.cos(a), 0.05 * max(0.0, math.sin(a))) * w)
+        P = lean(P, -42 * w)
+        P = move_hand(P, "Left", gl + (hips + v(0.2, 0.22, 0.02) - gl) * w, 1.0, pole_out=0.3)     # arms trail behind
+        return move_hand(P, "Right", gr + (hips + v(-0.2, 0.24, 0.0) - gr) * w, 1.0, pole_out=0.3)
+    out[c["anim_of"](mv)] = keyed(mv, glide)
+
+    # Throat Pierce: long gliding lunge, rear spear-hand driven out at the end
+    mv = moves["throat_pierce"]
+    def pierce(t, total, a0, a1, mv=mv):
+        w = track(t, [(0, 0.0), (3, 1.0), (a1, 1.0), (total - 1, 0.0)])
+        P = sink(G, G, 0.1 * H * w)
+        P = move_foot(P, "Left", lf + v(0, -0.2, 0.0) * w)                    # deep front stride
+        P = move_foot(P, "Right", rf + v(0, 0.16, 0.0) * w)
+        P = lean(P, -30 * w)
+        tip = hit_point(mv, -0.02, 0.0)
+        P = move_hand(P, "Right", track(t, [(0, gr), (a0 - 4, hips + v(-0.16, 0.05, 0.12)), (a0, tip), (a1, tip),
+                                            (total - 1, gr)]), 1.0, pole_out=0.15)
+        return move_hand(P, "Left", gl + (hips + v(0.18, 0.2, 0.05) - gl) * w, 1.0, pole_out=0.3)
+    out[c["anim_of"](mv)] = keyed(mv, pierce)
+
+    # Eclipse: opening spear-hand, four strikes from alternating sides (half
+    # turns), then the final spear-hand
+    mv = moves["eclipse"]
+    def eclipse(t, total, a0, a1, mv=mv):
+        tip = hit_point(mv, 0.0, 0.08)
+        beats = [a1 + 7, a1 + 14, a1 + 21, a1 + 28]       # strikes
+        final = a1 + 37
+        keys_r, keys_l, yaw = [(0, gr), (a0, tip), (a1, tip)], [(0, gl)], [(0, 0.0), (a1, 0.0)]
+        for k, b in enumerate(beats):
+            hand = keys_l if k % 2 == 0 else keys_r
+            other = keys_r if k % 2 == 0 else keys_l
+            hand += [(b - 3, (gl if k % 2 == 0 else gr)), (b, tip + v(0.05 * (1 if k % 2 == 0 else -1), 0, -0.05 * k))]
+            other.append((b, gr if k % 2 == 0 else gl))
+            yaw += [(b - 3, 180.0 * (k + 1))]             # snaps round between strikes
+        keys_r += [(final - 4, hips + v(-0.16, 0.05, 0.12)), (final, tip), (final + 3, tip), (total - 1, gr)]
+        keys_l += [(final, gl), (total - 1, gl)]
+        yaw += [(final - 4, 720.0), (total - 1, 720.0)]
+        P = sink(G, G, 0.06 * H * hump(t, a1, final + 4))
+        P = move_hand(P, "Right", track(t, keys_r), 1.0, pole_out=0.2)
+        P = move_hand(P, "Left", track(t, keys_l), 1.0, pole_out=0.2)
+        return turn(P, track(t, yaw))
+    out[c["anim_of"](mv)] = keyed(mv, eclipse)
+    return out
+
+
+OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set}
 # {action name: (first, last) airborne frame}; filled by build(), read by the
 # importer's grounding pass so jumps are not flattened onto the floor.
 AIRBORNE = {}

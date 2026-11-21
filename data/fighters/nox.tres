@@ -1,25 +1,28 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
-[ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
-[ext_resource type="Resource" path="res://data/moves/kairo_light_punch.tres" id="3_l"]
-[ext_resource type="Resource" path="res://data/moves/kairo_heavy_punch.tres" id="4_h"]
-[ext_resource type="Resource" path="res://data/moves/kairo_kick.tres" id="5_k"]
-[ext_resource type="Resource" path="res://data/moves/kairo_origin_palm.tres" id="6_palm"]
-[ext_resource type="Resource" path="res://data/moves/kairo_rift_break.tres" id="7_rift"]
+[ext_resource type="Resource" path="res://data/fighters/nox_movement.tres" id="2_move"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
-[ext_resource type="Resource" path="res://data/moves/kairo_origin_break.tres" id="9_break"]
 [ext_resource type="PackedScene" path="res://assets/characters/nox/nox.glb" id="10_model"]
+[ext_resource type="Resource" path="res://data/moves/nox_fang_jab.tres" id="m_fang_jab"]
+[ext_resource type="Resource" path="res://data/moves/nox_rising_backfist.tres" id="m_rising_backfist"]
+[ext_resource type="Resource" path="res://data/moves/nox_scythe_sweep.tres" id="m_scythe_sweep"]
+[ext_resource type="Resource" path="res://data/moves/nox_shade_step.tres" id="m_shade_step"]
+[ext_resource type="Resource" path="res://data/moves/nox_throat_pierce.tres" id="m_throat_pierce"]
+[ext_resource type="Resource" path="res://data/moves/nox_eclipse.tres" id="m_eclipse"]
+[ext_resource type="Resource" path="res://data/moves/nox_drop_heel.tres" id="m_drop_heel"]
+[ext_resource type="Resource" path="res://data/moves/nox_feint_fang.tres" id="m_feint_fang"]
 
 [resource]
 script = ExtResource("1_def")
 fighter_id = &"nox"
 display_name = "Nox"
-base_health = 1000
+base_health = 850
+chip_taken_percent = 150
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
-hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break")])
+hurtbox_height = 1.55
+moves = Array[Resource]([ExtResource("m_fang_jab"), ExtResource("m_rising_backfist"), ExtResource("m_scythe_sweep"), ExtResource("m_shade_step"), ExtResource("m_throat_pierce"), ExtResource("8_surge"), ExtResource("m_eclipse"), ExtResource("m_drop_heel"), ExtResource("m_feint_fang")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -37,6 +40,5 @@ anim_victory = &"KAIRO_VICTORY"
 anim_defeat = &"KAIRO_DEFEAT"
 anim_prefix = &"NOX"
 playable = true
-locked_note = "Moveset arrives in Milestone 8"
 accent_color = Color(0.62, 0.2, 1.0, 1)
 tagline = "Shadow assassin. Feints, mix-ups and misdirection."

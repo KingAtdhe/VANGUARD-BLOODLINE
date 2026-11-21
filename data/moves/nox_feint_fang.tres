@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"nox_feint_fang"
+display_name = "Feint Fang"
+input_pattern = &"BACK_SPECIAL"
+animation = &"NOX_SPECIAL_FEINT_FANG"
+startup_frames = 22
+active_frames = 4
+recovery_frames = 20
+hitstun_frames = 18
+blockstun_frames = 13
+hitstop_frames = 8
+damage = 60
+chip_damage = 5
+pushback = 0.3
+hit_level = 2
+hitbox_center = Vector2(0.8, 0.2)
+hitbox_size = Vector2(0.8, 0.35)
+tags = PackedStringArray("special", "feint")
+cancel_tags = PackedStringArray()
+meter_gain_on_hit = 8
+meter_gain_on_block = 4
+knockdown = true

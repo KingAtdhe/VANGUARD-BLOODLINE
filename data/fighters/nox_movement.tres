@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FighterMovementProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/fighters/fighter_movement_profile.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+fighter_id = &"nox"
+display_name = "Nox"
+walk_forward_speed = 3.1
+walk_backward_speed = 2.2
+pushbox_half_width = 0.33
