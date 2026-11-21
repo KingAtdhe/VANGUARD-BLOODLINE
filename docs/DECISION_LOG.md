@@ -636,6 +636,72 @@ Fourth fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
   Heel is the other half of that guess. The AI does not use Shade Step.
 **Accepted.**
 
+## D-066 — 2026-11-21 — Vexa's own move set; projectiles and parry
+
+Fifth fighter from `docs/FIGHTER_COMBAT_DESIGN.md`.
+- **Moves (data/moves/vexa_*):** Piston Jab (LIGHT, 6/3/11, longest light in
+  the game), Teep (HEAVY, 11/4/18, 1.2 m pushback), Cut Kick (KICK, 10/4/17,
+  LOW), Slashing Elbow (DOWN + HEAVY, 8/3/15, steps in 0.45 m, cancels into
+  the knee), Pulse Shot (SPECIAL, projectile, fires on frame 16 of 26, no
+  meter cost), Overclock Knee (FORWARD + SPECIAL, 13/5/24, travels 1.7 m,
+  -16 on block, knocks down, 25 meter), Arc Guard (BACK + SPECIAL, parry on
+  frames 3-11 of 30), System Overdrive (ultimate, 9/4/46). 1000 health, own
+  movement profile (2.4 / 2.2 m/s).
+- **Projectile (engine):** `MoveData.projectile_speed/_range/_color`,
+  `ProjectileState`, `CombatSimulation.projectiles`. A projectile move has no
+  hitbox on the fighter; on its first active frame a projectile appears at
+  `hitbox_center` and flies at constant speed until it connects, has
+  travelled its range or reaches an arena wall. Rules decided here:
+  - Blocked by either guard (HitLevel.PROJECTILE, D-061); chip applies.
+  - One of a fighter's own projectiles on screen: the move cannot start
+    while one is flying (the press waits in the input buffer).
+  - **Counter stances and parries never catch a projectile**, whatever their
+    `counter_levels` say (and listing PROJECTILE or THROW there is a data
+    error). Slip Counter, Arc Guard and later Ryuen's counters lose to it.
+  - **Armour absorbs a projectile** like any other hit: damage taken, one
+    armour hit used up, the move carries on (Forge Charge goes through one).
+  - A fighter with no hurtbox (invulnerable frames, knocked down, getting up)
+    is passed through and the projectile keeps flying. A launched fighter
+    can be hit by it under the normal juggle limits.
+  - Hit before the firing frame: no projectile. Hit after it: the projectile
+    keeps flying (it no longer depends on its owner).
+  - Two opposing projectiles that meet destroy each other
+    (`CombatEvent.Type.PROJECTILE_CLASH`).
+  - Pushback follows the projectile's direction and is not handed to the
+    shooter when the defender is against a wall.
+  - Detection sweeps the box over the distance flown in the tick, so speed
+    cannot tunnel through a hurtbox. Hitstop freezes projectiles too.
+- **Parry (engine):** a counter stance (D-062) with no `counter_followup`.
+  The attack does no damage, the attacker is frozen for
+  `counter_stun_frames` (Arc Guard: 26) and the parrying fighter returns to
+  neutral at once, so what follows is the player's choice. Lows and throws
+  are not in Arc Guard's `counter_levels`, so they beat it.
+- **AI:** sees projectiles (`AIObservation.projectiles`, same reaction delay)
+  and guards them with its usual block-reaction roll;
+  `AIProfile.projectile_chance` (0.3 / 0.5 / 0.65) is how often a fighter
+  whose only move in range is a projectile fires instead of playing the
+  distance.
+- **Animation:** the Teep is a captured front kick (CMU 144_05), mirrored
+  onto her lead leg (`mirrored()`); the Cut Kick is the captured roundhouse
+  (86_08) reshaped into a low kick (foot kept under a ceiling, most of the
+  performer's lean removed, leg straightened on the active frames) — it is
+  no longer a pure capture. Piston Jab, Slashing Elbow, Pulse Shot, Overclock
+  Knee, Arc Guard and System Overdrive are keyed from her guard (`vexa_set`);
+  the library has a jab, but the design asks for a piston with no shoulder
+  turn. Keyed strikes are aimed in model space (`ctx["joints"]`), so the
+  striking joint lands inside the hitbox on this model's proportions.
+- **Tools:** `tools/godot/move_shot.gd` (contact sheets of every move from
+  three angles with the hitbox drawn), `tools/blender/stretch_check.py`
+  (stretched edges per animation), `tests/run_tests.gd -- <word>` (run only
+  matching test files while working).
+- **Not built from the design:** the Cut Kick's stagger on counter-hit (the
+  engine has no counter-hit state); Overclock Knee has no head-pull on the
+  victim (single hit with knockdown); System Overdrive is one hit followed
+  by her punches and beam pose — the punches and the beam do not hit
+  separately and there is no beam effect; Arc Guard has no shield effect;
+  the projectile is a plain glowing ball (labelled placeholder).
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

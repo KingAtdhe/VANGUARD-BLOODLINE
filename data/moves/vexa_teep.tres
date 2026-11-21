@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"vexa_teep"
+display_name = "Teep"
+input_pattern = &"HEAVY"
+animation = &"VEXA_ATTACK_TEEP_01"
+startup_frames = 11
+active_frames = 4
+recovery_frames = 18
+hitstun_frames = 28
+blockstun_frames = 17
+hitstop_frames = 9
+damage = 70
+chip_damage = 6
+pushback = 1.2
+hit_level = 1
+hitbox_center = Vector2(1.0, 1.05)
+hitbox_size = Vector2(0.8, 0.35)
+tags = PackedStringArray("normal", "heavy")
+cancel_tags = PackedStringArray("special")
+meter_gain_on_hit = 10
+meter_gain_on_block = 5

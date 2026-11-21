@@ -1,20 +1,27 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`. Last task done: Nox's move set (D-065).
-**Exact next task: Vexa's move set** (projectile + parry), then Ryuen
-(counters), from `docs/FIGHTER_COMBAT_DESIGN.md` and the owner's design doc
-linked there. One fighter per task; stop and report after each (CLAUDE.md).
+Branch: `arena-severed-line`. Last task done: Vexa's move set (D-066).
+**Exact next task: Ryuen's move set** (counters, throw, evasive step, chain
+punch), from `docs/FIGHTER_COMBAT_DESIGN.md` and the owner's design doc
+linked there. He is the last fighter. One fighter per task; stop and report
+after each (CLAUDE.md).
 
 ## State
 
 - Own move sets built: Kairo (D-062), Drakon (D-063), Seraphina (D-064),
-  Nox (D-065). Vexa and Ryuen still use the shared `kairo_*` set.
+  Nox (D-065), Vexa (D-066). Ryuen still uses the shared `kairo_*` set.
 - Engine mechanics in place: low block and hit levels, direction + button
   inputs (D-061), counter stances (D-062), throws, armour, per-fighter chip
   (D-063), launch/juggle, invulnerable frames, backward moves (D-064),
-  pass-through moves (D-065). Still missing: **projectile, parry** (a parry
-  can reuse the counter stance; Ryuen's counters too).
-- Tests: 146 passing at commit `91a4352`.
+  pass-through moves (D-065), projectiles and parries (D-066: a parry is a
+  counter stance without a follow-up; projectiles are never countered, so
+  "projectiles beat Returning Wave" already holds). Still missing for Ryuen:
+  multi-hit moves (Chain Punch 2+2+2), a counter that turns the attacker
+  round, a block with extra pushback, and an ultimate that is itself a
+  counter stance.
+- Tests: 167 passing with the D-066 changes (146 before, at `91a4352`): 21
+  new in `tests/unit/test_vexa_moves.gd`. The full run took about 10 minutes
+  on a 2-core machine, an asset import about 12.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.
@@ -26,14 +33,24 @@ linked there. One fighter per task; stop and report after each (CLAUDE.md).
 2. `tools/blender/mocap_actions.py`: add `<id>_set(c)` to `OWN_SETS`
    (see `drakon_set`, `seraphina_set`, `nox_set`; helpers `track`, `sink`,
    `turn`, `hump`, `strike(aim=, lift=)`), hand shapes in `HANDS_BY_ACTION`.
+   `vexa_set` is the most accurate model to copy for keyed moves: it aims
+   wrists, elbows and knees in model space through `ctx["joints"]`
+   (`wrist_src`, `elbow_src`, `knee_src`, `bend_to`, `point_hand`), and
+   `mirrored(clip)` turns a right-sided capture into a left-sided one.
 3. Export timings and rebuild that fighter:
    `godot --headless --path . --script res://tools/blender/export_move_timing.gd -- /tmp/moves_<id>.json <id>`
    `python tools/blender/import_rigged.py --src assets/characters/_source/<id>/<id>.fbx --fighter <id> --moves /tmp/moves_<id>.json --out <dir> --mocap-dir <clips>`
    then copy `<dir>/<id>/<id>.glb` over `assets/characters/<id>/<id>.glb`.
 4. Render the moves from at least two angles and look at them; measure
-   stretched edges.
-5. `tests/unit/test_<id>_moves.gd` (copy `test_nox_moves.gd`), then
-   `godot --headless --path . --import` and the full suite.
+   stretched edges:
+   `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tools/godot/move_shot.gd -- <id> <out_dir> 320`
+   (add `<move> 7,9,15,...` for chosen frames of one move) and
+   `python tools/blender/stretch_check.py assets/characters/<id>/<id>.glb ATTACK SPECIAL ULTIMATE`.
+   Reference for "normal" on these models: Vexa's idle has 9 stretched
+   edges at worst, her worst new move 25 (of 21,217).
+5. `tests/unit/test_<id>_moves.gd` (copy `test_vexa_moves.gd`), then
+   `godot --headless --path . --import` and the full suite. While working,
+   `... --script res://tests/run_tests.gd -- <id>` runs only that file.
 6. DECISION_LOG entry, CHANGELOG, KNOWN_ISSUES KI-049, this file.
 
 ## Tools a fresh machine needs (none of this is in the repo)
@@ -41,11 +58,17 @@ linked there. One fighter per task; stop and report after each (CLAUDE.md).
 - Godot **4.7.2-stable** Linux binary and its export templates
   (`~/.local/share/godot/export_templates/4.7.2.stable`).
 - Python with `bpy` 5.3 (Blender as a module), `numpy`, `pillow`.
-- Motion capture: `tools/mocap/fetch_clips.sh <dir>`.
-- Android export: an Android SDK path in Godot's editor settings with
-  `apksigner` (the previous session used the uber-apk-signer jar behind an
-  `apksigner` wrapper) and a keystore passed through
+- Motion capture: `tools/mocap/fetch_clips.sh <dir>` (falls back to a
+  second mirror; the first returned 404 on 2026-11-21).
+- For renders: `xvfb-run` with Mesa (software OpenGL is enough).
+- Android export: an Android SDK path in Godot's editor settings
+  (`export/android/android_sdk_path`, plus `java_sdk_path`) containing
+  `build-tools/<version>/apksigner` and `platform-tools/adb`. Google's SDK
+  download was not reachable from the last two machines, so `apksigner` was
+  a small shell wrapper around the uber-apk-signer jar (GitHub release) that
+  maps `sign --ks --ks-pass pass:… --ks-key-alias … <apk>` and `verify <apk>`
+  onto it; export with `--export-release "Android" <apk>` and a keystore passed through
   `GODOT_ANDROID_KEYSTORE_RELEASE_PATH/USER/PASSWORD`. **The test keystore is
   never committed.** A new machine signs with a new key, so the owner must
   uninstall the old test app before installing a new build.
-- Full test run takes about 17 minutes; an asset import about 6.
+- Full test run takes 10 to 17 minutes; a first asset import 6 to 12.

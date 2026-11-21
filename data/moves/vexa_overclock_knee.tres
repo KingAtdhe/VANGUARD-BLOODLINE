@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"vexa_overclock_knee"
+display_name = "Overclock Knee"
+input_pattern = &"FORWARD_SPECIAL"
+animation = &"VEXA_SPECIAL_OVERCLOCK_KNEE"
+startup_frames = 13
+active_frames = 5
+recovery_frames = 24
+hitstun_frames = 24
+blockstun_frames = 12
+hitstop_frames = 11
+damage = 95
+chip_damage = 8
+pushback = 0.5
+hit_level = 1
+hitbox_center = Vector2(0.6, 1.2)
+hitbox_size = Vector2(0.6, 0.6)
+tags = PackedStringArray("special", "knee")
+cancel_tags = PackedStringArray()
+move_distance = 1.7
+move_start_frame = 3
+move_end_frame = 13
+meter_gain_on_hit = 10
+meter_gain_on_block = 5
+meter_cost = 25
+knockdown = true

@@ -9,6 +9,52 @@ const HIT_COLOR := Color(1.0, 0.75, 0.3)
 const BLOCK_COLOR := Color(0.45, 0.75, 1.0)
 
 var _sparks: Array[Dictionary] = []
+## Projectile id -> its placeholder mesh (D-066).
+var _shots: Dictionary = {}
+
+
+## Draws the simulation's projectiles (a labelled placeholder: a glowing
+## ball in the move's projectile_color), interpolated like the fighters.
+func sync_projectiles(projectiles: Array[ProjectileState], alpha: float) -> void:
+	var alive: Dictionary = {}
+	for p: ProjectileState in projectiles:
+		alive[p.id] = true
+		var node: Node3D = _shots.get(p.id)
+		if node == null:
+			node = _make_shot(p)
+			_shots[p.id] = node
+			add_child(node)
+		node.position = Vector3(lerpf(p.previous_x, p.position_x, alpha), p.move.hitbox_center.y, 0.0)
+	for id: int in _shots.keys():
+		if not alive.has(id):
+			(_shots[id] as Node).queue_free()
+			_shots.erase(id)
+
+
+func _make_shot(p: ProjectileState) -> Node3D:
+	var root := Node3D.new()
+	root.name = "ProjectilePlaceholder%d" % p.id
+	var size: Vector2 = p.move.hitbox_size
+	# bright core + soft halo, stretched along the direction of travel
+	for layer: Array in [[0.8, 1.0], [1.35, 0.3]]:
+		var mi := MeshInstance3D.new()
+		var mesh := SphereMesh.new()
+		mesh.radius = 0.5
+		mesh.height = 1.0
+		mesh.radial_segments = 12
+		mesh.rings = 6
+		mi.mesh = mesh
+		var mat := StandardMaterial3D.new()
+		var c: Color = p.move.projectile_color.lerp(Color.WHITE, 0.3 if layer[1] == 1.0 else 0.0)
+		c.a = layer[1]
+		mat.albedo_color = c
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mi.material_override = mat
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.scale = Vector3(size.x, size.y, size.y) * layer[0]
+		root.add_child(mi)
+	return root
 
 
 func spawn_for(event: CombatEvent) -> void:

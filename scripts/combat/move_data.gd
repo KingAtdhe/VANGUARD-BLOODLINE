@@ -84,6 +84,9 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## counter_levels does no damage; its user is frozen for counter_stun_frames
 ## and this fighter immediately starts counter_followup. 0 = not a counter.
 ## A counter move has no hitbox of its own.
+## Parry (D-066): a counter with NO counter_followup. The stance ends at once
+## and its user is free to act while the attacker is still frozen.
+## Projectiles are never countered or parried, whatever counter_levels says.
 @export var counter_start_frame: int = 0
 @export var counter_end_frame: int = 0
 @export var counter_levels: Array[HitLevel] = []
@@ -117,10 +120,28 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var launch: bool = false
 @export var launch_frames: int = 46
 
+@export_group("Projectile")
+## > 0: this move fires a projectile (D-066) on its first active frame instead
+## of having a hitbox on the fighter. Speed in metres per second. The
+## projectile spawns at hitbox_center (in front of the fighter) with
+## hitbox_size as its box and carries this move's damage, stun and hit level.
+## A fighter can have only one of its own projectiles on screen: the move
+## cannot start while one is still flying.
+@export var projectile_speed: float = 0.0
+## Distance (m) after which the projectile disappears (it also ends at the
+## arena walls).
+@export var projectile_range: float = 0.0
+## Presentation only: colour of the placeholder projectile effect.
+@export var projectile_color: Color = Color(0.25, 0.9, 1.0)
+
 @export_group("Reserved for later milestones")
 @export var airborne_allowed: bool = false
 ## Only if the move design genuinely needs one (0 = none).
 @export var cooldown_frames: int = 0
+
+
+func is_projectile() -> bool:
+	return projectile_speed > 0.0
 
 
 func is_throw() -> bool:
@@ -222,6 +243,13 @@ func validate() -> Array[String]:
 		p.append("%s: invalid counter window" % id)
 	if armor_hits > 0 and (armor_start_frame < 1 or armor_end_frame < armor_start_frame):
 		p.append("%s: invalid armour window" % id)
+	if is_projectile() and (hit_level != HitLevel.PROJECTILE or projectile_range <= 0.0
+			or move_distance != 0.0 or is_counter() or no_hitbox):
+		p.append("%s: invalid projectile move" % id)
+	if hit_level == HitLevel.PROJECTILE and not is_projectile():
+		p.append("%s: PROJECTILE hit level needs projectile_speed" % id)
+	if counter_levels.has(HitLevel.PROJECTILE) or counter_levels.has(HitLevel.THROW):
+		p.append("%s: projectiles and throws cannot be countered" % id)
 	if is_throw() and chip_damage != 0:
 		p.append("%s: a throw cannot be blocked, chip must be 0" % id)
 	if not activates_surge and not is_counter() and not no_hitbox and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):

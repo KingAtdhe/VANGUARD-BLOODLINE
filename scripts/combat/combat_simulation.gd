@@ -10,11 +10,15 @@ extends RefCounted
 ## Scope so far: walking, facing, pushboxes, walls, max separation (M1);
 ## attacks, hitboxes, block, damage, stun, pushback, hitstop, KO (M2);
 ## input buffer, cancel routes, combo counter and damage scaling (M4);
-## specials, moving attacks, Origin meter/Surge, ultimate, knockdown (M6).
+## specials, moving attacks, Origin meter/Surge, ultimate, knockdown (M6);
+## projectiles (D-066).
 
 var arena: ArenaConfig
 var definitions: Array[FighterDefinition] = []
 var fighters: Array[FighterState] = []
+## Live projectiles, oldest first.
+var projectiles: Array[ProjectileState] = []
+var _next_projectile_id: int = 1
 var combat_log := CombatLog.new()
 var tick: int = 0
 ## Remaining global hitstop ticks. While > 0 every fighter is frozen.
@@ -80,6 +84,7 @@ func profile(i: int) -> FighterMovementProfile:
 ## Spawn positions, full health, neutral state, empty hitstop. Logs RESET.
 func reset() -> void:
 	fighters.clear()
+	projectiles.clear()
 	var spawns: Array[float] = [arena.p1_spawn_x, arena.p2_spawn_x]
 	for i: int in 2:
 		var s := FighterState.new()
@@ -123,6 +128,8 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 			var f: FighterState = fighters[i]
 			_register_presses(f, inputs[i])
 			f.last_displacement = 0.0
+		for p: ProjectileState in projectiles:
+			p.previous_x = p.position_x  # frozen too (keeps interpolation still)
 		return
 
 	var before: Array[float] = [fighters[0].position_x, fighters[1].position_x]
@@ -150,6 +157,8 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 			f.position_x += d
 			pushback_applied[i] = d
 
+	_move_projectiles()
+
 	# 3. Spacing constraints.
 	_transfer_wall_pushback(pushback_applied)
 	_enforce_max_separation(before)
@@ -164,9 +173,21 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 	for i: int in 2:
 		fighters[i].last_displacement = fighters[i].position_x - before[i]
 
-	# 5. Hit detection and resolution.
-	var contacts: Array[HitboxSystem.Contact] = HitboxSystem.find_contacts(definitions, fighters)
+	# 5. Hit detection and resolution. Projectiles are fired first (after all
+	# movement, so they start from where the fighter now stands and can hit
+	# on the tick they appear); opposing projectiles that meet cancel out.
+	_fire_projectiles()
+	for point: Vector2 in HitboxSystem.find_clashes(projectiles):
+		var clash := CombatEvent.new()
+		clash.tick = tick
+		clash.type = CombatEvent.Type.PROJECTILE_CLASH
+		clash.point = point
+		combat_log.add(clash)
+	var contacts: Array[HitboxSystem.Contact] = HitboxSystem.find_contacts(definitions, fighters, projectiles)
 	hitstop_remaining = HitResolver.resolve(contacts, self)
+	for k: int in range(projectiles.size() - 1, -1, -1):
+		if projectiles[k].spent:
+			projectiles.remove_at(k)
 
 
 func separation() -> float:
@@ -181,10 +202,74 @@ func snapshot() -> Array[FighterState]:
 	return out
 
 
+## Deep copies of the live projectiles (for interpolation and the AI).
+func projectile_snapshot() -> Array[ProjectileState]:
+	var out: Array[ProjectileState] = []
+	for p: ProjectileState in projectiles:
+		out.append(p.copy())
+	return out
+
+
+## True if fighter [param i] has a projectile of its own in flight.
+func has_projectile(i: int) -> bool:
+	for p: ProjectileState in projectiles:
+		if p.owner == i:
+			return true
+	return false
+
+
 ## Exact text of the whole simulation state — for determinism tests.
 func describe() -> String:
-	return "tick=%d stop=%d | P1 %s | P2 %s" % [
+	var text: String = "tick=%d stop=%d | P1 %s | P2 %s" % [
 		tick, hitstop_remaining, fighters[0].describe(), fighters[1].describe()]
+	for p: ProjectileState in projectiles:
+		text += " | " + p.describe()
+	return text
+
+
+# --- projectiles ----------------------------------------------------------------
+
+## Constant-speed travel; a projectile ends after its range or at a wall.
+func _move_projectiles() -> void:
+	for k: int in range(projectiles.size() - 1, -1, -1):
+		var p: ProjectileState = projectiles[k]
+		var step_x: float = p.move.projectile_speed * CombatConstants.TICK_DELTA
+		p.previous_x = p.position_x
+		p.position_x += p.direction * step_x
+		p.travelled += step_x
+		if p.travelled > p.move.projectile_range or p.position_x < arena.left_bound \
+				or p.position_x > arena.right_bound:
+			projectiles.remove_at(k)
+
+
+## A projectile move fires on its first active frame (startup_frames). A
+## fighter hit before that frame has been interrupted and fires nothing.
+func _fire_projectiles() -> void:
+	for i: int in 2:
+		var f: FighterState = fighters[i]
+		if f.action != FighterState.Action.ATTACK or f.move == null or not f.move.is_projectile() \
+				or f.move_frame != f.move.startup_frames or f.move_connected:
+			continue
+		# move_connected doubles as "already fired" for a projectile move: the
+		# fighter's own body never connects with it. It also keeps the move
+		# from being logged as a whiff and lets it be cancelled like a hit.
+		f.move_connected = true
+		var p := ProjectileState.new()
+		p.id = _next_projectile_id
+		_next_projectile_id += 1
+		p.owner = i
+		p.move = f.move
+		p.direction = f.facing
+		p.position_x = f.position_x + f.facing * f.move.hitbox_center.x
+		p.previous_x = p.position_x
+		projectiles.append(p)
+		var ev := CombatEvent.new()
+		ev.tick = tick
+		ev.type = CombatEvent.Type.PROJECTILE_FIRED
+		ev.actor = i
+		ev.move_id = f.move.id
+		ev.point = Vector2(p.position_x, f.move.hitbox_center.y)
+		combat_log.add(ev)
 
 
 # --- phase 1: state machine ---------------------------------------------------
@@ -305,6 +390,9 @@ func _take_buffered(i: int, accept: Callable) -> MoveData:
 			code = _FALLBACK[code]
 		for move: MoveData in definitions[i].moves_for(_PATTERNS.get(code, &"")):
 			# Meter/Surge conditions first: an unaffordable move stays buffered.
+			# One own projectile on screen: the press waits in the buffer.
+			if move.is_projectile() and has_projectile(i):
+				continue
 			if OriginMeter.can_use(f, definitions[i], move, tuning) and accept.call(move):
 				f.buffer.remove_at(k)
 				return move
@@ -358,6 +446,11 @@ func _start_attack(i: int, move: MoveData, is_cancel: bool) -> void:
 ## Starts a move that is not triggered by input (a counter's follow-up).
 func start_followup(i: int, move: MoveData) -> void:
 	_start_attack(i, move, false)
+
+
+## Ends fighter [param i]'s current move at once (a successful parry).
+func end_move(i: int) -> void:
+	_to_idle(fighters[i])
 
 
 func _end_attack(i: int) -> void:
@@ -415,6 +508,9 @@ func _transfer_wall_pushback(applied: Array[float]) -> void:
 		if blocked == 0.0:
 			continue
 		f.position_x = clamped
+		if not f.pushback_transfers:
+			f.pushback_remaining = 0.0  # pushed by a projectile: just stop at the wall
+			continue
 		# The attacker takes the blocked slide now and the rest of the
 		# defender's pushback over the following ticks.
 		var other: FighterState = fighters[1 - i]

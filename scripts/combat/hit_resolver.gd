@@ -31,7 +31,15 @@ extends RefCounted
 ##     fighter in hitstun or blockstun (HitboxSystem).
 ##   - Blocking fighters take chip x their definition's chip_taken_percent.
 ##   - Counter: if the defender is in a counter stance that catches the move
-##     (MoveData.counters), nothing above applies — see _counter().
+##     (MoveData.counters), nothing above applies — see _counter(). A counter
+##     without a follow-up is a parry: its user is free at once.
+##   - Projectiles (D-066) resolve like any other hit with the move they were
+##     fired with, wherever their owner is now: blocked by either guard,
+##     absorbed by armour (damage taken, one armour hit used), never caught
+##     by a counter stance or parry, and they pass through a fighter with no
+##     hurtbox (invulnerable frames, knocked down). The projectile is used
+##     up by the contact. Pushback follows its direction of travel and is
+##     not handed to the attacker when the defender is against a wall.
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
 ##     sim.ko_enabled == false (training) health stops at 1.
 ## All decisions are taken from the state BEFORE any contact is applied, so
@@ -53,14 +61,14 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 	var countered: Array[bool] = []
 	var armored: Array[bool] = []
 	for c: HitboxSystem.Contact in contacts:
-		var move: MoveData = states[c.attacker].move
+		var move: MoveData = c.move
 		moves.append(move)
 		blocked.append(states[c.defender].is_blocking() and move.blocked_by(states[c.defender].block_low))
 		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN
 				or states[c.defender].action == FighterState.Action.LAUNCHED)
 		var d: FighterState = states[c.defender]
-		countered.append(d.action == FighterState.Action.ATTACK and d.move != null
-				and d.move.counters(d.move_frame, move.hit_level))
+		countered.append(c.projectile == null and d.action == FighterState.Action.ATTACK
+				and d.move != null and d.move.counters(d.move_frame, move.hit_level))
 		armored.append(d.action == FighterState.Action.ATTACK and d.move != null and d.armor_left > 0
 				and d.move.has_armor_on(d.move_frame) and not move.is_throw())
 
@@ -70,8 +78,18 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		var attacker: FighterState = states[c.attacker]
 		var defender: FighterState = states[c.defender]
 		var move: MoveData = moves[i]
-		attacker.move_connected = true
+		if c.projectile != null:
+			c.projectile.spent = true
+		else:
+			attacker.move_connected = true
+		if defender.action == FighterState.Action.KO:
+			continue  # already knocked out by an earlier contact this tick
 		hitstop = maxi(hitstop, move.hitstop_frames)
+		# A second contact on the same defender in one tick (a projectile
+		# arriving together with a strike) continues the combo the first began.
+		if not blocked[i] and (defender.action == FighterState.Action.HITSTUN
+				or defender.action == FighterState.Action.LAUNCHED):
+			in_combo[i] = true
 		if countered[i]:
 			_counter(c, sim)
 			continue
@@ -166,6 +184,9 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		var away: float = signf(defender.position_x - attacker.position_x)
 		if away == 0.0:
 			away = float(attacker.facing)
+		if c.projectile != null:
+			away = float(c.projectile.direction)
+		defender.pushback_transfers = c.projectile == null
 		defender.pushback_remaining = away * move.pushback
 		defender.pushback_step = move.pushback / PUSHBACK_TICKS
 	return hitstop
@@ -198,6 +219,9 @@ static func _counter(c: HitboxSystem.Contact, sim: CombatSimulation) -> void:
 	defender.move_connected = true
 	if stance.counter_followup != null:
 		sim.start_followup(c.defender, stance.counter_followup)
+	else:
+		# Parry: the stance ends here; its user acts first.
+		sim.end_move(c.defender)
 
 
 static func _knock_out(f: FighterState, index: int, sim: CombatSimulation) -> void:

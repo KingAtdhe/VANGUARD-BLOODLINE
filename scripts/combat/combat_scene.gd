@@ -377,6 +377,8 @@ func _present_new_events() -> void:
 			CombatEvent.Type.BLOCK:
 				_effects.spawn_for(ev)
 				_camera_rig.add_shake(0.008)
+			CombatEvent.Type.PROJECTILE_CLASH:
+				_effects.spawn_for(ev)
 			CombatEvent.Type.COUNTER:
 				# the caught attacker flashes; the follow-up brings its own hit
 				_fighter_views[ev.target].flash()
@@ -409,6 +411,7 @@ func _render(delta: float) -> void:
 	for i: int in 2:
 		_fighter_views[i].sync(_previous[i], simulation.fighters[i], alpha, frozen, delta)
 		xs.append(lerpf(_previous[i].position_x, simulation.fighters[i].position_x, alpha))
+	_effects.sync_projectiles(simulation.projectiles, 0.0 if frozen else alpha)
 	_hitbox_view.show_boxes(simulation, xs)
 	_camera_rig.follow(xs[0], xs[1], delta)
 	_hud.refresh(simulation, director, delta)

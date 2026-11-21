@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"vexa_pulse_shot"
+display_name = "Pulse Shot"
+input_pattern = &"SPECIAL"
+animation = &"VEXA_SPECIAL_PULSE_SHOT"
+startup_frames = 16
+active_frames = 1
+recovery_frames = 10
+hitstun_frames = 16
+blockstun_frames = 12
+hitstop_frames = 4
+damage = 45
+chip_damage = 5
+pushback = 0.35
+hit_level = 4
+hitbox_center = Vector2(0.9, 1.25)
+hitbox_size = Vector2(0.5, 0.4)
+tags = PackedStringArray("special", "projectile")
+cancel_tags = PackedStringArray()
+meter_gain_on_hit = 4
+meter_gain_on_block = 2
+projectile_speed = 10.0
+projectile_range = 7.0
+projectile_color = Color(0.25, 0.9, 1, 1)

@@ -1,7 +1,8 @@
 # Fighter Combat Design (summary)
 
-Status: **design awaiting owner review — nothing below is implemented yet.**
-All six fighters still share Kairo's move data (KI-049).
+Status: **five of six fighters built (Kairo, Drakon, Seraphina, Nox, Vexa — D-062
+to D-066), awaiting the owner's test on a phone. Ryuen still uses the shared
+set (KI-049).**
 
 The full design (stance, footwork, attack tables with frame data, specials,
 combos, defence, ultimate and animation personality per fighter) lives in the
@@ -54,8 +55,27 @@ Balance values go in `data/`, never in controller code.
 3. Kairo's full set; owner tests on device before the rest follow. **Built (D-062), awaiting owner test.**
 4. One fighter at a time with the mechanic it needs: Drakon (throws, armour — **built, D-063**),
    Seraphina (evade, launch — **built, D-064**), Nox (side switch, overhead — **built, D-065**), Vexa (projectile,
-   parry), Ryuen (counters).
+   parry — **built, D-066**), Ryuen (counters).
 5. A test build after every fighter.
+
+## Vexa as built (D-066)
+
+| Move | Input | Frames | Notes |
+| --- | --- | --- | --- |
+| Piston Jab | L | 6 / 3 / 11 | Reach 1.15 m, the longest light. Cancels into itself, Teep, Slashing Elbow. Keyed. |
+| Teep | H | 11 / 4 / 18 | 1.2 m pushback. Cancels into specials. Captured front kick, mirrored to the lead leg. |
+| Cut Kick | K | 10 / 4 / 17 | LOW. Cancels into Slashing Elbow. Captured roundhouse reshaped into a low kick. |
+| Slashing Elbow | down + H | 8 / 3 / 15 | Steps in 0.45 m, 80 damage, cancels into Overclock Knee. Keyed. |
+| Pulse Shot | SP | fires on 16, 26 total | Projectile, 10 m/s, 7 m range, one on screen, 45 damage, no meter. Keyed. |
+| Overclock Knee | toward + SP | 13 / 5 / 24 | Travels 1.7 m, knocks down, -16 on block, 25 meter. Keyed. |
+| Arc Guard | away + SP | parry 3-11 of 30 | Parries one HIGH or MID hit, attacker frozen 26 frames, Vexa free at once. Lows, throws and projectiles beat it. Keyed. |
+| System Overdrive | ULT in Surge | 9 / 4 / 46 | Short range, 300 damage, one hit. Keyed. |
+
+Combos checked by tests: Jab, Teep, Pulse Shot (3 hits, ends far apart);
+Cut Kick, Elbow, Knee (3 hits, needs 25 meter); Arc Guard parry, Elbow, Knee.
+Missing against the design: counter-hit stagger on the Cut Kick, the
+head-pull of the knee, separate hits and a beam in the ultimate, shield and
+beam effects.
 
 ## Animation sources and limits
 

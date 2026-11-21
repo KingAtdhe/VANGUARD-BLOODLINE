@@ -162,8 +162,9 @@ func test_scene_light_attack_hits_dummy_with_effects() -> Array[String]:
 	if fx.get_child_count() == 0:
 		f.append("no hit spark spawned")
 	var boxes: HitboxDebugView = scene.get_node("%HitboxDebugView")
-	if boxes.get_child_count() != 4:
-		f.append("hitbox debug view should hold 4 boxes, has %d" % boxes.get_child_count())
+	# hurtbox + hitbox + projectile box (D-066) per fighter
+	if boxes.get_child_count() != 6:
+		f.append("hitbox debug view should hold 6 boxes, has %d" % boxes.get_child_count())
 	# HUD health bar shows the simulation's health.
 	var hud: MatchHUD = scene.get_node("%MatchHUD")
 	if hud.health_bar_value(1) != sim.fighters[1].health:

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"vexa_arc_guard"
+display_name = "Arc Guard"
+input_pattern = &"BACK_SPECIAL"
+animation = &"VEXA_SPECIAL_ARC_GUARD"
+startup_frames = 3
+active_frames = 9
+recovery_frames = 19
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 0
+damage = 0
+chip_damage = 0
+pushback = 0.0
+hit_level = 1
+hitbox_center = Vector2(0.4, 1.4)
+hitbox_size = Vector2(0.1, 0.1)
+tags = PackedStringArray("special", "counter")
+cancel_tags = PackedStringArray()
+counter_start_frame = 3
+counter_end_frame = 11
+counter_levels = Array[int]([0, 1])
+counter_stun_frames = 26

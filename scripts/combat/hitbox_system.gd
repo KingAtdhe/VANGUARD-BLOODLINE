@@ -5,8 +5,9 @@ extends RefCounted
 ## Boxes are axis-aligned Rect2 in (x, height) metres. Detection samples the
 ## overlap once per combat tick after movement (decision D-017): at walking
 ## speeds (< 0.05 m/tick) and with every active window >= 1 tick on static,
-## fighter-relative boxes, tunnelling cannot occur. Swept tests will be added
-## for fast projectiles when they exist.
+## fighter-relative boxes, tunnelling cannot occur. Projectiles (D-066) move
+## much faster, so their box is swept over the distance covered in the tick
+## (ProjectileState.swept_box).
 
 
 ## Standing hurtbox. Empty (no area) when the fighter cannot be hit (KO).
@@ -28,7 +29,7 @@ static func hurtbox(def: FighterDefinition, s: FighterState) -> Rect2:
 static func hitbox(s: FighterState) -> Rect2:
 	if s.action != FighterState.Action.ATTACK or s.move == null:
 		return Rect2()
-	if s.move.activates_surge or s.move.is_counter() or s.move.no_hitbox \
+	if s.move.activates_surge or s.move.is_counter() or s.move.no_hitbox or s.move.is_projectile() \
 			or not s.move.is_active_frame(s.move_frame):
 		return Rect2()
 	var c := Vector2(s.position_x + s.facing * s.move.hitbox_center.x, s.move.hitbox_center.y)
@@ -45,12 +46,19 @@ class Contact:
 	var attacker: int
 	var defender: int
 	var point: Vector2
+	## The move that connected (the attacker's current move, or the move the
+	## projectile was fired with — its owner may be doing something else by now).
+	var move: MoveData
+	## Set when a projectile connected instead of the attacker's own hitbox.
+	var projectile: ProjectileState = null
 
 
 ## All attacker→defender contacts this tick, in fixed P1→P2 order.
 ## Detection is separate from resolution so simultaneous hits (trades) are
 ## judged against the same pre-resolution state.
-static func find_contacts(defs: Array[FighterDefinition], states: Array[FighterState]) -> Array[Contact]:
+## Projectile contacts follow the fighters' own.
+static func find_contacts(defs: Array[FighterDefinition], states: Array[FighterState],
+		projectiles: Array[ProjectileState] = []) -> Array[Contact]:
 	var out: Array[Contact] = []
 	for a: int in 2:
 		var d: int = 1 - a
@@ -70,5 +78,40 @@ static func find_contacts(defs: Array[FighterDefinition], states: Array[FighterS
 		c.attacker = a
 		c.defender = d
 		c.point = hit_rect.intersection(hurt_rect).get_center()
+		c.move = states[a].move
 		out.append(c)
+	for p: ProjectileState in projectiles:
+		if p.spent:
+			continue
+		var target: int = 1 - p.owner
+		var box: Rect2 = p.swept_box()
+		var hurt: Rect2 = hurtbox(defs[target], states[target])
+		if not hurt.has_area() or not box.intersects(hurt):
+			continue
+		var pc := Contact.new()
+		pc.attacker = p.owner
+		pc.defender = target
+		pc.point = box.intersection(hurt).get_center()
+		pc.move = p.move
+		pc.projectile = p
+		out.append(pc)
 	return out
+
+
+## Opposing projectiles whose swept boxes overlap destroy each other.
+## Returns the clash points (for the log and effects).
+static func find_clashes(projectiles: Array[ProjectileState]) -> Array[Vector2]:
+	var points: Array[Vector2] = []
+	for i: int in projectiles.size():
+		for j: int in range(i + 1, projectiles.size()):
+			var a: ProjectileState = projectiles[i]
+			var b: ProjectileState = projectiles[j]
+			if a.spent or b.spent or a.owner == b.owner:
+				continue
+			var ra: Rect2 = a.swept_box()
+			var rb: Rect2 = b.swept_box()
+			if ra.intersects(rb):
+				a.spent = true
+				b.spent = true
+				points.append(ra.intersection(rb).get_center())
+	return points

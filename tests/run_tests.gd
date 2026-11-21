@@ -3,6 +3,9 @@ extends SceneTree
 ##
 ## Run:  godot --headless --path . --script res://tests/run_tests.gd
 ## Exit code 0 = all tests passed, 1 = at least one failure.
+## While working on one area, run only the files whose name contains a word:
+##   godot --headless --path . --script res://tests/run_tests.gd -- vexa
+## (a filtered run is NOT a full run — always finish with the whole suite).
 ##
 ## Each test file in TEST_DIRS extends RefCounted and exposes methods named
 ## test_*() that return an Array[String] of failure messages (empty = pass).
@@ -66,6 +69,15 @@ func _list_test_files(dir_path: String) -> PackedStringArray:
 		if f.begins_with("test_") and f.ends_with(".gd"):
 			result.append(f)
 	result.sort()
+	var only: PackedStringArray = OS.get_cmdline_user_args()
+	if not only.is_empty():
+		var kept: PackedStringArray = []
+		for f: String in result:
+			for word: String in only:
+				if f.contains(word):
+					kept.append(f)
+					break
+		return kept
 	return result
 
 

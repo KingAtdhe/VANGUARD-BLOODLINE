@@ -12,6 +12,8 @@ const DEPTH: float = 0.9
 var _hurt: Array[MeshInstance3D] = []
 var _hit: Array[MeshInstance3D] = []
 var _hit_mats: Array[StandardMaterial3D] = []
+## One box per fighter for its projectile (only one can be in flight).
+var _shot: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
@@ -20,6 +22,7 @@ func _ready() -> void:
 		var hit: MeshInstance3D = _make_box(HIT_COLOR)
 		_hit.append(hit)
 		_hit_mats.append(hit.material_override as StandardMaterial3D)
+		_shot.append(_make_box(HIT_COLOR))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -39,6 +42,9 @@ func show_boxes(sim: CombatSimulation, render_x: Array[float]) -> void:
 		var hb: Rect2 = HitboxSystem.hitbox(s)
 		_hit_mats[i].albedo_color = SPENT_COLOR if s.move_connected else HIT_COLOR
 		_place(_hit[i], hb, offset)
+		_shot[i].visible = false
+	for p: ProjectileState in sim.projectiles:
+		_place(_shot[p.owner], p.swept_box(), 0.0)
 
 
 func _place(box: MeshInstance3D, rect: Rect2, x_offset: float) -> void:

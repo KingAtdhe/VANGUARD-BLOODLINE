@@ -35,6 +35,8 @@ const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL
 	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL", &"BACK_SPECIAL"]
 ## Extra distance at which a visible attack is treated as a threat.
 const THREAT_MARGIN: float = 0.35
+## Start guarding an incoming projectile this many ticks before it arrives.
+const PROJECTILE_GUARD_TICKS: float = 10.0
 
 var profile: AIProfile
 var index: int
@@ -56,6 +58,9 @@ var _idle_ticks: int = 0
 var _threat_key: int = -1
 var _threat_block: bool = false
 var _counter_key: int = -1
+## Projectile currently being judged (id) and whether we block it.
+var _shot_key: int = -1
+var _shot_block: bool = false
 ## Guard height chosen for the attack currently seen (true = low block).
 var _block_low: bool = false
 ## The next emitted frame holds down (down + button command).
@@ -99,6 +104,7 @@ func reset() -> void:
 	_last_buttons = 0
 	_idle_ticks = 0
 	_threat_key = -1
+	_shot_key = -1
 	_punish_key = -1
 	_route_commit = false
 	_route_pressed_for = -1
@@ -200,6 +206,24 @@ func next_input() -> FighterInputFrame:
 				return _tap(&"BACK_SPECIAL", "counter %s" % opp.move_id, 0)
 		if _threat_block or _guard_left > 0:
 			_set_state(State.BLOCK, "reaction")
+			return _emit(0, B)
+
+	# --- an incoming projectile (seen late, like everything else) ----------
+	# Guard once it is about to arrive: either block stops it, so only the
+	# usual block-reaction roll applies. Walking is free until then.
+	for shot: AIObservation.SeenProjectile in delayed.projectiles:
+		if shot.owner == index or shot.direction != (1 if me.x > shot.x else -1):
+			continue
+		if shot.id != _shot_key:
+			_shot_key = shot.id
+			_shot_block = _rng.randf() < minf(1.0, profile.block_reaction_chance)
+			decision_log.add(_tick, State.keys()[state], "sees projectile %s → %s" % [
+				shot.move_id, "BLOCK" if _shot_block else "no block"])
+		var arrives_in: float = (absf(me.x - shot.x) - me_def.hurtbox_half_width) / maxf(shot.speed, 0.001) \
+				- profile.reaction_delay_ticks
+		if _shot_block and arrives_in <= PROJECTILE_GUARD_TICKS:
+			_block_low = false
+			_set_state(State.BLOCK, "projectile")
 			return _emit(0, B)
 
 	# --- punish visible recovery -----------------------------------------
@@ -313,6 +337,10 @@ func _decide(dist: float, opp: AIObservation.Seen) -> void:
 		guard = minf(0.9, guard + 0.35 * _opp_aggr)
 		aggression *= 1.0 - 0.4 * _opp_block
 	var r: float = _rng.randf()
+	# A zoner whose only move in range is a projectile fires it part of the
+	# time; otherwise it plays the range like anyone else (walk in, back off).
+	if not in_range.is_empty() and _only_projectiles(in_range) and _rng.randf() >= profile.projectile_chance:
+		in_range = []
 	if in_range.is_empty():
 		if r < aggression:
 			_set_intent(State.APPROACH, "far (d=%.2f)" % dist)
@@ -372,7 +400,16 @@ func _set_intent(s: State, reason: String) -> void:
 
 ## Max centre distance at which [param m] hits a fighter with [param target]'s hurtbox.
 static func _reach(m: MoveData, target: FighterDefinition) -> float:
-	return m.hitbox_center.x + m.hitbox_size.x * 0.5 + target.hurtbox_half_width
+	return m.hitbox_center.x + m.hitbox_size.x * 0.5 + target.hurtbox_half_width \
+			+ (m.projectile_range if m.is_projectile() else 0.0)
+
+
+func _only_projectiles(patterns: Array[StringName]) -> bool:
+	for pattern: StringName in patterns:
+		var m: MoveData = me_def.move_for(pattern)
+		if m == null or not m.is_projectile():
+			return false
+	return true
 
 
 func _moves_in_range(dist: float) -> Array[StringName]:

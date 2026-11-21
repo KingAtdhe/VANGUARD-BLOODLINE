@@ -62,6 +62,10 @@ var combo_damage: int = 0
 ## Pushback still to slide (signed metres) and slide amount per tick.
 var pushback_remaining: float = 0.0
 var pushback_step: float = 0.0
+## False when the current pushback came from a projectile: a cornered
+## defender then simply stops at the wall instead of sliding the (possibly
+## far away) attacker back.
+var pushback_transfers: bool = true
 
 
 func copy() -> FighterState:
@@ -90,6 +94,7 @@ func copy() -> FighterState:
 	s.combo_damage = combo_damage
 	s.pushback_remaining = pushback_remaining
 	s.pushback_step = pushback_step
+	s.pushback_transfers = pushback_transfers
 	return s
 
 

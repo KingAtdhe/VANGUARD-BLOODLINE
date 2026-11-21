@@ -48,6 +48,10 @@ extends Resource
 ## Chance to answer an attack it would have blocked with a counter stance
 ## instead (only fighters that have one).
 @export_range(0.0, 1.0) var counter_chance: float = 0.0
+## When only a projectile is in range (far away), chance per decision to
+## fire it rather than play the distance like other fighters (walk in, back
+## off, wait). Only fighters with a projectile. D-066.
+@export_range(0.0, 1.0) var projectile_chance: float = 0.5
 ## Chance to pre-emptively guard when close and undecided.
 @export_range(0.0, 1.0) var guard_chance: float = 0.3
 @export_range(1, 120) var guard_ticks: int = 18

@@ -382,6 +382,8 @@ HANDS_BY_ACTION = {
     # Nox: spear hands (straight fingers), a closed fist only for the backfist
     "ATTACK_FANG_JAB_01": (0.03, 0.3), "SPECIAL_THROAT_PIERCE": (0.3, 0.03), "ULTIMATE_ECLIPSE": (0.03, 0.03),
     "ATTACK_RISING_BACKFIST_01": (0.3, 1.0),
+    # Vexa: the cyber hand opens to fire; the shield hand is a flat blade
+    "SPECIAL_PULSE_SHOT": (0.08, 0.9), "SPECIAL_ARC_GUARD": (0.15, 0.9),
 }
 
 
@@ -856,7 +858,337 @@ def nox_set(c):
     return out
 
 
-OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set}
+def mirrored(clip):
+    """The same capture as its mirror image (left and right swapped): a kick
+    recorded with the right leg becomes a left-leg kick."""
+    def other(k):
+        if k.startswith("Left"):
+            return "Right" + k[4:]
+        if k.startswith("Right"):
+            return "Left" + k[5:]
+        if k[0] in "LR" and k[1:2].isupper():            # LHipJoint, RThumb ...
+            return ("R" if k[0] == "L" else "L") + k[1:]
+        return k
+    m = Clip.__new__(Clip)
+    m.P = {other(k): v * np.array([-1.0, 1.0, 1.0]) for k, v in clip.P.items()}
+    m.n, m.stand_hips = clip.n, clip.stand_hips
+    return m
+
+
+def bend_to(P, root, mid, end, mid_target, end_target, carry=()):
+    """Two-bone IK that puts the MIDDLE joint (elbow, knee) as near as it can
+    to mid_target while the end joint goes to end_target. Elbow and knee
+    strikes: the joint is the weapon, the hand or foot only follows."""
+    cur = P[end]
+    Q = ik2(P, root, mid, end, end_target, np.array(mid_target, float))
+    for k in carry:
+        if k in P:
+            Q[k] = P[k] - cur + Q[end]
+    return Q
+
+
+HAND_CARRY = ("HandIndex1", "HandIndex1_end", "FingerBase", "Thumb", "Thumb_end")
+FOOT_CARRY = ("ToeBase", "ToeBase_end")
+
+
+def point_hand(P, side, toward):
+    """Turn the hand so its fingers point along `toward` (the capture has no
+    hand data: hands otherwise keep the direction they had in the guard)."""
+    d = _norm(np.array(toward, float))
+    h = P[side + "Hand"]
+    P = dict(P)
+    for k in [side + k for k in HAND_CARRY] + [side[0] + "Thumb", side[0] + "Thumb_end"]:
+        if k in P:
+            P[k] = h + d * np.linalg.norm(P[k] - h)
+    return P
+
+
+def vexa_set(c):
+    """Vexa: Circuit Striker. Muay Thai with a cybernetic left (lead) arm.
+    The Teep is a captured front kick (CMU 144_05, mirrored onto the lead
+    leg) and the Cut Kick a captured roundhouse (86_08) kept below hip
+    height. Everything else is keyed from her guard: the library has no
+    elbows, knees or anything like the arm's piston punches and shots.
+
+    Keyed strikes are aimed in MODEL space: c["joints"](P) gives the game
+    skeleton's joints for a source pose, and because the retarget copies limb
+    directions, a point the model's wrist, elbow or knee must reach converts
+    to a source-space IK target by the ratio of the limb lengths."""
+    H, G, moves, pose_of, box = c["H"], c["guard_P"], c["moves"], c["pose_of"], c["box"]
+    v = lambda x, y, z: np.array([x, y, z]) * H          # noqa: E731
+    gl, gr = G["LeftHand"], G["RightHand"]
+    lf, rf = G["LeftFoot"], G["RightFoot"]
+    joints = c["joints"]
+    teep_c, round_c = mirrored(c["clip"]("144_05")), c["clip"]("86_08")
+    out = {}
+
+    g_m = joints(G)[0]
+    def length(P, chain):
+        return sum(np.linalg.norm(P[b] - P[a]) for a, b in zip(chain, chain[1:]))
+    ARM = {sd: length(g_m, [sd + "UpperArm", sd + "LowerArm", sd + "Hand"]) / length(G, [sd + "Arm", sd + "ForeArm", sd + "Hand"])
+           for sd in ("Left", "Right")}
+    UPPER_ARM = {sd: length(g_m, [sd + "UpperArm", sd + "LowerArm"]) / length(G, [sd + "Arm", sd + "ForeArm"])
+                 for sd in ("Left", "Right")}
+    THIGH = {sd: length(g_m, [sd + "UpperLeg", sd + "LowerLeg"]) / length(G, [sd + "UpLeg", sd + "Leg"])
+             for sd in ("Left", "Right")}
+    FIST = 0.07 * H                                       # wrist to the middle of the fist
+
+    def at(x, fwd, z):
+        """A point in model space: x to her left, fwd toward the opponent, z above the floor."""
+        return np.array([x, -fwd, z])
+
+    def wrist_src(P, side, target_m):
+        m = joints(P)[0]
+        return P[side + "Arm"] + (np.array(target_m) - m[side + "UpperArm"]) / ARM[side]
+
+    def elbow_src(P, side, target_m):
+        m = joints(P)[0]
+        return P[side + "Arm"] + (np.array(target_m) - m[side + "UpperArm"]) / UPPER_ARM[side]
+
+    def knee_src(P, side, target_m):
+        m = joints(P)[0]
+        return P[side + "UpLeg"] + (np.array(target_m) - m[side + "UpperLeg"]) / THIGH[side]
+
+    def blend_P(A, B, w):
+        return {k: A[k] * (1 - w) + B[k] * w for k in A}
+
+    def keyed(mv, fn, lift=None, settle=6):
+        total, a0, a1 = frames_of(mv)
+        poses = []
+        for t in range(total):
+            pose = pose_of(fn(t, total, a0, a1), box)
+            up = lift(t) if lift else 0.0
+            if up > 0.005:
+                pose = Pose(pose.D, pose.hips + np.array([0, 0, up]))
+            poses.append(pose)
+        for t in range(max(0, total - settle), total):
+            poses[t] = Pose.blend(poses[t], c["guard"], ease((t - (total - settle)) / settle))
+        return poses
+
+    def snap(t, keys):
+        """A track without easing: the cyber arm moves in hard mechanical
+        snaps (linear, full speed from the first frame), unlike her body."""
+        if t <= keys[0][0]:
+            return keys[0][1]
+        for (f0, v0), (f1, v1) in zip(keys, keys[1:]):
+            if t <= f1:
+                return v0 + (v1 - v0) * ((t - f0) / max(1e-6, f1 - f0))
+        return keys[-1][1]
+
+    def aim(cl, peak, side):
+        d = (cl.at(peak)[side + "Foot"] - cl.at(peak)["Hips"])[:2]
+        return d / (np.linalg.norm(d) + 1e-9)
+
+    def lunge(P, fwd, down=0.0):
+        """The body travels toward the opponent over planted feet."""
+        Q = shift(P, BODY, np.array([0, -fwd, -down]))
+        for sd in ("Left", "Right"):
+            Q = move_foot(Q, sd, P[sd + "Foot"])
+        return Q
+
+    def twist(P, deg):
+        """Turn the shoulders (not the hips) about the spine; + brings the rear (right) shoulder forward."""
+        o = np.array([P["Hips"][0], P["Hips"][1], 0.0])
+        R = np.array(Matrix.Rotation(math.radians(deg), 3, "Z"))
+        Q = dict(P)
+        for k in UPPER:
+            if k in Q:
+                Q[k] = R @ (Q[k] - o) + o
+        return Q
+
+    def arm_to(P, side, wrist_m, w=1.0, pole_out=0.2, fingers=None):
+        if w <= 0:
+            return P
+        Q = move_hand(P, side, wrist_src(P, side, wrist_m), w, pole_out=pole_out)
+        return point_hand(Q, side, fingers) if fingers is not None and w > 0.5 else Q
+
+    def brace(P, w):
+        """Rear hand clamps onto the cyber arm's biceps (steadying it)."""
+        if w <= 0:
+            return P
+        m = joints(P)[0]
+        grip = m["LeftUpperArm"] + (m["LeftLowerArm"] - m["LeftUpperArm"]) * 0.6 + np.array([-0.03, 0.0, -0.02])
+        return arm_to(P, "Right", grip, w, pole_out=0.35)
+
+    FWD = np.array([0.0, -1.0, 0.0])
+
+    # Piston Jab: cocked for two frames, then fired down one straight line in
+    # two; the body slides in behind it but shoulders and hips do not turn
+    mv = moves["piston_jab"]
+    def jab(t, total, a0, a1, mv=mv):
+        go = snap(t, [(0, 0.0), (a0 - 2, 0.0), (a0, 1.0), (a1, 1.0), (a1 + 4, 0.0)])
+        P = lunge(G, 0.15 * H * go)
+        fist = at(0.05 * H, mv["hc"][0] - 0.04 - FIST, mv["hc"][1] - 0.02)
+        cock = joints(P)[0]["LeftHand"] + np.array([0.0, 0.07, -0.03])
+        tgt = snap(t, [(0, cock), (a0 - 2, cock), (a0, fist), (a1, fist), (a1 + 4, cock)])
+        w = snap(t, [(0, 0.0), (a0 - 2, 1.0), (a1 + 4, 1.0), (total - 1, 0.0)])
+        return arm_to(P, "Left", tgt, w, pole_out=0.1, fingers=FWD if go > 0.5 else None)
+    out[c["anim_of"](mv)] = keyed(mv, jab, settle=4)
+
+    # Teep: captured front kick on the lead leg, pushed through at hip height
+    mv = moves["teep"]
+    # (the shared strike helper aims in capture space, where this model's
+    # foot ends about 12 cm higher: aim that much lower so it lands in the box)
+    low = dict(mv, hc=[mv["hc"][0], mv["hc"][1] - 0.12])
+    out[c["anim_of"](mv)] = c["strike"](teep_c, 1639, "Left", "foot", low, pre=44, post=56, blend_in=4,
+                                        aim=aim(teep_c, 1639, "Left"))
+
+    # Cut Kick: captured rear-leg roundhouse, reshaped into a low kick. The
+    # capture is thrown at the ribs with the body leaning far away, so three
+    # things are changed for the whole swing: the foot stays under a ceiling
+    # (the hip turn then carries the shin round at thigh height), most of the
+    # lean is taken back out, and on the active frames the leg is straightened
+    # out to its full length instead of being folded down onto the hitbox
+    mv = moves["cut_kick"]
+    total, a0, a1 = frames_of(mv)
+    ceiling = mv["hc"][1] + 0.1
+    def keep_low(P, t, T, a0=a0, a1=a1, mv=mv):
+        P = lean(P, -40 * hump(t, 2, T - 7))
+        foot = P["RightFoot"]
+        if foot[2] > ceiling:
+            P = move_foot(P, "Right", np.array([foot[0], foot[1], ceiling]))
+        w = track(t, [(0, 0.0), (a0 - 5, 0.0), (a0, 1.0), (a1, 1.0), (a1 + 6, 0.0)])
+        if w > 0:
+            hip, foot = P["RightUpLeg"], P["RightFoot"]
+            leg = 0.97 * (np.linalg.norm(P["RightLeg"] - hip) + np.linalg.norm(foot - P["RightLeg"]))
+            drop = hip[2] - (mv["hc"][1] - 0.05)                          # shin through the middle of the box
+            out_xy = _norm(np.array([foot[0] - hip[0], foot[1] - hip[1]]))
+            flat = math.sqrt(max(0.0, leg * leg - drop * drop))
+            P = move_foot(P, "Right", np.array([hip[0] + out_xy[0] * flat, hip[1] + out_xy[1] * flat, hip[2] - drop]), w)
+        return P
+    out[c["anim_of"](mv)] = c["strike"](round_c, 4325, "Right", "foot", mv, pre=36, post=44, blend_in=4,
+                                        aim=aim(round_c, 4325, "Right"), extra=keep_low)
+
+    # Slashing Elbow: steps in (the game carries her), the shoulders turn
+    # over and the rear elbow cuts diagonally down through the hitbox, the
+    # forearm folded back across her own chest
+    mv = moves["slashing_elbow"]
+    def elbow(t, total, a0, a1, mv=mv):
+        w = track(t, [(0, 0.0), (a0, 1.0), (a1, 1.0), (total - 1, 0.0)])
+        P = move_foot(G, "Left", lf + v(0, -0.08, 0.05 * hump(t, 0, a0)) * w)       # the step
+        P = lunge(P, 0.12 * H * w, 0.04 * H * w)
+        P = twist(P, 62 * w)
+        P = lean(P, -5 * w)                                                   # stays behind the elbow: the head must not lead
+        m = joints(P)[0]
+        sh = m["RightUpperArm"]
+        tip0 = at(-0.02 * H, mv["hc"][0] - 0.04, mv["hc"][1] + 0.1)          # enters high ...
+        tip1 = at(0.05 * H, mv["hc"][0] - 0.07, mv["hc"][1] - 0.1)           # ... leaves low, across the centre line
+        e = track(t, [(0, m["RightLowerArm"]), (a0 - 3, sh + v(-0.1, -0.1, 0.2)), (a0, tip0), (a1, tip1),
+                      (a1 + 5, sh + v(0.02, -0.18, -0.1)), (total - 1, m["RightLowerArm"])])
+        e_s = elbow_src(P, "Right", e)
+        fold = e_s + v(0.2, 0.14, 0.03) / UPPER_ARM["Right"]                 # fist back by her own collarbone
+        hand = blend_P({"h": P["RightHand"]}, {"h": fold}, track(t, [(0, 0.0), (a0 - 3, 1.0), (a1 + 2, 1.0),
+                                                                     (total - 1, 0.0)]))["h"]
+        P = bend_to(P, "RightArm", "RightForeArm", "RightHand", e_s, hand, ["Right" + k for k in HAND_CARRY] + ["RThumb"])
+        return move_hand(P, "Left", gl + v(0.0, 0.1, 0.03) * w, 1.0, pole_out=0.2)       # lead hand stays home
+    out[c["anim_of"](mv)] = keyed(mv, elbow)
+
+    # Pulse Shot: the arm locks out level, the rear hand clamps it, the whole
+    # body rocks back on the shot (frame a0) and settles
+    mv = moves["pulse_shot"]
+    def shot(t, total, a0, a1, mv=mv):
+        w = track(t, [(0, 0.0), (6, 1.0), (a0 + 4, 1.0), (total - 1, 0.0)])
+        kick = hump(t, a0 - 1, a0 + 6)                                        # recoil
+        P = move_foot(G, "Right", rf + v(-0.02, 0.1, 0.0) * w)                # rear foot braces
+        P = lunge(P, (0.05 - 0.07 * kick) * H * w, 0.05 * H * w)
+        P = lean(P, -4 * w + 6 * kick)
+        P = twist(P, -14 * w)                                                 # squares the cyber shoulder to the target
+        muzzle = at(0.07 * H, 0.56 * H - 0.05 * kick, mv["hc"][1])
+        cock = joints(P)[0]["LeftHand"] + np.array([0.0, 0.1, -0.05])
+        arm_w = snap(t, [(0, 0.0), (3, 1.0), (a0 + 5, 1.0), (total - 1, 0.0)])
+        tgt = snap(t, [(0, cock), (4, cock), (7, muzzle), (a0 + 5, muzzle), (total - 1, cock)])
+        P = arm_to(P, "Left", tgt, arm_w, pole_out=0.08, fingers=FWD if 6 <= t <= a0 + 6 else None)
+        return brace(P, track(t, [(0, 0.0), (6, 0.0), (11, 1.0), (a0 + 4, 1.0), (total - 2, 0.0)]))
+    out[c["anim_of"](mv)] = keyed(mv, shot)
+
+    # Overclock Knee: two running strides (the game carries her), then she
+    # leaves the floor: the cyber arm reaches out and hauls down while the
+    # rear knee drives up through the hitbox
+    mv = moves["overclock_knee"]
+    total, a0, a1 = frames_of(mv)
+    rise = lambda t, a0=a0, a1=a1: 0.16 * H * hump(t, a0 - 4, a1 + 7)       # noqa: E731
+    def knee(t, total, a0, a1, mv=mv):
+        run = track(t, [(0, 0.0), (2, 1.0), (a0 - 4, 1.0), (a0 - 1, 0.0)])
+        fly = track(t, [(0, 0.0), (a0 - 4, 0.0), (a0, 1.0), (a1, 1.0), (a1 + 8, 0.0)])
+        P = G
+        for sd, ph, base in (("Left", 0.0, lf), ("Right", math.pi, rf)):      # two quick strides
+            a = 2 * math.pi * t / 8.0 + ph
+            P = move_foot(P, sd, base + v(0, -0.15 * math.cos(a), 0.09 * max(0.0, math.sin(a))) * run)
+        P = lean(P, -14 * run + 8 * fly)                                      # runs leaning in, hips thrust through on the knee
+        if fly > 0:
+            P = shift(P, BODY, np.array([0, -0.1 * H * fly, 0]))              # hips forward over the standing leg
+            P = move_foot(P, "Left", lf + v(-0.04, 0.12, 0.0) * fly)          # that leg trails, toes down
+            point = at(-0.06 * H, mv["hc"][0] - 0.1, mv["hc"][1] - 0.02 - rise(t))
+            k_s = knee_src(P, "Right", point)
+            k_now = P["RightLeg"] + (k_s - P["RightLeg"]) * fly
+            f_now = P["RightFoot"] + (k_s + v(0.0, 0.3, -0.27) - P["RightFoot"]) * fly    # shin folded back under the thigh
+            P = bend_to(P, "RightUpLeg", "RightLeg", "RightFoot", k_now, f_now, ["Right" + k for k in FOOT_CARRY])
+        m = joints(P)[0]
+        home = m["LeftHand"]
+        clinch = at(0.03 * H, 0.52 * H, 1.5 * H - rise(t))                    # behind the opponent's head
+        pull = at(0.0, 0.36 * H, 1.24 * H - rise(t))                          # hauled down onto the knee
+        tgt = snap(t, [(0, home), (a0 - 6, home), (a0 - 2, clinch), (a0, pull), (a1, pull), (a1 + 8, home)])
+        arm_w = snap(t, [(0, 0.0), (a0 - 6, 0.0), (a0 - 4, 1.0), (a1 + 3, 1.0), (a1 + 8, 0.0)])
+        P = arm_to(P, "Left", tgt, arm_w, pole_out=0.3)
+        return move_hand(P, "Right", P["RightHand"] + v(-0.08, 0.16, -0.14) * fly, 1.0, pole_out=0.3)   # rear arm swings back
+    name = c["anim_of"](mv)
+    out[name] = keyed(mv, knee, lift=rise)
+    c["air"](name, a0 - 3, a1 + 6)
+
+    # Arc Guard: the cyber forearm snaps upright in front of her face as a
+    # shield and is held through the parry window, feet rooted
+    mv = moves["arc_guard"]
+    c0, c1 = mv["counter"]
+    def arc(t, total, a0, a1):
+        w = snap(t, [(0, 0.0), (max(1, c0 - 1), 1.0), (c1, 1.0), (c1 + 9, 0.0)])
+        soft = track(t, [(0, 0.0), (c0, 1.0), (c1, 1.0), (total - 1, 0.0)])
+        P = lunge(G, 0.0, 0.05 * H * soft)
+        P = lean(P, -5 * soft)
+        P = twist(P, -10 * soft)
+        m = joints(P)[0]
+        head = m["Head"]
+        elb = elbow_src(P, "Left", head + v(0.1, -0.3, -0.27))                # forearm upright, held out in front of the face
+        wri = wrist_src(P, "Left", head + v(0.03, -0.38, -0.02))
+        e_now = P["LeftForeArm"] + (elb - P["LeftForeArm"]) * w
+        h_now = P["LeftHand"] + (wri - P["LeftHand"]) * w
+        P = bend_to(P, "LeftArm", "LeftForeArm", "LeftHand", e_now, h_now, ["Left" + k for k in HAND_CARRY] + ["LThumb"])
+        if w > 0.5:
+            P = point_hand(P, "Left", [0.0, -0.15, 1.0])                      # blade hand, fingers up
+        return move_hand(P, "Right", gr + v(0.04, 0.03, -0.06) * soft, 1.0, pole_out=0.2)   # rear hand tucks to the ribs
+    out[c["anim_of"](mv)] = keyed(mv, arc)
+
+    # System Overdrive: point-blank pulse on the active frames, five piston
+    # punches (one every four frames), the arm drawn right back, then the
+    # beam held at full extension while the body shudders
+    mv = moves["system_overdrive"]
+    def overdrive(t, total, a0, a1, mv=mv):
+        beats = [a1 + 5 + 4 * k for k in range(5)]
+        wind, beam, hold = beats[-1] + 4, beats[-1] + 9, total - 9
+        low = track(t, [(0, 0.0), (a0, 1.0), (hold, 1.0), (total - 1, 0.0)])
+        charge = track(t, [(0, 0.0), (beats[-1] + 1, 0.0), (wind, 1.0), (beam, 0.0)])
+        fire = track(t, [(0, 0.0), (beam - 1, 0.0), (beam + 1, 1.0), (hold, 1.0), (total - 1, 0.0)])
+        P = move_foot(G, "Right", rf + v(-0.03, 0.1, 0.0) * low)
+        P = lunge(P, (0.07 - 0.12 * charge) * H * low, 0.06 * H * low)
+        P = lean(P, -6 * low + 10 * charge - 4 * fire + 1.5 * fire * math.sin(t * 2.2))
+        P = twist(P, -12 * fire + 30 * charge)
+        m = joints(P)[0]
+        sh = m["LeftUpperArm"]
+        palm = at(0.05 * H, mv["hc"][0] + 0.14 - FIST, mv["hc"][1] + 0.02)        # arm all but locked out
+        cock = sh + v(0.05, -0.02, -0.15)                                     # fist right back at the ribs between punches
+        back = sh + v(0.1, 0.16, -0.16)                                       # drawn back past her ribs
+        far = at(0.07 * H, 0.95 * H, mv["hc"][1] + 0.06)                      # past her reach: the arm locks straight
+        keys = [(0, m["LeftHand"]), (a0 - 3, cock), (a0, palm), (a1, palm)]
+        for k, b in enumerate(beats):
+            keys += [(b - 2, cock), (b, palm + v(0.0, 0.0, 0.06 - 0.03 * k))]
+        keys += [(wind, back), (beam, far), (hold, far), (total - 1, m["LeftHand"])]
+        arm_w = snap(t, [(0, 0.0), (a0 - 3, 1.0), (hold, 1.0), (total - 1, 0.0)])
+        P = arm_to(P, "Left", snap(t, keys), arm_w, pole_out=0.1, fingers=FWD)
+        return brace(P, fire)
+    out[c["anim_of"](mv)] = keyed(mv, overdrive, settle=8)
+    return out
+
+
+OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set, "vexa": vexa_set}
 # {action name: (first, last) airborne frame}; filled by build(), read by the
 # importer's grounding pass so jumps are not flattened onto the floor.
 AIRBORNE = {}
@@ -1235,8 +1567,12 @@ def build(rig_obj, moves, fid, height, clip_dir):
     if fid in OWN_SETS:
         def air(name, first, last):
             AIRBORNE[name] = (int(first), int(last))
+        def joints(P, c=box):
+            """Game-skeleton joint heads and tails for a source pose (on the floor, before any jump lift)."""
+            p = pose_of(P, c)
+            return fk(rig, p.D, p.hips)
         ctx = dict(H=H, F=F, moves=moves, guard_P=guard_P, guard=guard, box=box, pose_of=pose_of, strike=strike,
-                   clip=clip, air=air,
+                   clip=clip, air=air, joints=joints,
                    anim_of=lambda mv: F + mv["animation"][mv["animation"].find("_"):])
         A.update(OWN_SETS[fid](ctx))
 

@@ -111,3 +111,19 @@ limit, pushback, and no move being plus enough to link into itself.
 - **Infinite-combo guarantee (M6):** 3,120 runs — every 1–4 command route
   from {L, K, H, Special, toward+Special}, mid-screen/corner, full meter and
   free-special Surge — longest combo ≤ 5 hits, defender always recovers.
+
+## Projectiles and parries (D-066)
+
+- A projectile move (`projectile_speed > 0`) has no hitbox on the fighter.
+  On its first active frame (`startup_frames`) a projectile appears at
+  `hitbox_center` with `hitbox_size` and flies at `projectile_speed` m/s for
+  at most `projectile_range` m (or to the arena wall). Total move length is
+  still startup + active - 1 + recovery (Pulse Shot: 16 + 1 - 1 + 10 = 26).
+- It resolves with the move's own damage, stun, pushback and hitstop:
+  blocked by either guard, absorbed by armour, never caught by a counter
+  stance or parry, passes through fighters without a hurtbox. One per
+  fighter on screen. Two opposing projectiles cancel each other.
+- A parry is a counter stance with no follow-up: the attacker is frozen for
+  `counter_stun_frames` and the parrying fighter is neutral on the next
+  tick after hitstop. Vexa's per-move table is in
+  `docs/FIGHTER_COMBAT_DESIGN.md`.

@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Vexa's own move set
+- Piston Jab (L, longest light), Teep (H, pushes far away), Cut Kick (K, low), Slashing Elbow (down + H, steps in, cancels into the knee), Pulse Shot (SP, a projectile that crosses the stage, one at a time), Overclock Knee (toward + SP, flying knee, punishable on block), Arc Guard (away + SP, parries one high or mid hit; lows and throws beat it), ultimate System Overdrive. 1000 health, even walk speed both ways.
+- Projectiles and parries in the combat engine. Counter stances do not catch projectiles; armour absorbs them; two that meet cancel out.
+- The CPU sees and blocks projectiles, and a CPU Vexa mixes shots with walking in.
+- Tools: move contact sheets (`tools/godot/move_shot.gd`), stretched-edge check (`tools/blender/stretch_check.py`), filtered test runs.
 ### Added — Nox's own move set
 - Fang Jab (L), Rising Backfist (H), Scythe Sweep (K, low), Drop Heel (down + H, overhead), Shade Step (SP, passes through the opponent), Throat Pierce (toward + SP), Feint Fang (away + SP, fake overhead into a low), ultimate Eclipse. 850 health, fastest forward walk, takes extra chip damage.
 - Pass-through moves in the combat engine.

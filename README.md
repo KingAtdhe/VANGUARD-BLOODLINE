@@ -14,7 +14,7 @@ Landscape, Android-first, stylized-realistic 3D one-on-one fighting game with
 | Version | `0.0.8-m7` |
 | Milestone | **7 — UI, menus and modes** (implemented, awaiting approval) |
 | Next | Milestone 8 — remaining fighters' movesets and arena polish |
-| Playable | Main menu → **Story** (6 chapters, boss), **Arcade** (5-stage ladder), **Versus CPU**, **Training**, **Survival**, Profile, Settings. Kairo is playable; Drakon, Seraphina, Nox, Vexa and Ryuen are viewable in fighter select (movesets in M8). Four arenas: The Pit (Ascendant), Ryuen's Sanctuary (Temple), The Severed Line (Neon, unlockable) and The Origin Chamber (unlocked by finishing Story). Progress and settings persist. |
+| Playable | Main menu → **Story** (6 chapters, boss), **Arcade** (5-stage ladder), **Versus CPU**, **Training**, **Survival**, Profile, Settings. Kairo, Drakon, Seraphina, Nox and Vexa have their own move sets (`docs/FIGHTER_COMBAT_DESIGN.md`); Ryuen still plays with the shared set. Four arenas: The Pit (Ascendant), Ryuen's Sanctuary (Temple), The Severed Line (Neon, unlockable) and The Origin Chamber (unlocked by finishing Story). Progress and settings persist. |
 
 See [`docs/MILESTONES.md`](docs/MILESTONES.md) for the checklist and
 [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) for open issues.
@@ -106,7 +106,9 @@ godot --headless --path . --script res://tests/run_tests.gd
 ```
 
 Exit code 0 means all tests passed. CI runs the same command on every push
-(`.github/workflows/ci.yml`).
+(`.github/workflows/ci.yml`). While working on one area, append `-- <word>`
+to run only the test files whose name contains it (e.g. `-- vexa`); finish
+with the whole suite.
 
 ## Android
 
