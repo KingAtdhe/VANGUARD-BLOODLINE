@@ -29,6 +29,9 @@ extends Node
 @export var combat_tuning: CombatTuning
 ## Print combat-log events to stdout as they happen.
 @export var print_combat_log: bool = true
+## Slow motion on a knockout: speed (1 = off) and how long it lasts (real seconds).
+@export_range(0.1, 1.0) var ko_slowmo_scale: float = 0.3
+@export var ko_slowmo_seconds: float = 0.9
 
 @onready var _fighter_views: Array[FighterView] = [%Fighter1, %Fighter2]
 @onready var _camera_rig: CameraRig = %CameraRig
@@ -55,6 +58,7 @@ var _matches_started: int = 0
 var director: MatchDirector
 var _previous: Array[FighterState] = []
 var _seen_events: int = 0
+var _slowmo_left: float = 0.0
 var input_history := InputHistory.new()
 ## The menu-built setup this match runs with (null = scene's exported data).
 var setup: MatchSetup = null
@@ -145,6 +149,11 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if get_tree().paused or director == null:
 		return
+	# The final blow of a round plays in slow motion (presentation: the
+	# simulation just receives fewer ticks per real second for a moment).
+	if _slowmo_left > 0.0:
+		_slowmo_left -= delta
+		delta *= ko_slowmo_scale
 	var ticks: int = clock.advance(delta)
 	for _i: int in ticks:
 		_previous = simulation.snapshot()
@@ -369,7 +378,7 @@ func _present_new_events() -> void:
 			CombatEvent.Type.HIT:
 				_effects.spawn_for(ev)
 				_fighter_views[ev.target].flash()
-				_camera_rig.add_shake(0.015 + ev.damage / 2500.0)
+				_camera_rig.add_shake((0.015 + ev.damage / 2500.0) * (1.6 if ev.counter_hit else 1.0))
 				var m: MoveData = simulation.definitions[ev.actor].move_for_id(ev.move_id)
 				if m != null and m.tags.has("ultimate"):
 					var mid: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5
@@ -377,6 +386,9 @@ func _present_new_events() -> void:
 			CombatEvent.Type.BLOCK:
 				_effects.spawn_for(ev)
 				_camera_rig.add_shake(0.008)
+			CombatEvent.Type.KO:
+				if not match_rules.training and ko_slowmo_scale < 1.0:
+					_slowmo_left = ko_slowmo_seconds
 			CombatEvent.Type.PROJECTILE_CLASH:
 				_effects.spawn_for(ev)
 			CombatEvent.Type.COUNTER:

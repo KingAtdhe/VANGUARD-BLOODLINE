@@ -24,3 +24,4 @@ tags = PackedStringArray("normal", "kick")
 cancel_tags = PackedStringArray("elbow")
 meter_gain_on_hit = 8
 meter_gain_on_block = 4
+counter_hit_stagger_frames = 12

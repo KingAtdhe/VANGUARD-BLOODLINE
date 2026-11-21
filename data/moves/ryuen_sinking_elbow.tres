@@ -27,3 +27,4 @@ move_start_frame = 2
 move_end_frame = 8
 meter_gain_on_hit = 10
 meter_gain_on_block = 5
+counter_hit_knockdown = true

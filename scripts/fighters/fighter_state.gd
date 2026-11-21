@@ -28,6 +28,13 @@ var move_connected: bool = false
 ## connected (-1 = none yet). The move can connect again in a later window.
 var last_hit_window: int = -1
 
+## Where the last hit landed, for the reaction shown (presentation reads it;
+## the simulation never does).
+enum HitZone { HEAD, BODY, LEGS }
+var hit_zone: HitZone = HitZone.HEAD
+## The last hit was a counter-hit (cleared when the fighter recovers).
+var counter_hit: bool = false
+
 ## Remaining hitstun/blockstun ticks. The fighter becomes actionable on the
 ## tick AFTER this reaches 0, so a stun of N means N full ticks of no control.
 var stun_remaining: int = 0
@@ -84,6 +91,8 @@ func copy() -> FighterState:
 	s.move_connected = move_connected
 	s.last_hit_window = last_hit_window
 	s.stun_remaining = stun_remaining
+	s.hit_zone = hit_zone
+	s.counter_hit = counter_hit
 	s.block_low = block_low
 	s.armor_left = armor_left
 	s.juggle_hits = juggle_hits

@@ -35,6 +35,14 @@ extends Resource
 ## again until it has landed and got up.
 @export var max_juggle_hits: int = 3
 
+@export_group("Counter-hit")
+## A hit that interrupts the defender's own attack before its recovery
+## (startup or active frames) is a counter-hit (D-069): more damage, longer
+## hitstun, a longer freeze.
+@export var counter_hit_damage_percent: int = 120
+@export var counter_hit_extra_hitstun: int = 4
+@export var counter_hit_extra_hitstop: int = 4
+
 @export_group("Combo scaling")
 ## Damage percent for the 1st, 2nd, 3rd… hit of a combo.
 @export var combo_scaling_percent: PackedInt32Array = PackedInt32Array([100, 100, 80, 70, 60, 50])
@@ -73,6 +81,8 @@ func validate() -> Array[String]:
 		p.append("invalid meter settings")
 	if knockdown_ticks < 1 or wakeup_ticks < 1:
 		p.append("knockdown/wakeup ticks must be >= 1")
+	if counter_hit_damage_percent < 100 or counter_hit_extra_hitstun < 0 or counter_hit_extra_hitstop < 0:
+		p.append("invalid counter-hit settings")
 	if combo_scaling_floor_percent < 1 or combo_scaling_floor_percent > 100:
 		p.append("combo_scaling_floor_percent must be 1..100")
 	return p

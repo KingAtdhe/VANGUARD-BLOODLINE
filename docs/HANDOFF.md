@@ -2,11 +2,12 @@
 
 Branch: `arena-severed-line`. Last task done: Ryuen's move set (D-068) —
 all six fighters now have their own sets.
-**Next task: the owner chooses.** Offered on 2026-11-21 after a comparison
-with Tekken / Street Fighter, in this order: (1) hit feel — reactions by hit
-height, counter-hits, stronger hit effect, slow-motion KO; (2) forward and
-back dashes (already in the spec); (3) a throw and throw escape for every
-fighter; (4) multi-hit ultimates. Also open: the stance pass for Drakon,
+Hit feel (D-069: counter-hits, reactions by height, effects, KO slow
+motion) is built on top of that.
+**Next task: the owner chooses.** Remaining from the Tekken / Street Fighter
+comparison of 2026-11-21, in the order offered: forward and back dashes
+(already in the spec); a throw and throw escape for every fighter;
+multi-hit ultimates. Also open: the stance pass for Drakon,
 Seraphina, Nox and Ryuen. Do not start one without the owner's choice.
 
 ## State
@@ -22,7 +23,7 @@ Seraphina, Nox and Ryuen. Do not start one without the owner's choice.
   side-switching counters, a counter-stance ultimate and a deflecting block
   (D-068). New keyed moves should use the `Kit` class in `mocap_actions.py`
   (`ryuen_set` is the example; check which side the fighter leads with).
-- Tests: 183 passing with the D-068 changes (146 before Vexa, 168 before
+- Tests: 189 passing with D-069 (183 after Ryuen) (146 before Vexa, 168 before
   Ryuen). A full run takes about 10 minutes on 2 cores, a first asset
   import about 12.
 - D-067 (owner feedback): raised stages are lowered to the fighters' feet
@@ -65,6 +66,7 @@ to add a keystore as a repository secret.
    `xvfb-run -a godot --path . --rendering-driver opengl3 --script res://tools/godot/move_shot.gd -- <id> <out_dir> 320`
    (add `<move> 7,9,15,...` for chosen frames of one move) and
    `python tools/blender/stretch_check.py assets/characters/<id>/<id>.glb ATTACK SPECIAL ULTIMATE`.
+   Reactions, idles and walks: `tools/godot/anim_shot.gd -- <id> <out.png> HIT_BODY,HIT_LOW 6`.
    Reference for "normal" on these models: Vexa's idle has 9 stretched
    edges at worst, her worst new move 25 (of 21,217).
 5. `tests/unit/test_<id>_moves.gd` (copy `test_vexa_moves.gd`), then

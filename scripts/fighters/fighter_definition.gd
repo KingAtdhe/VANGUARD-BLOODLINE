@@ -36,6 +36,10 @@ extends Resource
 @export var anim_block_low: StringName = &""
 @export var anim_hit_light: StringName = &""
 @export var anim_hit_heavy: StringName = &""
+## Reactions to a hit on the body and on the legs (D-069). Empty = the
+## light/heavy (head) reaction is shown instead.
+@export var anim_hit_body: StringName = &""
+@export var anim_hit_low: StringName = &""
 @export var anim_knockdown: StringName = &""
 @export var anim_getup: StringName = &""
 @export var anim_victory: StringName = &""
@@ -95,8 +99,9 @@ func required_animations() -> Array[StringName]:
 	for a: StringName in [anim_idle, anim_walk_forward, anim_walk_backward, anim_block,
 			anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]:
 		out.append(resolve_anim(a))
-	if anim_block_low != &"":
-		out.append(resolve_anim(anim_block_low))
+	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low]:
+		if extra != &"":
+			out.append(resolve_anim(extra))
 	for m: MoveData in moves:
 		if m != null:
 			out.append(resolve_anim(m.animation))

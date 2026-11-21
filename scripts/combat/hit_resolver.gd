@@ -46,6 +46,11 @@ extends RefCounted
 ##     the countering fighter before the follow-up starts.
 ##   - A defender whose definition has block_pushes_attacker slides the
 ##     attacker back by that distance on every blocked strike.
+##   - Counter-hit: a hit on a fighter whose own attack is in startup or
+##     active frames deals CombatTuning.counter_hit_damage_percent, adds
+##     hitstun and hitstop, and some moves stagger longer or knock down
+##     (MoveData.counter_hit_*). Throws, armoured and countered contacts are
+##     never counter-hits.
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
 ##     sim.ko_enabled == false (training) health stops at 1.
 ## All decisions are taken from the state BEFORE any contact is applied, so
@@ -66,6 +71,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 	var in_combo: Array[bool] = []
 	var countered: Array[bool] = []
 	var armored: Array[bool] = []
+	var counter_hit: Array[bool] = []
 	for c: HitboxSystem.Contact in contacts:
 		var move: MoveData = c.move
 		moves.append(move)
@@ -77,6 +83,11 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 				and d.move != null and d.move.counters(d.move_frame, move.hit_level))
 		armored.append(d.action == FighterState.Action.ATTACK and d.move != null and d.armor_left > 0
 				and d.move.has_armor_on(d.move_frame) and not move.is_throw())
+		# Counter-hit: the defender was attacking and had not reached recovery.
+		# Not for throws, armoured or countered contacts, or pure movement moves.
+		counter_hit.append(d.action == FighterState.Action.ATTACK and d.move != null and not move.is_throw()
+				and not armored[-1] and not countered[-1] and not d.move.activates_surge
+				and d.move_frame < d.move.startup_frames + d.move.active_frames)
 
 	var hitstop: int = 0
 	for i: int in contacts.size():
@@ -91,7 +102,8 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			attacker.last_hit_window = move.hit_window(attacker.move_frame)
 		if defender.action == FighterState.Action.KO:
 			continue  # already knocked out by an earlier contact this tick
-		hitstop = maxi(hitstop, move.hitstop_frames)
+		hitstop = maxi(hitstop, move.hitstop_frames
+				+ (sim.tuning.counter_hit_extra_hitstop if counter_hit[i] and not countered[i] else 0))
 		# A second contact on the same defender in one tick (a projectile
 		# arriving together with a strike) continues the combo the first began.
 		if not blocked[i] and (defender.action == FighterState.Action.HITSTUN
@@ -114,8 +126,10 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			if not in_combo[i]:
 				defender.combo_damage = 0
 			percent = sim.tuning.scaling_percent(defender.combo_hits)
-			dmg = sim.tuning.scaled_damage(
-				OriginMeter.surge_damage(move.damage, attacker, attacker_def), defender.combo_hits)
+			var base: int = OriginMeter.surge_damage(move.damage, attacker, attacker_def)
+			if counter_hit[i]:
+				base = base * sim.tuning.counter_hit_damage_percent / 100
+			dmg = sim.tuning.scaled_damage(base, defender.combo_hits)
 		var floor_hp: int = 0 if sim.ko_enabled else 1
 		var before_hp: int = defender.health
 		defender.health = maxi(mini(floor_hp, before_hp), defender.health - dmg)
@@ -139,6 +153,10 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		ev.combo_hits = 0 if blocked[i] else defender.combo_hits
 		ev.scaling_percent = percent
 		ev.armored = armored[i] and defender.health > 0
+		ev.counter_hit = counter_hit[i] and not blocked[i]
+		if not blocked[i]:
+			defender.counter_hit = counter_hit[i]
+			defender.hit_zone = _zone(move, sim.definitions[c.defender])
 		sim.combat_log.add(ev)
 
 		if defender.health == 0:
@@ -174,7 +192,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			defender.juggle_exhausted = false
 			defender.stun_remaining = move.launch_frames
 			defender.launch_total = move.launch_frames
-		elif move.knockdown:
+		elif move.knockdown or (counter_hit[i] and move.counter_hit_knockdown):
 			defender.action = FighterState.Action.KNOCKDOWN
 			defender.stun_remaining = sim.tuning.knockdown_ticks
 			var kd := CombatEvent.new()
@@ -187,6 +205,8 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		else:
 			defender.action = FighterState.Action.HITSTUN
 			defender.stun_remaining = move.hitstun_frames
+			if counter_hit[i]:
+				defender.stun_remaining += sim.tuning.counter_hit_extra_hitstun + move.counter_hit_stagger_frames
 		# A deflecting guard (Ryuen) sends the attacker sliding back as well.
 		if blocked[i] and c.projectile == null and sim.definitions[c.defender].block_pushes_attacker > 0.0 \
 				and attacker.action != FighterState.Action.KO:
@@ -206,6 +226,16 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		defender.pushback_remaining = away * move.pushback
 		defender.pushback_step = move.pushback / PUSHBACK_TICKS
 	return hitstop
+
+
+## Which part of the defender a move strikes (for the reaction animation):
+## LOW moves and anything below 35% of its height hit the legs, anything
+## from 72% up the head, the rest the body.
+static func _zone(move: MoveData, def: FighterDefinition) -> FighterState.HitZone:
+	var h: float = move.hitbox_center.y / maxf(0.01, def.hurtbox_height)
+	if move.hit_level == MoveData.HitLevel.LOW or h <= 0.35:
+		return FighterState.HitZone.LEGS
+	return FighterState.HitZone.HEAD if h >= 0.72 else FighterState.HitZone.BODY
 
 
 ## The defender's counter stance caught the attack: no damage, the attacker

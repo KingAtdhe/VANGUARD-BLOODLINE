@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — hit feel
+- Counter-hits: hitting an opponent out of their own attack does 20% more damage, stuns longer and freezes longer; the HUD shows COUNTER. Vexa's Cut Kick staggers and Ryuen's Sinking Elbow knocks down on counter-hit.
+- Fighters react to where they are hit: head snaps back, body hits fold them over, leg hits knock the lead leg away.
+- Stronger hit effects (streaks, a ring on heavy hits, red on counter-hits) and slow motion on the knockout.
 ### Added — Ryuen's own move set (all six fighters now have their own)
 - Palm Heel (L), Chain Punch (H, three hits), Shin Stamp (K, low), Sinking Elbow (down + H), Mountain Push (SP, sends them across the stage), Flowing Step (toward + SP, evasive), Returning Wave (away + SP, catches any strike, turns the attacker round and palms them in the back), Wrist Throw (down + SP), ultimate Thousand Rivers (a counter stance: struck during it, he answers; otherwise the meter is wasted).
 - His block pushes attackers back. Slowest walk after Drakon.

@@ -43,10 +43,10 @@ STYLES = {
     # crouched orthodox boxer: left foot forward, weight a little over it, lead fist at eye level
     "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.35, crouch=-0.02, stride=0.62, weight=0.05, lean=7,
                   lead_hand=(0.0, -0.08, -0.05), rear_hand=(0.0, 0.0, -0.05)),
-    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.02, width=0.06, lean=4,  # heavy, wide, upright
+    "drakon": dict(clip="14_02", frame=4530, amp=0.25, crouch=0.06, width=0.06, lean=4, legacy_legs=True,  # heavy, wide, upright
                    hands=(0.03, 0.0, 0.04)),
     "seraphina": dict(clip="144_07", frame=1620, amp=0.5, turn=180),                               # karate side stance
-    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.035, width=0.04, lean=-10,    # low predatory crouch
+    "nox": dict(clip="144_20", frame=1590, amp=0.3, crouch=0.1, width=0.04, lean=-10, legacy_legs=True,    # low predatory crouch
                 hands=(0.0, -0.04, -0.06)),
     # upright Muay Thai: tall, weight back on the rear leg, hands high and wide by the temples
     "vexa": dict(clip="14_01", frame=2700, amp=0.6, crouch=-0.1, stride=0.2, weight=-0.04, lean=3,
@@ -69,7 +69,13 @@ def shape_stance(P, st, H):
     lead = "Left" if feet["Left"][1] < feet["Right"][1] else "Right"
     # the whole figure moves, then the feet are put back with IK: the leg
     # bones keep their length and only the knee angle changes
-    P = shift(P, list(P.keys()), np.array([0, -st.get("weight", 0.0) * H, -st.get("crouch", 0.0) * H]))
+    moved = list(P.keys())
+    if st.get("legacy_legs"):
+        # Drakon and Nox were shaped before D-067, when only the upper body and
+        # hips were moved (the leg IK then worked with stretched bones). Their
+        # stances are kept exactly as built until the owner asks for a change.
+        moved = UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"]
+    P = shift(P, moved, np.array([0, -st.get("weight", 0.0) * H, -st.get("crouch", 0.0) * H]))
     P = lean(P, st.get("lean", 0.0))
     for sd, sg in (("Left", 1), ("Right", -1)):
         along = (-0.5 if sd == lead else 0.5) * st.get("stride", 0.0) * H
@@ -1791,6 +1797,40 @@ def build(rig_obj, moves, fid, height, clip_dir):
         return out
     A[f"{F}_HIT_LIGHT"] = hit(15, 0.75, 6)
     A[f"{F}_HIT_HEAVY"] = hit(25, 1.4, -14)
+
+    # ---- hit to the body: folds forward over the blow, hips driven back,
+    # arms drop to cover; hit to the legs: the lead leg is knocked out from
+    # under the fighter, who dips and catches the weight on the rear leg (D-069)
+    lead_side = "Left" if guard_P["LeftFoot"][1] < guard_P["RightFoot"][1] else "Right"
+    def react(n, fn):
+        out = []
+        for t in range(n):
+            u = t / (n - 1)
+            kk = ease(min(1.0, t / 3.0), "out") * (1 - ease(max(0.0, (u - 0.3) / 0.7)))
+            out.append(pose_of(fn(kk, u), box))
+        return out
+    def body_hit(kk, u):
+        P = shift(guard_P, list(guard_P.keys()), np.array([0, 0.1 * H * kk, -0.06 * H * kk]))
+        for sd in ("Left", "Right"):
+            P = move_foot(P, sd, guard_P[sd + "Foot"])
+        P = lean(P, -34 * kk)
+        P = lean(P, -14 * kk, about="Neck1", keys=["Head", "Head_end"])
+        belly = P["Hips"] + np.array([0, -0.2 * H, 0.16 * H])
+        for sd, sg in (("Left", 1), ("Right", -1)):
+            P = move_hand(P, sd, belly + np.array([0.09 * sg * H, 0, 0]), kk * 0.85, pole_out=0.45)
+        return P
+    def leg_hit(kk, u):
+        P = shift(guard_P, list(guard_P.keys()), np.array([0, 0.05 * H * kk, -0.12 * H * kk]))
+        rear_side = "Right" if lead_side == "Left" else "Left"
+        P = move_foot(P, rear_side, guard_P[rear_side + "Foot"])
+        swept = guard_P[lead_side + "Foot"] + np.array([0, 0.2 * H, 0.1 * H]) * kk      # the struck leg is knocked back and up
+        P = move_foot(P, lead_side, swept)
+        P = lean(P, -16 * kk, roll_deg=(10 if lead_side == "Left" else -10) * kk)
+        for sd, sg in (("Left", 1), ("Right", -1)):                                    # arms fly out for balance
+            P = move_hand(P, sd, P[sd + "Hand"] + np.array([0.14 * sg * H, 0.02 * H, -0.1 * H]), kk * 0.8)
+        return P
+    A[f"{F}_HIT_BODY"] = react(25, body_hit)
+    A[f"{F}_HIT_LOW"] = react(25, leg_hit)
 
     # ---- lying / sitting / kneeling poses from the capture (on the back)
     def lay_pose(f, head_back=True):

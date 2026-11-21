@@ -237,9 +237,11 @@ func test_trade_both_get_hit() -> Array[String]:
 	_step(sim, L, L, m.startup_frames)
 	if _count(sim, CombatEvent.Type.HIT) != 2:
 		f.append("expected a trade (2 hits), log:\n%s" % sim.combat_log.to_text())
+	# Both were attacking when hit: each takes a counter-hit (D-069).
+	var dmg: int = m.damage * sim.tuning.counter_hit_damage_percent / 100
 	for i: int in 2:
-		if sim.fighters[i].health != 1000 - m.damage:
-			f.append("P%d health %d after trade" % [i + 1, sim.fighters[i].health])
+		if sim.fighters[i].health != 1000 - dmg:
+			f.append("P%d health %d after trade, expected %d" % [i + 1, sim.fighters[i].health, 1000 - dmg])
 	return f
 
 
@@ -317,8 +319,9 @@ func test_combat_log_is_deterministic() -> Array[String]:
 	var texts: Array[String] = []
 	for run: int in 2:
 		var sim := _sim(2.0)
+		sim.ko_enabled = false   # the whole script runs whoever is winning
 		for t: int in 1200:
-			var buttons: int = [0, L, 0, 0, K, 0, H, 0, B, B, 0, 0][(t / 9) % 12]
+			var buttons: int = [0, L, B, B, K, B, H, 0, B, B, 0, B][(t / 9) % 12]
 			var dir: int = [1, 1, 0, -1, 0, 1][(t / 23) % 6]
 			sim.step([FighterInputFrame.with_buttons(buttons, dir), dummy.input_for_tick(sim.tick + 1)])
 		texts.append(sim.combat_log.to_text() + "\n" + sim.describe())

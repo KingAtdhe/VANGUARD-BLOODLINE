@@ -28,6 +28,7 @@ var _last_attack_key: String = ""
 var _heavy_hit: bool = false
 var _last_combo: int = 0
 var _override: StringName = &""
+var _zone_anim: StringName = &""
 
 
 func _init(anim_player: AnimationPlayer, definition: FighterDefinition) -> void:
@@ -64,6 +65,15 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			if new_hit:
 				_heavy_hit = s.stun_remaining >= HEAVY_HITSTUN
 			var anim: StringName = def.anim_hit_heavy if _heavy_hit else def.anim_hit_light
+			# Body and leg hits have their own reaction where the model has one.
+			if new_hit:
+				_zone_anim = &""
+				if s.hit_zone == FighterState.HitZone.BODY and _has(def.anim_hit_body):
+					_zone_anim = def.anim_hit_body
+				elif s.hit_zone == FighterState.HitZone.LEGS and _has(def.anim_hit_low):
+					_zone_anim = def.anim_hit_low
+			if _zone_anim != &"":
+				anim = _zone_anim
 			_show(anim, BLEND_REACTION, 0.0 if new_hit else _entered_time(s, anim, dt), false)
 		FighterState.Action.BLOCK, FighterState.Action.BLOCKSTUN:
 			var block_anim: StringName = def.anim_block_low \
@@ -86,6 +96,10 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 		_last_attack_key = ""
 	_last_action = s.action
 	_last_combo = s.combo_hits
+
+
+func _has(logical: StringName) -> bool:
+	return logical != &"" and player.has_animation(def.resolve_anim(logical))
 
 
 func _entered_time(s: FighterState, anim: StringName, dt: float) -> float:

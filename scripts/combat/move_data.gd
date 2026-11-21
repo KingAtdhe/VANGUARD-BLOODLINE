@@ -78,6 +78,13 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## invulnerable), ending any combo.
 @export var knockdown: bool = false
 
+@export_group("Counter-hit")
+## Extra hitstun on top of CombatTuning.counter_hit_extra_hitstun when this
+## move lands as a counter-hit (a stagger: Vexa's Cut Kick).
+@export var counter_hit_stagger_frames: int = 0
+## As a counter-hit this move knocks down (a crumple: Ryuen's Sinking Elbow).
+@export var counter_hit_knockdown: bool = false
+
 @export_group("Counter")
 ## Counter stance (D-062): while this move is on frames counter_start_frame..
 ## counter_end_frame, an incoming attack whose hit level is listed in
@@ -274,6 +281,8 @@ func validate() -> Array[String]:
 		p.append("%s: projectiles and throws cannot be countered" % id)
 	if rehit_interval < 0 or (rehit_interval > 0 and (is_projectile() or is_throw() or is_counter())):
 		p.append("%s: invalid multi-hit move" % id)
+	if counter_hit_stagger_frames < 0:
+		p.append("%s: invalid counter-hit stagger" % id)
 	if is_throw() and chip_damage != 0:
 		p.append("%s: a throw cannot be blocked, chip must be 0" % id)
 	if not activates_surge and not is_counter() and not no_hitbox and (hitbox_size.x <= 0.0 or hitbox_size.y <= 0.0):

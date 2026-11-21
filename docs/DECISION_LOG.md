@@ -771,6 +771,41 @@ the shared `kairo_*` attacks any more (only the Surge activation is shared).
   animation after a single hit; no gold ripple effect.
 **Accepted.**
 
+## D-069 — 2026-11-21 — Hit feel: counter-hits, reactions by hit height, stronger effects, KO slow motion
+
+First item of the Tekken / Street Fighter comparison the owner asked for.
+- **Counter-hit (engine):** a hit on a fighter whose own attack is still in
+  startup or active frames. `CombatTuning.counter_hit_damage_percent` (120),
+  `counter_hit_extra_hitstun` (4), `counter_hit_extra_hitstop` (4);
+  `CombatEvent.counter_hit`, `FighterState.counter_hit`. Hitting recovery
+  frames is an ordinary hit (a punish). Throws, armoured hits and attacks
+  caught by a counter stance are never counter-hits; a trade counter-hits
+  both. Per move: `counter_hit_stagger_frames` (Vexa's Cut Kick: +12) and
+  `counter_hit_knockdown` (Ryuen's Sinking Elbow) — both were in the design
+  and marked "not built" in D-066 / D-068.
+- **Reactions by height:** `FighterState.hit_zone` (HEAD / BODY / LEGS, from
+  the move's hit level and hitbox height against the defender's height;
+  presentation reads it, the simulation does not). New animations
+  `<F>_HIT_BODY` (folds over the blow) and `<F>_HIT_LOW` (the lead leg is
+  knocked away) for all six fighters; `FighterDefinition.anim_hit_body/_low`
+  (empty = the old reaction, as for the bosses).
+- **Effects:** hit sparks have streaks; heavy hits (60+ damage) and
+  counter-hits add an opening ring; counter-hits are red, larger and shake
+  the camera more. The HUD shows COUNTER on the attacker's side. Still
+  generated placeholder shapes, no textures.
+- **KO slow motion:** the scene feeds the clock 30% speed for 0.9 s of real
+  time after a KO (`ko_slowmo_scale`, `ko_slowmo_seconds` on the combat
+  scene). The simulation is untouched: it only receives ticks more slowly.
+- **Rebuild:** all six fighter models were rebuilt for the new reactions.
+  Drakon's and Nox's stances are pinned with `legacy_legs` so the rebuild
+  reproduces them exactly (same knee angles and foot spacing as before).
+- Two older tests changed on purpose: a trade now deals counter-hit damage
+  to both, and the scripted determinism fight blocks more often so it still
+  contains hits and blocks.
+- Balance: counter-hits make interrupting slow attacks worth more for
+  everyone; nobody has played with it. CPU difficulty was not re-tuned.
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

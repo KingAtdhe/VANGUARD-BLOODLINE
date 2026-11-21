@@ -502,6 +502,7 @@ func _recover(f: FighterState) -> void:
 	_to_idle(f)
 	f.combo_hits = 0
 	f.combo_damage = 0
+	f.counter_hit = false
 
 
 func _to_idle(f: FighterState) -> void:

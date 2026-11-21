@@ -164,6 +164,11 @@ func refresh(sim: CombatSimulation, director: MatchDirector, delta: float) -> vo
 			_combo_labels[i].text = "%d HITS" % hits
 			_combo_labels[i].visible = true
 			_combo_linger[i] = COMBO_LINGER
+		elif hits == 1 and sim.fighters[1 - i].counter_hit:
+			# a single hit that caught the opponent mid-attack
+			_combo_labels[i].text = "COUNTER"
+			_combo_labels[i].visible = true
+			_combo_linger[i] = COMBO_LINGER
 		elif _combo_linger[i] > 0.0:
 			_combo_linger[i] -= delta
 			if _combo_linger[i] <= 0.0:
