@@ -499,6 +499,19 @@ Sources: `assets/characters/_source/<id>/<id>.fbx` + textures. **Accepted.**
   designs in `docs/FIGHTER_COMBAT_DESIGN.md` are approved and built.
   **Accepted.**
 
+## D-060 — 2026-11-21 — Finger bones kept; hands posed per fighter and action
+
+The game skeleton of the six playable fighters keeps the source rig's finger
+bones (three segments x five fingers x two hands = 30, 48 bones in total) with
+the supplied finger weights, so fists close. The motion capture has no finger
+data, so hands are posed in `tools/blender/mocap_actions.py`: a hand shape per
+fighter (`HANDS`: fists for Kairo/Drakon/Vexa, lead hand open for Seraphina,
+loose for Nox, open palms for Ryuen) and per-action overrides
+(`HANDS_BY_ACTION`, e.g. the open-palm strike). Curl axes come from the
+knuckle positions, no mesh change. Bosses keep the 18-bone skeleton.
+`--no-fingers` restores the old folding. Cost on device unmeasured (KI-048).
+**Accepted.**
+
 ## Open decisions (needed before the named milestone)
 
 - **M7:** Final title, logo and package name (legal review).

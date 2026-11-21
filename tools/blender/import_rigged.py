@@ -42,9 +42,17 @@ import import_hero as ih  # noqa: E402
 GAME_BONES = list(cb.skeleton(cb.FIGHTERS["kairo"]).keys())
 
 
-def game_bone(mixamo):
-    """Game bone a Mixamo bone's skin weights fold onto (None: dropped)."""
+FINGERS = ("Thumb", "Index", "Middle", "Ring", "Pinky")
+
+
+def game_bone(mixamo, fingers=()):
+    """Game bone a Mixamo bone's skin weights fold onto (None: dropped).
+    fingers: finger bones kept in the game skeleton (their weights stay)."""
     n = mixamo.split(":")[-1]
+    if n in fingers:
+        return n
+    if n[:-1] + "3" in fingers:                 # fingertip (segment 4) -> last kept segment
+        return n[:-1] + "3"
     for side in ("Left", "Right"):
         if n.startswith(side):
             rest = n[len(side):]
@@ -222,6 +230,7 @@ def main():
                     help="override a measured left-side joint, metres on the final model: elbow=0.30,0,1.02 "
                          "(the middle value, depth, is taken from the mesh) "
                          "(shoulder, elbow, wrist, hand_tip, hip, knee, ankle, toe)")
+    ap.add_argument("--no-fingers", action="store_true", help="fold finger weights onto the hand (18-bone skeleton)")
     ap.add_argument("--mocap-dir", default="",
                     help="folder with the CMU BVH clips (tools/mocap/fetch_clips.sh); empty = old key poses")
     ap.add_argument("--sleeve-reach", type=float, default=0.24,
@@ -376,6 +385,27 @@ def main():
         B[f"{side}LowerLeg"] = (Js["knee"], Js["ankle"], f"{side}UpperLeg", True)
         B[f"{side}Foot"] = (Js["ankle"], Js["toe"], f"{side}LowerLeg", True)
     B = {n: B[n] for n in GAME_BONES}
+    # Finger bones (D-060): kept from the supplied rig, exactly where it has
+    # them, so fists can close. Three segments per finger, parented to the hand.
+    finger_bones = []
+    if sound and keep_weights and not a.no_fingers:
+        for side in ("Left", "Right"):
+            for fg in FINGERS:
+                seg = [f"{side}Hand{fg}{i}" for i in (1, 2, 3, 4)]
+                if not all(nm in P for nm in seg[:3]):
+                    continue
+                for i in range(3):
+                    head = Vector(P[seg[i]])
+                    if i < 2 or seg[3] in P:
+                        tail = Vector(P[seg[i + 1]])
+                    else:
+                        tail = head + (head - Vector(P[seg[i - 1]])) * 0.8
+                    if (tail - head).length < 1e-4:
+                        tail = head + (head - Vector(B[f"{side}Hand"][0])).normalized() * 0.01 * k
+                    B[seg[i]] = (tuple(head), tuple(tail), seg[i - 1] if i else f"{side}Hand", False)
+                    finger_bones.append(seg[i])
+    BONES = GAME_BONES + finger_bones
+    print(f"[rigged] finger bones kept: {len(finger_bones)}")
 
     arm_data = bpy.data.armatures.new(f"{F}_Skeleton")
     rig = bpy.data.objects.new(f"{F}_Rig", arm_data)
@@ -394,9 +424,9 @@ def main():
     if keep_weights:
         # fold the supplied weights onto the game bones
         n = len(body.data.vertices)
-        idx = {nm: i for i, nm in enumerate(GAME_BONES)}
-        W = np.zeros((n, len(GAME_BONES)))
-        gmap = {g.index: game_bone(g.name) for g in body.vertex_groups}
+        idx = {nm: i for i, nm in enumerate(BONES)}
+        W = np.zeros((n, len(BONES)))
+        gmap = {g.index: game_bone(g.name, finger_bones) for g in body.vertex_groups}
         for v in body.data.vertices:
             for ge in v.groups:
                 tgt = gmap.get(ge.group)
@@ -413,11 +443,11 @@ def main():
             sg = t - h
             u = np.clip(((co_ - h) @ sg) / max(1e-9, sg @ sg), 0, 1)
             return np.linalg.norm(co_ - (h + u[:, None] * sg), axis=1)
-        arm_d = np.min([seg_d(B[nm][0], B[nm][1]) for nm in GAME_BONES if "Arm" in nm or "Hand" in nm], 0)
-        leg_d = np.min([seg_d(B[nm][0], B[nm][1]) for nm in GAME_BONES if "UpperLeg" in nm or "LowerLeg" in nm], 0)
+        arm_d = np.min([seg_d(B[nm][0], B[nm][1]) for nm in BONES if "Arm" in nm or "Hand" in nm], 0)
+        leg_d = np.min([seg_d(B[nm][0], B[nm][1]) for nm in BONES if "UpperLeg" in nm or "LowerLeg" in nm], 0)
         below_belt = co_[:, 2] < B["Spine"][0][2]
         cloth = below_belt & (leg_d < arm_d) & a.cloth_fix
-        arm_cols = [idx[nm] for nm in GAME_BONES if "Arm" in nm or "Hand" in nm]
+        arm_cols = [idx[nm] for nm in BONES if "Arm" in nm or "Hand" in nm]
         moved = W[np.ix_(cloth, arm_cols)].sum(1)
         W[np.ix_(cloth, arm_cols)] = 0.0
         W[cloth, idx["Hips"]] += moved
@@ -431,7 +461,7 @@ def main():
         np.put_along_axis(keep, order[:, :4], True, axis=1)
         W = np.where(keep & (W > 0.01), W, 0.0)
         W /= W.sum(1, keepdims=True)
-        groups = [body.vertex_groups.new(name=nm) for nm in GAME_BONES]
+        groups = [body.vertex_groups.new(name=nm) for nm in BONES]
         for j, g in enumerate(groups):
             nz = np.nonzero(W[:, j])[0]
             for vi in nz:

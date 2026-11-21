@@ -49,7 +49,7 @@ Balance values go in `data/`, never in controller code.
 
 ## Build order (proposed)
 
-1. Keep the source rigs' finger bones in the game skeleton so fists close.
+1. Keep the source rigs' finger bones in the game skeleton so fists close. **Done (D-060).**
 2. Per-fighter move data, low attacks and low block.
 3. Kairo's full set; owner tests on device before the rest follow.
 4. One fighter at a time with the mechanic it needs: Drakon (throws, armour),

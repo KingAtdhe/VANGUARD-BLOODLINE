@@ -34,6 +34,11 @@ func test_model_has_all_animations_and_humanoid_skeleton() -> Array[String]:
 	for b: String in HUMANOID_BONES:
 		if sk.find_bone(b) < 0:
 			f.append("missing humanoid bone %s" % b)
+	# Finger bones kept from the source rig (D-060) so fists can close.
+	for side: String in ["Left", "Right"]:
+		for finger: String in ["Thumb", "Index", "Middle", "Ring", "Pinky"]:
+			if sk.find_bone("%sHand%s1" % [side, finger]) < 0:
+				f.append("missing finger bone %sHand%s1" % [side, finger])
 	# Animation length must equal the move's frame count (frame N == tick N).
 	for m: MoveData in _def().moves:
 		if ap.has_animation(m.animation):

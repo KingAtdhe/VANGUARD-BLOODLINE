@@ -158,12 +158,14 @@ class Rig:
 
     def __init__(self, arm_obj):
         self.obj = arm_obj
-        self.names = [b.name for b in arm_obj.data.bones]
+        every = [b.name for b in arm_obj.data.bones]
+        self.fingers = [n for n in every if any(f"Hand{fg}" in n for fg in FINGERS)]
+        self.names = [n for n in every if n not in self.fingers]      # mocap-driven bones
         self.parent = {b.name: (b.parent.name if b.parent else None) for b in arm_obj.data.bones}
         self.rest = {b.name: np.array(b.matrix_local) for b in arm_obj.data.bones}
         self.head = {b.name: np.array(b.head_local) for b in arm_obj.data.bones}
         self.tail = {b.name: np.array(b.tail_local) for b in arm_obj.data.bones}
-        self.dir = {n: _norm(self.tail[n] - self.head[n]) for n in self.names}
+        self.dir = {n: _norm(self.tail[n] - self.head[n]) for n in every}
         self.hips_h = float(self.head["Hips"][2])
         self.foot_h = float(min(self.head["LeftFoot"][2], self.head["RightFoot"][2]))
 
@@ -357,6 +359,84 @@ def key_action(rig, name, poses):
             if n in ("Root", "Hips"):
                 pb.keyframe_insert("location", frame=f)
     return act
+
+
+# --------------------------------------------------------------------------- hands
+
+FINGERS = ("Thumb", "Index", "Middle", "Ring", "Pinky")
+# Joint angles (degrees, knuckle -> tip) of a closed fist. The thumb folds
+# across the front of the fingers instead of into the palm.
+FIST = {"finger": (78.0, 95.0, 62.0), "thumb": (22.0, 26.0, 48.0)}
+
+# Hand shape per fighter (0 = open palm, 1 = fist) as (left, right), and the
+# actions that override it. The capture has no finger data, so hands are
+# posed per action: boxers keep fists, palm strikers keep open hands.
+HANDS = {
+    "kairo": (1.0, 1.0), "drakon": (1.0, 1.0), "seraphina": (0.2, 0.9),
+    "nox": (0.3, 0.3), "vexa": (0.9, 0.9), "ryuen": (0.08, 0.08),
+}
+HANDS_BY_ACTION = {
+    "SPECIAL_ORIGIN_PALM": (0.05, 0.05),         # open-palm strike
+    "KNOCKDOWN": (0.35, 0.35), "GETUP": (0.35, 0.35), "DEFEAT": (0.3, 0.3),
+}
+
+
+def finger_axes(rig):
+    """{finger bone: (curl axis in the bone's rest frame, thumb?)}.
+    The palm normal comes from the knuckle positions, so it works for any
+    rest pose with the palms facing the floor (T-pose)."""
+    out = {}
+    for side in ("Left", "Right"):
+        mine = [n for n in rig.fingers if n.startswith(side)]
+        k1 = {fg: rig.head[f"{side}Hand{fg}1"] for fg in FINGERS if f"{side}Hand{fg}1" in rig.head}
+        if len([fg for fg in k1 if fg != "Thumb"]) < 2:
+            continue
+        wrist = rig.head[f"{side}Hand"]
+        order = [fg for fg in FINGERS[1:] if fg in k1]
+        palm = _norm(np.cross(k1[order[0]] - wrist, k1[order[-1]] - wrist))
+        if palm[2] > 0:
+            palm = -palm                         # points out of the palm (down in a T-pose)
+        centre = np.mean([k1[fg] for fg in order], 0)
+        for n in mine:
+            d = rig.dir[n]
+            thumb = "Thumb" in n
+            toward = _norm(_norm(centre - rig.head[n]) + palm) if thumb else palm
+            axis = _norm(np.cross(d, toward))
+            out[n] = (rig.rest[n][:3, :3].T @ axis, thumb)
+    return out
+
+
+def key_fingers(rig, act, curls):
+    """curls: one (left, right) curl per frame, 0 open .. 1 fist."""
+    obj = rig.obj
+    obj.animation_data.action = act
+    axes = finger_axes(rig)
+    last = None
+    for f, (cl, cr) in enumerate(curls):
+        if last == (cl, cr) and 0 < f < len(curls) - 1:
+            continue
+        last = (cl, cr)
+        for n, (axis, thumb) in axes.items():
+            c = cl if n.startswith("Left") else cr
+            ang = FIST["thumb" if thumb else "finger"][int(n[-1]) - 1] * c
+            pb = obj.pose.bones[n]
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = Quaternion(Vector(axis.tolist()), math.radians(ang))
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+
+
+def hand_curls(fid, action, n):
+    """Per-frame hand shape of one action; blends from and back to the
+    fighter's own hand shape over 5 frames so cuts between actions match."""
+    base = HANDS.get(fid, (1.0, 1.0))
+    tgt = HANDS_BY_ACTION.get(action)
+    if tgt is None:
+        return [base] * n
+    out = []
+    for f in range(n):
+        w = ease(min(f, n - 1 - f) / 5.0)
+        out.append(tuple(round(b + (t - b) * w, 3) for b, t in zip(base, tgt)))
+    return out
 
 
 # --------------------------------------------------------------------------- the actions
@@ -663,4 +743,6 @@ def build(rig_obj, moves, fid, height, clip_dir):
     acts = {}
     for name, poses in A.items():
         acts[name] = key_action(rig, name, poses)
+        if rig.fingers:
+            key_fingers(rig, acts[name], hand_curls(fid, name[len(F) + 1:], len(poses)))
     return acts
