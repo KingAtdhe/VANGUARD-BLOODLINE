@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_move")
 id = &"kairo_body_hook"
-display_name = "Body Hook"
+display_name = "Front Kick"
 input_pattern = &"DOWN_HEAVY"
 animation = &"KAIRO_ATTACK_BODY_HOOK_01"
 startup_frames = 9

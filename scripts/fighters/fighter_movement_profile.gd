@@ -24,6 +24,38 @@ extends Resource
 @export var dash_back_distance: float = 1.1
 @export var dash_back_ticks: int = 18
 
+@export_group("Jump")
+## Up jumps (D-087): jump_prejump_ticks on the ground (can be hit, cannot
+## block), jump_air_ticks in the air on a fixed arc up to jump_height, then
+## jump_landing_ticks of landing. Holding forward/back at the moment of the
+## press makes it a forward/back jump covering that distance in the air.
+## The direction cannot be changed afterwards.
+@export var jump_height: float = 1.3
+@export var jump_prejump_ticks: int = 4
+@export var jump_air_ticks: int = 38
+@export var jump_landing_ticks: int = 4
+@export var jump_forward_distance: float = 2.3
+@export var jump_back_distance: float = 2.0
+
+
+func jump_total_ticks() -> int:
+	return jump_prejump_ticks + jump_air_ticks + jump_landing_ticks
+
+
+## Height of the feet (m) on tick [param frame] (1-based) of a jump: a
+## parabola over the air ticks, 0 before take-off and from touch-down.
+func jump_height_at(frame: int) -> float:
+	var k: int = frame - jump_prejump_ticks
+	if k <= 0 or k >= jump_air_ticks:
+		return 0.0
+	var u: float = float(k) / float(jump_air_ticks)
+	return 4.0 * jump_height * u * (1.0 - u)
+
+
+## Horizontal distance covered on one air tick of a forward/back jump.
+func jump_step(forward: bool) -> float:
+	return (jump_forward_distance if forward else jump_back_distance) / float(jump_air_ticks)
+
 
 func dash_distance(forward: bool) -> float:
 	return dash_forward_distance if forward else dash_back_distance
@@ -48,6 +80,9 @@ func validate() -> Array[String]:
 		problems.append("walk speeds must be positive")
 	if dash_forward_distance <= 0.0 or dash_back_distance <= 0.0 or dash_forward_ticks < 2 or dash_back_ticks < 2:
 		problems.append("invalid dash values")
+	if jump_height <= 0.0 or jump_prejump_ticks < 1 or jump_air_ticks < 4 or jump_landing_ticks < 1 \
+			or jump_forward_distance < 0.0 or jump_back_distance < 0.0:
+		problems.append("invalid jump values")
 	if pushbox_half_width <= 0.0:
 		problems.append("pushbox_half_width must be positive")
 	return problems

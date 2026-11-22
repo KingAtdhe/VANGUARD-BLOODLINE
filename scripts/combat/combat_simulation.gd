@@ -11,7 +11,7 @@ extends RefCounted
 ## attacks, hitboxes, block, damage, stun, pushback, hitstop, KO (M2);
 ## input buffer, cancel routes, combo counter and damage scaling (M4);
 ## specials, moving attacks, Origin meter/Surge, ultimate, knockdown (M6);
-## projectiles (D-066).
+## projectiles (D-066); jumping, crouching and air attacks (D-087).
 
 var arena: ArenaConfig
 var definitions: Array[FighterDefinition] = []
@@ -147,6 +147,8 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 			f.position_x += f.facing * f.move.move_step()
 		if f.action == FighterState.Action.DASH:
 			f.position_x += f.dash_dir * profile(i).dash_step(f.dash_forward, f.dash_frame)
+		if f.is_airborne() and f.jump_dir != 0 and f.jump_frame > 0:
+			f.position_x += f.jump_dir * profile(i).jump_step(f.jump_dir == f.facing)
 		if f.action == FighterState.Action.WALK and f.move_x != 0:
 			var speed: float = profile(i).walk_forward_speed if f.is_moving_forward() \
 					else profile(i).walk_backward_speed
@@ -290,8 +292,19 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 			return
 		FighterState.Action.ATTACK:
 			f.move_frame += 1
-			if f.move_frame > f.move.total_frames():
+			if f.is_jumping():
+				# An air attack rides the jump and is cut off by the landing.
+				_advance_jump(i)
+				if not f.is_airborne() or f.move_frame > f.move.total_frames():
+					_end_attack(i)
+					f.action = FighterState.Action.JUMP
+			elif f.move_frame > f.move.total_frames():
 				_end_attack(i)
+		FighterState.Action.JUMP:
+			_advance_jump(i)
+			if f.jump_frame > profile(i).jump_total_ticks():
+				f.end_jump()
+				_to_idle(f)
 		FighterState.Action.DASH:
 			f.dash_frame += 1
 			if f.dash_frame > profile(i).dash_ticks(f.dash_forward):
@@ -332,6 +345,16 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 		var cancel_move: MoveData = _take_buffered(i, _can_cancel_into.bind(i))
 		if cancel_move != null:
 			_start_attack(i, cancel_move, true)
+		_age_buffer(f)
+		return
+
+	if f.action == FighterState.Action.JUMP:
+		# Committed: no blocking, no steering. One attack while in the air.
+		f.move_x = 0
+		var air_move: MoveData = definitions[i].move_for(&"AIR")
+		if f.is_airborne() and not f.air_attacked and air_move != null and _take_air_press(f):
+			f.air_attacked = true
+			_start_attack(i, air_move, false)
 		_age_buffer(f)
 		return
 
@@ -377,10 +400,49 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 		f.action = FighterState.Action.BLOCK
 		f.block_low = input.move_y < 0
 		f.move_x = 0
+	elif input.move_y > 0:
+		# Up: jump. The direction held now decides the jump and stays fixed.
+		f.action = FighterState.Action.JUMP
+		f.jump_frame = 1
+		f.jump_dir = clampi(input.move_x, -1, 1)
+		f.height = 0.0
+		f.air_attacked = false
+		f.move_x = 0
+		var jump_ev := CombatEvent.new()
+		jump_ev.tick = tick
+		jump_ev.type = CombatEvent.Type.JUMP
+		jump_ev.actor = i
+		jump_ev.move_id = &"jump" if f.jump_dir == 0 else (&"jump_forward" if f.jump_dir == f.facing else &"jump_back")
+		combat_log.add(jump_ev)
+	elif input.move_y < 0:
+		# Down: crouch (a shorter hurtbox; still neutral, cannot walk).
+		f.action = FighterState.Action.CROUCH
+		f.move_x = 0
 	else:
 		f.move_x = clampi(input.move_x, -1, 1)
 		f.action = FighterState.Action.WALK if f.move_x != 0 else FighterState.Action.IDLE
 	_age_buffer(f)
+
+
+## One tick of the jump arc. The height is set here; the horizontal travel
+## is applied in the integrate phase.
+func _advance_jump(i: int) -> void:
+	var f: FighterState = fighters[i]
+	f.jump_frame += 1
+	f.height = profile(i).jump_height_at(f.jump_frame)
+
+
+## Consumes a buffered Light/Heavy/Kick press (with or without down held) for
+## the jumping attack. Other presses stay buffered and expire as usual.
+func _take_air_press(f: FighterState) -> bool:
+	for k: int in range(f.buffer.size() - 1, -1, -1):
+		var code: int = f.buffer[k].x
+		if code == FighterInputFrame.BUTTON_LIGHT or code == FighterInputFrame.BUTTON_HEAVY \
+				or code == FighterInputFrame.BUTTON_KICK or code == FighterInputFrame.CMD_DOWN_LIGHT \
+				or code == FighterInputFrame.CMD_DOWN_HEAVY or code == FighterInputFrame.CMD_DOWN_KICK:
+			f.buffer.remove_at(k)
+			return true
+	return false
 
 
 ## Adds attack buttons pressed this tick (held now, not held last tick).
@@ -638,8 +700,11 @@ func _resolve_pushboxes() -> void:
 	var overlap: float = min_dist - absf(dx)
 	if overlap <= 0.0:
 		return
-	# A pass-through move (side switch) ignores pushboxes while it travels.
+	# A pass-through move (side switch) ignores pushboxes while it travels,
+	# and so does a fighter high enough in a jump (it can land behind).
 	for f: FighterState in fighters:
+		if f.height > tuning.jump_pass_height:
+			return
 		if f.action == FighterState.Action.ATTACK and f.move != null and f.move.passes_through \
 				and f.move.moves_on_frame(f.move_frame):
 			return

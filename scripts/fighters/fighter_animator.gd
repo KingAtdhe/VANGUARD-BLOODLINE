@@ -18,6 +18,11 @@ const BLEND_ATTACK: float = 0.04
 const BLEND_REACTION: float = 0.03
 ## Initial hitstun at or above this uses the heavy hit reaction.
 const HEAVY_HITSTUN: int = 20
+## The jump clip is authored on these tick counts (take-off, air, landing);
+## a fighter whose jump is timed differently has each part stretched to fit.
+const JUMP_CLIP_PREJUMP: int = 4
+const JUMP_CLIP_AIR: int = 38
+const JUMP_CLIP_LANDING: int = 4
 
 var player: AnimationPlayer
 var def: FighterDefinition
@@ -34,7 +39,7 @@ var _zone_anim: StringName = &""
 func _init(anim_player: AnimationPlayer, definition: FighterDefinition) -> void:
 	player = anim_player
 	def = definition
-	for a: StringName in [def.anim_idle, def.anim_walk_forward, def.anim_walk_backward]:
+	for a: StringName in [def.anim_idle, def.anim_walk_forward, def.anim_walk_backward, def.anim_crouch]:
 		var anim_name: StringName = def.resolve_anim(a)
 		if player.has_animation(anim_name):
 			player.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
@@ -96,6 +101,18 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			else:
 				var fallback: StringName = def.anim_walk_forward if s.dash_forward else def.anim_walk_backward
 				_show(fallback, BLEND_DEFAULT, _advance_if_same(fallback, dt * 2.0), true)
+		FighterState.Action.JUMP:
+			# Seeked from the simulation: the clip's take-off, air and landing
+			# parts are mapped onto this fighter's own jump timing.
+			if _has(def.anim_jump):
+				_show(def.anim_jump, BLEND_ATTACK, _jump_clip_time(s, 0.0 if frozen else alpha), false)
+			else:
+				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
+		FighterState.Action.CROUCH:
+			if _has(def.anim_crouch):
+				_show(def.anim_crouch, BLEND_DEFAULT, _advance_if_same(def.anim_crouch, dt), true)
+			else:
+				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
 		FighterState.Action.WALK:
 			var walk: StringName = def.anim_walk_forward if s.is_moving_forward() else def.anim_walk_backward
 			_show(walk, BLEND_DEFAULT, _advance_if_same(walk, dt), true)
@@ -105,6 +122,23 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 		_last_attack_key = ""
 	_last_action = s.action
 	_last_combo = s.combo_hits
+
+
+## Time in the jump clip for the fighter's current jump tick.
+func _jump_clip_time(s: FighterState, alpha: float) -> float:
+	var m: FighterMovementProfile = def.movement
+	var tick_pos: float = s.jump_frame - 1 + alpha
+	var pre: float = m.jump_prejump_ticks
+	var air: float = m.jump_air_ticks
+	var clip: float
+	if tick_pos < pre:
+		clip = tick_pos / pre * JUMP_CLIP_PREJUMP
+	elif tick_pos < pre + air:
+		clip = JUMP_CLIP_PREJUMP + (tick_pos - pre) / air * JUMP_CLIP_AIR
+	else:
+		clip = JUMP_CLIP_PREJUMP + JUMP_CLIP_AIR \
+				+ (tick_pos - pre - air) / float(m.jump_landing_ticks) * JUMP_CLIP_LANDING
+	return clip / CombatConstants.TICK_RATE
 
 
 func _has(logical: StringName) -> bool:

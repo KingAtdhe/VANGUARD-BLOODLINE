@@ -55,6 +55,9 @@ extends Resource
 ## Chance, each time it decides to close in from far away or to back off at
 ## close range, that it dashes instead of walking (D-071).
 @export_range(0.0, 1.0) var dash_chance: float = 0.0
+## Chance, each time it decides to close in from mid range without dashing,
+## that it jumps in instead (and kicks on the way down). D-087.
+@export_range(0.0, 1.0) var jump_chance: float = 0.0
 ## Chance to pre-emptively guard when close and undecided.
 @export_range(0.0, 1.0) var guard_chance: float = 0.3
 @export_range(1, 120) var guard_ticks: int = 18

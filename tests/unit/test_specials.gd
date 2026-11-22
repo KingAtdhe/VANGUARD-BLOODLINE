@@ -195,13 +195,22 @@ func test_ultimate_rules() -> Array[String]:
 		return ["Ultimate did not start in Surge. log:\n%s" % sim.combat_log.to_text()]
 	if sim.fighters[0].meter != 0 or sim.fighters[0].in_surge():
 		f.append("Ultimate did not consume the meter / end Surge")
-	_step(sim, 0, 0, 30)
-	var ult_hits: int = 0
+	# Four hits (D-087): three short freezes, then the long one; only the
+	# last hit knocks down, so the first three all land on a standing target.
+	_step(sim, 0, 0, 130)
+	var ult_hits: Array[CombatEvent] = []
 	for e: CombatEvent in _events(sim, CombatEvent.Type.HIT, 0):
 		if e.move_id == &"kairo_origin_break":
-			ult_hits += 1
-	if ult_hits != 1 or sim.fighters[1].action != FighterState.Action.KNOCKDOWN:
-		f.append("Origin Break should hit once and knock down")
+			ult_hits.append(e)
+	var ult: MoveData = def.move_for_id(&"kairo_origin_break")
+	if ult_hits.size() != 4 or _events(sim, CombatEvent.Type.KNOCKDOWN, 0).size() != 1:
+		f.append("Origin Break should hit four times and knock down once (%d hits)\n%s" % [
+			ult_hits.size(), sim.combat_log.to_text()])
+	else:
+		if ult_hits[3].combo_hits != 4:
+			f.append("the four hits are not one combo")
+		if ult_hits[0].hitstop != ult.rehit_hitstop_frames or ult_hits[3].hitstop != ult.hitstop_frames:
+			f.append("hitstop per hit wrong: %d .. %d" % [ult_hits[0].hitstop, ult_hits[3].hitstop])
 	# Late in Surge (meter below the 30 minimum) the ultimate is unavailable.
 	var sim2 := _sim(4.0, 100)
 	_step(sim2, U)

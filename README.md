@@ -64,13 +64,16 @@ UI scales with `canvas_items` / `expand` stretch.
 | Cycle P2 (CPU levels / dummy modes) | T or F6 | — |
 
 Actions are defined in `scripts/input/input_actions.gd`; bindings are generated
-by `tools/configure_input_map.gd`. Up/down, special, ultimate and pause do
-nothing yet.
+by `tools/configure_input_map.gd`. Up jumps (hold left/right as you press it
+for a forward or back jump; any attack button in the air is the jumping
+attack), down crouches under high attacks (D-087).
 
 ### Touch controls (phones)
 
 - **Left side:** touch anywhere in the lower-left area and drag to walk
-  (floating stick). Flick it twice in one direction to dash.
+  (floating stick). Flick it twice in one direction to dash. Push it **up**
+  to jump (up-forward / up-back for a jump in that direction) and **down**
+  to crouch.
 - **Right side:** **L** light, **H** heavy, **K** kick, **BLOCK** (hold),
   **SP** special (hold the stick toward the opponent for Rift Break), **ULT**
   (lights up at full meter: Origin Surge, then Origin Break).

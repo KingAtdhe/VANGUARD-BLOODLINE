@@ -4,7 +4,9 @@ extends RefCounted
 ## Plain data only — no nodes — so it can be copied, compared and tested.
 
 ## High-level action state. Neutral states (IDLE, WALK, BLOCK) can act.
-enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP, LAUNCHED, DASH }
+## CROUCH (holding down) is neutral too. JUMP covers the whole jump: the
+## crouch before take-off, the air time and the landing (D-087).
+enum Action { IDLE, WALK, BLOCK, ATTACK, HITSTUN, BLOCKSTUN, KO, KNOCKDOWN, WAKEUP, LAUNCHED, DASH, CROUCH, JUMP }
 
 ## Position of the fighter's centre on the fighting plane (metres).
 var position_x: float = 0.0
@@ -65,6 +67,16 @@ var tap_age: int = -1
 var dash_pending: int = 0
 var dash_pending_age: int = 0
 
+## Jump (D-087): 1-based tick of the jump (0 = not jumping), its world
+## direction (-1, 0, +1, fixed at take-off), the height of the feet above
+## the floor (metres; the simulation moves hurtbox and hitbox with it) and
+## whether this jump's one air attack has been used. jump_frame keeps
+## counting while an air attack (action ATTACK) is in progress.
+var jump_frame: int = 0
+var jump_dir: int = 0
+var height: float = 0.0
+var air_attacked: bool = false
+
 ## Buttons held on the last processed tick (for press-edge detection).
 var held_buttons: int = 0
 ## Input buffer: recent attack presses as Vector2i(button, age_in_ticks),
@@ -116,6 +128,10 @@ func copy() -> FighterState:
 	s.dash_frame = dash_frame
 	s.dash_dir = dash_dir
 	s.dash_forward = dash_forward
+	s.jump_frame = jump_frame
+	s.jump_dir = jump_dir
+	s.height = height
+	s.air_attacked = air_attacked
 	s.stick_dir = stick_dir
 	s.stick_held_ticks = stick_held_ticks
 	s.tap_dir = tap_dir
@@ -136,7 +152,31 @@ func copy() -> FighterState:
 
 
 func is_neutral() -> bool:
-	return action == Action.IDLE or action == Action.WALK or action == Action.BLOCK
+	return action == Action.IDLE or action == Action.WALK or action == Action.BLOCK or action == Action.CROUCH
+
+
+## In a jump (including its take-off and landing ticks on the ground).
+func is_jumping() -> bool:
+	return jump_frame > 0
+
+
+func is_airborne() -> bool:
+	return height > 0.0
+
+
+func end_jump() -> void:
+	jump_frame = 0
+	jump_dir = 0
+	height = 0.0
+	air_attacked = false
+
+
+## Ticks left in a float of [param total] ticks at the moment its arc
+## (launch_height) comes down through [param h] metres: where a fighter hit
+## out of a jump joins the fall.
+static func float_ticks_left(h: float, total: int) -> int:
+	var u: float = asin(clampf(h / 0.95, 0.0, 1.0)) / PI   # share of the arc still to fall
+	return clampi(int(round(u * total)), 6, total)
 
 
 func in_surge() -> bool:
@@ -172,7 +212,10 @@ func action_name() -> String:
 
 ## Compact, exact text form — used for determinism checks and debugging.
 func describe() -> String:
-	return "%s x=%s f=%d hp=%d mv=%s:%d stun=%d push=%s buf=%s combo=%d/%d meter=%d surge=%d" % [
+	var text: String = "%s x=%s f=%d hp=%d mv=%s:%d stun=%d push=%s buf=%s combo=%d/%d meter=%d surge=%d" % [
 		action_name(), var_to_str(position_x), facing, health,
 		move.id if move != null else "-", move_frame, stun_remaining,
 		var_to_str(pushback_remaining), buffer, combo_hits, combo_damage, meter, surge_remaining]
+	if jump_frame > 0:
+		text += " jump=%d/%d h=%s" % [jump_frame, jump_dir, var_to_str(height)]
+	return text

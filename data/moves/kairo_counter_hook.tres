@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_move")
 id = &"kairo_counter_hook"
-display_name = "Counter Hook"
+display_name = "Counter Strike"
 input_pattern = &"FOLLOWUP"
 animation = &"KAIRO_ATTACK_COUNTER_HOOK_01"
 startup_frames = 5

@@ -51,6 +51,10 @@ extends RefCounted
 ##     hitstun and hitstop, and some moves stagger longer or knock down
 ##     (MoveData.counter_hit_*). Throws, armoured and countered contacts are
 ##     never counter-hits.
+##   - A multi-hit move with `knockdown` knocks down on its last hit only,
+##     and may use a shorter hitstop for the hits before it (D-087).
+##   - A fighter hit out of a jump cannot block; it falls (LAUNCHED, from
+##     the height it was at) and lands knocked down (D-087).
 ##   - Health reaching 0 → KO (no hurtbox, ignores input). With
 ##     sim.ko_enabled == false (training) health stops at 1.
 ## All decisions are taken from the state BEFORE any contact is applied, so
@@ -72,9 +76,17 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 	var countered: Array[bool] = []
 	var armored: Array[bool] = []
 	var counter_hit: Array[bool] = []
+	var stop: Array[int] = []
+	var last_hit: Array[bool] = []
+	var air_height: Array[float] = []
 	for c: HitboxSystem.Contact in contacts:
 		var move: MoveData = c.move
 		moves.append(move)
+		# Multi-hit moves: which hit this is decides hitstop and knockdown.
+		var on_frame: int = states[c.attacker].move_frame if c.projectile == null else move.startup_frames
+		stop.append(move.hitstop_on(on_frame))
+		last_hit.append(move.is_last_hit(on_frame))
+		air_height.append(states[c.defender].height)
 		blocked.append(states[c.defender].is_blocking() and move.blocked_by(states[c.defender].block_low))
 		in_combo.append(states[c.defender].action == FighterState.Action.HITSTUN
 				or states[c.defender].action == FighterState.Action.LAUNCHED)
@@ -102,7 +114,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			attacker.last_hit_window = move.hit_window(attacker.move_frame)
 		if defender.action == FighterState.Action.KO:
 			continue  # already knocked out by an earlier contact this tick
-		hitstop = maxi(hitstop, move.hitstop_frames
+		hitstop = maxi(hitstop, stop[i]
 				+ (sim.tuning.counter_hit_extra_hitstop if counter_hit[i] and not countered[i] else 0))
 		# A second contact on the same defender in one tick (a projectile
 		# arriving together with a strike) continues the combo the first began.
@@ -149,7 +161,7 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		ev.damage = dmg
 		ev.target_health = defender.health
 		ev.point = c.point
-		ev.hitstop = move.hitstop_frames
+		ev.hitstop = stop[i]
 		ev.combo_hits = 0 if blocked[i] else defender.combo_hits
 		ev.scaling_percent = percent
 		ev.armored = armored[i] and defender.health > 0
@@ -176,11 +188,13 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 		defender.move_connected = false
 		defender.move_x = 0
 		defender.chain.clear()
+		defender.end_jump()
 		var airborne: bool = defender.action == FighterState.Action.LAUNCHED
+		var knocks_down: bool = move.knockdown and last_hit[i]
 		if blocked[i]:
 			defender.action = FighterState.Action.BLOCKSTUN
 			defender.stun_remaining = move.blockstun_frames
-		elif airborne and not move.knockdown:
+		elif airborne and not knocks_down:
 			# Juggle: another hit in the air gives a shorter float, up to the limit.
 			defender.juggle_hits += 1
 			defender.juggle_exhausted = defender.juggle_hits >= sim.tuning.max_juggle_hits
@@ -192,7 +206,16 @@ static func resolve(contacts: Array[HitboxSystem.Contact], sim: CombatSimulation
 			defender.juggle_exhausted = false
 			defender.stun_remaining = move.launch_frames
 			defender.launch_total = move.launch_frames
-		elif move.knockdown or (counter_hit[i] and move.counter_hit_knockdown):
+		elif air_height[i] > 0.0 and not knocks_down:
+			# Hit out of a jump (D-087): falls from where it was and lands
+			# knocked down. The float is entered part-way through, at the
+			# point of its arc that matches the height the fighter was at.
+			defender.action = FighterState.Action.LAUNCHED
+			defender.juggle_hits = 0
+			defender.juggle_exhausted = false
+			defender.launch_total = sim.tuning.air_hit_float_ticks
+			defender.stun_remaining = FighterState.float_ticks_left(air_height[i], defender.launch_total)
+		elif knocks_down or (counter_hit[i] and move.counter_hit_knockdown):
 			defender.action = FighterState.Action.KNOCKDOWN
 			defender.stun_remaining = sim.tuning.knockdown_ticks
 			var kd := CombatEvent.new()
@@ -275,6 +298,7 @@ static func _counter(c: HitboxSystem.Contact, sim: CombatSimulation) -> void:
 
 static func _knock_out(f: FighterState, index: int, sim: CombatSimulation) -> void:
 	f.action = FighterState.Action.KO
+	f.end_jump()
 	f.move = null
 	f.move_frame = 0
 	f.stun_remaining = 0

@@ -12,7 +12,7 @@ This file is the in-repo summary; update both when the design changes.
 
 | Fighter | Style | Role | Range | Speed | Health |
 | --- | --- | --- | --- | --- | --- |
-| Kairo | Pressure boxing with street brawling | All-rounder, rushdown | Close to mid | Fast | Medium |
+| Kairo | Karate-kickboxing hybrid (since D-087; was pressure boxing) | All-rounder, rushdown | Close to mid | Fast | Medium |
 | Drakon | Heavy boxing and wrestling | Grappler, armoured bruiser | Close | Slow | Highest |
 | Seraphina | Taekwondo and karate kicking | Long-range kicker | Long | Fast | Low |
 | Nox | Ninjutsu and Silat, low and deceptive | Mix-up assassin | Close, in and out | Fastest | Lowest |
@@ -23,7 +23,7 @@ This file is the in-repo summary; update both when the design changes.
 
 | Fighter | Normals | Specials | Ultimate |
 | --- | --- | --- | --- |
-| Kairo | Jab, Cross, Body Hook, Low Kick | Origin Palm, Rift Break, Slip Counter | Origin Break |
+| Kairo | Lead Straight, Reverse Punch, Front Kick (down + heavy), Low Kick, Flying Side Kick (air) | Origin Palm, Rift Break (axe kick), Rift Guard (counter) | Origin Break (four hits) |
 | Drakon | Hammer Fist, Haymaker, Shoulder Check, Stomp | Forge Charge, Anvil Slam, Quake Stomp | Molten Colossus |
 | Seraphina | Knife-hand, Side Kick, Roundhouse, Low Sweep | Crescent Arc, Halo Step, Seraph Dive | Radiant Ascension |
 | Nox | Fang Jab, Rising Backfist, Scythe Sweep, Drop Heel | Shade Step, Feint Fang, Throat Pierce | Eclipse |

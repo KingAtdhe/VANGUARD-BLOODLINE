@@ -19,8 +19,12 @@ static func hurtbox(def: FighterDefinition, s: FighterState) -> Rect2:
 		return Rect2()
 	if s.action == FighterState.Action.LAUNCHED and s.juggle_exhausted:
 		return Rect2()
-	return Rect2(s.position_x - def.hurtbox_half_width, 0.0,
-		def.hurtbox_half_width * 2.0, def.hurtbox_height)
+	# Crouching: a shorter box, high attacks pass over it. In the air: the
+	# box rides up with the jump, low attacks pass under it (D-087).
+	var h: float = def.hurtbox_height
+	if s.action == FighterState.Action.CROUCH:
+		h = h * def.crouch_height_percent / 100.0
+	return Rect2(s.position_x - def.hurtbox_half_width, s.height, def.hurtbox_half_width * 2.0, h)
 
 
 ## The attack's hitbox for the current frame, mirrored by facing. Returns an
@@ -32,7 +36,7 @@ static func hitbox(s: FighterState) -> Rect2:
 	if s.move.activates_surge or s.move.is_counter() or s.move.no_hitbox or s.move.is_projectile() \
 			or not s.move.is_active_frame(s.move_frame):
 		return Rect2()
-	var c := Vector2(s.position_x + s.facing * s.move.hitbox_center.x, s.move.hitbox_center.y)
+	var c := Vector2(s.position_x + s.facing * s.move.hitbox_center.x, s.move.hitbox_center.y + s.height)
 	return Rect2(c - s.move.hitbox_size * 0.5, s.move.hitbox_size)
 
 
@@ -77,7 +81,7 @@ static func find_contacts(defs: Array[FighterDefinition], states: Array[FighterS
 		# attack (no unblockable combos, no grabbing out of blockstun).
 		if states[a].move.is_throw() and (states[d].action == FighterState.Action.HITSTUN
 				or states[d].action == FighterState.Action.BLOCKSTUN
-				or states[d].action == FighterState.Action.LAUNCHED):
+				or states[d].action == FighterState.Action.LAUNCHED or states[d].is_airborne()):
 			continue
 		var c := Contact.new()
 		c.attacker = a

@@ -194,7 +194,7 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 		x += sin(Time.get_ticks_msec() * 0.09) * HITSTOP_SHAKE
 	position.x = x
 	# A launched fighter is drawn on its arc (presentation only).
-	position.y = lerpf(previous.launch_height(), current.launch_height(), alpha)
+	position.y = lerpf(previous.launch_height() + previous.height, current.launch_height() + current.height, alpha)
 	_facing_marker.scale.x = float(current.facing)
 	_shield.visible = current.is_blocking()
 	# Low block: the shield drops to cover the legs.

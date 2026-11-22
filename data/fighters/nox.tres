@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/nox_movement.tres" id="2_move"]
@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://data/moves/nox_eclipse.tres" id="m_eclipse"]
 [ext_resource type="Resource" path="res://data/moves/nox_drop_heel.tres" id="m_drop_heel"]
 [ext_resource type="Resource" path="res://data/moves/nox_feint_fang.tres" id="m_feint_fang"]
+[ext_resource type="Resource" path="res://data/moves/nox_jump_attack.tres" id="90_air"]
 
 [resource]
 script = ExtResource("1_def")
@@ -22,7 +23,7 @@ chip_taken_percent = 150
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.55
-moves = Array[Resource]([ExtResource("m_fang_jab"), ExtResource("m_rising_backfist"), ExtResource("m_scythe_sweep"), ExtResource("m_shade_step"), ExtResource("m_throat_pierce"), ExtResource("8_surge"), ExtResource("m_eclipse"), ExtResource("m_drop_heel"), ExtResource("m_feint_fang")])
+moves = Array[Resource]([ExtResource("m_fang_jab"), ExtResource("m_rising_backfist"), ExtResource("m_scythe_sweep"), ExtResource("m_shade_step"), ExtResource("m_throat_pierce"), ExtResource("8_surge"), ExtResource("m_eclipse"), ExtResource("m_drop_heel"), ExtResource("m_feint_fang"), ExtResource("90_air")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -34,6 +35,8 @@ anim_block = &"KAIRO_BLOCK_HIGH"
 anim_dash_forward = &"KAIRO_DASH_FORWARD"
 anim_dash_back = &"KAIRO_DASH_BACK"
 anim_block_low = &"KAIRO_BLOCK_LOW"
+anim_crouch = &"NOX_CROUCH"
+anim_jump = &"NOX_JUMP"
 anim_hit_light = &"KAIRO_HIT_LIGHT"
 anim_hit_heavy = &"KAIRO_HIT_HEAVY"
 anim_hit_body = &"KAIRO_HIT_BODY"

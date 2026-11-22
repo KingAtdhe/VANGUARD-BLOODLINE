@@ -21,10 +21,20 @@ How to work on the next fighter:
 4. Full build, read the faults listed for every action, render the moves
    (`tools/godot/move_shot.gd`, `anim_shot.gd`) and look at them.
 
-## Kairo — done (D-075)
+## Kairo — done (D-075), new stance in D-087
 
-Identity: Origin bloodline brawler; boxer. Reference approved by the owner:
-Steve Fox (posed from knowledge of the character, not from footage).
+**Since D-087** (owner: "a different stance, more unique to him"; style chosen
+by the owner: karate-kickboxing hybrid): side-on and sunk on a long base,
+lead hand open and held out in front at chest height, rear fist chambered
+palm-up at the ribs, slow breathing instead of a boxer's bounce. Measured on
+the build: pelvis at 0.915 of standing (0.89 m), pelvis turned 48°, chest
+58°, weight 52 % on the lead foot, centre of gravity 6.6 cm inside the feet,
+lead wrist 45 cm in front of the body line at 1.25 m, rear wrist at the ribs
+(1.13 m), no stance faults. The table below is the earlier boxing stance
+(D-075), kept for the record.
+
+Identity until D-087: Origin bloodline brawler; boxer. Reference approved by
+the owner: Steve Fox (posed from knowledge of the character, not from footage).
 Upright, light on a short base, constant small bob, both fists at the chin.
 
 | | Blueprint (measured) |

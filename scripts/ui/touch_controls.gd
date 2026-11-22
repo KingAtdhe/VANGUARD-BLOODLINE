@@ -3,8 +3,8 @@ extends CanvasLayer
 ## Multi-touch fighting controls (spec §2.4).
 ##
 ##   - Floating stick: touch anywhere in the stick zone (outer ~33 % of the
-##     screen, below the HUD); drag left/right to walk, up/down for
-##     jump/crouch actions (not used by gameplay yet).
+##     screen, below the HUD); drag left/right to walk, up to jump and
+##     down to crouch (D-087).
 ##   - Action cluster: Light, Heavy, Kick, Block — fire on touch-DOWN, stay
 ##     held while that finger stays down (even if it slides off).
 ##   - Special (SP; hold toward the opponent for the forward special) and

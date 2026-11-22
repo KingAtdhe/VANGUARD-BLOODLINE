@@ -135,6 +135,11 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## (D-068). active_frames 6 with rehit_interval 2 = three hits ("2+2+2").
 ## Each hit is a full contact of its own (damage, stun, hitstop, meter).
 @export var rehit_interval: int = 0
+## Hitstop of every hit except the last (0 = hitstop_frames for all). Lets a
+## multi-hit ultimate keep its long freeze for the final blow only (D-087).
+## A multi-hit move with `knockdown` knocks down on its LAST hit only, so the
+## earlier hits keep the defender standing for the rest.
+@export var rehit_hitstop_frames: int = 0
 
 @export_group("Projectile")
 ## > 0: this move fires a projectile (D-066) on its first active frame instead
@@ -150,8 +155,13 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## Presentation only: colour of the placeholder projectile effect.
 @export var projectile_color: Color = Color(0.25, 0.9, 1.0)
 
-@export_group("Reserved for later milestones")
+@export_group("Air")
+## A jumping attack (D-087): input_pattern AIR, started with any attack
+## button while airborne, one per jump. Its hitbox rides with the jump and
+## the move ends when the fighter lands.
 @export var airborne_allowed: bool = false
+
+@export_group("Reserved for later milestones")
 ## Only if the move design genuinely needs one (0 = none).
 @export var cooldown_frames: int = 0
 
@@ -161,6 +171,19 @@ func hit_window(frame: int) -> int:
 	if rehit_interval <= 0:
 		return 0
 	return maxi(0, frame - startup_frames) / rehit_interval
+
+
+## True if [param frame] is in the move's last hit window (always true for a
+## single-hit move).
+func is_last_hit(frame: int) -> bool:
+	return rehit_interval <= 0 or hit_window(frame) >= hit_count() - 1
+
+
+## Hitstop for a contact on [param frame].
+func hitstop_on(frame: int) -> int:
+	if rehit_hitstop_frames > 0 and not is_last_hit(frame):
+		return rehit_hitstop_frames
+	return hitstop_frames
 
 
 func hit_count() -> int:
@@ -281,6 +304,10 @@ func validate() -> Array[String]:
 		p.append("%s: projectiles and throws cannot be countered" % id)
 	if rehit_interval < 0 or (rehit_interval > 0 and (is_projectile() or is_throw() or is_counter())):
 		p.append("%s: invalid multi-hit move" % id)
+	if rehit_hitstop_frames < 0 or (rehit_hitstop_frames > 0 and rehit_interval <= 0):
+		p.append("%s: rehit_hitstop_frames needs a multi-hit move" % id)
+	if (input_pattern == &"AIR") != airborne_allowed:
+		p.append("%s: an AIR move must be airborne_allowed (and only an AIR move)" % id)
 	if counter_hit_stagger_frames < 0:
 		p.append("%s: invalid counter-hit stagger" % id)
 	if is_throw() and chip_damage != 0:

@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Added — jumping and crouching
+- Push up to jump (up-forward or up-back for a jump in that direction) and press any attack button in the air for a jumping attack; hold down to crouch under high attacks. Jumps go over low attacks and can cross over the opponent. All six fighters.
+### Changed — Kairo is a karate-kickboxing fighter
+- New stance: side-on and low, open lead hand out in front, rear fist chambered at the ribs. His heavy is a reverse punch, down + heavy a front kick, Rift Break an axe kick, back + special an open-hand counter stance.
+### Fixed — Origin Break
+- Kairo's ultimate now lands four hits (straight, reverse punch, roundhouse, lunging straight) instead of one hit followed by punches at nothing.
 ### Changed — Kairo's attacks, third pass (every frame checked)
 - The jab is a real straight punch now (arm nearly locked out, moving from the second frame); strikes build over several frames instead of arriving in one; the cross winds up in one motion; hooks and the uppercut keep a bent elbow; the low kick's leg comes straight back down; recoveries are slower. Hit boxes and frame data unchanged.
 ### Changed — Kairo's attacks, second pass

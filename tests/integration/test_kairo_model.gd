@@ -7,10 +7,16 @@ const HUMANOID_BONES: Array[String] = ["Hips", "Spine", "Chest", "Neck", "Head",
 	"LeftUpperArm", "LeftLowerArm", "LeftHand", "RightUpperArm", "RightLowerArm", "RightHand",
 	"LeftUpperLeg", "LeftLowerLeg", "LeftFoot", "RightUpperLeg", "RightLowerLeg", "RightFoot"]
 ## Striking limb per move and how far past the joint the contact point is.
+## Since D-087 the Rift Break is an axe kick and the body move a front kick.
 const STRIKER: Dictionary = {
 	&"kairo_light_punch": ["LeftHand", 0.06], &"kairo_heavy_punch": ["RightHand", 0.06],
-	&"kairo_kick": ["RightFoot", 0.08], &"kairo_origin_palm": ["LeftHand", 0.06],
-	&"kairo_rift_break": ["RightHand", 0.06], &"kairo_origin_break": ["LeftHand", 0.06],
+	&"kairo_low_kick": ["RightFoot", 0.08], &"kairo_origin_palm": ["LeftHand", 0.06],
+	&"kairo_rift_break": ["RightFoot", 0.08], &"kairo_body_hook": ["RightFoot", 0.08],
+}
+## A multi-hit move: the limb that lands each hit, checked on the first two
+## frames of that hit's window (the limb is on its way in or out otherwise).
+const MULTI_STRIKER: Dictionary = {
+	&"kairo_origin_break": [["LeftHand", 0.06], ["RightHand", 0.06], ["RightFoot", 0.08], ["LeftHand", 0.06]],
 }
 const TOLERANCE: float = 0.06
 
@@ -110,14 +116,23 @@ func test_hitboxes_align_with_striking_limb() -> Array[String]:
 		view.position = Vector3.ZERO
 		view.get_node("%ModelRoot").rotation.y = deg_to_rad(view.profile_yaw_degrees) * facing
 		for m: MoveData in _def().moves:
-			if not STRIKER.has(m.id):
+			if not STRIKER.has(m.id) and not MULTI_STRIKER.has(m.id):
 				continue
-			var limb: String = STRIKER[m.id][0]
-			var reach_past: float = STRIKER[m.id][1]
 			state.action = FighterState.Action.ATTACK
 			state.move = m
 			var box_state := state.copy()
 			for frame: int in range(m.startup_frames, m.startup_frames + m.active_frames):
+				var limb: String
+				var reach_past: float
+				if MULTI_STRIKER.has(m.id):
+					if (frame - m.startup_frames) % m.rehit_interval > 1:
+						continue
+					var per_hit: Array = MULTI_STRIKER[m.id][m.hit_window(frame)]
+					limb = per_hit[0]
+					reach_past = per_hit[1]
+				else:
+					limb = STRIKER[m.id][0]
+					reach_past = STRIKER[m.id][1]
 				AnimationSampler.apply(ap.get_animation(m.animation), sk, AnimationSampler.time_of_frame(frame))
 				var bone: int = sk.find_bone(limb)
 				var g: Transform3D = sk.global_transform * AnimationSampler.bone_global(sk, bone)

@@ -15,6 +15,9 @@ extends Resource
 ## Standing hurtbox: half-width around the centre and height from the floor.
 @export var hurtbox_half_width: float = 0.3
 @export var hurtbox_height: float = 1.8
+## Height of the hurtbox while crouching (holding down, D-087), as a percent
+## of hurtbox_height: attacks whose hitbox is entirely above it miss.
+@export_range(30, 100) var crouch_height_percent: int = 62
 ## Move list. Each move is selected by its input_pattern (several moves may
 ## share a pattern when their meter/surge conditions differ, e.g. ULTIMATE).
 @export var moves: Array[MoveData] = []
@@ -37,6 +40,10 @@ extends Resource
 @export var anim_dash_back: StringName = &""
 ## Low block pose (down + block). Empty = the standing block is shown.
 @export var anim_block_low: StringName = &""
+## Crouch pose and the whole jump (take-off, air, landing) — D-087. Empty =
+## idle is shown (the jump still lifts the model).
+@export var anim_crouch: StringName = &""
+@export var anim_jump: StringName = &""
 @export var anim_hit_light: StringName = &""
 @export var anim_hit_heavy: StringName = &""
 ## Reactions to a hit on the body and on the legs (D-069). Empty = the
@@ -102,7 +109,8 @@ func required_animations() -> Array[StringName]:
 	for a: StringName in [anim_idle, anim_walk_forward, anim_walk_backward, anim_block,
 			anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]:
 		out.append(resolve_anim(a))
-	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low, anim_dash_forward, anim_dash_back]:
+	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low, anim_dash_forward, anim_dash_back,
+			anim_crouch, anim_jump]:
 		if extra != &"":
 			out.append(resolve_anim(extra))
 	for m: MoveData in moves:

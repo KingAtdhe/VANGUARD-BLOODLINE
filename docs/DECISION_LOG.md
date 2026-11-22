@@ -1266,3 +1266,69 @@ what the three-quarter strips hid:
 - Limit, unchanged: strips and numbers show where everything is on each
   frame, not how the speed feels in the hand. Not seen on a phone.
 
+## D-087 — 2026-11-22 — Jump and crouch; Kairo becomes a karate-kickboxing fighter; Origin Break hits four times
+
+Owner: a new stance "more unique to him", "his ultimate does nothing, only
+one hit and then nothing", "add jumping and going down", "his fighting style
+is similar to others so you have to change it". Asked which style and which
+kind of jump: **karate-kickboxing hybrid** and **Street Fighter style**.
+
+**Jump and crouch (all fighters, simulation).**
+- Up = jump (`FighterState.Action.JUMP`): 4 ticks on the ground, 38 in the
+  air on a fixed arc 1.3 m high, 4 landing; forward 2.3 m / back 2.0 m if a
+  direction is held at the press, fixed afterwards. Values per fighter in
+  `FighterMovementProfile` (all six start equal). No blocking in the air.
+- The hurtbox and the hitbox ride up with the jump, so low attacks pass
+  under by geometry, not by a rule. Above 0.75 m the body does not push:
+  a jump can cross over and both fighters turn round on landing.
+- One jumping attack per jump (`input_pattern` AIR, any attack button, hit
+  level HIGH = must be blocked standing, ends on landing). One per fighter
+  in `data/moves/<id>_jump_attack.tres`.
+- A fighter hit out of a jump falls from the height it was at (joins the
+  LAUNCHED arc part-way) and lands knocked down.
+- Down = crouch (`Action.CROUCH`, neutral): hurtbox 62 % of standing height
+  (`FighterDefinition.crouch_height_percent`), so a jab passes over and a
+  body-height attack still hits. It cannot walk. Down + button moves and the
+  low block are unchanged; the low block keeps the standing hurtbox so no
+  existing matchup changes.
+- AI: `AIProfile.jump_chance` (beginner 0.05, standard 0.12, expert 0.2):
+  a jump-in from mid range with one kick on the way down.
+- Animation: `<F>_CROUCH`, `<F>_JUMP` (46 frames, mapped onto the fighter's
+  own jump timing by `FighterAnimator`), `<F>_JUMP_ATTACK`. The keyed-pose
+  builder (`keyed_frames`) is now open to every fitted fighter; the importer
+  leaves a clip that is airborne from first to last frame at the stance's
+  floor correction instead of standing it on the floor.
+
+**Origin Break.** It was one hit, a one-second freeze and a knockdown, after
+which the rest of the sequence punched air. Now four real hits ten frames
+apart (lead straight, reverse punch, roundhouse, lunging straight; 4 x 92,
+scaled 100/100/80/70 = 321, was 320). New in `MoveData`:
+`rehit_hitstop_frames` (8 for the first three, the 60-frame freeze stays on
+the last) and a multi-hit move with `knockdown` knocks down on its last hit
+only. Total length unchanged (55), so Sentinel and Warden, who share the
+move, keep their clips; their ultimate hits four times too.
+
+**Kairo's style.** Stance: see docs/POSE_BLUEPRINTS.md. Inputs and frame
+data of his normals are unchanged (so combos and the AI's routes stand);
+what the moves are changed:
+- Light: lead straight from the open guard hand (it snaps back, then out).
+- Heavy: reverse punch from the chambered fist, lead hand pulled to the ribs.
+- Down + heavy: front kick (was the body hook; id `kairo_body_hook` kept).
+- Kick: low kick, unchanged. Air: flying side kick.
+- Rift Break: an axe kick (was an overhead hammer fist).
+- Back + special: "Rift Guard", an open-hand parry stance (was a boxing
+  slip); its follow-up is unchanged.
+- Considered and dropped: moving the low kick to down + kick and putting a
+  roundhouse on kick. It broke the documented combo routes and eleven
+  tests; the roundhouse lives in the ultimate instead.
+- All hand-keyed, none of it recorded motion.
+
+- Looked at: every frame of the ultimate, reverse punch, front kick, axe
+  kick and Origin Palm from the side; the stance from five sides; crouch,
+  jump and jumping attack of all six fighters.
+- Checker: Kairo 3 of 84 frames flagged (defeat wrist, surge foot, and the
+  roundhouse of the ultimate, where he balances on one leg 15 cm outside
+  his foot). Tests: 204 pass (8 new for jump and crouch).
+- Not verified: anything on a phone, including how the stick's up/down
+  feel and whether jumps fire by accident while walking.
+

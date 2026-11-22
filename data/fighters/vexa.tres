@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/vexa_movement.tres" id="2_move"]
@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://data/moves/vexa_system_overdrive.tres" id="m_system_overdrive"]
 [ext_resource type="Resource" path="res://data/moves/vexa_slashing_elbow.tres" id="m_slashing_elbow"]
 [ext_resource type="Resource" path="res://data/moves/vexa_arc_guard.tres" id="m_arc_guard"]
+[ext_resource type="Resource" path="res://data/moves/vexa_jump_attack.tres" id="90_air"]
 
 [resource]
 script = ExtResource("1_def")
@@ -21,7 +22,7 @@ base_health = 1000
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("m_piston_jab"), ExtResource("m_teep"), ExtResource("m_cut_kick"), ExtResource("m_pulse_shot"), ExtResource("m_overclock_knee"), ExtResource("8_surge"), ExtResource("m_system_overdrive"), ExtResource("m_slashing_elbow"), ExtResource("m_arc_guard")])
+moves = Array[Resource]([ExtResource("m_piston_jab"), ExtResource("m_teep"), ExtResource("m_cut_kick"), ExtResource("m_pulse_shot"), ExtResource("m_overclock_knee"), ExtResource("8_surge"), ExtResource("m_system_overdrive"), ExtResource("m_slashing_elbow"), ExtResource("m_arc_guard"), ExtResource("90_air")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -33,6 +34,8 @@ anim_block = &"KAIRO_BLOCK_HIGH"
 anim_dash_forward = &"KAIRO_DASH_FORWARD"
 anim_dash_back = &"KAIRO_DASH_BACK"
 anim_block_low = &"KAIRO_BLOCK_LOW"
+anim_crouch = &"VEXA_CROUCH"
+anim_jump = &"VEXA_JUMP"
 anim_hit_light = &"KAIRO_HIT_LIGHT"
 anim_hit_heavy = &"KAIRO_HIT_HEAVY"
 anim_hit_body = &"KAIRO_HIT_BODY"

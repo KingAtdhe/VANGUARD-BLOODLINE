@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/seraphina_movement.tres" id="2_move"]
@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://data/moves/seraphina_radiant_ascension.tres" id="m_radiant_ascension"]
 [ext_resource type="Resource" path="res://data/moves/seraphina_low_sweep.tres" id="m_low_sweep"]
 [ext_resource type="Resource" path="res://data/moves/seraphina_halo_step.tres" id="m_halo_step"]
+[ext_resource type="Resource" path="res://data/moves/seraphina_jump_attack.tres" id="90_air"]
 
 [resource]
 script = ExtResource("1_def")
@@ -21,7 +22,7 @@ base_health = 900
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("m_knife_hand"), ExtResource("m_side_kick"), ExtResource("m_roundhouse"), ExtResource("m_crescent_arc"), ExtResource("m_seraph_dive"), ExtResource("8_surge"), ExtResource("m_radiant_ascension"), ExtResource("m_low_sweep"), ExtResource("m_halo_step")])
+moves = Array[Resource]([ExtResource("m_knife_hand"), ExtResource("m_side_kick"), ExtResource("m_roundhouse"), ExtResource("m_crescent_arc"), ExtResource("m_seraph_dive"), ExtResource("8_surge"), ExtResource("m_radiant_ascension"), ExtResource("m_low_sweep"), ExtResource("m_halo_step"), ExtResource("90_air")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -33,6 +34,8 @@ anim_block = &"KAIRO_BLOCK_HIGH"
 anim_dash_forward = &"KAIRO_DASH_FORWARD"
 anim_dash_back = &"KAIRO_DASH_BACK"
 anim_block_low = &"KAIRO_BLOCK_LOW"
+anim_crouch = &"SERAPHINA_CROUCH"
+anim_jump = &"SERAPHINA_JUMP"
 anim_hit_light = &"KAIRO_HIT_LIGHT"
 anim_hit_heavy = &"KAIRO_HIT_HEAVY"
 anim_hit_body = &"KAIRO_HIT_BODY"

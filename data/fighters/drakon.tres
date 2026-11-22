@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=13 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/drakon_movement.tres" id="2_move"]
@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://data/moves/drakon_molten_colossus.tres" id="m_molten_colossus"]
 [ext_resource type="Resource" path="res://data/moves/drakon_shoulder_check.tres" id="m_shoulder_check"]
 [ext_resource type="Resource" path="res://data/moves/drakon_quake_stomp.tres" id="m_quake_stomp"]
+[ext_resource type="Resource" path="res://data/moves/drakon_jump_attack.tres" id="90_air"]
 
 [resource]
 script = ExtResource("1_def")
@@ -22,7 +23,7 @@ chip_taken_percent = 50
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.35
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("m_hammer_fist"), ExtResource("m_haymaker"), ExtResource("m_stomp"), ExtResource("m_anvil_slam"), ExtResource("m_forge_charge"), ExtResource("8_surge"), ExtResource("m_molten_colossus"), ExtResource("m_shoulder_check"), ExtResource("m_quake_stomp")])
+moves = Array[Resource]([ExtResource("m_hammer_fist"), ExtResource("m_haymaker"), ExtResource("m_stomp"), ExtResource("m_anvil_slam"), ExtResource("m_forge_charge"), ExtResource("8_surge"), ExtResource("m_molten_colossus"), ExtResource("m_shoulder_check"), ExtResource("m_quake_stomp"), ExtResource("90_air")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -34,6 +35,8 @@ anim_block = &"KAIRO_BLOCK_HIGH"
 anim_dash_forward = &"KAIRO_DASH_FORWARD"
 anim_dash_back = &"KAIRO_DASH_BACK"
 anim_block_low = &"KAIRO_BLOCK_LOW"
+anim_crouch = &"DRAKON_CROUCH"
+anim_jump = &"DRAKON_JUMP"
 anim_hit_light = &"KAIRO_HIT_LIGHT"
 anim_hit_heavy = &"KAIRO_HIT_HEAVY"
 anim_hit_body = &"KAIRO_HIT_BODY"

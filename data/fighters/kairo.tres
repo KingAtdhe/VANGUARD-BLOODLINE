@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=14 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
@@ -13,6 +13,7 @@
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_surge.tres" id="8_surge"]
 [ext_resource type="Resource" path="res://data/moves/kairo_origin_break.tres" id="9_break"]
 [ext_resource type="PackedScene" path="res://assets/characters/kairo/kairo.glb" id="10_model"]
+[ext_resource type="Resource" path="res://data/moves/kairo_jump_attack.tres" id="90_air"]
 
 [resource]
 script = ExtResource("1_def")
@@ -22,7 +23,7 @@ base_health = 1000
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break"), ExtResource("11_hook"), ExtResource("12_slip"), ExtResource("13_chook")])
+moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break"), ExtResource("11_hook"), ExtResource("12_slip"), ExtResource("13_chook"), ExtResource("90_air")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -34,6 +35,8 @@ anim_block = &"KAIRO_BLOCK_HIGH"
 anim_dash_forward = &"KAIRO_DASH_FORWARD"
 anim_dash_back = &"KAIRO_DASH_BACK"
 anim_block_low = &"KAIRO_BLOCK_LOW"
+anim_crouch = &"KAIRO_CROUCH"
+anim_jump = &"KAIRO_JUMP"
 anim_hit_light = &"KAIRO_HIT_LIGHT"
 anim_hit_heavy = &"KAIRO_HIT_HEAVY"
 anim_hit_body = &"KAIRO_HIT_BODY"
@@ -43,4 +46,4 @@ anim_getup = &"KAIRO_GETUP"
 anim_victory = &"KAIRO_VICTORY"
 anim_defeat = &"KAIRO_DEFEAT"
 accent_color = Color(1, 0.08, 0.06, 1)
-tagline = "Origin bloodline brawler. Balanced, direct, relentless."
+tagline = "Origin bloodline karateka. Open hand out, fist chambered, kicks from every range."

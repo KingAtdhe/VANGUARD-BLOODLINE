@@ -40,7 +40,7 @@ func test_move_set_is_valid_and_complete() -> Array[String]:
 	for m: MoveData in def.moves:
 		for problem: String in m.validate():
 			f.append(problem)
-	for pattern: StringName in [&"LIGHT", &"HEAVY", &"KICK", &"DOWN_HEAVY", &"SPECIAL", &"FORWARD_SPECIAL", &"BACK_SPECIAL"]:
+	for pattern: StringName in [&"LIGHT", &"HEAVY", &"KICK", &"DOWN_HEAVY", &"SPECIAL", &"FORWARD_SPECIAL", &"BACK_SPECIAL", &"AIR"]:
 		if def.move_for(pattern) == null:
 			f.append("no move for %s" % pattern)
 	if def.move_for(&"KICK") != null and def.move_for(&"KICK").hit_level != MoveData.HitLevel.LOW:

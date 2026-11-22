@@ -15,7 +15,8 @@ func _initialize() -> void:
 	for m: MoveData in def.moves:
 		var entry: Dictionary = {"startup": m.startup_frames, "active": m.active_frames,
 			"recovery": m.recovery_frames, "hc": [m.hitbox_center.x, m.hitbox_center.y],
-			"animation": String(m.animation), "counter": [m.counter_start_frame, m.counter_end_frame]}
+			"animation": String(m.animation), "counter": [m.counter_start_frame, m.counter_end_frame],
+			"rehit": m.rehit_interval}
 		# Standard slots by input (SURGE = the surge activation), plus every
 		# move under its own id without the owner prefix ("body_hook").
 		var slot: String = "SURGE" if m.activates_surge else String(m.input_pattern)

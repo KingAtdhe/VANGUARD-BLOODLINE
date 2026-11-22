@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_move")
 id = &"kairo_slip_counter"
-display_name = "Slip Counter"
+display_name = "Rift Guard"
 input_pattern = &"BACK_SPECIAL"
 animation = &"KAIRO_SPECIAL_SLIP_COUNTER"
 startup_frames = 4

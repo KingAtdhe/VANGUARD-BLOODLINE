@@ -44,6 +44,14 @@ extends Resource
 ## again until it has landed and got up.
 @export var max_juggle_hits: int = 3
 
+@export_group("Jump")
+## Length of the fall (ticks, the whole arc) of a fighter hit out of a jump;
+## it joins the arc at its own height (D-087).
+@export var air_hit_float_ticks: int = 34
+## Above this height (m) a jumping fighter's body does not push or get
+## pushed: it can pass over the opponent and land on the other side.
+@export var jump_pass_height: float = 0.75
+
 @export_group("Counter-hit")
 ## A hit that interrupts the defender's own attack before its recovery
 ## (startup or active frames) is a counter-hit (D-069): more damage, longer
@@ -90,6 +98,8 @@ func validate() -> Array[String]:
 		p.append("invalid meter settings")
 	if knockdown_ticks < 1 or wakeup_ticks < 1:
 		p.append("knockdown/wakeup ticks must be >= 1")
+	if air_hit_float_ticks < 6 or jump_pass_height < 0.0:
+		p.append("invalid jump settings")
 	if counter_hit_damage_percent < 100 or counter_hit_extra_hitstun < 0 or counter_hit_extra_hitstop < 0:
 		p.append("invalid counter-hit settings")
 	if combo_scaling_floor_percent < 1 or combo_scaling_floor_percent > 100:

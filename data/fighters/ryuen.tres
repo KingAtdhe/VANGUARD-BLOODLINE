@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=16 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/ryuen_movement.tres" id="2_move"]
@@ -15,6 +15,7 @@
 [ext_resource type="Resource" path="res://data/moves/ryuen_wrist_throw.tres" id="m_wrist_throw"]
 [ext_resource type="Resource" path="res://data/moves/ryuen_wave_palm.tres" id="m_wave_palm"]
 [ext_resource type="Resource" path="res://data/moves/ryuen_thousand_rivers_strike.tres" id="m_thousand_rivers_strike"]
+[ext_resource type="Resource" path="res://data/moves/ryuen_jump_attack.tres" id="90_air"]
 
 [resource]
 script = ExtResource("1_def")
@@ -25,7 +26,7 @@ block_pushes_attacker = 0.3
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("m_palm_heel"), ExtResource("m_chain_punch"), ExtResource("m_shin_stamp"), ExtResource("m_mountain_push"), ExtResource("m_flowing_step"), ExtResource("8_surge"), ExtResource("m_thousand_rivers"), ExtResource("m_sinking_elbow"), ExtResource("m_returning_wave"), ExtResource("m_wrist_throw"), ExtResource("m_wave_palm"), ExtResource("m_thousand_rivers_strike")])
+moves = Array[Resource]([ExtResource("m_palm_heel"), ExtResource("m_chain_punch"), ExtResource("m_shin_stamp"), ExtResource("m_mountain_push"), ExtResource("m_flowing_step"), ExtResource("8_surge"), ExtResource("m_thousand_rivers"), ExtResource("m_sinking_elbow"), ExtResource("m_returning_wave"), ExtResource("m_wrist_throw"), ExtResource("m_wave_palm"), ExtResource("m_thousand_rivers_strike"), ExtResource("90_air")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true
@@ -37,6 +38,8 @@ anim_block = &"KAIRO_BLOCK_HIGH"
 anim_dash_forward = &"KAIRO_DASH_FORWARD"
 anim_dash_back = &"KAIRO_DASH_BACK"
 anim_block_low = &"KAIRO_BLOCK_LOW"
+anim_crouch = &"RYUEN_CROUCH"
+anim_jump = &"RYUEN_JUMP"
 anim_hit_light = &"KAIRO_HIT_LIGHT"
 anim_hit_heavy = &"KAIRO_HIT_HEAVY"
 anim_hit_body = &"KAIRO_HIT_BODY"

@@ -165,7 +165,9 @@ def ground_actions(rig, body, actions, airborne=None):
     hb = rig.data.bones["Hips"]
     to_local = np.array(hb.matrix_local.to_3x3()).T      # world delta -> hips bone space
     worst = 0.0
-    for name in actions:
+    idle_dz = 0.0
+    order = sorted(actions, key=lambda n: not n.endswith("_IDLE_A"))     # the stance first
+    for name in order:
         act = bpy.data.actions[name]
         rig.animation_data.action = act
         f0, f1 = int(act.frame_range[0]), int(act.frame_range[1])
@@ -177,7 +179,14 @@ def ground_actions(rig, body, actions, airborne=None):
             ev.data.vertices.foreach_get("co", co)
             dz[f] = -float(co.reshape(-1, 3)[:, 2].min())
             worst = max(worst, abs(dz[f]))
-        if airborne and name in airborne:
+        if name.endswith("_IDLE_A"):
+            idle_dz = dz[f0]
+        if airborne and name in airborne and airborne[name][0] <= f0 and airborne[name][1] >= f1:
+            # In the air from the first frame to the last (a jumping attack):
+            # there is no grounded frame to measure, so the whole clip takes
+            # the correction of the stance instead.
+            dz = {f: idle_dz for f in dz}
+        elif airborne and name in airborne:
             # A jump: keep the keyed height. The correction is carried across
             # the airborne frames from the grounded frames on either side.
             a0 = max(f0 + 1, airborne[name][0])

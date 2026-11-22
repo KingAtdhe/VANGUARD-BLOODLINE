@@ -39,6 +39,11 @@ const THREAT_MARGIN: float = 0.35
 const PROJECTILE_GUARD_TICKS: float = 10.0
 ## Only dash toward an opponent further away than this (metres).
 const DASH_IN_DISTANCE: float = 2.6
+## Jump-ins start from this band of distances (a forward jump covers ~2.3 m)
+## and the jumping attack is pressed once the opponent is this close.
+const JUMP_IN_MIN: float = 1.7
+const JUMP_IN_MAX: float = 3.0
+const AIR_ATTACK_DISTANCE: float = 1.5
 
 var profile: AIProfile
 var index: int
@@ -69,6 +74,11 @@ var _dash_seq: Array[int] = []
 var _block_low: bool = false
 ## The next emitted frame holds down (down + button command).
 var _tap_down: bool = false
+## Jump-in: ticks still to hold up + toward, the up flag for the next emit,
+## and whether this jump's attack has been pressed.
+var _jump_hold: int = 0
+var _tap_up: bool = false
+var _air_pressed: bool = false
 var _punish_key: int = -1
 var _route_commit: bool = false
 var _route_pos: int = 0
@@ -110,6 +120,9 @@ func reset() -> void:
 	_threat_key = -1
 	_shot_key = -1
 	_dash_seq.clear()
+	_jump_hold = 0
+	_tap_up = false
+	_air_pressed = false
 	_punish_key = -1
 	_route_commit = false
 	_route_pressed_for = -1
@@ -183,6 +196,20 @@ func next_input() -> FighterInputFrame:
 			return _emit(0, hold)
 		FighterState.Action.ATTACK:
 			return _attacking(delayed, me)
+
+	# A jump: hold up + toward until it starts, then one kick on the way in.
+	if me.action == FighterState.Action.JUMP:
+		_jump_hold = 0
+		if not _air_pressed and dist <= AIR_ATTACK_DISTANCE and me_def.move_for(&"AIR") != null:
+			_air_pressed = true
+			decision_log.add(_tick, State.keys()[state], "jumping attack")
+			return _emit(0, K)
+		return _emit(0, 0)
+	_air_pressed = false
+	if _jump_hold > 0:
+		_jump_hold -= 1
+		_tap_up = true
+		return _emit(toward, 0)
 
 	# A dash in progress: finish the double tap (three ticks), then ride it.
 	if not _dash_seq.is_empty():
@@ -367,6 +394,10 @@ func _decide(dist: float, opp: AIObservation.Seen) -> void:
 			if profile.dash_chance > 0.0 and dist > DASH_IN_DISTANCE and _rng.randf() < profile.dash_chance:
 				_dash_seq = [_toward, 0, _toward]
 				decision_log.add(_tick, State.keys()[state], "dash in")
+			elif profile.jump_chance > 0.0 and dist >= JUMP_IN_MIN and dist <= JUMP_IN_MAX \
+					and _rng.randf() < profile.jump_chance:
+				_jump_hold = profile.reaction_delay_ticks + 3
+				decision_log.add(_tick, State.keys()[state], "jump in")
 		elif r < aggression + profile.retreat_chance:
 			_set_intent(State.RETREAT, "far, backing off")
 		else:
@@ -579,5 +610,7 @@ func _emit(move_x: int, buttons: int) -> FighterInputFrame:
 	else:
 		_idle_ticks = 0
 	var down: bool = _tap_down or (_block_low and (buttons & B) != 0)
+	var up: bool = _tap_up and not down
 	_tap_down = false
-	return FighterInputFrame.with_buttons(buttons, move_x, -1 if down else 0)
+	_tap_up = false
+	return FighterInputFrame.with_buttons(buttons, move_x, -1 if down else (1 if up else 0))
