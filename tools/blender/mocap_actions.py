@@ -50,13 +50,13 @@ STYLES = {
     # hand open and held out in front at chest height as a knife-hand guard,
     # the rear fist chambered palm-up at the ribs. He was an upright boxer
     # after Steve Fox before, too close to Drakon's boxing.
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.4, bob=0.022, bob_beats=1, sway=0.012, lead="Left",
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.04, bob_beats=1, sway=0.02, life=1.8, lead="Left",
                   # his guard: the open lead forearm upright in front of the face, the rear fist under the chin
                   block={"Left": (0.03, 0.27, -0.09), "Right": (0.08, 0.17, -0.19)},
                   pose=dict(fit=True, hips=(-0.03, 0.0), pelvis_h=0.915, trunk=(3, 0), pelvis=48, shoulders=58, neck=6, chin=4,
                             lead_foot=(0.07, 0.25), rear_foot=(0.12, 0.23), lead_toe=-8, rear_toe=62, rear_heel=0.012,
-                            lead_hand=(0.05, 0.43, -0.25), rear_hand=(0.15, 0.15, -0.37),
-                            lead_elbow=0.2, rear_elbow=0.1, lead_palm=(-0.5, -0.6, -0.6), rear_palm="up")),
+                            lead_hand=(0.05, 0.43, -0.25), rear_hand=(0.21, 0.20, -0.35),
+                            lead_elbow=0.2, rear_elbow=0.05, lead_palm=(-0.5, -0.6, -0.6), rear_palm="up")),
     # Drakon, after Zangief: wide and square, knees out, chest forward, both
     # arms held open and high at the sides ready to grab.
     "drakon": dict(clip="14_02", frame=4530, amp=0.25, sway=0.035,
@@ -1237,19 +1237,40 @@ def curve(t, keys):
     order; `ease` says how the value ARRIVES at that key from the one before:
       "in"    slow away, then snaps in        (a strike landing)
       "out"   leaves fast, settles slowly     (recovery)
-      "io"    slow both ends                  (a shift of weight, a wind-up)
+      "io"    slow both ends                  (a full stop at both keys)
       "lin"   even speed; "hold": stays on the previous value until this frame
+    A key with no ease is passed THROUGH (D-090): the value follows a smooth
+    curve whose speed at the key comes from the keys on either side, so the
+    body does not stop dead at every pose. It still stops at a key that
+    starts or ends a held value, and at the first and last key.
     Values are numbers or tuples."""
-    f0, v0 = keys[0][0], np.asarray(keys[0][1], float)
-    if t <= f0:
-        return v0
-    for k in keys[1:]:
-        f1, v1 = k[0], np.asarray(k[1], float)
-        if t <= f1:
-            u = (t - f0) / float(max(1e-6, f1 - f0))
-            e = k[2] if len(k) > 2 else "io"
-            # (2.6 was tried first: on the frame strips a jab then stood still for
-            # four frames and arrived in one, and a recovery was over in two)
+    n = len(keys)
+    fr = [float(k[0]) for k in keys]
+    val = [np.asarray(k[1], float) for k in keys]
+    if t <= fr[0]:
+        return val[0]
+    if t >= fr[-1]:
+        return val[-1]
+
+    def flat(a, b):
+        return bool(np.allclose(val[a], val[b], atol=1e-9))
+
+    def slope(i):
+        """speed through key i, or 0 where the motion should rest"""
+        if i <= 0 or i >= n - 1 or flat(i - 1, i) or flat(i, i + 1):
+            return val[i] * 0.0
+        if len(keys[i]) > 2 or len(keys[i + 1]) > 2:       # an eased segment on either side: its own timing rules
+            return val[i] * 0.0
+        return (val[i + 1] - val[i - 1]) / max(1e-6, fr[i + 1] - fr[i - 1])
+
+    for i in range(1, n):
+        if t <= fr[i]:
+            f0, f1, v0, v1 = fr[i - 1], fr[i], val[i - 1], val[i]
+            h = max(1e-6, f1 - f0)
+            u = (t - f0) / h
+            e = keys[i][2] if len(keys[i]) > 2 else None
+            # (2.6 was tried first for in/out: on the frame strips a jab then stood
+            # still for four frames and arrived in one, and a recovery was over in two)
             if e == "in":
                 u = u ** 1.9
             elif e == "out":
@@ -1258,9 +1279,15 @@ def curve(t, keys):
                 u = u * u * (3.0 - 2.0 * u)
             elif e == "hold":
                 u = 1.0 if t >= f1 else 0.0
+            elif e is None:
+                if flat(i - 1, i):
+                    return v0
+                m0, m1 = slope(i - 1) * h, slope(i) * h
+                u2, u3 = u * u, u * u * u
+                return ((2 * u3 - 3 * u2 + 1) * v0 + (u3 - 2 * u2 + u) * m0
+                        + (-2 * u3 + 3 * u2) * v1 + (u3 - u2) * m1)
             return v0 + (v1 - v0) * u
-        f0, v0 = f1, v1
-    return v0
+    return val[-1]
 
 
 def track(t, keys):
@@ -2674,6 +2701,22 @@ def build(rig_obj, moves, fid, height, clip_dir):
         u = (int(t) % n_idle) / float(n_idle)
         P = shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r})
         if fitted:                                   # limbs solved on the fighter's own skeleton (D-075)
+            life = st.get("life")
+            if life:
+                # The guard is alive (D-090): with every breath the chest turns a
+                # little, the hands float and follow late, the chin moves. All
+                # periodic over the loop; the feet stay on their marks.
+                ps, ph = dict(st["pose"]), 2 * math.pi * u
+                a = float(life)
+                lh, rh = ps["lead_hand"], ps["rear_hand"]
+                ps["lead_hand"] = (lh[0], lh[1] + 0.012 * a * math.sin(ph - 1.3), lh[2] + 0.016 * a * math.sin(ph - 1.0))
+                ps["rear_hand"] = (rh[0], rh[1] + 0.006 * a * math.sin(ph - 0.9), rh[2] + 0.009 * a * math.sin(ph - 0.7))
+                ps["shoulders"] = ps.get("shoulders", 0.0) + 2.2 * a * math.sin(ph - 0.5)
+                ps["pelvis"] = ps.get("pelvis", 0.0) + 0.8 * a * math.sin(ph)
+                tr = ps.get("trunk", (0.0, 0.0))
+                ps["trunk"] = (tr[0] + 1.3 * a * math.sin(ph - 0.3), tr[1] + 0.6 * a * math.sin(ph + 0.8))
+                ps["chin"] = ps.get("chin", 0.0) + 1.2 * a * math.sin(ph - 1.6)
+                return fit_stance(rig, P, dict(st, pose=ps), st["_lead"], u)
             return fit_stance(rig, P, st, st["_lead"], u)
         return idle_motion(P, st, H, u)
     idle_poses = []
@@ -3191,7 +3234,18 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # `_hold`: the pose of the last active frame stays for that many
                 # frames first. On the phone (D-089) a strike was fully out for
                 # 50 ms and gone: too short to read.
-                t = f if (a1 is None or f <= a1) else a1 + max(0, f - a1 - hold) / slow
+                # During the hold the pose is not frozen: it creeps on at an eighth
+                # of the speed (a moving hold). `_lag`: in the recovery the chest,
+                # the head and the arms start back a few frames after the hips, each
+                # in turn, instead of every part leaving on the same frame (D-090).
+                def warp(x):
+                    if a1 is None or x <= a1:
+                        return x
+                    if x <= a1 + hold:
+                        return a1 + (x - a1) * 0.125
+                    return a1 + hold * 0.125 + (x - a1 - hold) / slow
+                t = warp(f)
+                lag = tracks.get("_lag")
                 ps = dict(base_ps)
                 for ch, keys in tracks.items():
                     if ch.startswith("_"):
@@ -3201,7 +3255,15 @@ def build(rig_obj, moves, fid, height, clip_dir):
                     if isinstance(keys, str):               # a constant, e.g. a palm rule
                         ps[ch] = keys
                         continue
-                    v = curve(t, keys) if isinstance(keys, list) else keys
+                    tc = t
+                    if lag and a1 is not None and f > a1:
+                        d = 0.0
+                        for part, frames in lag:
+                            if part in ch:
+                                d = frames
+                                break
+                        tc = warp(max(float(a1), f - d))
+                    v = curve(tc, keys) if isinstance(keys, list) else keys
                     ps[ch] = tuple(float(x) for x in v) if np.ndim(v) else float(v)
                 ps.setdefault("lead_palm", "auto")
                 st2 = dict(st, pose=ps, bob=0.0, sway=0.0, tap=0.0)
@@ -3232,8 +3294,12 @@ def build(rig_obj, moves, fid, height, clip_dir):
             tr = dict(tracks, _name=mv["animation"])
             if "_recover" in tr and "_hold" not in tr:     # a single strike: hold it, then return in the time left
                 rec = mv["recovery"]
-                tr["_hold"] = min(6, int(round(rec * 0.24)))
+                tr["_hold"] = min(5, int(round(rec * 0.22)))
                 tr["_recover"] = max(1.0, tr["_recover"] * (rec - tr["_hold"]) / float(rec))
+                # who starts home when: hips and legs first, then the chest, the arms, the head last
+                tr.setdefault("_lag", (("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0),
+                                       ("trunk", 1.0), ("shoulders", 1.5), ("hand", 2.0), ("elbow", 2.0), ("palm", 2.0),
+                                       ("chin", 3.0), ("neck", 3.0), ("head", 3.0)))
             return keyed_frames(total, tr, mv["startup"] + mv["active"] - 2, settle)
 
     # ---- crouch, jump and jumping attack (D-087). One frame per tick; the

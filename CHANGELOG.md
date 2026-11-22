@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo moves less like a robot
+- His stance is alive: he sinks and rises with each breath, the chest turns slightly and the hands float. In his attacks the body no longer stops dead at each pose, the arm trails the body on the way back, and a held strike keeps moving slightly instead of freezing.
 ### Fixed — from the phone recording
 - The camera follows a jump: a jumping fighter no longer leaves the top of the screen. Jumps are a little lower and take off one frame sooner.
 - Kairo's punches and kicks stay out long enough to see before they return (they were fully extended for a twentieth of a second).

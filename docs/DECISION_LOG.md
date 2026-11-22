@@ -1388,3 +1388,34 @@ showed that renders on the build machine had not:
 - Checker: 3 of 84 (unchanged). 204 tests pass.
 - Not verified: these changes on the phone.
 
+## D-090 — 2026-11-22 — Kairo: less robotic
+
+Owner: "I feel he's still a bit robotic" and "he should move a bit while
+holding his stance so it feels alive". Three causes in how his clips are
+built, all in `tools/blender/mocap_actions.py`:
+- **Every part stopped dead at every key.** `curve()` eased in and out
+  between each pair of keys, so the body came to rest at each pose. A key
+  without an ease is now passed through on a smooth curve (speed taken from
+  the keys either side); it still rests where a value is held and at the
+  first and last key. Strike arrivals ("in") and returns ("out") keep
+  their own timing.
+- **Every part left on the same frame.** In a strike's recovery the hips
+  and legs now start home first, the chest 1 to 1.5 frames later, the arms
+  2, the head 3 (`_lag`), so the arm trails the turning body. Nothing
+  changes up to the last active frame: hit timing and limb alignment are
+  untouched.
+- **The held pose was frozen.** During the hold added in D-089 the pose now
+  creeps on at an eighth of the speed (a moving hold). Hold shortened to at
+  most 5 frames.
+- **Stance.** `STYLES[...]["life"]`: with every breath the chest turns a
+  few degrees, the hands float and follow late, the trunk and chin move;
+  the sink is deeper (4 cm) with a 2 cm sway. Feet do not slide (0.0 m).
+  The chambered fist sits further forward at the ribs.
+- A real-speed video of the stance, reverse punch and front kick was made
+  from the build's own frames for the owner to judge motion, which stills
+  cannot show.
+- Checker: 3 of 84 (unchanged). 204 tests pass.
+- Honest limit: this is still motion computed from hand-set keys. Recorded
+  fight motion would have the small irregularities that keys do not.
+- Not verified: on a phone.
+
