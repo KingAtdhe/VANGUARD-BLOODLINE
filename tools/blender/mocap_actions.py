@@ -595,11 +595,32 @@ def fit_stance(rig, P, st, lead, u=0.0):
         hop = tap if sd == lead else 0.0
         P = solve_leg(rig, P, pos, sd, np.array([sx * ax * S, sy * al * S]), ps.get(key + "_toe", 0.0) * sx,
                       lift, hop, ps.get("knees", 0.0) * sx)
+    for sd, key in ((lead, "lead"), (rear, "rear")):
+        if key + "_foot_abs" in ps:
+            # a foot in the air (a kick): the ankle at (x, forward, height) in
+            # model space, the foot pointed in line with the shin by `point` 0..1
+            x, fw, z, point = ps[key + "_foot_abs"]
+            d1, d2 = _ik_dirs(pos[sd + "UpperLeg"], np.array([x, -fw, z]), blen(sd + "UpperLeg", sd + "LowerLeg"),
+                              blen(sd + "LowerLeg", sd + "Foot"), np.array([0.0, -1.0, 0.45]))
+            l_thigh, l_shin = slen(sd + "UpLeg", sd + "Leg"), slen(sd + "Leg", sd + "Foot")
+            toe_keys = [k for k in (sd + "ToeBase", sd + "ToeBase_end") if k in P]
+            toe_len = [slen(sd + "Foot", k) for k in toe_keys]
+            P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
+            P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
+            toe = _norm(d2 * point + np.array([0.0, -1.0, -0.15]) * (1.0 - point))
+            for k, n_ in zip(toe_keys, toe_len):
+                P[k] = P[sd + "Foot"] + toe * n_
+            P.pop(sd + "Sole", None)
+            P.pop(sd + "Sole0", None)
     for sd, key, sx in ((lead, "lead", sgl), (rear, "rear", -sgl)):
-        if key + "_hand" not in ps:
+        if key + "_hand" not in ps and key + "_hand_abs" not in ps:
             continue
-        ax, fw, up = ps[key + "_hand"]
-        wrist = pos["Head"] + np.array([sx * ax, -fw, up]) * S
+        if key + "_hand_abs" in ps:                        # the wrist at (x, forward, height) in model space
+            hx, hf, hz = ps[key + "_hand_abs"]
+            wrist = np.array([hx, -hf, hz])
+        else:
+            ax, fw, up = ps[key + "_hand"]
+            wrist = pos["Head"] + np.array([sx * ax, -fw, up]) * S
         e = ps.get(key + "_elbow", 0.35)
         d1, d2 = _ik_dirs(pos[sd + "UpperArm"], wrist, blen(sd + "UpperArm", sd + "LowerArm"),
                           blen(sd + "LowerArm", sd + "Hand"), np.array([sx * e * 2.0, 0.15, -1.0]))
@@ -610,6 +631,12 @@ def fit_stance(rig, P, st, lead, u=0.0):
         P[sd + "ForeArm"] = P[sd + "Arm"] + d1 * l_up
         P[sd + "Hand"] = P[sd + "ForeArm"] + d2 * l_fore
         palm = ps.get(key + "_palm", "in")
+        if isinstance(palm, str) and palm == "auto":       # the hand's roll follows the elbow (retarget's rule)
+            for k, ln in zip(hand_keys, hand_len):
+                P[k] = P[sd + "Hand"] + d2 * ln
+            P.pop(sd + "Palm", None)
+            P.pop(sd + "Palm0", None)
+            continue
         n = np.array(PALMS[palm] if isinstance(palm, str) else palm, float)
         if isinstance(palm, str) and palm in ("in", "out"):
             n = n * sx                                     # toward / away from the centre line
@@ -1195,6 +1222,35 @@ def hand_curls(fid, action, n):
 
 
 # --------------------------------------------------------------------------- keyed moves
+
+def curve(t, keys):
+    """A keyed channel with timing (D-084). keys: (frame, value[, ease]), in
+    order; `ease` says how the value ARRIVES at that key from the one before:
+      "in"    slow away, then snaps in        (a strike landing)
+      "out"   leaves fast, settles slowly     (recovery)
+      "io"    slow both ends                  (a shift of weight, a wind-up)
+      "lin"   even speed; "hold": stays on the previous value until this frame
+    Values are numbers or tuples."""
+    f0, v0 = keys[0][0], np.asarray(keys[0][1], float)
+    if t <= f0:
+        return v0
+    for k in keys[1:]:
+        f1, v1 = k[0], np.asarray(k[1], float)
+        if t <= f1:
+            u = (t - f0) / float(max(1e-6, f1 - f0))
+            e = k[2] if len(k) > 2 else "io"
+            if e == "in":
+                u = u ** 2.6
+            elif e == "out":
+                u = 1.0 - (1.0 - u) ** 2.6
+            elif e == "io":
+                u = u * u * (3.0 - 2.0 * u)
+            elif e == "hold":
+                u = 1.0 if t >= f1 else 0.0
+            return v0 + (v1 - v0) * u
+        f0, v0 = f1, v1
+    return v0
+
 
 def track(t, keys):
     """Value at frame t of a keyed track [(frame, value), ...], eased between keys."""
@@ -2246,6 +2302,210 @@ def ryuen_set(c):
     return out
 
 
+def kairo_keys(moves, base, g, S):
+    """Kairo's attacks, pose to pose, on his stance blueprint (D-084).
+
+    Written from the rules in docs/ANIMATION_RESEARCH.md rather than taken
+    from a capture: every strike has a wind-up, the hips turn first, the
+    chest follows a frame or two later and the fist arrives last; the hand
+    travels on an arc, the contact pose is held through the active frames
+    with a small overshoot on the first, and the recovery leaves fast and
+    settles slowly. Each move returns keyed channels of the stance blueprint
+    (pose keys of STYLES, plus *_hand_abs = wrist at (x, forward, height) in
+    model space and *_foot_abs for a foot in the air). Kairo stands left
+    side forward: lead = left, rear = right, +x is his left.
+    Frames are 0-based: a0 = first active frame, a1 = last."""
+    L, R = g["Left"], g["Right"]                           # wrists in the stance
+    hips0, ph0 = base["hips"][0], base["pelvis_h"]
+    pel0, sh0 = base["pelvis"], base["shoulders"]
+    lf0, rf0 = base["lead_foot"], base["rear_foot"]
+    tr0 = base["trunk"]
+    chin = (0.10, 0.19, L[2] + 0.02)                       # lead fist home at the chin
+    cheek = (-0.12, 0.14, R[2])                            # rear fist home at the cheek
+    out = {}
+
+    def win(mv):
+        a0 = mv["startup"] - 1
+        a1 = mv["startup"] + mv["active"] - 2
+        return a0, a1, mv["startup"] + mv["active"] - 1 + mv["recovery"], mv["hc"][0], mv["hc"][1]
+
+    # Jab: no wind-up to speak of; the lead shoulder and hip go in with the fist
+    a0, a1, T, hx, hz = win(moves["LIGHT"])
+    hit = (0.02, hx + 0.03, hz)                            # arm out straight: the fist reaches the far half of the box
+    out["LIGHT"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (1, (hips0 - 0.012, 0)), (a0, (hips0 + 0.06, 0), "in"), (a1, (hips0 + 0.055, 0)), (a1 + 6, (hips0, 0), "out")],
+        "pelvis": [(0, pel0), (a0 - 1, pel0 + 10, "in"), (a1, pel0 + 10), (a1 + 6, pel0, "out")],
+        "shoulders": [(0, sh0), (1, sh0 - 3), (a0, sh0 + 20, "in"), (a1, sh0 + 18), (a1 + 6, sh0, "out")],
+        "lead_foot": [(0, lf0), (a0, (lf0[0], lf0[1] + 0.05), "in"), (a1 + 2, (lf0[0], lf0[1] + 0.05)), (T - 3, lf0)],
+        "rear_heel": [(0, 0.03), (a0, 0.055, "in"), (a1 + 5, 0.03)],
+        "lead_hand_abs": [(0, L), (1, (L[0], L[1] - 0.02, L[2])), (a0, (hit[0], hit[1] + 0.03, hit[2]), "in"),
+                          (a0 + 1, hit), (a1, hit), (a1 + 4, (L[0], L[1] + 0.02, L[2] + 0.02), "out"), (T - 2, L)],
+        "rear_hand_abs": [(0, R), (a0, cheek, "in"), (a1 + 3, cheek), (T - 2, R)],
+        "lead_elbow": [(0, 0.15), (a0, 0.05), (a1 + 4, 0.15)],
+    }
+
+    # Cross: sit back and load, drive off the rear foot, hip then chest then fist
+    a0, a1, T, hx, hz = win(moves["HEAVY"])
+    hit = (0.03, hx - 0.07, hz)
+    out["HEAVY"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (5, (hips0 - 0.035, 0)), (a0, (hips0 + 0.085, 0), "in"), (a1, (hips0 + 0.08, 0)), (a1 + 9, (hips0, 0), "out")],
+        "pelvis_h": [(0, ph0), (5, ph0 - 0.03), (a0, ph0 - 0.02), (a1 + 8, ph0)],
+        "pelvis": [(0, pel0), (5, pel0 + 8), (a0 - 2, pel0 - 38, "in"), (a1, pel0 - 40), (a1 + 9, pel0, "out")],
+        "shoulders": [(0, sh0), (5, sh0 + 12), (a0 - 1, sh0 - 74, "in"), (a0, sh0 - 82), (a1, sh0 - 78), (a1 + 9, sh0, "out")],
+        "trunk": [(0, tr0), (5, (tr0[0] - 2, 0)), (a0, (tr0[0] + 8, 0), "in"), (a1, (tr0[0] + 7, 0)), (a1 + 9, tr0, "out")],
+        "lead_foot": [(0, lf0), (5, lf0), (a0 - 1, (lf0[0], lf0[1] + 0.07), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.07)), (T - 4, lf0)],
+        "rear_heel": [(0, 0.03), (5, 0.02), (a0, 0.085, "in"), (a1, 0.085), (a1 + 8, 0.03)],
+        "rear_toe": [(0, base["rear_toe"]), (5, base["rear_toe"]), (a0, 12.0, "in"), (a1, 12.0), (a1 + 8, base["rear_toe"])],
+        "rear_hand_abs": [(0, R), (5, (R[0] - 0.03, R[1] - 0.04, R[2] - 0.02)), (a0 - 3, (-0.06, R[1] + 0.06, R[2] - 0.02), "in"),
+                          (a0, (hit[0], hit[1] + 0.035, hit[2]), "in"), (a0 + 1, hit), (a1, hit),
+                          (a1 + 5, (R[0] + 0.03, R[1] + 0.08, R[2]), "out"), (T - 3, R)],
+        "lead_hand_abs": [(0, L), (5, (L[0], L[1] + 0.02, L[2])), (a0, chin, "in"), (a1 + 3, chin), (T - 3, L)],
+        "rear_elbow": [(0, 0.12), (a0, 0.06), (a1 + 5, 0.12)],
+    }
+
+    # Body hook: drop, load the rear side, dig the fist in on a rising arc
+    a0, a1, T, hx, hz = win(moves["DOWN_HEAVY"])
+    hit = (0.0, hx - 0.09, hz)
+    out["DOWN_HEAVY"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (4, (hips0 - 0.02, 0)), (a0, (hips0 + 0.07, 0), "in"), (a1, (hips0 + 0.065, 0)), (a1 + 8, (hips0, 0), "out")],
+        "pelvis_h": [(0, ph0), (4, ph0 - 0.07), (a0, ph0 - 0.085), (a1, ph0 - 0.08), (a1 + 8, ph0, "out")],
+        "pelvis": [(0, pel0), (4, pel0 + 8), (a0 - 1, pel0 - 28, "in"), (a1, pel0 - 30), (a1 + 8, pel0, "out")],
+        "shoulders": [(0, sh0), (4, sh0 + 14), (a0, sh0 - 62, "in"), (a1, sh0 - 58), (a1 + 8, sh0, "out")],
+        "trunk": [(0, tr0), (4, (tr0[0] + 10, -4)), (a0, (tr0[0] + 14, 2), "in"), (a1 + 8, tr0, "out")],
+        "rear_heel": [(0, 0.03), (a0, 0.075, "in"), (a1, 0.075), (a1 + 7, 0.03)],
+        "rear_toe": [(0, base["rear_toe"]), (a0, 15.0, "in"), (a1, 15.0), (a1 + 7, base["rear_toe"])],
+        "rear_hand_abs": [(0, R), (4, (-0.24, 0.02, hz - 0.08)), (a0 - 2, (-0.20, 0.30, hz - 0.10), "in"),
+                          (a0, (hit[0], hit[1] + 0.03, hit[2] + 0.03), "in"), (a0 + 1, hit), (a1, hit),
+                          (a1 + 5, (R[0], R[1] + 0.05, R[2] - 0.10), "out"), (T - 3, R)],
+        "rear_elbow": [(0, 0.12), (4, 0.5), (a1, 0.45), (T - 3, 0.12)],
+        "lead_hand_abs": [(0, L), (a0, chin, "in"), (a1 + 3, chin), (T - 3, L)],
+    }
+
+    # Lead hook (the counter's follow-up): the lead elbow lifts, the whole side swings across
+    a0, a1, T, hx, hz = win(moves["FOLLOWUP"])
+    hit = (-0.04, hx - 0.10, hz)
+    out["FOLLOWUP"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (a0, (hips0 - 0.01, 0)), (a1 + 6, (hips0, 0))],
+        "pelvis": [(0, pel0), (1, pel0 - 6), (a0 - 1, pel0 + 30, "in"), (a1, pel0 + 32), (a1 + 8, pel0, "out")],
+        "shoulders": [(0, sh0), (1, sh0 - 8), (a0, sh0 + 48, "in"), (a1, sh0 + 44), (a1 + 8, sh0, "out")],
+        "lead_heel": [(0, 0.0), (a0, 0.05, "in"), (a1, 0.05), (a1 + 6, 0.0)],
+        "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] - 28, "in"), (a1, base["lead_toe"] - 28), (a1 + 6, base["lead_toe"])],
+        "lead_hand_abs": [(0, L), (1, (L[0] + 0.10, L[1] - 0.04, hz)), (a0 - 1, (0.24, hx - 0.16, hz), "in"),
+                          (a0, (hit[0] - 0.03, hit[1], hit[2]), "in"), (a0 + 1, hit), (a1, hit),
+                          (a1 + 5, (L[0], L[1], L[2] + 0.02), "out"), (T - 3, L)],
+        "lead_elbow": [(0, 0.15), (2, 0.9), (a1, 0.9), (a1 + 6, 0.15)],
+        "rear_hand_abs": [(0, R), (a0, cheek, "in"), (a1 + 3, cheek), (T - 3, R)],
+    }
+
+    # Low kick: weight onto the lead leg, the rear shin whips round into theirs
+    a0, a1, T, hx, hz = win(moves["KICK"])
+    home = (-rf0[0] * S, -rf0[1] * S, 0.11)
+    out["KICK"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (4, (hips0 + 0.06, 0)), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.10, 0)), (a1 + 9, (hips0, 0), "out")],
+        "pelvis": [(0, pel0), (4, pel0 - 10), (a0, pel0 - 62, "in"), (a1, pel0 - 60), (a1 + 9, pel0, "out")],
+        "shoulders": [(0, sh0), (4, sh0 + 6), (a0, sh0 - 18, "in"), (a1, sh0 - 16), (a1 + 9, sh0, "out")],
+        "trunk": [(0, tr0), (a0, (tr0[0] - 12, 8), "in"), (a1, (tr0[0] - 11, 8)), (a1 + 9, tr0, "out")],
+        "lead_heel": [(0, 0.0), (a0, 0.04, "in"), (a1, 0.04), (a1 + 6, 0.0)],
+        "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] + 55, "in"), (a1, base["lead_toe"] + 55), (a1 + 8, base["lead_toe"])],
+        "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.16, 0.02, 0.30, 0.6)), (a0 - 1, (-0.22, hx - 0.30, hz + 0.08, 1.0), "in"),
+                          (a0, (-0.02, hx - 0.05, hz, 1.0), "in"), (a1, (0.04, hx - 0.09, hz - 0.02, 1.0)),
+                          (a1 + 5, (-0.14, 0.05, 0.28, 0.6), "out"), (T - 3, home + (0.0,))],
+        "rear_hand_abs": [(0, R), (a0, (-0.30, -0.02, R[2] - 0.30), "in"), (a1, (-0.30, -0.04, R[2] - 0.30)), (T - 3, R)],
+        "lead_hand_abs": [(0, L), (a0, chin, "in"), (a1 + 3, chin), (T - 3, L)],
+    }
+
+    # Origin Palm: a long load onto the rear leg, then a lunging open-hand thrust
+    a0, a1, T, hx, hz = win(moves["SPECIAL"])
+    hit = (0.0, hx - 0.10, hz)
+    out["SPECIAL"] = {
+        "rear_palm": "auto",
+        "lead_palm": [(0, (-1.0, 0.0, 0.0)), (a0 - 4, (-1.0, 0.0, 0.0)), (a0, (0.0, -1.0, 0.25), "in"), (a1, (0.0, -1.0, 0.25)), (a1 + 8, (-1.0, 0.0, 0.0))],
+        "hips": [(0, (hips0, 0)), (8, (hips0 - 0.09, 0)), (a0, (hips0 + 0.16, 0), "in"), (a1, (hips0 + 0.15, 0)), (a1 + 12, (hips0, 0), "out")],
+        "pelvis_h": [(0, ph0), (8, ph0 - 0.07), (a0, ph0 - 0.06, "in"), (a1, ph0 - 0.06), (a1 + 12, ph0, "out")],
+        "pelvis": [(0, pel0), (8, pel0 - 16), (a0 - 2, pel0 + 26, "in"), (a1, pel0 + 26), (a1 + 12, pel0, "out")],
+        "shoulders": [(0, sh0), (8, sh0 - 26), (a0, sh0 + 40, "in"), (a1, sh0 + 38), (a1 + 12, sh0, "out")],
+        "trunk": [(0, tr0), (8, (tr0[0] - 4, 0)), (a0, (tr0[0] + 10, 0), "in"), (a1, (tr0[0] + 9, 0)), (a1 + 12, tr0, "out")],
+        "lead_foot": [(0, lf0), (8, (lf0[0], lf0[1] - 0.03)), (a0 - 1, (lf0[0], lf0[1] + 0.20), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.20)), (T - 5, lf0)],
+        "rear_heel": [(0, 0.03), (8, 0.0), (a0, 0.08, "in"), (a1, 0.08), (a1 + 10, 0.03)],
+        "lead_hand_abs": [(0, L), (8, (0.20, 0.02, hz - 0.22)), (a0 - 3, (0.14, 0.25, hz - 0.12), "in"),
+                          (a0, (hit[0], hit[1] + 0.04, hit[2]), "in"), (a0 + 1, hit), (a1, hit),
+                          (a1 + 7, (L[0], L[1] + 0.06, L[2] - 0.05), "out"), (T - 4, L)],
+        "lead_elbow": [(0, 0.15), (8, 0.3), (a0, 0.05), (a1 + 7, 0.15)],
+        "rear_hand_abs": [(0, R), (8, (-0.06, 0.30, R[2] - 0.04)), (a0, cheek, "in"), (a1 + 4, cheek), (T - 4, R)],
+    }
+
+    # Rift Break: the rear fist is raised behind the head, a step in, and it comes down through the chest
+    a0, a1, T, hx, hz = win(moves["FORWARD_SPECIAL"])
+    hit = (0.02, hx - 0.09, hz)
+    out["FORWARD_SPECIAL"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (9, (hips0 - 0.05, 0)), (a0, (hips0 + 0.13, 0), "in"), (a1, (hips0 + 0.12, 0)), (a1 + 11, (hips0, 0), "out")],
+        "pelvis_h": [(0, ph0), (9, ph0 + 0.01), (a0, ph0 - 0.08, "in"), (a1, ph0 - 0.085), (a1 + 11, ph0, "out")],
+        "pelvis": [(0, pel0), (9, pel0 + 10), (a0 - 2, pel0 - 36, "in"), (a1, pel0 - 38), (a1 + 11, pel0, "out")],
+        "shoulders": [(0, sh0), (9, sh0 + 18), (a0 - 1, sh0 - 70, "in"), (a0, sh0 - 80), (a1, sh0 - 76), (a1 + 11, sh0, "out")],
+        "trunk": [(0, tr0), (9, (tr0[0] - 6, 0)), (a0, (tr0[0] + 18, 0), "in"), (a1, (tr0[0] + 17, 0)), (a1 + 11, tr0, "out")],
+        "lead_foot": [(0, lf0), (9, lf0), (a0 - 2, (lf0[0], lf0[1] + 0.15), "in"), (a1 + 5, (lf0[0], lf0[1] + 0.15)), (T - 5, lf0)],
+        "rear_heel": [(0, 0.03), (9, 0.02), (a0, 0.08, "in"), (a1, 0.08), (a1 + 9, 0.03)],
+        "rear_toe": [(0, base["rear_toe"]), (9, base["rear_toe"]), (a0, 14.0, "in"), (a1, 14.0), (a1 + 9, base["rear_toe"])],
+        "rear_hand_abs": [(0, R), (9, (-0.26, -0.08, R[2] + 0.30)), (a0 - 3, (-0.18, 0.22, R[2] + 0.32), "in"),
+                          (a0, (hit[0], hit[1] + 0.03, hit[2] - 0.03), "in"), (a0 + 1, hit), (a1, hit),
+                          (a1 + 7, (R[0], R[1] + 0.08, R[2] - 0.08), "out"), (T - 4, R)],
+        "rear_elbow": [(0, 0.12), (9, 0.6), (a0, 0.1), (a1 + 7, 0.12)],
+        "lead_hand_abs": [(0, L), (9, (L[0], L[1] + 0.06, L[2] - 0.04)), (a0, chin, "in"), (a1 + 4, chin), (T - 4, L)],
+    }
+
+    # Slip Counter: knees give, the head rolls off the line, both fists stay home, then back
+    mv = moves["BACK_SPECIAL"]
+    c0, c1 = mv["counter"]
+    T = mv["startup"] + mv["active"] - 1 + mv["recovery"]
+    out["BACK_SPECIAL"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (c0, (hips0 - 0.03, 0), "out"), (c1, (hips0 - 0.03, 0)), (T - 3, (hips0, 0))],
+        "pelvis_h": [(0, ph0), (c0, ph0 - 0.075, "out"), (c1, ph0 - 0.07), (T - 3, ph0)],
+        "trunk": [(0, tr0), (c0, (tr0[0] + 12, -17), "out"), (c0 + 5, (tr0[0] + 11, -15)), (c1, (tr0[0] + 12, -16)), (T - 3, tr0)],
+        "shoulders": [(0, sh0), (c0, sh0 + 14, "out"), (c1, sh0 + 12), (T - 3, sh0)],
+        "head_turn": [(0, 0.25), (c0, 0.1), (c1, 0.1), (T - 3, 0.25)],
+        "lead_hand": [(0, base["lead_hand"]), (c0, (0.10, 0.18, -0.10), "out"), (c1, (0.10, 0.18, -0.10)), (T - 3, base["lead_hand"])],
+        "rear_hand": [(0, base["rear_hand"]), (c0, (0.11, 0.10, -0.12), "out"), (c1, (0.11, 0.10, -0.12)), (T - 3, base["rear_hand"])],
+    }
+
+    # Origin Break: a lunging lead straight lands on the active frames, then
+    # cross, lead hook and a rising rear uppercut carry through the recovery
+    a0, a1, T, hx, hz = win(moves["ULTIMATE"])
+    hit = (0.02, hx - 0.09, hz)
+    b1, b2, b3 = a1 + 9, a1 + 19, a1 + 30                  # cross, hook, uppercut land
+    cross = (0.03, hx - 0.12, hz + 0.02)
+    hook = (-0.05, hx - 0.20, hz + 0.08)
+    upper = (0.0, hx - 0.22, hz + 0.22)
+    adv = 0.16
+    out["ULTIMATE"] = {
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (2, (hips0 - 0.03, 0)), (a0, (hips0 + 0.12, 0), "in"), (b3 + 2, (hips0 + 0.11, 0)), (T - 4, (hips0, 0))],
+        "lead_foot": [(0, lf0), (a0 - 1, (lf0[0], lf0[1] + adv), "in"), (b3 + 3, (lf0[0], lf0[1] + adv)), (T - 4, lf0)],
+        "pelvis_h": [(0, ph0), (a0, ph0 - 0.03), (b2, ph0 - 0.03), (b3 - 5, ph0 - 0.10), (b3, ph0 + 0.005, "in"), (T - 4, ph0)],
+        "pelvis": [(0, pel0), (a0 - 1, pel0 + 12, "in"), (a1 + 2, pel0 + 12), (b1 - 2, pel0 - 38, "in"), (b1 + 2, pel0 - 38),
+                   (b2 - 1, pel0 + 30, "in"), (b2 + 2, pel0 + 30), (b3 - 5, pel0 + 6), (b3, pel0 - 30, "in"), (b3 + 3, pel0 - 30), (T - 4, pel0)],
+        "shoulders": [(0, sh0), (a0, sh0 + 22, "in"), (a1 + 2, sh0 + 20), (b1 - 1, sh0 - 76, "in"), (b1 + 2, sh0 - 72),
+                      (b2, sh0 + 46, "in"), (b2 + 2, sh0 + 42), (b3 - 5, sh0 + 16), (b3, sh0 - 60, "in"), (b3 + 3, sh0 - 56), (T - 4, sh0)],
+        "trunk": [(0, tr0), (a0, (tr0[0] + 5, 0)), (b2 + 2, (tr0[0] + 5, 0)), (b3 - 5, (tr0[0] + 12, -4)), (b3, (tr0[0] - 6, 0), "in"), (T - 4, tr0)],
+        "rear_heel": [(0, 0.03), (a0, 0.06), (b1, 0.085, "in"), (b2, 0.04), (b3, 0.09, "in"), (T - 4, 0.03)],
+        "lead_hand_abs": [(0, L), (a0, (hit[0], hit[1] + 0.03, hit[2]), "in"), (a0 + 1, hit), (a1, hit), (a1 + 5, chin, "out"),
+                          (b1 + 2, chin), (b2 - 3, (0.24, hx - 0.26, hz + 0.08), "in"), (b2, hook, "in"), (b2 + 2, hook),
+                          (b2 + 6, chin, "out"), (b3 + 4, chin), (T - 3, L)],
+        "lead_elbow": [(0, 0.15), (a0, 0.05), (b1, 0.15), (b2 - 3, 0.9), (b2 + 2, 0.9), (b2 + 6, 0.15)],
+        "rear_hand_abs": [(0, R), (a0, cheek, "in"), (a1 + 3, cheek), (b1, cross, "in"), (b1 + 2, cross), (b1 + 6, cheek, "out"),
+                          (b3 - 5, (-0.14, 0.16, hz - 0.36)), (b3, upper, "in"), (b3 + 3, (upper[0], upper[1], upper[2] + 0.04)),
+                          (T - 3, R)],
+        "rear_elbow": [(0, 0.12), (b1, 0.06), (b3 - 5, 0.3), (b3, 0.2), (T - 3, 0.12)],
+    }
+    return out
+
+
 OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set, "vexa": vexa_set, "ryuen": ryuen_set}
 # {action name: (first, last) airborne frame}; filled by build(), read by the
 # importer's grounding pass so jumps are not flattened onto the floor.
@@ -2813,6 +3073,40 @@ def build(rig_obj, moves, fid, height, clip_dir):
     wf, wb = moves.get("walk", (2.6, 2.0))
     A[f"{F}_WALK_FORWARD"] = walk(wf, True)
     A[f"{F}_WALK_BACKWARD"] = walk(wb, False)
+
+    # ---- Kairo: every attack built pose to pose on his stance blueprint
+    # (D-084), replacing the research captures above. See kairo_keys().
+    if fid == "kairo" and fitted:
+        raw_guard = {k: mean[k] + (raw[0][k] - mean[k]) * st.get("amp", 0.35) for k in mean}
+        gp, _gt = fk(rig, guard.D, guard.hips)
+        lift0 = float(min(gp["LeftFoot"][2], gp["RightFoot"][2]) - rig.foot_h)
+        g_hand = {sd: (float(gp[sd + "Hand"][0]), float(-gp[sd + "Hand"][1]), float(gp[sd + "Hand"][2] - lift0))
+                  for sd in ("Left", "Right")}
+        base_ps = dict(st["pose"])
+        def keyed_move(mv, tracks, settle=6):
+            total = mv["startup"] + mv["active"] - 1 + mv["recovery"]
+            poses = []
+            for t in range(total):
+                ps = dict(base_ps)
+                for ch, keys in tracks.items():
+                    if isinstance(keys, str):               # a constant, e.g. a palm rule
+                        ps[ch] = keys
+                        continue
+                    v = curve(t, keys) if isinstance(keys, list) else keys
+                    ps[ch] = tuple(float(x) for x in v) if np.ndim(v) else float(v)
+                ps.setdefault("lead_palm", "auto")
+                st2 = dict(st, pose=ps, bob=0.0, sway=0.0, tap=0.0)
+                P = shape_stance(dict(raw_guard), st2, H)
+                P = fit_stance(rig, P, st2, st["_lead"], 0.0)
+                poses.append(pose_of(P, gclip))
+            for t in range(min(2, total)):                 # out of the stance without a seam
+                poses[t] = Pose.blend(guard, poses[t], (t + 1) / 3.0)
+            for t in range(max(0, total - settle), total):
+                poses[t] = Pose.blend(poses[t], guard, ease((t - (total - settle) + 1) / float(settle)))
+            return poses
+        for mv_key, tracks in kairo_keys(moves, base_ps, g_hand, S_fit).items():
+            mv = moves[mv_key]
+            A[F + mv["animation"][mv["animation"].find("_"):]] = keyed_move(mv, tracks)
 
     # ---- fighters with their own move sets (docs/FIGHTER_COMBAT_DESIGN.md)
     if fid in OWN_SETS:

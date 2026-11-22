@@ -1185,3 +1185,31 @@ walking and most move sets.
 - Looked at: Kairo's cross and Seraphina's side kick at twelve frames each.
   196 tests pass. Motion itself cannot be watched from the build machine.
 
+## D-084 — 2026-11-22 — Kairo's attacks built pose to pose (trial for the owner)
+
+Owner agreed to judge one fighter's move set built from scratch on the
+rules in `docs/ANIMATION_RESEARCH.md` before the other five are done.
+- `kairo_keys()`: all nine of Kairo's attacks (jab, cross, body hook, lead
+  hook, low kick, Origin Palm, Rift Break, Slip Counter, Origin Break) are
+  keyed channels of his stance blueprint: pelvis and chest turn, trunk lean,
+  pelvis height and travel, foot marks, heel lifts and pivots, and wrists
+  placed in model space (`*_hand_abs`), a kicking foot (`*_foot_abs`).
+  They replace the research captures of one boxer for Kairo. Hand-keyed,
+  not recorded.
+- Each strike: a wind-up (longer for slower moves), hips turn first, chest a
+  frame or two later, the fist last and on an arc; contact held through the
+  active frames with a small overshoot on the first; recovery leaves fast
+  and settles slowly; the other fist goes home to the chin or cheek; the
+  rear heel lifts and pivots; the lead foot steps in with the body.
+  The ultimate is a four-punch combination (straight, cross, lead hook,
+  rising uppercut) instead of resampled capture.
+- `curve()`: keyed channels with eased arrival (in, out, io, hold).
+  `fit_stance()` takes absolute wrist and foot targets and an automatic
+  palm rule. Frame data and hitboxes unchanged.
+- Checker: 2 of 75 action frames flagged (defeat wrist on the floor, surge
+  foot), no arm inside the body on any frame.
+- Looked at: all nine moves at six frames from two sides; jab and ultimate
+  at twelve frames. 196 tests pass. Whether it reads as fighting in motion
+  is for the owner to judge on the phone; if it does, the same method goes
+  to the other fighters, each in their own style.
+

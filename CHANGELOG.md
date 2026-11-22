@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's attacks rebuilt from scratch (trial)
+- All nine of Kairo's attacks are new, built by hand on boxing fundamentals instead of taken from a research recording: wind-up, hips then chest then fist, the hit held, the other hand guarding, the rear foot pivoting. His ultimate is now a four-punch combination. Timing and hitboxes for gameplay are unchanged.
 ### Changed — strikes timed like strikes
 - Punches and kicks taken from motion capture (Kairo, Vexa, Seraphina, Nox) now coil briefly, whip into the blow, hold the hit for a moment, and settle back slowly, instead of playing at one even speed. Timing data for gameplay is unchanged.
 - Added `docs/ANIMATION_RESEARCH.md`: how fighting-game animation is done professionally, where this game falls short, and what would close the gap.

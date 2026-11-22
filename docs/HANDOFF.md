@@ -50,6 +50,10 @@ for every fighter; multi-hit ultimates. Do not start one without the owner's cho
   owner still finds the fighting unnatural, and the next real gain is better
   source motion (the owner must download a fight pack), then eased timing
   for the script-keyed moves, then Ryuen and Drakon.
+- D-084: Kairo's nine attacks are hand-keyed on his stance blueprint
+  (`kairo_keys()`, `curve()`), as a trial the owner will judge on the phone.
+  If approved, write the same kind of function per fighter, in that
+  fighter's own style; if not, the owner needs to supply fight clips.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.
