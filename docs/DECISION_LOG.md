@@ -1157,3 +1157,31 @@ Causes found and fixed:
   reports now also list arms inside their bodies (KI-050), to be fixed when
   they are done.
 
+## D-083 — 2026-11-22 — Animation research; captured strikes retimed
+
+Owner after testing: the fighters look unnatural and do not look like
+fighters; research how this is done properly and improve stance, fighting,
+walking and most move sets.
+- Research written up in `docs/ANIMATION_RESEARCH.md`: what professional
+  fighting-game animation does (anticipation, speed as the gap between
+  poses, held contact, staggered body, fast in / slow out, hips as centre
+  of mass, consistent exaggeration, silhouette, overshoot), where this game
+  falls short, and what can be done in order of effect.
+- **Main finding:** the ceiling is the source motion. The strikes are
+  research motion capture of two performers (CMU) or straight-line keys
+  written by script; none was performed or animated as these characters.
+  Fight clips made for games exist under usable licences (Rokoko free fight
+  pack, KinemIQ's CC0 / CC BY library, Mixamo) but need accounts or
+  sign-ups, so the owner has to download them; Mixamo's raw files may not
+  be kept in a public repository.
+- Done now, for captured strikes of the four fitted fighters
+  (`strike()`): startup eased so the body whips into the blow, the contact
+  pose held through the active frames (it used to pass straight through
+  it), a two-frame overshoot at contact, recovery that leaves fast and
+  settles slowly, and a short anticipation coil on moves with seven or more
+  startup frames. Frame data is unchanged.
+- Not done: the same treatment for script-keyed moves (most specials),
+  secondary motion (hair, cloth), Drakon and Ryuen.
+- Looked at: Kairo's cross and Seraphina's side kick at twelve frames each.
+  196 tests pass. Motion itself cannot be watched from the build machine.
+

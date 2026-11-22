@@ -2371,7 +2371,29 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 f = (peak - pre) + (t / max(1e-6, mid)) * pre
             else:
                 f = peak + (t - mid) / max(1e-6, total - 1 - mid) * post
+            if fitted:
+                # Timed like a strike, not like a tape played at even speed
+                # (D-083, from the animation research in docs/ANIMATION_RESEARCH.md):
+                #   startup   slow out of the stance, then the body whips into
+                #             the blow: most of the distance in the last frames
+                #   active    the contact pose is held so it can be read
+                #   recovery  leaves the contact pose fast and settles slowly
+                if t <= a0:
+                    f = (peak - pre) + pre * (t / max(1.0, float(a0))) ** 2.2
+                elif t <= a1:
+                    f = peak + 1.5 * (t - a0) / max(1.0, float(a1 - a0))
+                else:
+                    v = (t - a1) / max(1.0, float(total - 1 - a1))
+                    f = peak + 1.5 + (post - 1.5) * (1.0 - (1.0 - v) ** 2.0)
             P = src(c, f, facing_frame=facing or peak, anchor=anchor, fd=aim)
+            if fitted and a0 >= 7:
+                # anticipation: a short counter-move before a slower strike. The
+                # body sinks back and coils away from the target, then goes.
+                u = t / float(a0)
+                coil = math.sin(math.pi * min(1.0, u / 0.7)) ** 2 if u < 0.7 else 0.0
+                if coil > 0.001:
+                    P = shift(P, list(P.keys()), np.array([0.0, 0.035 * H * coil, -0.02 * H * coil]))
+                    P = lean(P, 3.0 * coil)
             # body stays near the game position: keep 40% of the lunge
             dx = np.array([-P["Hips"][0], -P["Hips"][1] * 0.6, 0])
             P = shift(P, list(P.keys()), dx)
@@ -2382,6 +2404,9 @@ def build(rig_obj, moves, fid, height, clip_dir):
             else:
                 w = 1.0 - ease(min(1.0, (t - a1) / 7.0)) if t > a1 else 1.0
             w *= reach_w
+            if fitted and a0 <= t <= a0 + 1:
+                # ... and overshoots: one or two frames past the pose, then back
+                P = shift(P, list(P.keys()), np.array([0.0, -0.025 * H, 0.0]))
             if limb == "hand":
                 cur = P[side + "Hand"]
                 P = move_hand(P, side, np.array([cur[0] * 0.5, tgt_fwd + 0.02, tgt_h]), w)

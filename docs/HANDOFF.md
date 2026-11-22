@@ -43,6 +43,13 @@ for every fighter; multi-hit ultimates. Do not start one without the owner's cho
   are done (D-075 to D-079); Drakon and Ryuen are not** (`docs/POSE_BLUEPRINTS.md` says how to do the next one,
   KI-050 lists their faults). One fighter per task, then stop for the owner.
   A full reimport after replacing all six models takes about seven minutes.
+- D-080 to D-083 (owner's phone tests): arms are tested against each mesh's
+  real width and depth, backs are straightened, the idle loops, the walk is
+  a real step cycle, feet pivot on the boot's contact points, captured
+  strikes are retimed. **Read `docs/ANIMATION_RESEARCH.md` first**: the
+  owner still finds the fighting unnatural, and the next real gain is better
+  source motion (the owner must download a fight pack), then eased timing
+  for the script-keyed moves, then Ryuen and Drakon.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.

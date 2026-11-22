@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — strikes timed like strikes
+- Punches and kicks taken from motion capture (Kairo, Vexa, Seraphina, Nox) now coil briefly, whip into the blow, hold the hit for a moment, and settle back slowly, instead of playing at one even speed. Timing data for gameplay is unchanged.
+- Added `docs/ANIMATION_RESEARCH.md`: how fighting-game animation is done professionally, where this game falls short, and what would close the gap.
 ### Fixed — from the owner's phone test
 - The once-a-second "cut" in every fighter's stance animation is gone (the breathing now loops), and so is the cut every half second while walking.
 - Kairo, Vexa, Seraphina and Nox walk with real steps: heel up, foot swings and lands heel first, hips and shoulders move with the step.
