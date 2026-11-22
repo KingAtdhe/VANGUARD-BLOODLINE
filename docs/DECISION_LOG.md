@@ -1332,3 +1332,27 @@ what the moves are changed:
 - Not verified: anything on a phone, including how the stick's up/down
   feel and whether jumps fire by accident while walking.
 
+## D-088 — 2026-11-22 — Kairo: the parts of D-087 that had not been looked at
+
+Owner: "big improvement, but still not there yet, see what can be improved".
+The clips rebuilt in D-087 but not inspected frame by frame were rendered
+(jab, low kick, counter follow-up, stance loop, walks, dash, both blocks,
+hit reactions). Found and changed:
+- **The counter's answer was a soft poke** (the old lead hook re-posed from
+  the new stance moved the fist about 20 cm). It is now a reverse punch to
+  the face out of the parry: hips and shoulders turn through, lead hand
+  pulled to the ribs, arm 0.9+ extended at the hit. Frame data unchanged.
+- **The stance stood like a statue** (2 mm of motion per frame). More of the
+  captured breathing is kept, with a deeper slow sink and a small sway;
+  feet still do not slide (0.0 m).
+- **High block** was the shared one (both fists above the forehead). Kairo
+  has his own (`STYLES[...]["block"]`): open lead forearm upright in front
+  of the face, rear fist under the chin.
+- **Low kick:** hips carried less far forward and the trunk kept upright;
+  the picture changed little, he still sits back over the standing leg.
+- **Ultimate:** on the last punch the rear fist returns to its chamber
+  instead of being cocked up behind the shoulder.
+- Checker unchanged (3 of 84, same three). 204 tests pass.
+- What frame strips cannot show, and so is still unjudged here: speed and
+  weight in motion, blending between clips, and all of it on a phone.
+

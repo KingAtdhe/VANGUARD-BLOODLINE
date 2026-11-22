@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo follow-up
+- His counter now answers with a full reverse punch instead of a short poke; his stance breathes and shifts instead of standing still; he has his own high block (open forearm in front of the face); the last punch of the ultimate is cleaner.
 ### Added — jumping and crouching
 - Push up to jump (up-forward or up-back for a jump in that direction) and press any attack button in the air for a jumping attack; hold down to crouch under high attacks. Jumps go over low attacks and can cross over the opponent. All six fighters.
 ### Changed — Kairo is a karate-kickboxing fighter
