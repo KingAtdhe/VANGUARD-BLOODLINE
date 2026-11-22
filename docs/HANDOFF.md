@@ -36,6 +36,13 @@ for every fighter; multi-hit ultimates. Do not start one without the owner's cho
   after them (`pose` in `STYLES`, new keys `shoulders`, `knees`, `*_toe`).
   Posed from the names only; the owner has not yet said whether they are
   good enough. If not, ask for screenshots of the exact stance wanted.
+- D-075 (owner's pose quality brief): the rest-shape and proportion bugs
+  behind the bad poses are fixed in the pipeline, there is a pose checker
+  (`tools/blender/pose_check.py`, `pose_report.json` per build) and a
+  five-view render (`tools/godot/pose_views.gd`). **Kairo is done; the other
+  five are not** (`docs/POSE_BLUEPRINTS.md` says how to do the next one,
+  KI-050 lists their faults). One fighter per task, then stop for the owner.
+  A full reimport after replacing all six models takes about seven minutes.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.

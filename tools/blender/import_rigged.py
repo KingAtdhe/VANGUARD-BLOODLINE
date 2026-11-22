@@ -536,6 +536,14 @@ def main():
         # real motion capture (D-057)
         import mocap_actions
         actions = mocap_actions.build(rig, moves, fid, H, a.mocap_dir)
+        # pose quality control on the real rig (D-075): stance blueprint and
+        # every action at its first, middle and last frame
+        import pose_check
+        rep = pose_check.report(mocap_actions, mocap_actions.LAST_BUILD["rig"], mocap_actions.LAST_BUILD["poses"], fid,
+                                moving=("KNOCKDOWN", "GETUP", "DEFEAT", "LAUNCH", "JUMP", "HIT_", "THROWN", "WAKE", "FALL"))
+        with open(os.path.join(out_dir, "pose_report.json"), "w") as fh:
+            json.dump(rep, fh, indent=1)
+        pose_check.show(rep)
     else:
         targets = cb.setup_ik(rig)
         actions = cb.build_actions(moves, H / cb.REF_HEIGHT, fid)

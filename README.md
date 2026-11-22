@@ -129,6 +129,11 @@ tools/    editor/headless utility scripts
 docs/     specification, decisions, milestones, pipeline docs
 ```
 
+Pose quality: every model build writes `pose_report.json` (stance measured on the real
+skeleton, every animation checked at start, middle and end; `tools/blender/pose_check.py`).
+`tools/godot/pose_views.gd` renders a pose from five sides. Per-fighter blueprints and
+which fighters are done: `docs/POSE_BLUEPRINTS.md`.
+
 ## Art pipeline
 
 The six playable fighters are the **owner's own rigged models**, converted by

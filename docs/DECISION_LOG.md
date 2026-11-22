@@ -936,3 +936,66 @@ knowledge of those characters, **not** traced from footage or screenshots.
 - Checked: idle rendered from four angles per fighter and looked at; the
   first active frame of all 52 moves rendered (side and front, small) and the
   strikes still meet their boxes; 196 tests pass. Not checked: a phone.
+
+## D-075 — 2026-11-22 — Pose pipeline fixed at the root; Kairo redone
+
+Owner sent a recording of the select screen and a strict brief: analyse the
+rigs first, define a blueprint per fighter, validate it biomechanically,
+inspect real renders, then animate; one fighter at a time. This entry is the
+analysis, the pipeline fixes that came out of it, and Kairo.
+
+**What the analysis found (measured, not assumed)**
+- All six rigs share one 48-bone skeleton: two spine bones, one neck, no
+  clavicles, no toe bones, three bones per finger. Feet are rigid and
+  shoulders cannot shrug; that is a limit of the game skeleton (D-055).
+- **Kairo's rest shape is turned 35 degrees** (hip line, shoulder line, feet
+  and head alike; Drakon 5, Nox 3, the rest 0). The retarget assumed every
+  rest shape faces straight ahead, so every one of Kairo's poses had its
+  pelvis, chest and head 35 degrees off, and his legs twisted to match. This
+  is why his stance looked wrong from the start (D-067, D-073, D-074 all
+  blamed the capture). Fix: torso frames are measured against the rest
+  shape's own hip and shoulder lines (`Rig.side0`).
+- **The retarget copies bone directions**, and no fighter has the captured
+  performer's proportions, so a foot or fist placed on the source skeleton
+  lands elsewhere on the model (Kairo's rear foot was 12 cm off the floor).
+- The head inherited its lean from the capture: once the chest was turned
+  (D-074) a forward lean became a sideways tilt on five fighters.
+- Hands kept their old direction when an arm was moved (wrists bent up to
+  110 degrees in blocks); palm direction was never controlled.
+- Kairo's punches began on the captured boxer's base, twice as wide as his
+  stance: both feet jumped apart on frame 1 and slid back at the end.
+
+**Pipeline changes** (`tools/blender/mocap_actions.py`)
+- `fit_stance()`: a posed stance is solved on the fighter's own skeleton
+  (pelvis height, ankles on floor marks, wrists from the model's head, palm
+  direction) and written back into the pose. `pose` keys `fit`, `pelvis_h`,
+  `trunk`, `pelvis`, `neck`, `head_turn`, `rear_heel`, `*_palm`, `*_wrist`.
+- The head is set outright in a posed stance (no tilt, eyes on the opponent).
+- `plant_feet()`, `reach_hand()`, `steady()`, `eyes_on()` for captured
+  strikes of a fitted fighter: feet on the stance marks (lead foot steps in,
+  rear heel lifts), fist solved on the real arm into the hitbox, chest never
+  more than 70 degrees off the opponent, trunk lean capped, head kept up and
+  on the target, and at least a short blend out of the stance.
+- `move_hand()` keeps the hand in line with its forearm; `ik2()` never folds
+  a joint past 150 degrees. These two apply to all fighters.
+- `tools/blender/pose_check.py`: measures the blueprint on the real rig
+  (feet, knees, pelvis, spine, chest, arms, palms, head, weight split,
+  centre of gravity against the feet) and tests joint limits, balance,
+  floating feet, hands inside the body, and foot slide in the idle; every
+  build writes `pose_report.json` (stance + every action at start, middle,
+  end). `tools/godot/pose_views.gd`: five-view inspection sheet.
+  `STANCE_ONLY=1` builds the idle alone in ten seconds.
+
+**Kairo** — blueprint and measurements in `docs/POSE_BLUEPRINTS.md`. Stance
+faults: none. Action frames flagged: 29 of 75 before the fixes, 5 after (all
+looked at; KI-050). Rendered and looked at: stance from five sides, idle at
+five points, all nine attacks at six frames from two sides, blocks, hit
+reactions, walks, dashes, victory, knockdown at five frames.
+
+**Other five**: rebuilt with the shared fixes only (heads no longer tilt,
+straighter wrists). Their stances are *not* fitted yet and the checker lists
+real faults for them (KI-050). Next: one fighter at a time, owner's order.
+
+Checked: 196 tests pass; first active frame of the other 43 moves still
+meets its hitbox (small renders). Not checked: anything on a phone.
+

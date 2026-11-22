@@ -47,10 +47,11 @@ STYLES = {
     # were posed from knowledge of those characters, not traced from footage.
     # Kairo, after Steve Fox: upright boxer on a short springy base, lead
     # shoulder in front, lead fist out at chin height, rear fist on the cheek.
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.3, bob=0.03, bob_beats=2, lead="Left",
-                  pose=dict(hips=(0.02, -0.04), lean=17, shoulders=42, chin=8, lead_foot=(0.09, 0.22), rear_foot=(0.12, 0.24),
-                            lead_toe=10, rear_toe=40, lead_hand=(0.10, 0.42, -0.18), rear_hand=(0.07, 0.15, -0.13),
-                            lead_elbow=0.15, rear_elbow=0.15)),
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.3, bob=0.022, bob_beats=2, lead="Left",
+                  pose=dict(fit=True, hips=(-0.045, 0.0), pelvis_h=0.965, trunk=(7, 0), pelvis=32, shoulders=44, neck=8, chin=6,
+                            lead_foot=(0.09, 0.19), rear_foot=(0.11, 0.20), lead_toe=-10, rear_toe=45, rear_heel=0.03,
+                            lead_hand=(0.11, 0.33, -0.19), rear_hand=(0.12, 0.07, -0.15),
+                            lead_elbow=0.15, rear_elbow=0.12, lead_palm="in", rear_palm="in")),
     # Drakon, after Zangief: wide and square, knees out, chest forward, both
     # arms held open and high at the sides ready to grab.
     "drakon": dict(clip="14_02", frame=4530, amp=0.25, sway=0.035,
@@ -133,6 +134,7 @@ def shape_stance(P, st, H):
         if off.any():
             P = move_hand(P, sd, P[sd + "Hand"] + np.array([sg * off[0], off[1], off[2]]) * H, 1.0,
                           pole_out=st.get("elbows", 0.35))
+    st["_lead"] = lead
     return pose_stance(P, st, H, lead) if st.get("pose") else P
 
 
@@ -152,7 +154,11 @@ def pose_stance(P, st, H, lead):
       lead_foot, rear_foot   (across, along): where each foot stands from the
                  point under the hips; along is toward the opponent for the
                  lead foot and away from them for the rear foot
-      lead_heel  the lead heel lifted this high (weight on the ball of the foot)
+      lead_heel, rear_heel   that heel lifted this high (weight on the ball of the foot)
+      pelvis     how far the hips are turned side-on, like `shoulders`
+      trunk      (forward, toward the lead side) lean of the spine in degrees, absolute
+      neck, chin, head_turn   neck craned forward, chin dropped (degrees), and the
+                 share of the chest turn the head keeps (the eyes stay on the opponent)
       lead_hand, rear_hand   (across, forward, up) from the head joint
       lead_elbow, rear_elbow how far the elbow swings out (0.1 tucked .. 0.7 flared)"""
     ps = st["pose"]
@@ -169,6 +175,24 @@ def pose_stance(P, st, H, lead):
         for k in UPPER:
             if k in P:
                 P[k] = R @ (P[k] - o) + o
+    if "trunk" in ps:
+        # the spine set outright: (forward, toward the lead side) lean in degrees,
+        # whatever way the captured performer happened to be leaning
+        f, sdl = math.radians(ps["trunk"][0]), math.radians(ps["trunk"][1])
+        want = _norm(np.array([math.tan(sdl) * sgl, -math.tan(f), 1.0]))
+        R = _swing(P["Neck1"] - P["Hips"], want)
+        o = P["Hips"].copy()
+        for k in UPPER:
+            if k in P:
+                P[k] = R @ (P[k] - o) + o
+    if "pelvis" in ps:                                     # hips turned side-on, like `shoulders`
+        v = P[lead + "UpLeg"] - P[rear + "UpLeg"]
+        cur = math.degrees(math.atan2(-v[1], sgl * v[0]))
+        o = P["Hips"].copy()
+        R = np.array(Matrix.Rotation(math.radians(-(ps["pelvis"] - cur) * sgl), 3, "Z"))
+        for k in ("LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"):
+            if k in P:
+                P[k] = R @ (P[k] - o) + o
     if "shoulders" in ps:
         v = P[lead + "Arm"] - P[rear + "Arm"]
         cur = math.degrees(math.atan2(-v[1], sgl * v[0]))
@@ -179,12 +203,10 @@ def pose_stance(P, st, H, lead):
         for k in UPPER:
             if k in P:
                 P[k] = R @ (P[k] - o) + o
-    if ps.get("chin"):
-        P = lean(P, -ps["chin"], about="Neck1", keys=["Head", "Head_end"])
     for sd, key, sign_x, sign_y in ((lead, "lead_foot", sgl, -1), (rear, "rear_foot", -sgl, 1)):
         if key in ps:
             ax, al = ps[key]
-            lift = ps.get("lead_heel", 0.0) * H if sd == lead else 0.0
+            lift = ps.get("lead_heel" if sd == lead else "rear_heel", 0.0) * H
             P = move_foot(P, sd, np.array([sign_x * ax * H, sign_y * al * H, floor[sd] + lift]),
                           knee_out=ps.get("knees", 0.0))
             toe = "lead_toe" if sd == lead else "rear_toe"
@@ -203,10 +225,267 @@ def pose_stance(P, st, H, lead):
             tgt = P["Head"] + np.array([sign_x * ax, -fw, up]) * H
             P = move_hand(P, sd, tgt, 1.0, pole_out=ps.get("lead_elbow" if sd == lead else "rear_elbow", 0.35))
     if "shoulders" in ps:
-        # the eyes stay on the opponent however far the chest is turned: the
-        # head keeps a quarter of the turn (read by retarget as its side axis)
-        a = math.radians(ps["shoulders"] * 0.25) * sgl
+        # The head is set outright, never inherited from the capture (a head
+        # that leaned forward in the capture leans sideways once the chest is
+        # turned). The eyes stay on the opponent: the head keeps `head_turn`
+        # of the chest turn (default a quarter), the neck cranes `neck`
+        # degrees forward and the chin drops `chin` degrees. No sideways tilt.
+        a = -math.radians(ps["shoulders"] * ps.get("head_turn", 0.25)) * sgl   # the chest of a left lead faces right
+        fwd = np.array([math.sin(a), -math.cos(a), 0.0])
+        up = np.array([0.0, 0.0, 1.0])
+        nk, ch = math.radians(ps.get("neck", 10.0)), math.radians(ps.get("chin", 0.0))
+        l_neck = np.linalg.norm(P["Head"] - P["Neck1"])
+        l_head = np.linalg.norm(P["Head_end"] - P["Head"])
+        P["Head"] = P["Neck1"] + (fwd * math.sin(nk) + up * math.cos(nk)) * l_neck
+        P["Head_end"] = P["Head"] + (fwd * math.sin(ch) + up * math.cos(ch)) * l_head
+        P["HeadSide0"] = P["Head"].copy()
         P["HeadSide"] = P["Head"] + np.array([math.cos(a), math.sin(a), 0.0])
+    return P
+
+
+PALMS = {"in": (-1.0, 0.0, 0.0), "out": (1.0, 0.0, 0.0), "down": (0.0, 0.0, -1.0), "up": (0.0, 0.0, 1.0),
+         "forward": (0.0, -1.0, 0.0), "back": (0.0, 1.0, 0.0)}
+
+
+def _ik_dirs(a, target, l1, l2, hint):
+    """Two-bone IK in model space: directions of both bones from root `a` so
+    the end reaches `target` (as far as the limb goes), bending toward `hint`."""
+    d = np.asarray(target, float) - a
+    dist = float(np.clip(np.linalg.norm(d), 1e-4, (l1 + l2) * 0.995))
+    dn = _norm(d)
+    cos_a = np.clip((l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist), -1, 1)
+    h = np.asarray(hint, float)
+    pole = _norm(h - dn * np.dot(h, dn))
+    mid = a + dn * cos_a * l1 + pole * math.sqrt(max(0.0, 1 - cos_a * cos_a)) * l1
+    end = a + dn * dist
+    return _norm(mid - a), _norm(end - mid)
+
+
+def solve_leg(rig, P, pos, sd, mark, toe_deg, heel=0.0, hop=0.0, knee_out=0.0):
+    """One leg solved on the real rig and written back into the source pose:
+    the ankle over floor mark `mark` (model x, y), the foot turned `toe_deg`
+    (signed, + = toward +X), the heel lifted `heel` over the ball of the foot,
+    the whole foot `hop` off the floor. pos: model joints of the pose (fk)."""
+    blen = lambda a, b: float(np.linalg.norm(rig.head[b] - rig.head[a]))
+    slen = lambda a, b: float(np.linalg.norm(P[b] - P[a]))
+    yaw = math.radians(toe_deg)
+    flat = np.array([math.sin(yaw), -math.cos(yaw), 0.0])
+    ankle = np.array([mark[0], mark[1], rig.foot_h + heel + hop])
+    # the knee bends over its own toes, pushed out by knee_out
+    hint = flat + np.array([knee_out, 0.0, 0.25])
+    d1, d2 = _ik_dirs(pos[sd + "UpperLeg"], ankle, blen(sd + "UpperLeg", sd + "LowerLeg"),
+                      blen(sd + "LowerLeg", sd + "Foot"), hint)
+    toe_keys = [k for k in (sd + "ToeBase", sd + "ToeBase_end") if k in P]
+    toe_len = [slen(sd + "Foot", k) for k in toe_keys]
+    l_thigh, l_shin = slen(sd + "UpLeg", sd + "Leg"), slen(sd + "Leg", sd + "Foot")
+    P = dict(P)
+    P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
+    P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
+    # sole flat (or on the ball of the foot): the toe tip keeps its rest height
+    f0 = rig.tail[sd + "Foot"] - rig.head[sd + "Foot"]
+    L, drop = float(np.linalg.norm(f0)), float(-f0[2]) + heel
+    toe = flat * math.sqrt(max(1e-6, L * L - drop * drop)) + np.array([0.0, 0.0, -drop])
+    for k, n in zip(toe_keys, toe_len):
+        P[k] = P[sd + "Foot"] + _norm(toe) * n
+    return P
+
+
+def plant_feet(rig, P, st, lead, stand_hips, free=None, step=0.6):
+    """A captured pose stood on the fighter's own stance marks (D-075).
+
+    The captured boxer punches from a base twice as wide as Kairo's stance,
+    so every punch began with both feet jumping apart and ended with them
+    sliding back. Here the capture keeps driving the pelvis, spine and arms,
+    and the legs are solved on the real rig with the feet on the stance
+    marks: the lead foot steps in with `step` of the body's forward travel,
+    the rear foot stays and comes up on its toes when the hips leave it
+    behind. `free`: a foot that is in the air (a kick) and is left alone."""
+    ps = st["pose"]
+    S = rig.hips_h / 0.95
+    rear = "Right" if lead == "Left" else "Left"
+    sgl = 1 if lead == "Left" else -1
+    home_y = -ps.get("hips", (0.0, 0.0))[0] * S
+    D, _h = retarget(rig, P, 1.0, ground=False)
+    travel = home_y - P["Hips"][1]                         # + = the body has gone forward
+    hips = np.array([P["Hips"][0], P["Hips"][1], pelvis_z(rig, P, st, stand_hips)])
+    pos, _t = fk(rig, D, hips)
+    for sd, key, sx, sy in ((lead, "lead", sgl, -1), (rear, "rear", -sgl, 1)):
+        if sd == free:
+            continue
+        ax, al = ps[key + "_foot"]
+        mark = np.array([sx * ax * S, sy * al * S])
+        heel = ps.get(key + "_heel", 0.0) * S
+        if sd == lead:
+            mark[1] -= step * max(0.0, travel)
+        else:
+            # the rear leg lets its heel up as far as it has to, never more than 9 cm
+            reach = float(np.linalg.norm(rig.head[sd + "LowerLeg"] - rig.head[sd + "UpperLeg"])
+                          + np.linalg.norm(rig.head[sd + "Foot"] - rig.head[sd + "LowerLeg"])) * 0.99
+            a = pos[sd + "UpperLeg"]
+            flat_d = float(np.linalg.norm(a[:2] - mark))
+            need = a[2] - math.sqrt(max(1e-6, reach * reach - flat_d * flat_d)) - rig.foot_h if flat_d < reach else 0.09
+            heel = float(np.clip(max(heel, need), 0.0, 0.09 * S))
+        P = solve_leg(rig, P, pos, sd, mark, ps.get(key + "_toe", 0.0) * sx, heel, 0.0, ps.get("knees", 0.0) * sx)
+    return P
+
+
+def steady(P, max_turn=70.0, max_side=18.0, max_forward=32.0, head_level=0.6):
+    """Keeps a captured strike inside what reads as a fighter in control
+    (D-075): the chest never turns further than `max_turn` from the opponent
+    (a captured follow-through spun Kairo's back to them), the trunk leans at
+    most `max_side` sideways and `max_forward` forward, and the head is
+    brought `head_level` of the way back to upright so the eyes can stay on
+    the target. The feet are re-planted afterwards (plant_feet)."""
+    P = dict(P)
+    o = np.array([P["Hips"][0], P["Hips"][1], 0.0])
+    v = P["LeftArm"] - P["RightArm"]
+    yaw = math.degrees(math.atan2(v[1], v[0]))
+    over = yaw - max(-max_turn, min(max_turn, yaw))
+    if abs(over) > 0.5:
+        R = np.array(Matrix.Rotation(math.radians(-over), 3, "Z"))
+        P = {k: R @ (p - o) + o for k, p in P.items()}
+    t = P["Neck1"] - P["Hips"]
+    fwd = math.degrees(math.atan2(-t[1], t[2]))
+    sid = math.degrees(math.atan2(t[0], t[2]))
+    f2, s2 = max(-max_forward, min(max_forward, fwd)), max(-max_side, min(max_side, sid))
+    if abs(f2 - fwd) > 0.5 or abs(s2 - sid) > 0.5:
+        want = _norm(np.array([math.tan(math.radians(s2)), -math.tan(math.radians(f2)), 1.0]))
+        R = _swing(t, want)
+        hp = P["Hips"].copy()
+        for k in UPPER:
+            if k in P:
+                P[k] = R @ (P[k] - hp) + hp
+    up = np.array([0.0, -0.12, 1.0])                       # upright, chin a touch down
+    for a, b in (("Neck1", "Head"), ("Head", "Head_end")):
+        d = P[b] - P[a]
+        n = np.linalg.norm(d)
+        new = _norm(_norm(d) * (1 - head_level) + _norm(up) * head_level) * n
+        delta = (P[a] + new) - P[b]
+        P[b] = P[b] + delta
+        if b == "Head":
+            P["Head_end"] = P["Head_end"] + delta
+    return P
+
+
+def eyes_on(P, keep=0.3):
+    """The head stays on the opponent while the chest turns into a strike: it
+    keeps `keep` of the chest's turn instead of all of it (a captured cross
+    turned the face away from the target with the shoulders)."""
+    v = P["LeftArm"] - P["RightArm"]
+    a = math.atan2(v[1], v[0]) * keep
+    P = dict(P)
+    P["HeadSide0"] = P["Head"].copy()
+    P["HeadSide"] = P["Head"] + np.array([math.cos(a), math.sin(a), 0.0])
+    return P
+
+
+def pelvis_z(rig, P, st, stand_hips):
+    """Hip height on the model for a captured pose stood on the stance marks:
+    as low as the capture crouches, never taller than the stance itself."""
+    low = float(np.clip(P["Hips"][2] / stand_hips, 0.78, 1.0))
+    return min(low, st["pose"].get("pelvis_h", 0.95)) * rig.hips_h
+
+
+def reach_hand(rig, P, sd, wrist, weight, hips_z, elbow_out=0.25):
+    """The arm solved on the real rig so the wrist is at `wrist` (model space),
+    blended in by `weight`; written back into the source pose like solve_leg.
+    The retarget alone leaves a punch short: the fighters' arms are not the
+    captured performer's."""
+    if weight <= 0:
+        return P
+    D, hips = retarget(rig, P, 1.0, ground=False)
+    pos, _t = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], hips_z]))
+    cur = pos[sd + "Hand"]
+    wrist = np.array([cur[0] * 0.5 if wrist[0] is None else wrist[0], wrist[1], wrist[2]], float)   # None: halfway to the centre line
+    tgt = cur + (wrist - cur) * weight
+    sx = 1 if sd == "Left" else -1
+    l1 = float(np.linalg.norm(rig.head[sd + "LowerArm"] - rig.head[sd + "UpperArm"]))
+    l2 = float(np.linalg.norm(rig.head[sd + "Hand"] - rig.head[sd + "LowerArm"]))
+    d1, d2 = _ik_dirs(pos[sd + "UpperArm"], tgt, l1, l2, np.array([sx * elbow_out * 2.0, 0.15, -1.0]))
+    keys = [k for k in (sd + "HandIndex1", sd + "HandIndex1_end", sd + "FingerBase", sd + "Thumb", sd + "Thumb_end",
+                        sd[0] + "Thumb", sd[0] + "Thumb_end") if k in P]
+    lens = [float(np.linalg.norm(P[k] - P[sd + "Hand"])) for k in keys]
+    l_up = float(np.linalg.norm(P[sd + "ForeArm"] - P[sd + "Arm"]))
+    l_fore = float(np.linalg.norm(P[sd + "Hand"] - P[sd + "ForeArm"]))
+    old = _norm(P[sd + "Hand"] - P[sd + "ForeArm"])
+    P = dict(P)
+    P[sd + "ForeArm"] = P[sd + "Arm"] + d1 * l_up
+    R = _swing(old, d2)
+    hand0 = P[sd + "Hand"]
+    P[sd + "Hand"] = P[sd + "ForeArm"] + d2 * l_fore
+    for k, ln in zip(keys, lens):                          # knuckles in line with the forearm at full weight
+        carried = R @ (P[k] - hand0)
+        P[k] = P[sd + "Hand"] + _norm(carried * (1 - weight) + d2 * ln * weight) * ln
+    P.pop(sd + "Palm", None)
+    P.pop(sd + "Palm0", None)
+    return P
+
+
+def fit_stance(rig, P, st, lead, u=0.0):
+    """Fits a posed stance to the fighter's own skeleton (D-075).
+
+    The retarget copies bone directions, and no fighter has the proportions
+    of the captured performer, so a foot or a fist placed on the source
+    skeleton lands somewhere else on the model (one foot ended up 12 cm off
+    the floor). Here the limbs are solved on the real rig instead: the pelvis
+    is put at its blueprint height, both ankles on their floor marks, both
+    wrists where the blueprint holds them from the model's own head, and the
+    bone directions of that solution are written back into the pose. Lengths
+    are in the fighter's own scale (x hip height / 0.95 m).
+
+    `pose` keys read here: hips[0] (pelvis forward of the stance centre),
+    pelvis_h (hip height as a share of standing), lead_foot / rear_foot,
+    lead_toe / rear_toe, lead_heel / rear_heel, knees, lead_hand / rear_hand
+    (across, forward, up from the model's head joint), lead_elbow /
+    rear_elbow, lead_palm / rear_palm (in, out, down, up, forward, back, or a
+    vector; "in" = toward the fighter's own centre line), lead_wrist /
+    rear_wrist (degrees the fist is cocked back). Idle habits (STYLES bob,
+    sway, tap) are applied here too, so planted feet stay exactly where they are."""
+    ps = st["pose"]
+    S = rig.hips_h / 0.95
+    rear = "Right" if lead == "Left" else "Left"
+    sgl = 1 if lead == "Left" else -1
+    sway = st.get("sway", 0.0) * S * math.sin(2 * math.pi * u)
+    bob = st.get("bob", 0.0) * S * 0.5 * (1 - math.cos(2 * math.pi * u * st.get("bob_beats", 1)))
+    tap = st.get("tap", 0.0) * S * max(0.0, math.sin(2 * math.pi * u * 2)) ** 2
+    P = shift(P, list(P.keys()), np.array([sway - P["Hips"][0], -ps.get("hips", (0.0, 0.0))[0] * S - P["Hips"][1], 0.0]))
+    D, _h = retarget(rig, P, 1.0, ground=False)
+    hips = np.array([P["Hips"][0], P["Hips"][1], ps.get("pelvis_h", 0.93) * rig.hips_h - bob])
+    pos, _t = fk(rig, D, hips)
+    blen = lambda a, b: float(np.linalg.norm(rig.head[b] - rig.head[a]))
+    slen = lambda a, b: float(np.linalg.norm(P[b] - P[a]))
+    for sd, key, sx, sy in ((lead, "lead", sgl, -1), (rear, "rear", -sgl, 1)):
+        ax, al = ps[key + "_foot"]
+        lift = ps.get(key + "_heel", 0.0) * S
+        hop = tap if sd == lead else 0.0
+        P = solve_leg(rig, P, pos, sd, np.array([sx * ax * S, sy * al * S]), ps.get(key + "_toe", 0.0) * sx,
+                      lift, hop, ps.get("knees", 0.0) * sx)
+    for sd, key, sx in ((lead, "lead", sgl), (rear, "rear", -sgl)):
+        if key + "_hand" not in ps:
+            continue
+        ax, fw, up = ps[key + "_hand"]
+        wrist = pos["Head"] + np.array([sx * ax, -fw, up]) * S
+        e = ps.get(key + "_elbow", 0.35)
+        d1, d2 = _ik_dirs(pos[sd + "UpperArm"], wrist, blen(sd + "UpperArm", sd + "LowerArm"),
+                          blen(sd + "LowerArm", sd + "Hand"), np.array([sx * e * 2.0, 0.15, -1.0]))
+        hand_keys = [k for k in (sd + "HandIndex1", sd + "HandIndex1_end", sd + "FingerBase", sd + "Thumb",
+                                 sd + "Thumb_end", sd[0] + "Thumb", sd[0] + "Thumb_end") if k in P]
+        hand_len = [slen(sd + "Hand", k) for k in hand_keys]
+        l_up, l_fore = slen(sd + "Arm", sd + "ForeArm"), slen(sd + "ForeArm", sd + "Hand")
+        P[sd + "ForeArm"] = P[sd + "Arm"] + d1 * l_up
+        P[sd + "Hand"] = P[sd + "ForeArm"] + d2 * l_fore
+        palm = ps.get(key + "_palm", "in")
+        n = np.array(PALMS[palm] if isinstance(palm, str) else palm, float)
+        if isinstance(palm, str) and palm in ("in", "out"):
+            n = n * sx                                     # toward / away from the centre line
+        n = _norm(n - d2 * np.dot(n, d2))
+        cock = math.radians(ps.get(key + "_wrist", 0.0))   # fist cocked back, toward the back of the hand
+        fingers = _norm(d2 * math.cos(cock) - n * math.sin(cock))
+        n = _norm(n - fingers * np.dot(n, fingers))
+        for k, ln in zip(hand_keys, hand_len):
+            P[k] = P[sd + "Hand"] + fingers * ln
+        P[sd + "Palm0"] = P[sd + "Hand"].copy()
+        P[sd + "Palm"] = P[sd + "Hand"] + n
     return P
 
 
@@ -325,6 +604,23 @@ class Rig:
         self.head = {b.name: np.array(b.head_local) for b in arm_obj.data.bones}
         self.tail = {b.name: np.array(b.tail_local) for b in arm_obj.data.bones}
         self.dir = {n: _norm(self.tail[n] - self.head[n]) for n in every}
+        # Which way the rest shape itself is turned (D-075). The meshes are not
+        # all modelled square to the front: Kairo's whole body is turned 35
+        # degrees in his rest shape. The torso frames are measured against the
+        # rest shape's own hip and shoulder lines, not against "+X is left".
+        hp = self.head["LeftUpperLeg"] - self.head["RightUpperLeg"]
+        sh = self.head["LeftUpperArm"] - self.head["RightUpperArm"]
+        flat = lambda v: _norm(np.array([v[0], v[1], 0.0]))
+        self.side0 = {"hips": flat(hp), "shoulders": flat(sh), "mid": flat(flat(hp) + flat(sh)),
+                      "head": flat(sh), "neck": flat(sh)}
+        self.rest_yaw = math.degrees(math.atan2(sh[1], sh[0]))
+        # Which way each palm faces in the rest shape, from the knuckles (the
+        # thumb side makes it handed, so it holds for any rest pose).
+        self.palm0 = {}
+        for side, hand in (("Left", -1.0), ("Right", 1.0)):
+            i, q, w = (self.head.get(f"{side}HandIndex1"), self.head.get(f"{side}HandPinky1"), self.head[f"{side}Hand"])
+            if i is not None and q is not None:
+                self.palm0[side] = _norm(np.cross(i - w, q - w)) * hand
         self.hips_h = float(self.head["Hips"][2])
         self.foot_h = float(min(self.head["LeftFoot"][2], self.head["RightFoot"][2]))
 
@@ -338,7 +634,8 @@ def retarget(rig, P, stand_hips, ground=True):
     }
     side["mid"] = side["hips"] + side["shoulders"]
     # a posed stance may say where the head faces (pose_stance); else it follows the chest
-    side["head"] = P["HeadSide"] - P["Head"] if "HeadSide" in P else side["shoulders"]
+    # (a marker pair: both ends are carried along by every shift, so their difference stays the direction)
+    side["head"] = P["HeadSide"] - P["HeadSide0"] if "HeadSide" in P else side["shoulders"]
     side["neck"] = side["head"] / np.linalg.norm(side["head"]) + side["shoulders"] / np.linalg.norm(side["shoulders"])
     D = {"Root": np.eye(3)}
     for name in rig.names:
@@ -347,8 +644,14 @@ def retarget(rig, P, stand_hips, ground=True):
         if name in TORSO:
             a, b, s = TORSO[name]
             F = _frame(side[s], P[b] - P[a])
-            # rest torso is upright, facing -Y: its frame is the identity
-            R0 = _frame(np.array([1.0, 0, 0]), rig.dir[name])
+            # the rest torso is upright; which way it faces is measured (Rig.side0)
+            R0 = _frame(rig.side0[s], rig.dir[name])
+            D[name] = F @ R0.T
+        elif name.endswith("Hand") and name[:-4] in rig.palm0 and name[:-4] + "Palm" in P:
+            # a posed hand (fit_stance): fingers along the pose, palm where it says
+            a, b = LIMB[name]
+            F = _frame(P[name[:-4] + "Palm"] - P[name[:-4] + "Palm0"], P[b] - P[a])
+            R0 = _frame(rig.palm0[name[:-4]], rig.dir[name])
             D[name] = F @ R0.T
         else:
             a, b = LIMB[name]
@@ -397,7 +700,9 @@ def ik2(P, a, b, c, target, pole):
     l2 = np.linalg.norm(P[c] - P[b])
     t = np.array(target, float)
     d = t - A
-    dist = np.clip(np.linalg.norm(d), 1e-4, (l1 + l2) * 0.999)
+    # an elbow or knee folds to 150 degrees at most (the limb cannot reach closer than that)
+    closest = math.sqrt(l1 * l1 + l2 * l2 - 2 * l1 * l2 * math.cos(math.radians(30.0)))
+    dist = np.clip(np.linalg.norm(d), closest, (l1 + l2) * 0.999)
     dn = _norm(d)
     cos_a = np.clip((l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist), -1, 1)
     pole_dir = _norm((pole - A) - dn * np.dot(pole - A, dn))
@@ -416,11 +721,21 @@ def move_hand(P, side, target, weight=1.0, pole_out=0.35):
     sgn = 1 if side == "Left" else -1
     pole = P[side + "ForeArm"] + np.array([0.15 * sgn, 0.05, -0.25]) * pole_out / 0.35
     Q = ik2(P, side + "Arm", side + "ForeArm", side + "Hand", tgt, pole)
-    for k in ("HandIndex1", "HandIndex1_end", "FingerBase", "Thumb", "Thumb_end"):
-        if side + k in P:
-            Q[side + k] = P[side + k] - cur + Q[side + "Hand"]
-    if side[0] + "Thumb" in P:
-        Q[side[0] + "Thumb"] = P[side[0] + "Thumb"] - cur + Q[side + "Hand"]
+    Q.pop(side + "Palm", None)                 # a posed palm does not survive the hand being moved
+    Q.pop(side + "Palm0", None)
+    # The hand goes with its forearm: moved rigidly it kept pointing where it
+    # did before, which bent the wrist up to 110 degrees in the blocks (D-075).
+    # The more the hand was moved, the straighter the wrist.
+    fore = _norm(Q[side + "Hand"] - Q[side + "ForeArm"])
+    R = _swing(P[side + "Hand"] - P[side + "ForeArm"], fore)
+    for k in (side + "HandIndex1", side + "HandIndex1_end", side + "FingerBase", side + "Thumb", side + "Thumb_end",
+              side[0] + "Thumb", side[0] + "Thumb_end"):
+        if k in P:
+            off = P[k] - cur
+            carried = R @ off                                   # the old wrist angle, carried along
+            straight = fore * np.linalg.norm(off)
+            w = min(1.0, max(0.0, weight)) if k.endswith(("Index1", "Index1_end", "FingerBase")) else 0.0
+            Q[k] = Q[side + "Hand"] + _norm(carried * (1 - w) + straight * w) * np.linalg.norm(off)
     return Q
 
 
@@ -1667,6 +1982,7 @@ OWN_SETS = {"drakon": drakon_set, "seraphina": seraphina_set, "nox": nox_set, "v
 # {action name: (first, last) airborne frame}; filled by build(), read by the
 # importer's grounding pass so jumps are not flattened onto the floor.
 AIRBORNE = {}
+LAST_BUILD = {}
 
 
 # --------------------------------------------------------------------------- the actions
@@ -1716,10 +2032,15 @@ def build(rig_obj, moves, fid, height, clip_dir):
     mean = {k: np.mean([r[k] for r in raw], 0) for k in raw[0]}
     def shape(P):
         return shape_stance(P, st, H)
+    fitted = bool(st.get("pose", {}).get("fit"))
     def idle_P(t):
         r = raw[int(t) % n_idle]
         amp = st.get("amp", 0.35)
-        return idle_motion(shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r}), st, H, (int(t) % n_idle) / float(n_idle))
+        u = (int(t) % n_idle) / float(n_idle)
+        P = shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r})
+        if fitted:                                   # limbs solved on the fighter's own skeleton (D-075)
+            return fit_stance(rig, P, st, st["_lead"], u)
+        return idle_motion(P, st, H, u)
     idle_poses = []
     fade = 14
     for t in range(n_idle + 1):
@@ -1731,6 +2052,13 @@ def build(rig_obj, moves, fid, height, clip_dir):
     A[f"{F}_IDLE_A"] = idle_poses
     guard_P = idle_P(0)
     guard = idle_poses[0]
+    if os.environ.get("STANCE_ONLY"):        # quick look at a stance: idle only (not a shippable model)
+        LAST_BUILD["rig"], LAST_BUILD["poses"] = rig, A
+        quick = {n: key_action(rig, n, p) for n, p in A.items()}
+        for n, p in A.items():
+            if rig.fingers:
+                key_fingers(rig, quick[n], hand_curls(fid, n[len(F) + 1:], len(p)))
+        return quick
     box_stand = box.stand_hips
 
     # ---- strikes retimed to frame data, limb guided onto the hitbox
@@ -1771,6 +2099,16 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 P = move_foot(P, side, np.array([cur[0], tgt_fwd + 0.08, tgt_h]), w)
             if extra:
                 P = extra(P, t, total)
+            if fitted and not lift:
+                # over the stance centre, on the stance's own foot marks (plant_feet)
+                P = shift(P, list(P.keys()), np.array([0.0, guard_P["Hips"][1], 0.0]))
+                P = steady(P)
+                P = plant_feet(rig, P, st, st["_lead"], c.stand_hips, free=side if limb == "foot" else None)
+                if limb == "hand":
+                    # the fist itself (8 cm past the wrist) into the middle of the hitbox, on the real arm
+                    P = reach_hand(rig, P, side, (None, -(hc[0] - 0.08), hc[1]), w,
+                                   pelvis_z(rig, P, st, c.stand_hips))
+                P = eyes_on(P)
             pose = pose_of(P, c)
             up = lift(t) if lift else 0.0
             if up > 0.005:                    # grounded pose first, then raised
@@ -1778,6 +2116,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
             poses.append(pose)
         # settle into the guard over the last frames so the next move blends cleanly
         n = len(poses)
+        if fitted:                             # a posed stance is never the capture's own guard:
+            blend_in = max(blend_in, min(4, max(2, a0 - 1)))      # leave it over a few frames, no snap
         for t in range(min(blend_in, n)):      # captures that do not start in a guard
             poses[t] = Pose.blend(guard, poses[t], ease((t + 1) / (blend_in + 1)))
         for t in range(max(0, n - 8), n):
@@ -2109,4 +2449,5 @@ def build(rig_obj, moves, fid, height, clip_dir):
         acts[name] = key_action(rig, name, poses)
         if rig.fingers:
             key_fingers(rig, acts[name], hand_curls(fid, name[len(F) + 1:], len(poses)))
+    LAST_BUILD["rig"], LAST_BUILD["poses"] = rig, A        # for pose_check.report
     return acts

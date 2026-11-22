@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — poses: root causes, and Kairo redone
+- Kairo's model was built turned 35 degrees and the animation pipeline did not know: his hips, chest and head were off in every pose. Fixed at the source.
+- Kairo's stance is solved on his own skeleton: both feet flat on the floor where the stance says, fists at his chin with straight wrists, head up and looking at the opponent. His punches now start and end on the same feet (no jump apart and slide back), reach with a straight arm, and no longer turn his back or duck his face away.
+- All fighters: heads no longer tilt to the side in the stance; hands stay in line with the forearm when blocking.
+- New pose checker: every model build measures the stance and every animation on the real skeleton and lists joints, balance, floating feet and hands inside the body.
 ### Changed — stances after reference fighters
 - Each stance now follows a well-known fighter the owner approved: Kairo an upright boxer (Steve Fox), Drakon wide with open arms (Zangief), Seraphina side-on with low hands (Hwoarang), Nox low and coiled (Raven), Vexa a tall high guard (Sagat), Ryuen upright with his lead palm out (Leroy Smith). Posed from knowledge of those characters, not from footage.
 - Kairo's lead shoulder and fist are now in front of him; fighters who stand side-on keep looking at the opponent.
