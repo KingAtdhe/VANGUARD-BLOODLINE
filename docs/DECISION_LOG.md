@@ -1213,3 +1213,26 @@ rules in `docs/ANIMATION_RESEARCH.md` before the other five are done.
   is for the owner to judge on the phone; if it does, the same method goes
   to the other fighters, each in their own style.
 
+## D-085 — 2026-11-22 — Kairo's set pushed further after looking at every frame
+
+Owner: "you can see it too, keep improving". Every frame of every attack
+was rendered as a strip (the nearest thing to watching it that the build
+machine allows) and three faults showed that six sampled frames had hidden:
+- **Wind-ups were invisible.** The cross spent nine frames barely moving,
+  then did everything in two. The wind-up pose is now reached early and
+  held for two frames (hips back, chest coiled, rear fist drawn back, lead
+  hand out as a range-finder) before the strike.
+- **Recoveries finished early and stood still** for up to eleven frames.
+  `keyed_move()` plays the recovery slower than keyed (`_recover`), so the
+  return fills the recovery frames.
+- **Too close to real boxing.** One exaggeration factor (`X` = 1.22) now
+  scales every turn, sink and lean in the set.
+Also: the body swings a little past the stance on the way back and the
+weight catches itself (a small dip) instead of stopping dead; the chin
+drops into the blow and comes up late; the Slip Counter is a real slip
+(pelvis carried sideways over the rear knee, new `hips_x`); the lead hook
+reaches the middle of its box; the Origin Palm chambers at the ribs with
+the guard hand kept up.
+- Checker: 2 of 75 frames flagged, as before. 196 tests pass.
+- Limit: frame strips show poses in order, not speed or feel.
+

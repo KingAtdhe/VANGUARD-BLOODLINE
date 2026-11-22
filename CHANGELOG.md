@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's attacks, second pass
+- Wind-ups are visible now, recoveries use their full time instead of ending early and standing still, poses are pushed further than real boxing, the body swings slightly past the stance and settles, and his chin drops into each blow. The Slip Counter is a clear duck off the line.
 ### Changed — Kairo's attacks rebuilt from scratch (trial)
 - All nine of Kairo's attacks are new, built by hand on boxing fundamentals instead of taken from a research recording: wind-up, hips then chest then fist, the hit held, the other hand guarding, the rear foot pivoting. His ultimate is now a four-punch combination. Timing and hitboxes for gameplay are unchanged.
 ### Changed — strikes timed like strikes
