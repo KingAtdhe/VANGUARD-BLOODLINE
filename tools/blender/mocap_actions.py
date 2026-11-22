@@ -67,14 +67,15 @@ STYLES = {
                                 lead_heel=0.02, rear_heel=0.025,
                                 lead_hand=(0.07, 0.26, -0.45), rear_hand=(0.11, 0.21, -0.30),
                                 lead_elbow=0.2, rear_elbow=0.45, lead_palm="in", rear_palm="in")),
-    # Nox, after Raven: low and coiled, side-on, lead hand reaching out in
-    # front below the chin, rear hand held in at the chest.
+    # Nox, after Raven: side-on, lead hand reaching out in front below the
+    # chin, rear hand held ready in front of the ribs. Upright since D-080
+    # (owner: "he needs to stand straight"); he was low and coiled before.
     # Fitted to his own skeleton (D-079); blueprint in docs/POSE_BLUEPRINTS.md.
     "nox": dict(clip="144_20", frame=1590, amp=0.3, sway=0.02,
-                pose=dict(fit=True, hips=(-0.035, 0.0), pelvis_h=0.85, trunk=(18, 0), pelvis=44, shoulders=54, neck=-6, chin=-4,
-                          knees=0.08, lead_foot=(0.10, 0.25), rear_foot=(0.13, 0.25), lead_toe=0, rear_toe=58, rear_heel=0.03,
-                          lead_hand=(0.03, 0.36, -0.20), rear_hand=(0.11, 0.17, -0.33),
-                          lead_elbow=0.25, rear_elbow=0.4, lead_palm="down", rear_palm="in")),
+                pose=dict(fit=True, hips=(-0.02, 0.0), pelvis_h=0.985, trunk=(3, 0), pelvis=38, shoulders=48, neck=4, chin=3,
+                          knees=0.0, lead_foot=(0.07, 0.15), rear_foot=(0.10, 0.16), lead_toe=0, rear_toe=45, rear_heel=0.025,
+                          lead_hand=(0.05, 0.36, -0.22), rear_hand=(0.20, 0.25, -0.19),
+                          lead_elbow=0.25, rear_elbow=0.2, lead_palm="down", rear_palm="in")),
     # Vexa, after Sagat: tall Muay Thai, hips square, both gloves high at the
     # brow with the lead one further out, lead foot light and lifting.
     # Fitted to her own skeleton (D-076); blueprint in docs/POSE_BLUEPRINTS.md.
@@ -453,12 +454,39 @@ def step_feet(rig, P, st, lead, off=None, lift=None, drop=0.0):
     return P
 
 
-def keep_hands_out(rig, P, torso=0.115, head=0.10):
-    """A wrist that has ended up inside the fighter's own trunk or head is
-    pushed back out to the surface, on the real rig (D-077): reactions and
-    poses keyed on the captured performer's build folded Vexa's and
-    Seraphina's hands into their bellies. Radii are in the fighter's scale."""
-    S = rig.hips_h / 0.95
+def trunk_clearance(rig, D, pos, q, pad=0.0):
+    """How far point q (model space) is outside the fighter's trunk, in
+    metres (negative = inside), the direction that leads out, and the point
+    of the spine it was measured from. The trunk is an ellipse round the
+    spine, as wide and as deep as the mesh (Rig.torso_rx / torso_ry), turned
+    with the pelvis below and the chest above; `pad` thickens it."""
+    best = None
+    for a, b, bone, side in ((pos["Hips"], pos["Chest"], "Hips", "hips"), (pos["Chest"], pos["Neck"], "Chest", "shoulders")):
+        ab = b - a
+        t = float(np.dot(q - a, ab) / (np.dot(ab, ab) + 1e-12))
+        if t < -0.15 or t > 1.1:                           # below the pelvis or above the collar: not beside the trunk
+            continue
+        c = a + ab * float(np.clip(t, 0.0, 1.0))
+        o = (q - c) - _norm(ab) * float(np.dot(q - c, _norm(ab)))      # across the spine only
+        lat = _norm(D[bone] @ rig.side0[side])
+        sag = _norm(np.cross(_norm(ab), lat))
+        u, v = float(np.dot(o, lat)), float(np.dot(o, sag))
+        k = math.sqrt((u / (rig.torso_rx + pad)) ** 2 + (v / (rig.torso_ry + pad)) ** 2)
+        dist = float(np.linalg.norm(o))
+        clear = dist * (1.0 - 1.0 / k) if k > 1e-6 else -(rig.torso_ry + pad)
+        if best is None or clear < best[0]:
+            # outward: straight away from the spine, or to the front if it sits on it
+            out = _norm(o) if dist > 1e-4 else -sag
+            best = (clear, out, c)
+    return best if best is not None else (1.0, np.array([0.0, -1.0, 0.0]), pos["Chest"])
+
+
+def keep_hands_out(rig, P):
+    """A wrist or forearm that has ended up inside the fighter's own trunk
+    or head is pushed back out to the surface, on the real rig (D-077,
+    D-078, D-080): poses keyed on the captured performer's build folded
+    hands into bellies and ran forearms through chests. The body's size is
+    the mesh's own (Rig.torso_rx, torso_ry, head_r)."""
     up = P["Neck1"] - P["Hips"]
     if up[2] < 0.6 * np.linalg.norm(up):                   # lying or falling: the floor and the body are meant to touch
         return P
@@ -467,35 +495,29 @@ def keep_hands_out(rig, P, torso=0.115, head=0.10):
         pos, tails = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], rig.hips_h]))
         moved = False
         for sd in ("Left", "Right"):
-            w = pos[sd + "Hand"]
-            for a, b, r in ((pos["Hips"], pos["Chest"], torso * S), (pos["Chest"], pos["Neck"], torso * S),
-                            (pos["Head"], tails["Head"], head * S)):
-                ab = b - a
-                c = a + ab * float(np.clip(np.dot(w - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
-                d = float(np.linalg.norm(w - c))
-                if d < r:
-                    out = _norm((w - c) + np.array([0.0, -0.3 * r, 0.0]))     # outward, with a bias to the front
-                    P = reach_hand(rig, P, sd, c + out * (r + 0.005), 1.0, rig.hips_h)
-                    moved = True
-                    break
-            else:
-                # the forearm too: a fist in front of the chest with its elbow
-                # behind the ribs runs the arm through the body (owner, D-078)
-                e = pos[sd + "LowerArm"]
-                worst = None                               # the point of the forearm deepest in the trunk
-                for f in (0.35, 0.55, 0.75):
-                    q = e + (w - e) * f
-                    for a, b in ((pos["Hips"], pos["Chest"]), (pos["Chest"], pos["Neck"])):
-                        ab = b - a
-                        c = a + ab * float(np.clip(np.dot(q - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
-                        d = float(np.linalg.norm(q - c))
-                        if d < 0.11 * S and (worst is None or d < worst[0]):
-                            worst = (d, q, c, f)
-                if worst:
-                    d, q, c, f = worst
-                    out = _norm((q - c) + np.array([0.0, -0.03, 0.0]))
-                    P = reach_hand(rig, P, sd, w + out * (0.11 * S - d + 0.01) / f, 1.0, rig.hips_h)
-                    moved = True
+            w, e = pos[sd + "Hand"], pos[sd + "LowerArm"]
+            clear, out, _c = trunk_clearance(rig, D, pos, w, pad=0.04)          # half a fist
+            if clear < 0:
+                P = reach_hand(rig, P, sd, w + _norm(out + np.array([0.0, -0.25, 0.0])) * (-clear + 0.01), 1.0, rig.hips_h)
+                moved = True
+                continue
+            a, b = pos["Head"], tails["Head"]
+            ab = b - a
+            c = a + ab * float(np.clip(np.dot(w - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
+            d = float(np.linalg.norm(w - c))
+            if d < rig.head_r + 0.035:
+                P = reach_hand(rig, P, sd, c + _norm((w - c) + np.array([0.0, -0.03, 0.0])) * (rig.head_r + 0.045), 1.0, rig.hips_h)
+                moved = True
+                continue
+            worst = None                                   # the point of the forearm deepest in the trunk
+            for f in (0.35, 0.55, 0.75):
+                clear, out, _c = trunk_clearance(rig, D, pos, e + (w - e) * f, pad=0.025)   # half a forearm
+                if clear < 0 and (worst is None or clear < worst[0]):
+                    worst = (clear, out, f)
+            if worst:
+                clear, out, f = worst
+                P = reach_hand(rig, P, sd, w + _norm(out + np.array([0.0, -0.25, 0.0])) * (-clear + 0.01) / f, 1.0, rig.hips_h)
+                moved = True
         if not moved:
             break
     return P
@@ -702,6 +724,42 @@ class Rig:
             if i is not None and q is not None:
                 self.palm0[side] = _norm(np.cross(i - w, q - w)) * hand
         self.auto_palm = False                 # build() turns it on for fighters with a fitted stance
+        # How wide and how deep the trunk really is, and how big the head,
+        # from the mesh itself (D-080): a fixed tube round the spine let
+        # Seraphina's and Nox's hands sit inside their chest armour without
+        # the checker noticing. The trunk is an ellipse round the spine:
+        # torso_rx across the shoulders, torso_ry front to back.
+        hh = float(self.head["Hips"][2])
+        self.torso_rx, self.torso_ry, self.head_r = 0.16 * hh / 0.95, 0.115 * hh / 0.95, 0.10 * hh / 0.95
+        try:
+            lat = self.side0["shoulders"]
+            sag = np.array([-lat[1], lat[0], 0.0])
+            def off(p, a, b):
+                ab = b - a
+                return p - (a + ab * np.clip(np.dot(p - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
+            us, vs, skull = [], [], []
+            a0, a1, a2 = self.head["Hips"], self.head["Chest"], self.head["Neck"]
+            h0, h1 = self.head["Head"], self.tail["Head"]
+            for ob in arm_obj.children:
+                if ob.type != "MESH":
+                    continue
+                gi = {g.index: g.name for g in ob.vertex_groups}
+                for v in ob.data.vertices:
+                    w = {gi[g.group]: g.weight for g in v.groups if g.group in gi}
+                    co = np.array(ob.matrix_world @ v.co)
+                    if w.get("Hips", 0) + w.get("Spine", 0) + w.get("Chest", 0) > 0.7 and a0[2] - 0.02 < co[2] < a2[2]:
+                        o1, o2 = off(co, a0, a1), off(co, a1, a2)
+                        o = o1 if np.linalg.norm(o1) < np.linalg.norm(o2) else o2
+                        us.append(abs(float(np.dot(o, lat))))
+                        vs.append(abs(float(np.dot(o, sag))))
+                    elif w.get("Head", 0) > 0.8:
+                        skull.append(float(np.linalg.norm(off(co, h0, h1))))
+            if len(us) > 50:
+                self.torso_rx, self.torso_ry = float(np.percentile(us, 95)), float(np.percentile(vs, 95))
+            if len(skull) > 50:                 # hair and hoods reach far: the middle of the head, capped
+                self.head_r = min(float(np.percentile(skull, 60)), 0.125 * hh / 0.95)
+        except Exception as exc:                # measuring is a help, never a reason to fail the build
+            print("[rig] body thickness not measured:", exc)
         self.hips_h = float(self.head["Hips"][2])
         self.foot_h = float(min(self.head["LeftFoot"][2], self.head["RightFoot"][2]))
 

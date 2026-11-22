@@ -48,9 +48,9 @@ LIMITS = dict(
     trunk_lean=45.0,
     foot_float=0.03,               # metres a planted foot may be off the floor
     cog_margin=-0.02,              # metres the centre of gravity may fall outside the feet
-    hand_body=0.07,                # x body scale: wrist closer to the spine line than this = inside the body
-    hand_head=0.07,
-    forearm_body=0.10,             # x body scale: the middle of the forearm closer to the spine line than this
+    hand_body=-0.005,              # metres: a wrist (with half a fist) this far inside the trunk's surface is a fault
+    hand_head=-0.005,
+    forearm_body=-0.005,           # the same for the forearm
 )
 
 
@@ -128,7 +128,9 @@ def measure(M, rig, pose, floor=None):
         floor = min(min(J[sd + "Foot"][2] - rig.foot_h, J[sd + "Toe"][2] - rest_toe) for sd in ("Left", "Right"))
     J = {k: v - np.array([0.0, 0.0, floor]) for k, v in J.items()}
     floor = 0.0
-    m = {"rest_toe_height": round(float(min(rig.tail["LeftFoot"][2], rig.tail["RightFoot"][2])), 3)}
+    m = {"rest_toe_height": round(float(min(rig.tail["LeftFoot"][2], rig.tail["RightFoot"][2])), 3),
+         "trunk_half_width": round(float(rig.torso_rx), 3), "trunk_half_depth": round(float(rig.torso_ry), 3),
+         "head_radius": round(float(rig.head_r), 3)}
     for sd in ("Left", "Right"):
         k = sd.lower()
         toe = _flat(J[sd + "Toe"] - J[sd + "Foot"])
@@ -149,12 +151,13 @@ def measure(M, rig, pose, floor=None):
             m[k + "_palm_faces"] = [round(float(pn[0]), 2), round(float(-pn[1]), 2), round(float(pn[2]), 2)]
         m[k + "_wrist_xyz"] = [round(float(J[sd + "Hand"][0]), 3), round(float(-J[sd + "Hand"][1]), 3), round(float(J[sd + "Hand"][2]), 3)]
         m[k + "_elbow_xyz"] = [round(float(J[sd + "LowerArm"][0]), 3), round(float(-J[sd + "LowerArm"][1]), 3), round(float(J[sd + "LowerArm"][2]), 3)]
-        m[k + "_hand_to_spine"] = round(min(_seg_dist(J[sd + "Hand"], J["Hips"], J["Chest"]), _seg_dist(J[sd + "Hand"], J["Chest"], J["Neck"])) / S, 3)
-        # the forearm itself, not only the wrist: a fist in front of the chest
-        # with its elbow behind the ribs runs the arm through the body
+        # clearances from the surface of the trunk / head as the mesh has it
+        # (metres; negative = inside): the wrist with half a fist, the forearm
+        # at three points with half its own thickness
+        m[k + "_hand_to_spine"] = round(M.trunk_clearance(rig, pose.D, J, J[sd + "Hand"], pad=0.04)[0], 3)
         fore = [J[sd + "LowerArm"] + (J[sd + "Hand"] - J[sd + "LowerArm"]) * f for f in (0.35, 0.55, 0.75)]
-        m[k + "_forearm_to_spine"] = round(min(min(_seg_dist(q, J["Hips"], J["Chest"]), _seg_dist(q, J["Chest"], J["Neck"])) for q in fore) / S, 3)
-        m[k + "_hand_to_head"] = round(_seg_dist(J[sd + "Hand"], J["Head"], J["HEADTOP"]) / S, 3)
+        m[k + "_forearm_to_spine"] = round(min(M.trunk_clearance(rig, pose.D, J, q, pad=0.025)[0] for q in fore), 3)
+        m[k + "_hand_to_head"] = round(_seg_dist(J[sd + "Hand"], J["Head"], J["HEADTOP"]) - rig.head_r - 0.035, 3)
     m["feet_apart_along"] = round(abs(float(J["LeftFoot"][1] - J["RightFoot"][1])), 3)
     m["feet_apart_across"] = round(abs(float(J["LeftFoot"][0] - J["RightFoot"][0])), 3)
     yaw = lambda v: math.degrees(math.atan2(v[1], v[0]))    # 0 = square; + = left side back (right side leads)
@@ -224,12 +227,12 @@ def faults(m, lifted=False, lying=False, reach=0.0):
             out.append("%s wrist bent %.0f" % (k, m[k + "_wrist_bend"]))
         if not lying and m[k + "_knee_flex"] > 25 and m[k + "_knee_vs_toe"] > L["knee_toe"] and k.capitalize() in m["planted_feet"]:
             out.append("%s knee points %.0f away from its foot" % (k, m[k + "_knee_vs_toe"]))
-        if m[k + "_hand_to_spine"] < L["hand_body"]:
-            out.append("%s hand inside the torso (%.2f)" % (k, m[k + "_hand_to_spine"]))
+        if not lying and m[k + "_hand_to_spine"] < L["hand_body"]:
+            out.append("%s hand inside the torso (%.2f m clear)" % (k, m[k + "_hand_to_spine"]))
         if not lying and m[k + "_forearm_to_spine"] < L["forearm_body"]:
-            out.append("%s forearm inside the torso (%.2f)" % (k, m[k + "_forearm_to_spine"]))
-        if m[k + "_hand_to_head"] < L["hand_head"]:
-            out.append("%s hand inside the head (%.2f)" % (k, m[k + "_hand_to_head"]))
+            out.append("%s forearm inside the torso (%.2f m clear)" % (k, m[k + "_forearm_to_spine"]))
+        if not lying and m[k + "_hand_to_head"] < L["hand_head"]:
+            out.append("%s hand inside the head (%.2f m clear)" % (k, m[k + "_hand_to_head"]))
         if m[k + "_toe_height"] < -0.03 or m[k + "_ankle_above_rest"] < -0.04:
             out.append("%s foot below the floor" % k)
     if lying:

@@ -1079,3 +1079,27 @@ Fourth fighter of the owner's pose brief, owner said "continue".
   frames from two sides, idle, blocks, reactions, walks, dashes, victory and
   defeat at five frames (small). 196 tests pass. Not checked: a phone.
 
+## D-080 — 2026-11-22 — Arms tested against the real body; Nox stands upright
+
+Owner on Nox: "his hand is in his body and also he needs to stand straight".
+- The arm test used a fixed tube round the spine. Nox's chest armour is
+  deeper than that tube, so his rear forearm sat inside it unnoticed (the
+  same mistake as Seraphina, D-078). Now `Rig` measures each fighter's own
+  trunk from the mesh (half-width across the shoulders and half-depth front
+  to back, 95th percentile of the trunk's vertices; head radius capped so
+  hair and hoods do not count), and `trunk_clearance()` tests wrists (plus
+  half a fist) and forearms (plus half their thickness) against that
+  ellipse, turned with the pelvis and chest. `keep_hands_out()` and the
+  checker both use it; lying poses are exempt.
+  Measured half-width / half-depth: Kairo 0.18 / 0.13, Vexa 0.13 / 0.14,
+  Seraphina 0.12 / 0.12, Nox 0.15 / 0.14 m.
+- **Nox stands upright**: pelvis at 98.5% of standing height (was 85%),
+  spine vertical (was 16 degrees forward), shorter base; lead hand out in
+  front, rear hand up in front of the rear shoulder, both clear of the body.
+  This departs from the low Raven reference on the owner's instruction.
+- Kairo, Vexa, Seraphina rebuilt against their real body size: no stance
+  faults; one frame each of Kairo's ultimate and Nox's Shade Step lets an
+  arm 1-2 cm into the padded surface mid-blend (KI-050).
+- Looked at: all four stances close up from four sides; Nox's eight attacks
+  and seven other animations again. 196 tests pass. Not checked: a phone.
+

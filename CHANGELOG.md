@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Nox stands upright; arms tested against each fighter's real body
+- Nox stands straight (he was crouched low and leaning forward), with his lead hand out and his rear hand up in front of his shoulder; neither arm touches his body.
+- The arm-through-body check now uses each fighter's own chest width and depth measured from the model, instead of one fixed size for everyone.
 ### Fixed — Nox's poses
 - Nox crouches low and coiled, side-on, with his lead hand out and his rear hand cocked at the ribs; both knees bend over their own feet. His moves start and end on the same feet, and his low dash and low block no longer leave his feet behind.
 ### Fixed — Seraphina's arm through her body

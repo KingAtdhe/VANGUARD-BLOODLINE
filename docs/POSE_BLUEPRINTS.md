@@ -119,36 +119,36 @@ Step, Crescent Arc and Low Sweep her centre of gravity is 0.14-0.21 m off
 the standing foot (she leans away from the kick, not far enough to balance
 it); the defeat pose bends a wrist 67° on the floor.
 
-## Nox — done (D-079)
+## Nox — done (D-079, stood upright in D-080)
 
 Identity: shadow assassin; feints and misdirection. Reference approved by
 the owner: Raven (posed from knowledge of the character, not from footage).
-Low and coiled on a long base, side-on, one hand out as a feeler.
+First built low and coiled; the owner asked for him to stand straight, so he
+is upright now: side-on, both hands up in front, light on his feet.
 
 | | Blueprint (measured) |
 |---|---|
-| Lead (left) foot | 0.10 left of centre, 0.24 forward; pointing at the opponent; flat |
-| Rear (right) foot | 0.13 right of centre, 0.24 back; turned 58° out; heel 3 cm up |
-| Distance between feet | 0.48 along the fight line, 0.22 across it (long, low base) |
-| Knee flexion | lead 62°, rear 70°; knees over their toes (5° off each; the rear knee was 46° off before) |
-| Pelvis | 0.78 m high (85% of standing, the lowest of the six); turned 41° side-on |
-| Spine | leans 16° forward |
-| Chest | turned 52° side-on; 12° of twist against the pelvis |
-| Lead arm | reaching out: elbow bent 116°, wrist 0.44 forward at 1.16 m (below the chin), open hand |
-| Rear arm | drawn in at the ribs: elbow bent 63°, wrist at 1.04 m, forearm 13 cm clear of the spine line |
-| Hands | open (spear hands); lead palm turned down and in, rear palm in; wrists straight |
-| Guard | one hand out to feel the range, the other cocked back to strike |
-| Head | hooded head up and on the opponent (14° of the chest's turn), chin 4° up to see from the crouch |
-| Neck | 39° of turn against the chest |
-| Weight | 61% on the lead foot, ready to spring |
-| Centre of gravity | 7 cm inside the edge of the feet |
+| Lead (left) foot | 0.07 left of centre, 0.14 forward; pointing at the opponent; flat |
+| Rear (right) foot | 0.10 right of centre, 0.15 back; turned 45° out; heel 2.5 cm up |
+| Distance between feet | 0.30 along the fight line, 0.17 across it |
+| Knee flexion | lead 22°, rear 39°; knees over their toes (0° and 2° off; the rear knee was 46° off before) |
+| Pelvis | 0.91 m high (98.5% of standing); turned 38° side-on |
+| Spine | upright: 0° forward |
+| Chest | turned 47° side-on; 9° of twist against the pelvis |
+| Lead arm | elbow bent 113°, open hand out in front at 1.28 m, 0.34 forward of the stance centre |
+| Rear arm | elbow bent 55°, hand up in front of the rear shoulder at 1.31 m |
+| Arms and body | wrists 0.16 and 0.11 m clear of the trunk's surface, forearms 0.13 and 0.03 m (measured against the mesh's own width and depth) |
+| Hands | open (spear hands); wrists straight |
+| Head | hooded head on the opponent (12° of the chest's turn), chin 3° down |
+| Neck | 35° of turn against the chest |
+| Weight | 54% on the lead foot |
+| Centre of gravity | 6 cm inside the edge of the feet |
 | Idle | rocks 2 cm side to side over planted feet; feet slide 0.000 m |
 
 Checks: stance faults none. 72 action frames checked: 29 flagged before,
-5 after, all looked at (KI-050): Scythe Sweep and Feint Fang crouch with
-the trunk 46-48° forward and the head tilted about 20° (a floor sweep);
-Shade Step leans 58° forward in a low dash with a foot in the air; the
-forward dash has a foot in the air mid-step; defeat bends a wrist 67°.
+2 after (KI-050): the forward dash has a foot in the air mid-step; defeat
+bends a wrist 67° on the floor. Shade Step frame 20 lets the rear hand
+come 2 cm inside the trunk's padded surface for a moment.
 
 ## Drakon, Ryuen — not done
 
