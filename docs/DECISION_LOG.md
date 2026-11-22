@@ -908,3 +908,31 @@ boxing guard; this one sets the pose itself.
 
 - **M7:** Final title, logo and package name (legal review).
 - **M8:** Should the Story finale / Arcade boss be fought in the Origin Chamber (D-050)?
+
+## D-074 — 2026-11-22 — Stances after named references
+
+Owner still found every stance worse than commercial fighting games and
+chose to name a reference per fighter; the six suggested references were
+approved ("All"): Kairo → Steve Fox, Drakon → Zangief, Seraphina → Hwoarang,
+Nox → Raven, Vexa → Sagat, Ryuen → Leroy Smith. They were posed from
+knowledge of those characters, **not** traced from footage or screenshots.
+- New `pose` keys in `pose_stance()`: `shoulders` (how far the chest is
+  turned side-on, absolute, so it no longer depends on which way the captured
+  performer stood), `knees` (knees pushed out), `lead_toe` / `rear_toe`
+  (feet turned out). The chest turns about the spine, not the vertical, so a
+  leaning body does not swing sideways.
+- Root cause of Kairo's lead fist staying at his face: the capture stood
+  right side forward and D-073 only switched the feet, so his left shoulder
+  was behind him. `shoulders` puts the lead shoulder in front.
+- The head keeps a quarter of the chest turn (`HeadSide`, read by
+  `retarget()`), so side-on fighters still look at the opponent. Only posed
+  stances set it; every other animation is retargeted as before.
+- **Kairo:** upright boxer, short base, fists at the chin, double bob.
+  **Drakon:** wide and square, knees out, arms open at the sides.
+  **Seraphina:** side-on and tall, hands low, bouncing. **Nox:** low and
+  coiled, lead hand out. **Vexa:** tall, both gloves at the brow, lead foot
+  lifting. **Ryuen:** upright, lead palm on the centre line, rear palm behind it.
+- Hand-set poses on captured breathing; idle habits are keyed (as before).
+- Checked: idle rendered from four angles per fighter and looked at; the
+  first active frame of all 52 moves rendered (side and front, small) and the
+  strikes still meet their boxes; 196 tests pass. Not checked: a phone.

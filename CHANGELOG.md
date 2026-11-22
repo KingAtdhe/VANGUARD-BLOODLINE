@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — stances after reference fighters
+- Each stance now follows a well-known fighter the owner approved: Kairo an upright boxer (Steve Fox), Drakon wide with open arms (Zangief), Seraphina side-on with low hands (Hwoarang), Nox low and coiled (Raven), Vexa a tall high guard (Sagat), Ryuen upright with his lead palm out (Leroy Smith). Posed from knowledge of those characters, not from footage.
+- Kairo's lead shoulder and fist are now in front of him; fighters who stand side-on keep looking at the opponent.
 ### Changed — stances posed by hand
 - All six stances rebuilt as designed poses instead of adjusted boxing guards: Drakon hunched and reaching, Nox in a very low lunge, Vexa in a high Muay Thai guard, Seraphina bladed with her lead heel up, Ryuen sunk on his rear leg, Kairo orthodox (left foot forward).
 ### Changed — stances, second pass

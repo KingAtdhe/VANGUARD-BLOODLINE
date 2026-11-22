@@ -31,6 +31,11 @@ for every fighter; multi-hit ultimates. Do not start one without the owner's cho
   a 5-minute rebuild by measuring knee angles and foot spacing). The
   other four followed in D-070; all six stances now match the design doc
   except for the idle motion described there.
+- D-074: the owner approved a reference per fighter (Steve Fox, Zangief,
+  Hwoarang, Raven, Sagat, Leroy Smith) and all six stances were re-posed
+  after them (`pose` in `STYLES`, new keys `shoulders`, `knees`, `*_toe`).
+  Posed from the names only; the owner has not yet said whether they are
+  good enough. If not, ask for screenshots of the exact stance wanted.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate
   with 48-bone skeletons) and balance. The owner had not yet given feedback
   on Kairo, Drakon, Seraphina or Nox when this was written.

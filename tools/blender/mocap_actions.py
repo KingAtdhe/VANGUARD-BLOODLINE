@@ -43,39 +43,44 @@ STYLES = {
     # Each stance is posed by hand on a captured guard (pose_stance): the base
     # of support, hip height, how the chest is turned and where each hand is
     # held come from the fighter's design; bob / sway / tap are idle habits.
-    # Kairo: orthodox boxer. Long base, weight a little forward, chin down
-    # behind the lead shoulder, lead fist out at eye level, rear fist on the cheek.
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.3, bob=0.014, lead="Left",
-                  pose=dict(hips=(0.03, -0.04), lean=6, twist=18, chin=10, lead_foot=(0.10, 0.30), rear_foot=(0.15, 0.30),
-                            lead_hand=(0.05, 0.50, -0.07), rear_hand=(0.02, 0.15, -0.13), lead_elbow=0.2, rear_elbow=0.2)),
-    # Drakon: brawler and grappler. Low, wide and square, hunched forward,
-    # both gauntlets held out in front of the face ready to grab.
+    # Each stance follows a reference the owner approved by name (D-074); they
+    # were posed from knowledge of those characters, not traced from footage.
+    # Kairo, after Steve Fox: upright boxer on a short springy base, lead
+    # shoulder in front, lead fist out at chin height, rear fist on the cheek.
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.3, bob=0.03, bob_beats=2, lead="Left",
+                  pose=dict(hips=(0.02, -0.04), lean=17, shoulders=42, chin=8, lead_foot=(0.09, 0.22), rear_foot=(0.12, 0.24),
+                            lead_toe=10, rear_toe=40, lead_hand=(0.10, 0.42, -0.18), rear_hand=(0.07, 0.15, -0.13),
+                            lead_elbow=0.15, rear_elbow=0.15)),
+    # Drakon, after Zangief: wide and square, knees out, chest forward, both
+    # arms held open and high at the sides ready to grab.
     "drakon": dict(clip="14_02", frame=4530, amp=0.25, sway=0.035,
-                   pose=dict(hips=(0.02, 0.01), lean=-12, twist=6, chin=6, lead_foot=(0.26, 0.24), rear_foot=(0.26, 0.24),
-                             lead_hand=(0.14, 0.40, -0.14), rear_hand=(0.14, 0.30, -0.10), lead_elbow=0.6, rear_elbow=0.6)),
-    # Seraphina: kicker. Bladed and tall on a long narrow base, weight on the
-    # rear leg with the lead heel off the floor, lead hand held out as a range-finder, rear hand at the chin.
-    "seraphina": dict(clip="144_07", frame=1620, amp=0.4, turn=180, bob=0.022, bob_beats=2,
-                      pose=dict(hips=(-0.07, 0.0), lean=3, twist=12, lead_foot=(0.04, 0.38), rear_foot=(0.06, 0.26),
-                                lead_heel=0.05, lead_hand=(0.04, 0.50, -0.20), rear_hand=(0.04, 0.14, -0.15),
-                                lead_elbow=0.2, rear_elbow=0.25)),
-    # Nox: assassin. Very low and long, chest down over the lead knee, lead
-    # hand reaching low toward the opponent, rear hand drawn back by the hip.
+                   pose=dict(hips=(0.0, 0.09), lean=1, shoulders=10, chin=0, knees=0.25,
+                             lead_foot=(0.30, 0.10), rear_foot=(0.30, 0.10), lead_toe=35, rear_toe=35,
+                             lead_hand=(0.40, 0.28, -0.26), rear_hand=(0.40, 0.22, -0.26), lead_elbow=0.7, rear_elbow=0.7)),
+    # Seraphina, after Hwoarang: side-on and tall on a narrow base, bouncing,
+    # lead arm hanging low in front, rear hand loose at the chest.
+    "seraphina": dict(clip="144_07", frame=1620, amp=0.4, turn=180, bob=0.035, bob_beats=2,
+                      pose=dict(hips=(-0.03, 0.02), lean=2, shoulders=68, lead_foot=(0.03, 0.26), rear_foot=(0.05, 0.24),
+                                lead_toe=15, rear_toe=70, lead_heel=0.03, lead_hand=(0.05, 0.34, -0.64),
+                                rear_hand=(0.02, 0.20, -0.34), lead_elbow=0.2, rear_elbow=0.3)),
+    # Nox, after Raven: low and coiled, side-on, lead hand reaching out in
+    # front below the chin, rear hand held in at the chest.
     "nox": dict(clip="144_20", frame=1590, amp=0.3, sway=0.022,
-                pose=dict(hips=(0.08, 0.2), lean=-34, twist=14, chin=-18, lead_foot=(0.16, 0.42), rear_foot=(0.20, 0.40),
-                          lead_hand=(0.08, 0.42, -0.34), rear_hand=(0.22, -0.16, -0.52), lead_elbow=0.3, rear_elbow=0.5)),
-    # Vexa: Muay Thai. Upright and square on a short base, weight back, lead
-    # foot light and tapping, long guard: lead arm held out high, rear glove by the temple.
-    "vexa": dict(clip="14_01", frame=2700, amp=0.5, tap=0.04,
-                 pose=dict(hips=(-0.04, -0.11), lean=4, twist=4, chin=6, lead_foot=(0.11, 0.24), rear_foot=(0.13, 0.20),
-                           lead_heel=0.03, lead_hand=(0.08, 0.40, 0.0), rear_hand=(0.10, 0.12, -0.02),
-                           lead_elbow=0.45, rear_elbow=0.5)),
-    # Ryuen: internal styles. Weight sunk on the rear leg, lead foot forward
-    # on its toes, lead palm held out on the centre line, rear palm low by the waist.
+                pose=dict(hips=(0.03, 0.17), lean=-20, shoulders=58, chin=-12, knees=0.12,
+                          lead_foot=(0.10, 0.40), rear_foot=(0.16, 0.36), lead_toe=5, rear_toe=60,
+                          lead_hand=(0.02, 0.46, -0.26), rear_hand=(0.08, 0.16, -0.36), lead_elbow=0.3, rear_elbow=0.3)),
+    # Vexa, after Sagat: tall Muay Thai, hips square, both gloves high at the
+    # brow with the lead one further out, lead foot light and lifting.
+    "vexa": dict(clip="14_01", frame=2700, amp=0.5, tap=0.08,
+                 pose=dict(hips=(-0.03, -0.06), lean=3, shoulders=22, chin=8, lead_foot=(0.10, 0.18), rear_foot=(0.12, 0.17),
+                           lead_toe=5, rear_toe=40, lead_heel=0.04, lead_hand=(0.11, 0.36, 0.03), rear_hand=(0.11, 0.20, 0.0),
+                           lead_elbow=0.4, rear_elbow=0.4)),
+    # Ryuen, after Leroy Smith: upright Wing Chun, weight on the rear leg, lead
+    # hand out on the centre line, rear hand guarding behind the lead elbow.
     "ryuen": dict(clip="144_13", frame=150, amp=0.15,
-                  pose=dict(hips=(-0.10, 0.0), lean=2, twist=-20, lead_foot=(0.05, 0.36), rear_foot=(0.12, 0.16),
-                            lead_heel=0.06, lead_hand=(0.02, 0.44, -0.26), rear_hand=(0.08, 0.18, -0.50),
-                            lead_elbow=0.3, rear_elbow=0.3)),
+                  pose=dict(hips=(-0.07, 0.03), lean=1, shoulders=35, lead_foot=(0.05, 0.28), rear_foot=(0.10, 0.14),
+                            lead_toe=0, rear_toe=45, lead_heel=0.03, lead_hand=(0.0, 0.50, -0.24),
+                            rear_hand=(0.0, 0.26, -0.30), lead_elbow=0.12, rear_elbow=0.2)),
 }
 FPS_OUT = 60
 
@@ -88,16 +93,17 @@ def idle_motion(P, st, H, u):
       sway  body rocks this far to each side over planted feet (Drakon, Nox)
       tap   the lead foot lifts this high twice per loop (Vexa)"""
     feet = {sd: P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+    knees = st.get("pose", {}).get("knees", 0.0)
     dx = st.get("sway", 0.0) * H * math.sin(2 * math.pi * u)
     dz = -st.get("bob", 0.0) * H * 0.5 * (1 - math.cos(2 * math.pi * u * st.get("bob_beats", 1)))
     if dx != 0.0 or dz != 0.0:
         P = shift(P, list(P.keys()), np.array([dx, 0, dz]))
         for sd in ("Left", "Right"):
-            P = move_foot(P, sd, feet[sd])
+            P = move_foot(P, sd, feet[sd], knee_out=knees)
     if st.get("tap"):
-        lead = "Left" if feet["Left"][1] < feet["Right"][1] else "Right"
+        lead = st.get("lead") or ("Left" if feet["Left"][1] < feet["Right"][1] else "Right")
         lift = st["tap"] * H * max(0.0, math.sin(2 * math.pi * u * 2)) ** 2
-        P = move_foot(P, lead, feet[lead] + np.array([0, 0, lift]))
+        P = move_foot(P, lead, feet[lead] + np.array([0, 0, lift]), knee_out=knees)
     return P
 
 
@@ -136,8 +142,13 @@ def pose_stance(P, st, H, lead):
     feet stand, how low the hips sit, how the chest is turned and where each
     hand is held are all set here. `pose` keys (metres x height/1.8):
       hips       (forward, drop): hips over the lead (+) or rear (-) foot, and lowered
-      lean, twist, chin   upper body pitch (+ back), turn about the spine
-                 (+ = lead shoulder toward the opponent), head pitch (+ = chin down)
+      lean, chin upper body pitch (+ back), head pitch (+ = chin down)
+      shoulders  how far the chest is turned side-on, in degrees: 0 = square to
+                 the opponent, 90 = lead shoulder pointing straight at them
+                 (absolute: whatever way the captured performer stood)
+      twist      older relative turn about the spine, kept for reference
+      knees      knees pushed out to the sides (0 = pointing at the opponent)
+      lead_toe, rear_toe   foot turned out, degrees from the fight line
       lead_foot, rear_foot   (across, along): where each foot stands from the
                  point under the hips; along is toward the opponent for the
                  lead foot and away from them for the rear foot
@@ -158,13 +169,32 @@ def pose_stance(P, st, H, lead):
         for k in UPPER:
             if k in P:
                 P[k] = R @ (P[k] - o) + o
+    if "shoulders" in ps:
+        v = P[lead + "Arm"] - P[rear + "Arm"]
+        cur = math.degrees(math.atan2(-v[1], sgl * v[0]))
+        # turned about the spine itself, so a leaning body does not swing sideways
+        # (about +Z a positive turn carries +X toward +Y, away from the opponent)
+        o, axis = P["Hips"].copy(), Vector(P["Neck1"] - P["Hips"]).normalized()
+        R = np.array(Matrix.Rotation(math.radians(-(ps["shoulders"] - cur) * sgl), 3, axis))
+        for k in UPPER:
+            if k in P:
+                P[k] = R @ (P[k] - o) + o
     if ps.get("chin"):
         P = lean(P, -ps["chin"], about="Neck1", keys=["Head", "Head_end"])
     for sd, key, sign_x, sign_y in ((lead, "lead_foot", sgl, -1), (rear, "rear_foot", -sgl, 1)):
         if key in ps:
             ax, al = ps[key]
             lift = ps.get("lead_heel", 0.0) * H if sd == lead else 0.0
-            P = move_foot(P, sd, np.array([sign_x * ax * H, sign_y * al * H, floor[sd] + lift]))
+            P = move_foot(P, sd, np.array([sign_x * ax * H, sign_y * al * H, floor[sd] + lift]),
+                          knee_out=ps.get("knees", 0.0))
+            toe = "lead_toe" if sd == lead else "rear_toe"
+            if toe in ps:                                  # foot turned out about the ankle
+                a = math.radians(ps[toe]) * sign_x
+                for k in ("ToeBase", "ToeBase_end"):
+                    if sd + k in P:
+                        d = P[sd + k] - P[sd + "Foot"]
+                        n = math.hypot(d[0], d[1])
+                        P[sd + k] = P[sd + "Foot"] + np.array([math.sin(a) * n, -math.cos(a) * n, d[2]])
             if lift > 0:                                   # toes stay on the floor
                 P[sd + "ToeBase"] = P[sd + "ToeBase"] - np.array([0, 0, lift])
     for sd, key, sign_x in ((lead, "lead_hand", sgl), (rear, "rear_hand", -sgl)):
@@ -172,6 +202,11 @@ def pose_stance(P, st, H, lead):
             ax, fw, up = ps[key]
             tgt = P["Head"] + np.array([sign_x * ax, -fw, up]) * H
             P = move_hand(P, sd, tgt, 1.0, pole_out=ps.get("lead_elbow" if sd == lead else "rear_elbow", 0.35))
+    if "shoulders" in ps:
+        # the eyes stay on the opponent however far the chest is turned: the
+        # head keeps a quarter of the turn (read by retarget as its side axis)
+        a = math.radians(ps["shoulders"] * 0.25) * sgl
+        P["HeadSide"] = P["Head"] + np.array([math.cos(a), math.sin(a), 0.0])
     return P
 
 
@@ -188,8 +223,8 @@ LIMB = {
 TORSO = {
     "Hips": ("Hips", "Spine", "hips"), "Spine": ("Spine", "Spine1", "mid"),
     # (in the CMU skeleton Neck sits exactly on Spine1, so the chest runs to Neck1)
-    "Chest": ("Spine1", "Neck1", "shoulders"), "Neck": ("Neck1", "Head", "shoulders"),
-    "Head": ("Head", "Head_end", "shoulders"),
+    "Chest": ("Spine1", "Neck1", "shoulders"), "Neck": ("Neck1", "Head", "neck"),
+    "Head": ("Head", "Head_end", "head"),
 }
 
 
@@ -302,6 +337,9 @@ def retarget(rig, P, stand_hips, ground=True):
         "shoulders": P["LeftArm"] - P["RightArm"],
     }
     side["mid"] = side["hips"] + side["shoulders"]
+    # a posed stance may say where the head faces (pose_stance); else it follows the chest
+    side["head"] = P["HeadSide"] - P["Head"] if "HeadSide" in P else side["shoulders"]
+    side["neck"] = side["head"] / np.linalg.norm(side["head"]) + side["shoulders"] / np.linalg.norm(side["shoulders"])
     D = {"Root": np.eye(3)}
     for name in rig.names:
         if name == "Root":
@@ -386,12 +424,13 @@ def move_hand(P, side, target, weight=1.0, pole_out=0.35):
     return Q
 
 
-def move_foot(P, side, target, weight=1.0):
+def move_foot(P, side, target, weight=1.0, knee_out=0.0):
     if weight <= 0:
         return P
     cur = P[side + "Foot"]
     tgt = cur + (np.array(target) - cur) * weight
-    pole = P[side + "Leg"] + np.array([0, -0.4, 0.0])        # knees point forward (-Y)
+    # knees point forward (-Y), or out to the fighter's own side by knee_out
+    pole = P[side + "Leg"] + np.array([(1 if side == "Left" else -1) * knee_out, -0.4, 0.0])
     Q = ik2(P, side + "UpLeg", side + "Leg", side + "Foot", tgt, pole)
     for k in ("ToeBase", "ToeBase_end"):
         if side + k in P:
