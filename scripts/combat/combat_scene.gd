@@ -425,7 +425,7 @@ func _render(delta: float) -> void:
 		xs.append(lerpf(_previous[i].position_x, simulation.fighters[i].position_x, alpha))
 	_effects.sync_projectiles(simulation.projectiles, 0.0 if frozen else alpha)
 	_hitbox_view.show_boxes(simulation, xs)
-	_camera_rig.follow(xs[0], xs[1], delta)
+	_camera_rig.follow(xs[0], xs[1], delta, maxf(_fighter_views[0].position.y, _fighter_views[1].position.y))
 	_hud.refresh(simulation, director, delta)
 	_touch.set_action_enabled(InputActions.ULTIMATE, _ultimate_available(0))
 	if match_rules.training:

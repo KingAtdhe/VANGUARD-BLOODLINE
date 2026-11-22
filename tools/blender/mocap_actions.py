@@ -2484,7 +2484,7 @@ def kairo_keys(moves, base, g, S):
                  (a1 + 11, (hips0 - 0.015, 0), "out"), (T - 4, (hips0, 0))],
         "pelvis_h": [(0, ph0), (8, low(0.075)), (a0, low(0.06), "in"), (a1, low(0.06)), (a1 + 9, ph0 + 0.004, "out")] + settle(T, a1 + 15, ph0),
         "pelvis": [(0, pel0), (8, pel(-18)), (a0 - 2, pel(26), "in"), (a1, pel(26)), (a1 + 11, pel(-3), "out"), (T - 4, pel0)],
-        "shoulders": [(0, sh0), (8, sho(-28)), (a0, sho(38), "in"), (a1, sho(36)), (a1 + 11, sho(-4), "out"), (T - 4, sh0)],
+        "shoulders": [(0, sh0), (8, sho(-28)), (a0, sho(24), "in"), (a1, sho(23)), (a1 + 11, sho(-4), "out"), (T - 4, sh0)],
         "trunk": [(0, tr0), (8, lean(-5)), (a0, lean(10), "in"), (a1, lean(9)), (a1 + 11, lean(-1.5), "out"), (T - 4, tr0)],
         "lead_foot": [(0, lf0), (8, (lf0[0], lf0[1] - 0.04)), (a0 - 1, (lf0[0], lf0[1] + 0.23), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.23)), (T - 5, lf0)],
         "lead_heel": [(0, 0.0), (8, 0.035), (a0 - 1, 0.0, "in")],
@@ -3182,12 +3182,16 @@ def build(rig_obj, moves, fid, height, clip_dir):
             lowest foot on the floor (a jump: both feet may be off it)."""
             poses = []
             slow = float(tracks.get("_recover", 1.0))
+            hold = int(tracks.get("_hold", 0))
             fa = tracks.get("_feet_abs")
             for f in range(total):
                 # the recovery is played `slow` times slower than it was keyed, so
                 # the return fills the recovery frames instead of finishing early
                 # and standing still (seen on the frame-by-frame strips, D-085)
-                t = f if (a1 is None or f <= a1) else a1 + (f - a1) / slow
+                # `_hold`: the pose of the last active frame stays for that many
+                # frames first. On the phone (D-089) a strike was fully out for
+                # 50 ms and gone: too short to read.
+                t = f if (a1 is None or f <= a1) else a1 + max(0, f - a1 - hold) / slow
                 ps = dict(base_ps)
                 for ch, keys in tracks.items():
                     if ch.startswith("_"):
@@ -3225,7 +3229,12 @@ def build(rig_obj, moves, fid, height, clip_dir):
 
         def keyed_move(mv, tracks, settle=6):
             total = mv["startup"] + mv["active"] - 1 + mv["recovery"]
-            return keyed_frames(total, dict(tracks, _name=mv["animation"]), mv["startup"] + mv["active"] - 2, settle)
+            tr = dict(tracks, _name=mv["animation"])
+            if "_recover" in tr and "_hold" not in tr:     # a single strike: hold it, then return in the time left
+                rec = mv["recovery"]
+                tr["_hold"] = min(6, int(round(rec * 0.24)))
+                tr["_recover"] = max(1.0, tr["_recover"] * (rec - tr["_hold"]) / float(rec))
+            return keyed_frames(total, tr, mv["startup"] + mv["active"] - 2, settle)
 
     # ---- crouch, jump and jumping attack (D-087). One frame per tick; the
     # game lifts the fighter along the jump arc, so the clips only pose the

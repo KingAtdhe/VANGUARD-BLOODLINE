@@ -30,8 +30,8 @@ extends Resource
 ## jump_landing_ticks of landing. Holding forward/back at the moment of the
 ## press makes it a forward/back jump covering that distance in the air.
 ## The direction cannot be changed afterwards.
-@export var jump_height: float = 1.3
-@export var jump_prejump_ticks: int = 4
+@export var jump_height: float = 1.1
+@export var jump_prejump_ticks: int = 3
 @export var jump_air_ticks: int = 38
 @export var jump_landing_ticks: int = 4
 @export var jump_forward_distance: float = 2.3

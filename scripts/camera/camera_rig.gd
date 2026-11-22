@@ -24,6 +24,15 @@ extends Node3D
 @export_range(0.0, 1.0) var shake_scale: float = 1.0
 @export var shake_decay: float = 14.0
 const MAX_SHAKE: float = 0.08
+## Jumps (D-089): the camera rises by this share of the highest fighter's
+## height off the floor and backs away just enough to keep that fighter's
+## head below the HUD. On the first phone test of jumping the fighter left
+## the top of the screen.
+@export_range(0.0, 1.0) var lift_follow: float = 0.8
+## Height of a standing fighter's head plus a little air (metres).
+@export var head_clearance: float = 1.95
+## Share of the upper half of the screen that is free of the HUD.
+@export_range(0.1, 1.0) var hud_clear_fraction: float = 0.64
 
 ## Body half-width used when the frame is pinned at an arena wall. Fighters
 ## never pass walls, so near a wall only their body needs to stay in frame.
@@ -56,7 +65,8 @@ func _ready() -> void:
 
 
 ## Call once per render frame with the rendered (interpolated) fighter X.
-func follow(p1_x: float, p2_x: float, delta: float) -> void:
+## [param lift] = height off the floor of the highest fighter (a jump, a launch).
+func follow(p1_x: float, p2_x: float, delta: float, lift: float = 0.0) -> void:
 	var target_center: float = (p1_x + p2_x) * 0.5
 	var target_distance: float = required_distance(absf(p2_x - p1_x))
 
@@ -76,7 +86,7 @@ func follow(p1_x: float, p2_x: float, delta: float) -> void:
 	_center_x = clampf(_center_x, lo, hi) if lo <= hi else target_center
 	_center_x = _clamp_to_arena(_center_x, half_w, p1_x, p2_x)
 
-	position = Vector3(_center_x, height, _distance)
+	position = Vector3(_center_x, height + lift_follow * lift, _distance + lift_pullback(_distance, lift))
 	_apply_cinematic(delta)
 	_apply_shake(delta)
 
@@ -124,6 +134,20 @@ func _apply_shake(delta: float) -> void:
 	if _shake < 0.0005:
 		_shake = 0.0
 	camera.position = Vector3(sin(_shake_time * 71.0), cos(_shake_time * 53.0), 0.0) * _shake
+
+
+## Extra distance needed at [param distance] so that a fighter [param lift]
+## metres off the floor still has its head under the HUD. The lift itself is
+## smooth (a jump arc), so this needs no smoothing of its own.
+func lift_pullback(distance: float, lift: float) -> float:
+	if lift <= 0.0:
+		return 0.0
+	# height on the fighting plane of the lowest HUD-free line, per metre of distance
+	var per_metre: float = tan(deg_to_rad(camera.fov) * 0.5) * hud_clear_fraction + tan(deg_to_rad(pitch_degrees))
+	if per_metre <= 0.001:
+		return 0.0
+	var needed: float = (lift + head_clearance - (height + lift_follow * lift)) / per_metre
+	return maxf(0.0, needed - distance)
 
 
 ## Distance needed to show both fighters with margins (clamped to zoom range).

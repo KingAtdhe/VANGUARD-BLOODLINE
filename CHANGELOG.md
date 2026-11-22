@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — from the phone recording
+- The camera follows a jump: a jumping fighter no longer leaves the top of the screen. Jumps are a little lower and take off one frame sooner.
+- Kairo's punches and kicks stay out long enough to see before they return (they were fully extended for a twentieth of a second).
+- Origin Break keeps its distance instead of driving Kairo's arms through the opponent.
 ### Changed — Kairo follow-up
 - His counter now answers with a full reverse punch instead of a short poke; his stance breathes and shifts instead of standing still; he has his own high block (open forearm in front of the face); the last punch of the ultimate is cleaner.
 ### Added — jumping and crouching

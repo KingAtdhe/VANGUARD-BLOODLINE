@@ -1356,3 +1356,35 @@ hit reactions). Found and changed:
 - What frame strips cannot show, and so is still unjudged here: speed and
   weight in motion, blending between clips, and all of it on a phone.
 
+## D-089 — 2026-11-22 — From the owner's phone recording of D-088
+
+Two recordings from the phone (training mode, and the fighter-select
+screen) were cut into frames eight per second and looked at. What they
+showed that renders on the build machine had not:
+- **A jumping fighter left the top of the screen** (head and chest behind
+  the HUD and out of frame at the top of the jump). `CameraRig.follow()`
+  now takes the highest fighter's height off the floor: the camera rises by
+  0.8 of it and backs away just enough to keep the head under the HUD
+  (`lift_pullback`). Also covers launched fighters. Checked with
+  `tools/godot/jump_shot.gd` (new): the whole fighter stays in frame.
+- **Jump lowered** from 1.3 m to 1.1 m and the take-off shortened from 4 to
+  3 ticks (45 ticks in all), so a jump pressed on the same tick as a low
+  kick still clears it. Values are now written in every
+  `data/fighters/*_movement.tres`.
+- **Strikes were out and gone in 50 ms.** The fist reached full extension
+  and left on the next frame, so on the phone an attack was a twitch. A
+  single-strike keyed move now keeps its last active pose for about a
+  quarter of its recovery (2 to 6 frames) before returning (`_hold`); the
+  reverse punch is out for 8 frames instead of 3. Frame data unchanged:
+  this is only where the limb is during recovery.
+- **Origin Break** drove Kairo into the dummy so his arms passed through
+  it; each hit now pushes 0.42 m (was 0.3), which keeps about the distance
+  the first hit landed at.
+- Origin Palm: chest turned less at the hit (the neck was twisted 77°).
+- Seen and left: the stance reads well both in the fight and on the select
+  screen; crouch and block read well; the attacks in the recording were
+  thrown from out of range, so hit reactions on the dummy were only seen
+  in the ultimate.
+- Checker: 3 of 84 (unchanged). 204 tests pass.
+- Not verified: these changes on the phone.
+
