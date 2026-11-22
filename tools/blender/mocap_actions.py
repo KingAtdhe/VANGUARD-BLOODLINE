@@ -69,10 +69,12 @@ STYLES = {
                                 lead_elbow=0.2, rear_elbow=0.45, lead_palm="in", rear_palm="in")),
     # Nox, after Raven: low and coiled, side-on, lead hand reaching out in
     # front below the chin, rear hand held in at the chest.
-    "nox": dict(clip="144_20", frame=1590, amp=0.3, sway=0.022,
-                pose=dict(hips=(0.03, 0.17), lean=-20, shoulders=58, chin=-12, knees=0.12,
-                          lead_foot=(0.10, 0.40), rear_foot=(0.16, 0.36), lead_toe=5, rear_toe=60,
-                          lead_hand=(0.02, 0.46, -0.26), rear_hand=(0.08, 0.16, -0.36), lead_elbow=0.3, rear_elbow=0.3)),
+    # Fitted to his own skeleton (D-079); blueprint in docs/POSE_BLUEPRINTS.md.
+    "nox": dict(clip="144_20", frame=1590, amp=0.3, sway=0.02,
+                pose=dict(fit=True, hips=(-0.035, 0.0), pelvis_h=0.85, trunk=(18, 0), pelvis=44, shoulders=54, neck=-6, chin=-4,
+                          knees=0.08, lead_foot=(0.10, 0.25), rear_foot=(0.13, 0.25), lead_toe=0, rear_toe=58, rear_heel=0.03,
+                          lead_hand=(0.03, 0.36, -0.20), rear_hand=(0.11, 0.17, -0.33),
+                          lead_elbow=0.25, rear_elbow=0.4, lead_palm="down", rear_palm="in")),
     # Vexa, after Sagat: tall Muay Thai, hips square, both gloves high at the
     # brow with the lead one further out, lead foot light and lifting.
     # Fitted to her own skeleton (D-076); blueprint in docs/POSE_BLUEPRINTS.md.
@@ -480,16 +482,20 @@ def keep_hands_out(rig, P, torso=0.115, head=0.10):
                 # the forearm too: a fist in front of the chest with its elbow
                 # behind the ribs runs the arm through the body (owner, D-078)
                 e = pos[sd + "LowerArm"]
-                q = e + (w - e) * 0.55
-                for a, b in ((pos["Hips"], pos["Chest"]), (pos["Chest"], pos["Neck"])):
-                    ab = b - a
-                    c = a + ab * float(np.clip(np.dot(q - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
-                    d = float(np.linalg.norm(q - c))
-                    if d < 0.105 * S:
-                        out = _norm((q - c) + np.array([0.0, -0.03, 0.0]))
-                        P = reach_hand(rig, P, sd, w + out * (0.105 * S - d + 0.01) * 1.8, 1.0, rig.hips_h)
-                        moved = True
-                        break
+                worst = None                               # the point of the forearm deepest in the trunk
+                for f in (0.35, 0.55, 0.75):
+                    q = e + (w - e) * f
+                    for a, b in ((pos["Hips"], pos["Chest"]), (pos["Chest"], pos["Neck"])):
+                        ab = b - a
+                        c = a + ab * float(np.clip(np.dot(q - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
+                        d = float(np.linalg.norm(q - c))
+                        if d < 0.11 * S and (worst is None or d < worst[0]):
+                            worst = (d, q, c, f)
+                if worst:
+                    d, q, c, f = worst
+                    out = _norm((q - c) + np.array([0.0, -0.03, 0.0]))
+                    P = reach_hand(rig, P, sd, w + out * (0.11 * S - d + 0.01) / f, 1.0, rig.hips_h)
+                    moved = True
         if not moved:
             break
     return P

@@ -1064,3 +1064,18 @@ screen) the fist came out of her side. The checker only tested wrists.
   Limit: the test uses a tube around the spine, not the mesh, so armour and
   the chest can still be brushed; stance looked at close up from five sides.
 
+## D-079 — 2026-11-22 — Nox through the pose process
+
+Fourth fighter of the owner's pose brief, owner said "continue".
+- **Nox**: stance fitted to his own skeleton (blueprint in
+  `docs/POSE_BLUEPRINTS.md`): low coiled base, lead hand out, rear hand at
+  the ribs. Before: rear knee 46 degrees off its foot, Shade Step and the
+  low block up to 0.6 m outside his feet. Action frames flagged: 29 of 72
+  before, 5 after (KI-050), none of them an arm inside the body.
+- `keep_hands_out()` tests three points along the forearm (the low block
+  laid a forearm 9 cm from the spine line). Kairo, Vexa and Seraphina
+  rebuilt with it; their flag counts are unchanged (4, 5, 5).
+- Looked at: stance close up from five sides, all eight attacks at six
+  frames from two sides, idle, blocks, reactions, walks, dashes, victory and
+  defeat at five frames (small). 196 tests pass. Not checked: a phone.
+

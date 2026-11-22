@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Nox's poses
+- Nox crouches low and coiled, side-on, with his lead hand out and his rear hand cocked at the ribs; both knees bend over their own feet. His moves start and end on the same feet, and his low dash and low block no longer leave his feet behind.
 ### Fixed — Seraphina's arm through her body
 - Seraphina's rear forearm no longer passes through her torso in the stance; it rests across the front of her waist. Arms are now checked against the body on every frame of every animation for Kairo, Vexa and Seraphina.
 ### Fixed — Seraphina's poses; hands and transitions for everyone

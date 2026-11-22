@@ -119,7 +119,38 @@ Step, Crescent Arc and Low Sweep her centre of gravity is 0.14-0.21 m off
 the standing foot (she leans away from the kick, not far enough to balance
 it); the defeat pose bends a wrist 67° on the floor.
 
-## Drakon, Nox, Ryuen — not done
+## Nox — done (D-079)
+
+Identity: shadow assassin; feints and misdirection. Reference approved by
+the owner: Raven (posed from knowledge of the character, not from footage).
+Low and coiled on a long base, side-on, one hand out as a feeler.
+
+| | Blueprint (measured) |
+|---|---|
+| Lead (left) foot | 0.10 left of centre, 0.24 forward; pointing at the opponent; flat |
+| Rear (right) foot | 0.13 right of centre, 0.24 back; turned 58° out; heel 3 cm up |
+| Distance between feet | 0.48 along the fight line, 0.22 across it (long, low base) |
+| Knee flexion | lead 62°, rear 70°; knees over their toes (5° off each; the rear knee was 46° off before) |
+| Pelvis | 0.78 m high (85% of standing, the lowest of the six); turned 41° side-on |
+| Spine | leans 16° forward |
+| Chest | turned 52° side-on; 12° of twist against the pelvis |
+| Lead arm | reaching out: elbow bent 116°, wrist 0.44 forward at 1.16 m (below the chin), open hand |
+| Rear arm | drawn in at the ribs: elbow bent 63°, wrist at 1.04 m, forearm 13 cm clear of the spine line |
+| Hands | open (spear hands); lead palm turned down and in, rear palm in; wrists straight |
+| Guard | one hand out to feel the range, the other cocked back to strike |
+| Head | hooded head up and on the opponent (14° of the chest's turn), chin 4° up to see from the crouch |
+| Neck | 39° of turn against the chest |
+| Weight | 61% on the lead foot, ready to spring |
+| Centre of gravity | 7 cm inside the edge of the feet |
+| Idle | rocks 2 cm side to side over planted feet; feet slide 0.000 m |
+
+Checks: stance faults none. 72 action frames checked: 29 flagged before,
+5 after, all looked at (KI-050): Scythe Sweep and Feint Fang crouch with
+the trunk 46-48° forward and the head tilted about 20° (a floor sweep);
+Shade Step leans 58° forward in a low dash with a foot in the air; the
+forward dash has a foot in the air mid-step; defeat bends a wrist 67°.
+
+## Drakon, Ryuen — not done
 
 Still on the D-074 stances, posed on the captured performer's proportions.
 Faults the checker lists for them today are in KNOWN_ISSUES (KI-050).
