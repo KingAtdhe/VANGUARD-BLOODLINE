@@ -72,10 +72,12 @@ STYLES = {
                           lead_hand=(0.02, 0.46, -0.26), rear_hand=(0.08, 0.16, -0.36), lead_elbow=0.3, rear_elbow=0.3)),
     # Vexa, after Sagat: tall Muay Thai, hips square, both gloves high at the
     # brow with the lead one further out, lead foot light and lifting.
-    "vexa": dict(clip="14_01", frame=2700, amp=0.5, tap=0.08,
-                 pose=dict(hips=(-0.03, -0.06), lean=3, shoulders=22, chin=8, lead_foot=(0.10, 0.18), rear_foot=(0.12, 0.17),
-                           lead_toe=5, rear_toe=40, lead_heel=0.04, lead_hand=(0.11, 0.36, 0.03), rear_hand=(0.11, 0.20, 0.0),
-                           lead_elbow=0.4, rear_elbow=0.4)),
+    # Fitted to her own skeleton (D-076); blueprint in docs/POSE_BLUEPRINTS.md.
+    "vexa": dict(clip="14_01", frame=2700, amp=0.5, tap=0.05,
+                 pose=dict(fit=True, hips=(-0.03, 0.0), pelvis_h=0.99, trunk=(3, 0), pelvis=18, shoulders=24, neck=6, chin=8,
+                           lead_foot=(0.08, 0.14), rear_foot=(0.10, 0.15), lead_toe=0, rear_toe=40, lead_heel=0.03,
+                           lead_hand=(0.11, 0.30, 0.0), rear_hand=(0.13, 0.10, -0.03),
+                           lead_elbow=0.35, rear_elbow=0.3, lead_palm="in", rear_palm="in")),
     # Ryuen, after Leroy Smith: upright Wing Chun, weight on the rear leg, lead
     # hand out on the centre line, rear hand guarding behind the lead elbow.
     "ryuen": dict(clip="144_13", frame=150, amp=0.15,
@@ -386,7 +388,7 @@ def pelvis_z(rig, P, st, stand_hips):
     return min(low, st["pose"].get("pelvis_h", 0.95)) * rig.hips_h
 
 
-def reach_hand(rig, P, sd, wrist, weight, hips_z, elbow_out=0.25):
+def reach_hand(rig, P, sd, wrist, weight, hips_z, elbow_out=0.25, from_head=False):
     """The arm solved on the real rig so the wrist is at `wrist` (model space),
     blended in by `weight`; written back into the source pose like solve_leg.
     The retarget alone leaves a punch short: the fighters' arms are not the
@@ -396,6 +398,8 @@ def reach_hand(rig, P, sd, wrist, weight, hips_z, elbow_out=0.25):
     D, hips = retarget(rig, P, 1.0, ground=False)
     pos, _t = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], hips_z]))
     cur = pos[sd + "Hand"]
+    if from_head:                                          # (across, forward, up) from the model's own head joint
+        wrist = pos["Head"] + np.array([wrist[0], -wrist[1], wrist[2]], float)
     wrist = np.array([cur[0] * 0.5 if wrist[0] is None else wrist[0], wrist[1], wrist[2]], float)   # None: halfway to the centre line
     tgt = cur + (wrist - cur) * weight
     sx = 1 if sd == "Left" else -1
@@ -418,6 +422,27 @@ def reach_hand(rig, P, sd, wrist, weight, hips_z, elbow_out=0.25):
         P[k] = P[sd + "Hand"] + _norm(carried * (1 - weight) + d2 * ln * weight) * ln
     P.pop(sd + "Palm", None)
     P.pop(sd + "Palm0", None)
+    return P
+
+
+def step_feet(rig, P, st, lead, off=None, lift=None, drop=0.0):
+    """Both legs solved on the real rig with the feet moved from their stance
+    marks (D-076): off[side] metres along the fight line (+ = toward the
+    opponent), lift[side] metres off the floor, the pelvis `drop` metres
+    below its stance height. Used for walks, dashes and crouching blocks of
+    a fitted fighter, whose feet cannot be placed on the source skeleton."""
+    ps = st["pose"]
+    S = rig.hips_h / 0.95
+    rear = "Right" if lead == "Left" else "Left"
+    sgl = 1 if lead == "Left" else -1
+    off, lift = off or {}, lift or {}
+    D, _h = retarget(rig, P, 1.0, ground=False)
+    pos, _t = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], ps.get("pelvis_h", 0.95) * rig.hips_h - drop]))
+    for sd, key, sx, sy in ((lead, "lead", sgl, -1), (rear, "rear", -sgl, 1)):
+        ax, al = ps[key + "_foot"]
+        mark = np.array([sx * ax * S, sy * al * S - off.get(sd, 0.0)])
+        P = solve_leg(rig, P, pos, sd, mark, ps.get(key + "_toe", 0.0) * sx, ps.get(key + "_heel", 0.0) * S,
+                      lift.get(sd, 0.0), ps.get("knees", 0.0) * sx)
     return P
 
 
@@ -2033,6 +2058,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     def shape(P):
         return shape_stance(P, st, H)
     fitted = bool(st.get("pose", {}).get("fit"))
+    S_fit = rig.hips_h / 0.95                             # the fighter's own scale (fit_stance)
     def idle_P(t):
         r = raw[int(t) % n_idle]
         amp = st.get("amp", 0.35)
@@ -2221,6 +2247,14 @@ def build(rig_obj, moves, fid, height, clip_dir):
     for t in range(13):
         w = ease(min(1, t / 5), "out")
         P = guard_P
+        if fitted:
+            # forearms in front of the face, measured from the fighter's own head (D-076)
+            P = lean(P, -6 * w)
+            for side, sg in (("Left", 1), ("Right", -1)):
+                P = reach_hand(rig, P, side, (0.085 * sg * S_fit, 0.19 * S_fit, -0.02 * S_fit), w,
+                               st["pose"].get("pelvis_h", 0.95) * rig.hips_h, elbow_out=0.12, from_head=True)
+            blk.append(pose_of(P, box))
+            continue
         for side, sg in (("Left", 1), ("Right", -1)):
             P = move_hand(P, side, head + np.array([0.07 * sg * H, -0.2 * H, 0.05 * H]), w, pole_out=0.2)
         P = lean(P, -6 * w)
@@ -2241,6 +2275,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
         P = move_hand(P, "Left", chest + np.array([0.06 * H, -0.22 * H, -0.16 * H]), w, pole_out=0.25)
         P = move_hand(P, "Right", chest + np.array([-0.07 * H, -0.2 * H, 0.0]), w, pole_out=0.25)
         P = lean(P, -8 * w)
+        if fitted:                                        # knees bend over the stance's own foot marks
+            P = step_feet(rig, P, st, st["_lead"], drop=0.15 * S_fit * w)
         blk_low.append(pose_of(P, box))
     A[f"{F}_BLOCK_LOW"] = blk_low
 
@@ -2381,6 +2417,26 @@ def build(rig_obj, moves, fid, height, clip_dir):
         for t in range(n + 1):
             P = idle_P(t)
             ph = (t % cyc) / cyc
+            if fitted:
+                # A shuffle step solved on the real legs (D-076). Each foot is
+                # planted for 60% of the step and drifts back under the body
+                # as the game carries it along, then swings forward again; the
+                # two feet are half a step apart, so the body stays between them.
+                d = min(stride, 0.26 * S_fit)
+                dirn = 1.0 if forward else -1.0
+                off, lift = {}, {}
+                for foot, shift_ph in (((lead, 0.0), (rear, 0.5)) if forward else ((rear, 0.0), (lead, 0.5))):
+                    q = (ph + shift_ph) % 1.0
+                    if q < 0.6:
+                        o, up = 0.5 - q / 0.6, 0.0
+                    else:
+                        v = (q - 0.6) / 0.4
+                        o, up = -0.5 + ease(v), 0.05 * S_fit * math.sin(math.pi * v)
+                    off[foot], lift[foot] = dirn * d * o, up
+                P = lean(P, (-3 if forward else 2))
+                P = step_feet(rig, P, st, st["_lead"], off, lift, 0.012 * S_fit * abs(math.sin(2 * math.pi * ph)))
+                out.append(pose_of(P, box))
+                continue
             first, second = (lead, rear) if forward else (rear, lead)
             sgn = -1 if forward else 1                    # travel along -Y (forward) or +Y
             for foot, (s0, s1) in ((first, (0.0, 0.5)), (second, (0.35, 0.85))):
@@ -2415,6 +2471,13 @@ def build(rig_obj, moves, fid, height, clip_dir):
             reach = math.sin(math.pi * min(1.0, u / 0.55))            # first foot out and planted again
             follow = math.sin(math.pi * min(1.0, max(0.0, (u - 0.35) / 0.6)))   # second foot skims after it
             low = math.sin(math.pi * u)
+            if fitted:                                    # the same step, solved on the real legs
+                P = lean(base, (-13 if forward else 9) * low)
+                P = step_feet(rig, P, st, st["_lead"],
+                              {first: -sgn * 0.2 * S_fit * reach, second: sgn * 0.1 * S_fit * follow},
+                              {first: 0.05 * S_fit * reach, second: 0.04 * S_fit * follow}, 0.06 * S_fit * low)
+                out.append(pose_of(P, box))
+                continue
             P = shift(base, list(base.keys()), np.array([0, 0, -0.06 * H * low]))
             P = move_foot(P, first, base[first + "Foot"] + np.array([0, sgn * 0.2 * H * reach, 0.05 * H * reach]))
             P = move_foot(P, second, base[second + "Foot"] + np.array([0, -sgn * 0.1 * H * follow, 0.04 * H * follow]))

@@ -51,9 +51,43 @@ Checks: stance faults none. 75 action frames checked, 5 flagged, all looked
 at and left on purpose or recorded in KNOWN_ISSUES (KI-050): the forward
 dash has one foot in the air mid-step; Slip Counter leans the trunk 32° and
 tilts the head (that is the slip) and starts with one foot unweighted; the
-ultimate lunges past its feet; the defeat pose bends a wrist 67°.
+ultimate lunges past its feet; the defeat pose bends a wrist 67°. (The dash
+was re-solved on his real legs in D-076 and is no longer flagged.)
 
-## Drakon, Seraphina, Nox, Vexa, Ryuen — not done
+## Vexa — done (D-076)
+
+Identity: cybernetic zoner with a rebuilt arm; Muay Thai. Reference approved
+by the owner: Sagat (posed from knowledge of the character, not from
+footage). Tall and square, both gloves high, lead foot light and tapping.
+
+| | Blueprint (measured) |
+|---|---|
+| Lead (left) foot | 0.09 left of centre, 0.15 forward; pointing straight at the opponent; heel 3 cm up (light foot) |
+| Rear (right) foot | 0.11 right of centre, 0.16 back; turned 40° out; flat |
+| Distance between feet | 0.32 along the fight line, 0.20 across it (short, square base) |
+| Knee flexion | lead 38°, rear 25°; knees over their toes (0° and 2° off) |
+| Pelvis | 1.02 m high (99% of standing); turned 18° side-on |
+| Spine | upright: 0.5° forward, 0° sideways |
+| Chest | turned 24° side-on; 7° of twist against the pelvis |
+| Lead arm | elbow bent 104°, flared a little; wrist 0.30 forward at 1.54 m (brow height), 0.12 left |
+| Rear arm | elbow bent 134°; wrist beside the right temple at 1.51 m |
+| Hands | fists; palms face inward; wrists straight (0°) |
+| Guard | high Muay Thai guard, face visible between the gloves, lead glove further out |
+| Head | looks at the opponent (6° of the chest's turn), chin 8° down, no tilt |
+| Neck | 18° of turn against the chest |
+| Weight | 53% on the lead foot (it carries less than that reads: its heel is up) |
+| Centre of gravity | over the stance centre, 7 cm inside the edge of the feet (was 16 cm outside before D-076) |
+| Readiness | lead leg unweighted enough to teep or check without a shift |
+| Idle | lead foot lifts 5 cm twice a second; planted foot slides 0.000 m |
+
+Checks: stance faults none. 72 action frames checked: 44 flagged before,
+7 after, all looked at (KI-050): Teep leans back over one leg (centre of
+gravity 0.21 m behind the standing foot at full extension), the elbow, the
+forward dash and the ultimate each have a foot in the air mid-step, the
+body-hit reaction folds an arm into the belly, the ultimate cocks a wrist
+64°, defeat and get-up bend a wrist 63-67° on the floor.
+
+## Drakon, Seraphina, Nox, Ryuen — not done
 
 Still on the D-074 stances, posed on the captured performer's proportions.
 Faults the checker lists for them today are in KNOWN_ISSUES (KI-050).

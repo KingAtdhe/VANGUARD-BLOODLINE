@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Vexa's poses; walking and blocking for Kairo and Vexa
+- Vexa stands in a balanced Muay Thai stance (she was leaning 16 cm behind her own feet): short square base, both gloves high with her face visible, lead foot light and tapping. Her strikes start and end on the same feet.
+- Kairo and Vexa walk with a real shuffle step instead of feet that held and snapped back; their dashes and low blocks bend the legs over the stance's own foot positions; the high block covers the face from the fighter's own head height.
 ### Fixed — poses: root causes, and Kairo redone
 - Kairo's model was built turned 35 degrees and the animation pipeline did not know: his hips, chest and head were off in every pose. Fixed at the source.
 - Kairo's stance is solved on his own skeleton: both feet flat on the floor where the stance says, fists at his chin with straight wrists, head up and looking at the opponent. His punches now start and end on the same feet (no jump apart and slide back), reach with a straight arm, and no longer turn his back or duck his face away.

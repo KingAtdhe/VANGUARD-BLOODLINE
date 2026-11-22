@@ -999,3 +999,26 @@ real faults for them (KI-050). Next: one fighter at a time, owner's order.
 Checked: 196 tests pass; first active frame of the other 43 moves still
 meets its hitbox (small renders). Not checked: anything on a phone.
 
+## D-076 — 2026-11-22 — Vexa through the pose process; walks, dashes and blocks on real legs
+
+Second fighter of the owner's pose brief (D-075), owner said "continue".
+- **Vexa**: stance fitted to her own skeleton (blueprint and measurements in
+  `docs/POSE_BLUEPRINTS.md`). Before: centre of gravity 16 cm outside her
+  feet in the stance (she could not have stood in it), gloves crossing her
+  face. After: balanced over a short square base, high guard with the face
+  visible. Action frames flagged: 44 of 72 before, 7 after (KI-050).
+- `step_feet()`: walks, dashes and the low block of a fitted fighter are
+  solved on the real legs from the stance's foot marks. The old walk held
+  each foot forward and snapped it back at the loop, with both feet up to
+  16 cm ahead of the body when walking backward; the new one is a shuffle
+  step, each foot planted 60% of the step and half a step apart.
+- High block of a fitted fighter: forearms placed from the fighter's own
+  head (`reach_hand(from_head=True)`), not from the captured performer's
+  (Vexa's gloves were inside her head).
+- These apply to Kairo too (rebuilt: 4 of 75 frames flagged, was 5).
+- Looked at: Vexa's stance from five sides, idle at five points, all eight
+  attacks at six frames from two sides, blocks, reactions, walks, dashes and
+  victory at five frames; Kairo's blocks, walks and dashes again.
+- 196 tests pass. Not checked: a phone. Drakon, Seraphina, Nox and Ryuen
+  are still not done.
+
