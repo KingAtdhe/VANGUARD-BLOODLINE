@@ -233,7 +233,7 @@ def faults(m, lifted=False, lying=False, reach=0.0):
         out.append("neck turned %.0f" % m["neck_turn"])
     if abs(m["head_tilt"]) > L["neck_tilt"]:
         out.append("head tilted %.0f to the side" % m["head_tilt"])
-    if abs(m["trunk_lean_forward"]) > L["trunk_lean"] or abs(m["trunk_lean_side"]) > 30:
+    if abs(m["trunk_lean_forward"]) > L["trunk_lean"] or abs(m["trunk_lean_side"]) > (45 if reach > 0 else 30):
         out.append("trunk leans %.0f forward, %.0f sideways" % (m["trunk_lean_forward"], m["trunk_lean_side"]))
     if not lifted:
         if not m["planted_feet"]:

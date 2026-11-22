@@ -60,10 +60,13 @@ STYLES = {
                              lead_hand=(0.40, 0.28, -0.26), rear_hand=(0.40, 0.22, -0.26), lead_elbow=0.7, rear_elbow=0.7)),
     # Seraphina, after Hwoarang: side-on and tall on a narrow base, bouncing,
     # lead arm hanging low in front, rear hand loose at the chest.
-    "seraphina": dict(clip="144_07", frame=1620, amp=0.4, turn=180, bob=0.035, bob_beats=2,
-                      pose=dict(hips=(-0.03, 0.02), lean=2, shoulders=68, lead_foot=(0.03, 0.26), rear_foot=(0.05, 0.24),
-                                lead_toe=15, rear_toe=70, lead_heel=0.03, lead_hand=(0.05, 0.34, -0.64),
-                                rear_hand=(0.02, 0.20, -0.34), lead_elbow=0.2, rear_elbow=0.3)),
+    # Fitted to her own skeleton (D-077); blueprint in docs/POSE_BLUEPRINTS.md.
+    "seraphina": dict(clip="144_07", frame=1620, amp=0.4, turn=180, bob=0.028, bob_beats=2,
+                      pose=dict(fit=True, hips=(-0.02, 0.0), pelvis_h=0.985, trunk=(1, 0), pelvis=52, shoulders=64, neck=5, chin=4,
+                                lead_foot=(0.03, 0.155), rear_foot=(0.05, 0.155), lead_toe=-18, rear_toe=78,
+                                lead_heel=0.02, rear_heel=0.025,
+                                lead_hand=(0.04, 0.22, -0.46), rear_hand=(-0.02, 0.14, -0.26),
+                                lead_elbow=0.1, rear_elbow=0.25, lead_palm="in", rear_palm="in")),
     # Nox, after Raven: low and coiled, side-on, lead hand reaching out in
     # front below the chin, rear hand held in at the chest.
     "nox": dict(clip="144_20", frame=1590, amp=0.3, sway=0.022,
@@ -253,7 +256,8 @@ def _ik_dirs(a, target, l1, l2, hint):
     """Two-bone IK in model space: directions of both bones from root `a` so
     the end reaches `target` (as far as the limb goes), bending toward `hint`."""
     d = np.asarray(target, float) - a
-    dist = float(np.clip(np.linalg.norm(d), 1e-4, (l1 + l2) * 0.995))
+    closest = math.sqrt(l1 * l1 + l2 * l2 - 2 * l1 * l2 * math.cos(math.radians(32.0)))   # folds to 148 degrees at most
+    dist = float(np.clip(np.linalg.norm(d), closest, (l1 + l2) * 0.995))
     dn = _norm(d)
     cos_a = np.clip((l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist), -1, 1)
     h = np.asarray(hint, float)
@@ -281,6 +285,7 @@ def solve_leg(rig, P, pos, sd, mark, toe_deg, heel=0.0, hop=0.0, knee_out=0.0):
     toe_len = [slen(sd + "Foot", k) for k in toe_keys]
     l_thigh, l_shin = slen(sd + "UpLeg", sd + "Leg"), slen(sd + "Leg", sd + "Foot")
     P = dict(P)
+    P["FitMark"] = np.zeros(3)                             # tells move_foot this leg was solved on the rig
     P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
     P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
     # sole flat (or on the ball of the foot): the toe tip keeps its rest height
@@ -443,6 +448,36 @@ def step_feet(rig, P, st, lead, off=None, lift=None, drop=0.0):
         mark = np.array([sx * ax * S, sy * al * S - off.get(sd, 0.0)])
         P = solve_leg(rig, P, pos, sd, mark, ps.get(key + "_toe", 0.0) * sx, ps.get(key + "_heel", 0.0) * S,
                       lift.get(sd, 0.0), ps.get("knees", 0.0) * sx)
+    return P
+
+
+def keep_hands_out(rig, P, torso=0.115, head=0.10):
+    """A wrist that has ended up inside the fighter's own trunk or head is
+    pushed back out to the surface, on the real rig (D-077): reactions and
+    poses keyed on the captured performer's build folded Vexa's and
+    Seraphina's hands into their bellies. Radii are in the fighter's scale."""
+    S = rig.hips_h / 0.95
+    up = P["Neck1"] - P["Hips"]
+    if up[2] < 0.6 * np.linalg.norm(up):                   # lying or falling: the floor and the body are meant to touch
+        return P
+    for _again in range(2):
+        D, _h = retarget(rig, P, 1.0, ground=False)
+        pos, tails = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], rig.hips_h]))
+        moved = False
+        for sd in ("Left", "Right"):
+            w = pos[sd + "Hand"]
+            for a, b, r in ((pos["Hips"], pos["Chest"], torso * S), (pos["Chest"], pos["Neck"], torso * S),
+                            (pos["Head"], tails["Head"], head * S)):
+                ab = b - a
+                c = a + ab * float(np.clip(np.dot(w - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
+                d = float(np.linalg.norm(w - c))
+                if d < r:
+                    out = _norm((w - c) + np.array([0.0, -0.3 * r, 0.0]))     # outward, with a bias to the front
+                    P = reach_hand(rig, P, sd, c + out * (r + 0.005), 1.0, rig.hips_h)
+                    moved = True
+                    break
+        if not moved:
+            break
     return P
 
 
@@ -646,6 +681,7 @@ class Rig:
             i, q, w = (self.head.get(f"{side}HandIndex1"), self.head.get(f"{side}HandPinky1"), self.head[f"{side}Hand"])
             if i is not None and q is not None:
                 self.palm0[side] = _norm(np.cross(i - w, q - w)) * hand
+        self.auto_palm = False                 # build() turns it on for fighters with a fitted stance
         self.hips_h = float(self.head["Hips"][2])
         self.foot_h = float(min(self.head["LeftFoot"][2], self.head["RightFoot"][2]))
 
@@ -672,10 +708,25 @@ def retarget(rig, P, stand_hips, ground=True):
             # the rest torso is upright; which way it faces is measured (Rig.side0)
             R0 = _frame(rig.side0[s], rig.dir[name])
             D[name] = F @ R0.T
-        elif name.endswith("Hand") and name[:-4] in rig.palm0 and name[:-4] + "Palm" in P:
-            # a posed hand (fit_stance): fingers along the pose, palm where it says
+        elif name.endswith("Hand") and name[:-4] in rig.palm0 and (name[:-4] + "Palm" in P or rig.auto_palm):
+            # The hand's roll is set, not left to chance. A posed hand
+            # (fit_stance) says where its palm faces. Otherwise (fitted
+            # fighters, D-077) the palm follows the elbow like a relaxed
+            # forearm: facing inward while the elbow is bent, turning palm-down
+            # as the arm straightens into a punch. Left to the bare swing, the
+            # roll differed by up to half a turn between poses and a blend
+            # between them folded the wrist (152 degrees in Seraphina's defeat).
+            sd = name[:-4]
             a, b = LIMB[name]
-            F = _frame(P[name[:-4] + "Palm"] - P[name[:-4] + "Palm0"], P[b] - P[a])
+            if sd + "Palm" in P:
+                n = P[sd + "Palm"] - P[sd + "Palm0"]
+            else:
+                h = np.cross(_norm(P[sd + "ForeArm"] - P[sd + "Arm"]), _norm(P[sd + "Hand"] - P[sd + "ForeArm"]))
+                bend = float(np.linalg.norm(h))               # sine of the elbow's bend
+                h = (h / bend if bend > 1e-4 else np.zeros(3)) * (1.0 if sd == "Left" else -1.0)
+                w = min(1.0, bend / 0.5)
+                n = h * w + np.array([0.0, 0.0, -1.0]) * (1.0 - w)
+            F = _frame(n, P[b] - P[a])
             R0 = _frame(rig.palm0[name[:-4]], rig.dir[name])
             D[name] = F @ R0.T
         else:
@@ -771,6 +822,14 @@ def move_foot(P, side, target, weight=1.0, knee_out=0.0):
     tgt = cur + (np.array(target) - cur) * weight
     # knees point forward (-Y), or out to the fighter's own side by knee_out
     pole = P[side + "Leg"] + np.array([(1 if side == "Left" else -1) * knee_out, -0.4, 0.0])
+    if "FitMark" in P:
+        # a leg solved on the real rig (solve_leg) keeps bending the way it does:
+        # over its own toes, not straight ahead (D-077)
+        hip, knee, ank = P[side + "UpLeg"], P[side + "Leg"], P[side + "Foot"]
+        line = ank - hip
+        off = (knee - hip) - line * float(np.dot(knee - hip, line) / (np.dot(line, line) + 1e-12))
+        if np.linalg.norm(off) > 0.02:
+            pole = knee + _norm(off) * 0.4
     Q = ik2(P, side + "UpLeg", side + "Leg", side + "Foot", tgt, pole)
     for k in ("ToeBase", "ToeBase_end"):
         if side + k in P:
@@ -812,13 +871,43 @@ class Pose:
     def __init__(self, D, hips):
         self.D, self.hips = D, hips
 
+    rig = None                        # set by build(): the skeleton being animated
+
     @staticmethod
     def blend(a, b, t):
+        """Blend two poses the way they were built (D-077): torso bones turn
+        between their two orientations; every limb bone's *direction* is
+        swept between its two directions and the bone is then swung onto it
+        from its parent, exactly as retarget() does; a hand turns between its
+        two angles against its forearm.
+        Blending each bone's world rotation on its own let a forearm and its
+        hand take different routes: half way through Kairo's and Seraphina's
+        defeat the wrist was folded 120 degrees though neither pose bent it."""
+        def turn(Ra, Rb):
+            qa, qb = Matrix(Ra.tolist()).to_quaternion(), Matrix(Rb.tolist()).to_quaternion()
+            return np.array(qa.slerp(qb, t).to_matrix())
+        rig = Pose.rig
         D = {}
-        for n in a.D:
-            qa = Matrix(a.D[n].tolist()).to_quaternion()
-            qb = Matrix(b.D[n].tolist()).to_quaternion()
-            D[n] = np.array(qa.slerp(qb, t).to_matrix())
+        if rig is None:
+            for n in a.D:
+                D[n] = turn(a.D[n], b.D[n])
+            return Pose(D, a.hips * (1 - t) + b.hips * t)
+        for n in rig.names:
+            if n not in a.D:
+                continue
+            p = rig.parent.get(n)
+            if n in TORSO or p is None or p not in D or n not in LIMB:
+                D[n] = turn(a.D[n], b.D[n])
+            elif n.endswith("Hand"):
+                D[n] = D[p] @ turn(a.D[p].T @ a.D[n], b.D[p].T @ b.D[n])
+            else:
+                da, db = a.D[n] @ rig.dir[n], b.D[n] @ rig.dir[n]
+                ang = math.acos(float(np.clip(np.dot(da, db), -1.0, 1.0)))
+                if ang < 1e-4:
+                    d = da
+                else:                                       # great-arc sweep from da to db
+                    d = (math.sin((1 - t) * ang) * da + math.sin(t * ang) * db) / math.sin(ang)
+                D[n] = _swing(D[p] @ rig.dir[n], d) @ D[p]
         return Pose(D, a.hips * (1 - t) + b.hips * t)
 
 
@@ -2014,6 +2103,7 @@ LAST_BUILD = {}
 
 def build(rig_obj, moves, fid, height, clip_dir):
     rig = Rig(rig_obj)
+    Pose.rig = rig
     F = fid.upper()
     clip = lambda name: Clip(os.path.join(clip_dir, name + ".bvh"), height)  # noqa: E731
     box = clip("13_17")          # boxer: guard, jab, cross, combos
@@ -2031,6 +2121,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
         return align(P, fd, a)
 
     def pose_of(P, c, ground=True):
+        if STYLES.get(fid, {}).get("pose", {}).get("fit"):
+            P = keep_hands_out(rig, P)                  # no wrist inside the fighter's own body
         D, hips = retarget(rig, P, c.stand_hips, ground)
         if ground:
             hips = ground_fix(rig, D, hips)
@@ -2058,6 +2150,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     def shape(P):
         return shape_stance(P, st, H)
     fitted = bool(st.get("pose", {}).get("fit"))
+    rig.auto_palm = fitted
     S_fit = rig.hips_h / 0.95                             # the fighter's own scale (fit_stance)
     def idle_P(t):
         r = raw[int(t) % n_idle]
@@ -2128,7 +2221,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
             if fitted and not lift:
                 # over the stance centre, on the stance's own foot marks (plant_feet)
                 P = shift(P, list(P.keys()), np.array([0.0, guard_P["Hips"][1], 0.0]))
-                P = steady(P)
+                # a kick leans the trunk away from the leg to stay over the standing foot
+                P = steady(P, max_side=40.0, max_forward=40.0) if limb == "foot" else steady(P)
                 P = plant_feet(rig, P, st, st["_lead"], c.stand_hips, free=side if limb == "foot" else None)
                 if limb == "hand":
                     # the fist itself (8 cm past the wrist) into the middle of the hitbox, on the real arm
@@ -2398,7 +2492,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
         w = ease(min(1, t / 16), "back")
         P = guard_P
         top = P["Head"] + np.array([-0.08 * H, 0.0, 0.42 * H])
-        P = move_hand(P, "Right", top, min(1.0, w), pole_out=0.5)
+        if fitted:                                        # fist raised beside the head, on the real arm
+            P = reach_hand(rig, P, "Right", (-0.2 * S_fit, 0.03 * S_fit, 0.36 * S_fit), min(1.0, w),
+                           st["pose"].get("pelvis_h", 0.95) * rig.hips_h, elbow_out=0.4, from_head=True)
+        else:
+            P = move_hand(P, "Right", top, min(1.0, w), pole_out=0.5)
         P = move_hand(P, "Left", P["Hips"] + np.array([0.2 * H, -0.12 * H, 0.15 * H]), min(1.0, w) * 0.8)
         P = lean(P, 5 * min(1.0, w) + 1.5 * math.sin(t * 0.18))
         vc.append(pose_of(P, box))

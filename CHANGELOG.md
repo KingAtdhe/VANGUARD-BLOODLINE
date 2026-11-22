@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Seraphina's poses; hands and transitions for everyone
+- Seraphina stands side-on and tall with her hands low, bouncing on both feet; her rear knee no longer points away from its foot. Her kicks start and end on the same feet and lean away from the kicking leg.
+- Transitions between poses no longer fold a wrist on the way (most visible in the defeat animation). All fighters.
+- Kairo, Vexa, Seraphina: hands turn naturally with the arm (palm in when bent, palm down in a straight punch) and are kept out of their own body in hit reactions.
 ### Fixed — Vexa's poses; walking and blocking for Kairo and Vexa
 - Vexa stands in a balanced Muay Thai stance (she was leaning 16 cm behind her own feet): short square base, both gloves high with her face visible, lead foot light and tapping. Her strikes start and end on the same feet.
 - Kairo and Vexa walk with a real shuffle step instead of feet that held and snapped back; their dashes and low blocks bend the legs over the stance's own foot positions; the high block covers the face from the fighter's own head height.

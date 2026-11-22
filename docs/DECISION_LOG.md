@@ -1022,3 +1022,28 @@ Second fighter of the owner's pose brief (D-075), owner said "continue".
 - 196 tests pass. Not checked: a phone. Drakon, Seraphina, Nox and Ryuen
   are still not done.
 
+## D-077 — 2026-11-22 — Seraphina through the pose process; hand roll, blends, hands out of the body
+
+Third fighter of the owner's pose brief, owner said "continue".
+- **Seraphina**: stance fitted to her own skeleton (blueprint in
+  `docs/POSE_BLUEPRINTS.md`). Before: rear knee pointing 65 degrees away
+  from its foot in the stance and most moves. Action frames flagged: 44 of
+  72 before, 5 after (KI-050).
+- **Pose blends** (`Pose.blend`) follow how poses are built: limb bones
+  sweep their direction and are swung from the parent, a hand turns against
+  its forearm. Blending each bone's world rotation separately folded the
+  wrist 120-152 degrees half way through the defeat although neither pose
+  bent it. Applies to all six fighters.
+- **Hand roll** for fitted fighters is a rule, not an accident of the
+  swing: palm inward while the elbow is bent, turning palm-down as the arm
+  straightens (`Rig.auto_palm`).
+- `keep_hands_out()`: a wrist inside the fighter's own trunk or head is
+  pushed back to the surface on the real rig (hit reactions folded hands
+  into the belly). Not applied to lying poses.
+- Keyed moves keep a fitted knee bending over its own toes (`move_foot`
+  with `FitMark`); kicks may counter-lean up to 40 degrees (`steady`);
+  the victory arm is raised beside the head from the fighter's own head.
+- Kairo: 4 of 75 frames flagged, Vexa 5 of 72 (rebuilt, attacks looked at
+  again). Drakon, Nox, Ryuen rebuilt with the blend fix only; their active
+  and recovery frames looked at small. 196 tests pass. Not checked: a phone.
+

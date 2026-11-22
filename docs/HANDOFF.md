@@ -39,8 +39,8 @@ for every fighter; multi-hit ultimates. Do not start one without the owner's cho
 - D-075 (owner's pose quality brief): the rest-shape and proportion bugs
   behind the bad poses are fixed in the pipeline, there is a pose checker
   (`tools/blender/pose_check.py`, `pose_report.json` per build) and a
-  five-view render (`tools/godot/pose_views.gd`). **Kairo and Vexa are done
-  (D-075, D-076); Drakon, Seraphina, Nox and Ryuen are not** (`docs/POSE_BLUEPRINTS.md` says how to do the next one,
+  five-view render (`tools/godot/pose_views.gd`). **Kairo, Vexa and Seraphina are
+  done (D-075 to D-077); Drakon, Nox and Ryuen are not** (`docs/POSE_BLUEPRINTS.md` says how to do the next one,
   KI-050 lists their faults). One fighter per task, then stop for the owner.
   A full reimport after replacing all six models takes about seven minutes.
 - Unverified by anyone: everything on a real phone (look, feel, frame rate

@@ -87,7 +87,39 @@ forward dash and the ultimate each have a foot in the air mid-step, the
 body-hit reaction folds an arm into the belly, the ultimate cocks a wrist
 64°, defeat and get-up bend a wrist 63-67° on the floor.
 
-## Drakon, Seraphina, Nox, Ryuen — not done
+## Seraphina — done (D-077)
+
+Identity: swift aerial duelist with long reach; a kicker. Reference approved
+by the owner: Hwoarang (posed from knowledge of the character, not from
+footage). Side-on and tall on a narrow base, hands low, always bouncing.
+
+| | Blueprint (measured) |
+|---|---|
+| Lead (left) foot | 0.03 left of centre, 0.16 forward; turned 18° inward (side-on); heel 2 cm up |
+| Rear (right) foot | 0.05 right of centre, 0.16 back; turned 78° out; heel 2.5 cm up |
+| Distance between feet | 0.32 along the fight line, 0.08 across it (feet almost in line) |
+| Knee flexion | lead 42°, rear 40°; knees over their toes (0° and 1° off; the rear knee was 65° off before) |
+| Pelvis | 0.97 m high (98.5% of standing); turned 52° side-on |
+| Spine | upright (1° back, 1° sideways) |
+| Chest | turned 62° side-on; 10° of twist against the pelvis |
+| Lead arm | hangs low in front of the lead hip: elbow bent 62°, wrist at 0.98 m, 0.21 forward |
+| Rear arm | elbow bent 101°, fist in front of the chest at 1.18 m |
+| Hands | palms face inward; wrists straight (0°) |
+| Guard | low and loose: the legs are the guard |
+| Head | turned over the lead shoulder to the opponent (keeps 16° of the chest's turn), chin 4° down, no tilt |
+| Neck | 46° of turn against the chest |
+| Weight | 50% on each foot, both heels light |
+| Centre of gravity | over the stance centre, 7 cm inside the edge of the feet |
+| Readiness | on the balls of both feet, either leg free to kick |
+| Idle | two bounces of 3 cm per second; feet slide 0.000 m |
+
+Checks: stance faults none. 72 action frames checked: 44 flagged before,
+5 after, all looked at (KI-050): at full extension of the Side Kick, Halo
+Step, Crescent Arc and Low Sweep her centre of gravity is 0.14-0.21 m off
+the standing foot (she leans away from the kick, not far enough to balance
+it); the defeat pose bends a wrist 67° on the floor.
+
+## Drakon, Nox, Ryuen — not done
 
 Still on the D-074 stances, posed on the captured performer's proportions.
 Faults the checker lists for them today are in KNOWN_ISSUES (KI-050).
