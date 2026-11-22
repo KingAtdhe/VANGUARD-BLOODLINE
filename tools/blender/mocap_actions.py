@@ -65,8 +65,8 @@ STYLES = {
                       pose=dict(fit=True, hips=(-0.02, 0.0), pelvis_h=0.985, trunk=(1, 0), pelvis=52, shoulders=64, neck=5, chin=4,
                                 lead_foot=(0.03, 0.155), rear_foot=(0.05, 0.155), lead_toe=-18, rear_toe=78,
                                 lead_heel=0.02, rear_heel=0.025,
-                                lead_hand=(0.04, 0.22, -0.46), rear_hand=(-0.02, 0.14, -0.26),
-                                lead_elbow=0.1, rear_elbow=0.25, lead_palm="in", rear_palm="in")),
+                                lead_hand=(0.07, 0.26, -0.45), rear_hand=(0.11, 0.21, -0.30),
+                                lead_elbow=0.2, rear_elbow=0.45, lead_palm="in", rear_palm="in")),
     # Nox, after Raven: low and coiled, side-on, lead hand reaching out in
     # front below the chin, rear hand held in at the chest.
     "nox": dict(clip="144_20", frame=1590, amp=0.3, sway=0.022,
@@ -460,7 +460,7 @@ def keep_hands_out(rig, P, torso=0.115, head=0.10):
     up = P["Neck1"] - P["Hips"]
     if up[2] < 0.6 * np.linalg.norm(up):                   # lying or falling: the floor and the body are meant to touch
         return P
-    for _again in range(2):
+    for _again in range(3):
         D, _h = retarget(rig, P, 1.0, ground=False)
         pos, tails = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], rig.hips_h]))
         moved = False
@@ -476,6 +476,20 @@ def keep_hands_out(rig, P, torso=0.115, head=0.10):
                     P = reach_hand(rig, P, sd, c + out * (r + 0.005), 1.0, rig.hips_h)
                     moved = True
                     break
+            else:
+                # the forearm too: a fist in front of the chest with its elbow
+                # behind the ribs runs the arm through the body (owner, D-078)
+                e = pos[sd + "LowerArm"]
+                q = e + (w - e) * 0.55
+                for a, b in ((pos["Hips"], pos["Chest"]), (pos["Chest"], pos["Neck"])):
+                    ab = b - a
+                    c = a + ab * float(np.clip(np.dot(q - a, ab) / (np.dot(ab, ab) + 1e-12), 0.0, 1.0))
+                    d = float(np.linalg.norm(q - c))
+                    if d < 0.105 * S:
+                        out = _norm((q - c) + np.array([0.0, -0.03, 0.0]))
+                        P = reach_hand(rig, P, sd, w + out * (0.105 * S - d + 0.01) * 1.8, 1.0, rig.hips_h)
+                        moved = True
+                        break
         if not moved:
             break
     return P

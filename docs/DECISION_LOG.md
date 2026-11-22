@@ -1047,3 +1047,20 @@ Third fighter of the owner's pose brief, owner said "continue".
   again). Drakon, Nox, Ryuen rebuilt with the blend fix only; their active
   and recovery frames looked at small. 196 tests pass. Not checked: a phone.
 
+## D-078 — 2026-11-22 — Forearms through the body (owner: "her hand is in her body")
+
+Seraphina's rear fist sat in front of her chest with its elbow behind her
+ribs, so the forearm ran through her torso; from the front (the select
+screen) the fist came out of her side. The checker only tested wrists.
+- Checker: the forearm (three points along it) is tested against the trunk,
+  and arms inside the body are looked for on **every** frame of every
+  action, not three (`pose_report.json` row `any`).
+- Seraphina's rear arm moved to her own side: forearm across the front of
+  her waist, 15 cm clear of the spine line (was 5). Lead hand a little
+  further out in front of the hip.
+- `keep_hands_out()` also pushes a forearm out of the trunk (Vexa's elbow
+  strike recovered through her chest on frame 15).
+- Kairo, Vexa, Seraphina: no arm inside the body on any frame by this test.
+  Limit: the test uses a tube around the spine, not the mesh, so armour and
+  the chest can still be brushed; stance looked at close up from five sides.
+

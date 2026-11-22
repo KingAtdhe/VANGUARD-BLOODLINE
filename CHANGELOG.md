@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Seraphina's arm through her body
+- Seraphina's rear forearm no longer passes through her torso in the stance; it rests across the front of her waist. Arms are now checked against the body on every frame of every animation for Kairo, Vexa and Seraphina.
 ### Fixed — Seraphina's poses; hands and transitions for everyone
 - Seraphina stands side-on and tall with her hands low, bouncing on both feet; her rear knee no longer points away from its foot. Her kicks start and end on the same feet and lean away from the kicking leg.
 - Transitions between poses no longer fold a wrist on the way (most visible in the defeat animation). All fighters.

@@ -102,8 +102,8 @@ footage). Side-on and tall on a narrow base, hands low, always bouncing.
 | Pelvis | 0.97 m high (98.5% of standing); turned 52° side-on |
 | Spine | upright (1° back, 1° sideways) |
 | Chest | turned 62° side-on; 10° of twist against the pelvis |
-| Lead arm | hangs low in front of the lead hip: elbow bent 62°, wrist at 0.98 m, 0.21 forward |
-| Rear arm | elbow bent 101°, fist in front of the chest at 1.18 m |
+| Lead arm | hangs low in front of the lead hip: elbow bent 59°, wrist about 0.25 forward |
+| Rear arm | elbow bent 69°, forearm across the front of the waist, 15 cm clear of the spine line (D-078: it ran through her torso before) |
 | Hands | palms face inward; wrists straight (0°) |
 | Guard | low and loose: the legs are the guard |
 | Head | turned over the lead shoulder to the opponent (keeps 16° of the chest's turn), chin 4° down, no tilt |

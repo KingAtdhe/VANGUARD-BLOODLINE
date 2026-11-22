@@ -50,6 +50,7 @@ LIMITS = dict(
     cog_margin=-0.02,              # metres the centre of gravity may fall outside the feet
     hand_body=0.07,                # x body scale: wrist closer to the spine line than this = inside the body
     hand_head=0.07,
+    forearm_body=0.10,             # x body scale: the middle of the forearm closer to the spine line than this
 )
 
 
@@ -149,6 +150,10 @@ def measure(M, rig, pose, floor=None):
         m[k + "_wrist_xyz"] = [round(float(J[sd + "Hand"][0]), 3), round(float(-J[sd + "Hand"][1]), 3), round(float(J[sd + "Hand"][2]), 3)]
         m[k + "_elbow_xyz"] = [round(float(J[sd + "LowerArm"][0]), 3), round(float(-J[sd + "LowerArm"][1]), 3), round(float(J[sd + "LowerArm"][2]), 3)]
         m[k + "_hand_to_spine"] = round(min(_seg_dist(J[sd + "Hand"], J["Hips"], J["Chest"]), _seg_dist(J[sd + "Hand"], J["Chest"], J["Neck"])) / S, 3)
+        # the forearm itself, not only the wrist: a fist in front of the chest
+        # with its elbow behind the ribs runs the arm through the body
+        fore = [J[sd + "LowerArm"] + (J[sd + "Hand"] - J[sd + "LowerArm"]) * f for f in (0.35, 0.55, 0.75)]
+        m[k + "_forearm_to_spine"] = round(min(min(_seg_dist(q, J["Hips"], J["Chest"]), _seg_dist(q, J["Chest"], J["Neck"])) for q in fore) / S, 3)
         m[k + "_hand_to_head"] = round(_seg_dist(J[sd + "Hand"], J["Head"], J["HEADTOP"]) / S, 3)
     m["feet_apart_along"] = round(abs(float(J["LeftFoot"][1] - J["RightFoot"][1])), 3)
     m["feet_apart_across"] = round(abs(float(J["LeftFoot"][0] - J["RightFoot"][0])), 3)
@@ -221,6 +226,8 @@ def faults(m, lifted=False, lying=False, reach=0.0):
             out.append("%s knee points %.0f away from its foot" % (k, m[k + "_knee_vs_toe"]))
         if m[k + "_hand_to_spine"] < L["hand_body"]:
             out.append("%s hand inside the torso (%.2f)" % (k, m[k + "_hand_to_spine"]))
+        if not lying and m[k + "_forearm_to_spine"] < L["forearm_body"]:
+            out.append("%s forearm inside the torso (%.2f)" % (k, m[k + "_forearm_to_spine"]))
         if m[k + "_hand_to_head"] < L["hand_head"]:
             out.append("%s hand inside the head (%.2f)" % (k, m[k + "_hand_to_head"]))
         if m[k + "_toe_height"] < -0.03 or m[k + "_ankle_above_rest"] < -0.04:
@@ -275,6 +282,17 @@ def report(M, rig, actions, fid, moving=()):
                 dyn = 0.12                               # a step: one foot carries the body for a moment
             rows[label] = {"frame": i + 1, "faults": faults(m, lifted=free, lying=free, reach=dyn),
                            "cog_inside_feet_by": m["cog_inside_feet_by"], "pelvis_height": m["pelvis_height"]}
+        if not free:
+            # arms through the body are looked for on every frame, not three
+            worst = None
+            for i, pz in enumerate(poses):
+                m = measure(M, rig, pz)
+                inside = [f for f in faults(m, lifted=True) if "inside" in f]
+                if inside and worst is None:
+                    worst = {"frame": i + 1, "faults": inside, "cog_inside_feet_by": m["cog_inside_feet_by"],
+                             "pelvis_height": m["pelvis_height"]}
+            if worst and not any("inside" in f for r in rows.values() for f in r["faults"]):
+                rows["any"] = worst
         out["actions"][short] = rows
     return out
 
