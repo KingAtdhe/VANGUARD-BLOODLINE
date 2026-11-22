@@ -1236,3 +1236,33 @@ the guard hand kept up.
 - Checker: 2 of 75 frames flagged, as before. 196 tests pass.
 - Limit: frame strips show poses in order, not speed or feel.
 
+## D-086 — 2026-11-22 — Kairo's set checked on every frame, by picture and by measurement
+
+Owner: "what if you created a lot more frames for each attack, and you keep
+looking how it unveils". Every frame of all nine attacks was rendered again
+(three-quarter view, then a pure side view), and `KEYED_DEBUG=1` on the
+build now prints each wrist's position and how far the arm is extended
+(0 = folded, 1 = locked) on every frame of a keyed move. The numbers showed
+what the three-quarter strips hid:
+- **The jab was a bent-arm push** (arm 0.85 extended at the hit) and its fist
+  stood still for three frames, then covered 30 cm in two. It now starts on
+  frame 2 and lands with the arm all but straight (0.95).
+- **Eases were too sharp** (exponent 2.6 → 1.9 in, 1.7 out): strikes arrived
+  in one frame and recoveries were over in two.
+- **The cross wind-up** is one continuous coil peaking on frame 7 instead of
+  a pose reached early and frozen.
+- **Arms locked straight where they should be bent:** the body hook on its
+  way round (0.99 → 0.69), the lead hook's guard hand (it reached for a
+  fixed point while its shoulder swung away), the raised fist of the Rift
+  Break, and the ultimate's uppercut (0.99 → about 0.6, lower target).
+- **Low kick:** hips and chest were twisted 53° apart at the hit (checker
+  flag; now 39°), and the leg hung chambered for nine frames after the kick;
+  it now comes straight down.
+- Recoveries play slower still (`_recover` 1.3–2.1 per move).
+- Checker: 2 of 75 action frames flagged (defeat wrist on the floor, surge
+  foot — both older, neither in an attack). 196 tests pass.
+- Hit boxes and frame data are unchanged; fists reach at most 5 cm further
+  into the same boxes.
+- Limit, unchanged: strips and numbers show where everything is on each
+  frame, not how the speed feels in the hand. Not seen on a phone.
+

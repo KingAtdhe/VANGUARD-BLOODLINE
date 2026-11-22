@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's attacks, third pass (every frame checked)
+- The jab is a real straight punch now (arm nearly locked out, moving from the second frame); strikes build over several frames instead of arriving in one; the cross winds up in one motion; hooks and the uppercut keep a bent elbow; the low kick's leg comes straight back down; recoveries are slower. Hit boxes and frame data unchanged.
 ### Changed — Kairo's attacks, second pass
 - Wind-ups are visible now, recoveries use their full time instead of ending early and standing still, poses are pushed further than real boxing, the body swings slightly past the stance and settles, and his chin drops into each blow. The Slip Counter is a clear duck off the line.
 ### Changed — Kairo's attacks rebuilt from scratch (trial)
