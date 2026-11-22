@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — from the owner's phone test
+- The once-a-second "cut" in every fighter's stance animation is gone (the breathing now loops), and so is the cut every half second while walking.
+- Kairo, Vexa, Seraphina and Nox walk with real steps: heel up, foot swings and lands heel first, hips and shoulders move with the step.
+- Their feet stand on the floor: a raised heel no longer pushes the boot through the floor and lifts the other foot.
+### Fixed — sway-backs
+- Nox, Seraphina, Kairo and Vexa stand with a straight back. Nox's pelvis was tipped forward under a chest leaning back; Seraphina's back was arched and Kairo's hunched.
 ### Fixed — Nox stands upright; arms tested against each fighter's real body
 - Nox stands straight (he was crouched low and leaning forward), with his lead hand out and his rear hand up in front of his shoulder; neither arm touches his body.
 - The arm-through-body check now uses each fighter's own chest width and depth measured from the model, instead of one fixed size for everyone.

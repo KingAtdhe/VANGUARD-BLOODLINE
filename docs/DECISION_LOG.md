@@ -1103,3 +1103,57 @@ Owner on Nox: "his hand is in his body and also he needs to stand straight".
 - Looked at: all four stances close up from four sides; Nox's eight attacks
   and seven other animations again. 196 tests pass. Not checked: a phone.
 
+## D-081 — 2026-11-22 — Backs straightened (owner on Nox: "why is his spine like that")
+
+Standing a stance upright (`trunk`) only turned the whole captured back
+until pelvis-to-collar was vertical; the captured performer's curve stayed
+in it. Nox's capture is a crouch, so upright he had his pelvis tipped 8
+degrees forward under a chest leaning 7 degrees back: a sway-back, 22
+degrees between lower back and chest. Seraphina had 20 (arched), Kairo 19
+(hunched), Vexa 8.
+- `pose_stance()` draws the joints of the back onto the straight line from
+  pelvis to collar (`spine`, default 0.85 of the curve removed).
+  After: Nox 3, Seraphina 3, Kairo 3, Vexa 1 degree.
+- Checker: `spine_bend`, `pelvis_tilt_forward`, `chest_tilt_forward` are
+  measured; more than 28 degrees between lower back and chest is a fault
+  (45 in the middle of a strike: a kick tips the pelvis with the leg).
+- Only the stance and what is built from it is straightened; captured
+  strikes keep the performer's back. Seraphina's Side Kick and Halo Step
+  bend 38-39 degrees at full extension (KI-050).
+- Looked at: the four stances close up from four sides. 196 tests pass.
+
+## D-082 — 2026-11-22 — Owner's phone test: the idle "cut", robotic walk, feet off the floor
+
+Owner tested a build: stances have a cut in the animation, walking is
+robotic, feet do not touch the ground while walking, posture looks weird.
+Causes found and fixed:
+- **Cut in the idle.** The captured breathing was never made to loop: the
+  cross-fade at the end blended each frame with itself (the index wrapped),
+  so the body jumped from frame 59 back to frame 0 once a second. The
+  capture's last frames now cross-fade into the frames before its first
+  one. All six fighters.
+- **Cut while walking.** The walk loop (36 frames) carried the idle's
+  breathing (60 frames), so it jumped every 0.6 s where it closed. The walk
+  of a fitted fighter is now built on the still stance and is periodic.
+- **Robotic walk.** It was two hurried shuffles per loop with the upper
+  body motionless. Now one step of each foot per loop: planted 62% of the
+  time, heel rolls up, the foot swings 6 cm clear and lands heel first; the
+  pelvis rides toward the standing foot, dips when both feet are down and
+  turns with the swinging leg, and the shoulders turn against it.
+- **Feet off the floor.** A foot tipped onto its toes turned about the end
+  of the foot *bone*, which stops short of the boot's toe; the boot went
+  through the floor, the build lifted the whole fighter until it cleared,
+  and the other foot hung 2-3 cm in the air (every fitted stance has a
+  raised rear heel, so this was constant). `Rig.sole` now measures the ball
+  and heel of each boot from the mesh; `solve_leg()` pivots on them and sets
+  the sole outright (flat or tipped, never rolled).
+- **Posture**: D-081 (sway-backs), built just before this report arrived.
+- Not changed: the game slides a walking fighter faster than any real step
+  covers (KI-048), so feet still drift under the body; the engine's own
+  0.08 s cross-fade between animations is unchanged.
+- Kairo, Vexa, Seraphina, Nox: walks and idles rendered at seven points and
+  looked at (small); Kairo's walk at nine points, larger. 196 tests pass.
+  Not checked: a phone. Drakon and Ryuen get the idle fix only; their
+  reports now also list arms inside their bodies (KI-050), to be fixed when
+  they are done.
+

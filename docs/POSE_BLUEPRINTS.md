@@ -34,7 +34,7 @@ Upright, light on a short base, constant small bob, both fists at the chin.
 | Distance between feet | 0.40 along the fight line, 0.21 across it (shoulders are 0.38 wide) |
 | Knee flexion | lead 30°, rear 48°; each knee bends over its own toes (0° and 2° off) |
 | Pelvis | 0.94 m high (96.5% of standing); turned 32° side-on |
-| Spine | leans 10° forward, 0° sideways |
+| Spine | leans 8° forward, straight: 3° between lower back and chest (was hunched 19°, D-081) |
 | Chest | turned 42° side-on, lead shoulder in front; 10° of twist against the pelvis |
 | Lead arm | elbow bent 114°, elbow below and outside the fist; wrist 0.40 forward of the stance centre at 1.35 m (chin height), 0.11 left |
 | Rear arm | elbow bent 119°, tucked to the ribs; wrist at the right cheek, 1.39 m high |
@@ -67,7 +67,7 @@ footage). Tall and square, both gloves high, lead foot light and tapping.
 | Distance between feet | 0.32 along the fight line, 0.20 across it (short, square base) |
 | Knee flexion | lead 38°, rear 25°; knees over their toes (0° and 2° off) |
 | Pelvis | 1.02 m high (99% of standing); turned 18° side-on |
-| Spine | upright: 0.5° forward, 0° sideways |
+| Spine | upright and straight: 3° forward, 1° between lower back and chest |
 | Chest | turned 24° side-on; 7° of twist against the pelvis |
 | Lead arm | elbow bent 104°, flared a little; wrist 0.30 forward at 1.54 m (brow height), 0.12 left |
 | Rear arm | elbow bent 134°; wrist beside the right temple at 1.51 m |
@@ -100,7 +100,7 @@ footage). Side-on and tall on a narrow base, hands low, always bouncing.
 | Distance between feet | 0.32 along the fight line, 0.08 across it (feet almost in line) |
 | Knee flexion | lead 42°, rear 40°; knees over their toes (0° and 1° off; the rear knee was 65° off before) |
 | Pelvis | 0.97 m high (98.5% of standing); turned 52° side-on |
-| Spine | upright (1° back, 1° sideways) |
+| Spine | upright and straight: 3° between lower back and chest (was arched 20°, D-081) |
 | Chest | turned 62° side-on; 10° of twist against the pelvis |
 | Lead arm | hangs low in front of the lead hip: elbow bent 59°, wrist about 0.25 forward |
 | Rear arm | elbow bent 69°, forearm across the front of the waist, 15 cm clear of the spine line (D-078: it ran through her torso before) |
@@ -133,7 +133,7 @@ is upright now: side-on, both hands up in front, light on his feet.
 | Distance between feet | 0.30 along the fight line, 0.17 across it |
 | Knee flexion | lead 22°, rear 39°; knees over their toes (0° and 2° off; the rear knee was 46° off before) |
 | Pelvis | 0.91 m high (98.5% of standing); turned 38° side-on |
-| Spine | upright: 0° forward |
+| Spine | upright and straight: 3° forward, 3° between lower back and chest (was a 22° sway-back, D-081) |
 | Chest | turned 47° side-on; 9° of twist against the pelvis |
 | Lead arm | elbow bent 113°, open hand out in front at 1.28 m, 0.34 forward of the stance centre |
 | Rear arm | elbow bent 55°, hand up in front of the rear shoulder at 1.31 m |

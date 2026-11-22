@@ -46,6 +46,7 @@ LIMITS = dict(
     neck_turn=65.0,                # where the head faces against the chest
     neck_tilt=20.0,                # head rolled toward a shoulder
     trunk_lean=45.0,
+    spine_bend=28.0,               # lower back against chest: more is a broken-looking back
     foot_float=0.03,               # metres a planted foot may be off the floor
     cog_margin=-0.02,              # metres the centre of gravity may fall outside the feet
     hand_body=-0.005,              # metres: a wrist (with half a fist) this far inside the trunk's surface is a fault
@@ -171,6 +172,12 @@ def measure(M, rig, pose, floor=None):
     trunk = J["Neck"] - J["Hips"]
     m["trunk_lean_forward"] = round(math.degrees(math.atan2(-trunk[1], trunk[2])), 1)
     m["trunk_lean_side"] = round(math.degrees(math.atan2(trunk[0], trunk[2])), 1)
+    # the spine's own shape: how far the lower back and the chest lean apart
+    # (a straight back is 0; + = chest folded forward over the pelvis, - = arched)
+    low, high = J["Spine"] - J["Hips"], J["Neck"] - J["Chest"]
+    m["pelvis_tilt_forward"] = round(math.degrees(math.atan2(-low[1], low[2])), 1)
+    m["chest_tilt_forward"] = round(math.degrees(math.atan2(-high[1], high[2])), 1)
+    m["spine_bend"] = round(_ang(low, high), 1)
     # the head: its bone runs up the skull; facing comes from the bone's own rotation
     Dh = pose.D["Head"]
     rest_face = np.array([rig.side0["head"][1], -rig.side0["head"][0], 0.0])
@@ -241,6 +248,8 @@ def faults(m, lifted=False, lying=False, reach=0.0):
         out.append("spine twisted %.0f" % m["spine_twist"])
     if m["neck_turn"] > L["neck_turn"]:
         out.append("neck turned %.0f" % m["neck_turn"])
+    if m["spine_bend"] > (45.0 if reach > 0 else L["spine_bend"]):      # a kick tips the pelvis with the leg
+        out.append("back bent %.0f (pelvis %+.0f, chest %+.0f forward)" % (m["spine_bend"], m["pelvis_tilt_forward"], m["chest_tilt_forward"]))
     if abs(m["head_tilt"]) > L["neck_tilt"]:
         out.append("head tilted %.0f to the side" % m["head_tilt"])
     if abs(m["trunk_lean_forward"]) > L["trunk_lean"] or abs(m["trunk_lean_side"]) > (45 if reach > 0 else 30):

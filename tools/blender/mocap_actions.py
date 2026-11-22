@@ -165,6 +165,7 @@ def pose_stance(P, st, H, lead):
       lead_heel, rear_heel   that heel lifted this high (weight on the ball of the foot)
       pelvis     how far the hips are turned side-on, like `shoulders`
       trunk      (forward, toward the lead side) lean of the spine in degrees, absolute
+      spine      how much of the captured back's curve is straightened out (0..1, default 0.85)
       neck, chin, head_turn   neck craned forward, chin dropped (degrees), and the
                  share of the chest turn the head keeps (the eyes stay on the opponent)
       lead_hand, rear_hand   (across, forward, up) from the head joint
@@ -193,6 +194,19 @@ def pose_stance(P, st, H, lead):
         for k in UPPER:
             if k in P:
                 P[k] = R @ (P[k] - o) + o
+        # ... and its shape (D-081). The captured performer's back keeps its
+        # curve when the trunk is stood up: a crouching fighter's rounded
+        # back, made vertical, became a pelvis tipped forward under a chest
+        # leaning back (Nox: 22 degrees between them). The joints of the
+        # back are drawn onto the straight line from pelvis to collar;
+        # `spine` (default 0.85) is how much of the curve is taken out.
+        k_s = ps.get("spine", 0.85)
+        a0, a1 = P["Hips"], P["Neck1"]
+        ln = a1 - a0
+        for k in ("LowerBack", "Spine", "Spine1", "Neck"):
+            if k in P:
+                on = a0 + ln * float(np.clip(np.dot(P[k] - a0, ln) / (np.dot(ln, ln) + 1e-12), 0.0, 1.0))
+                P[k] = P[k] + (on - P[k]) * k_s
     if "pelvis" in ps:                                     # hips turned side-on, like `shoulders`
         v = P[lead + "UpLeg"] - P[rear + "UpLeg"]
         cur = math.degrees(math.atan2(-v[1], sgl * v[0]))
@@ -270,16 +284,34 @@ def _ik_dirs(a, target, l1, l2, hint):
     return _norm(mid - a), _norm(end - mid)
 
 
-def solve_leg(rig, P, pos, sd, mark, toe_deg, heel=0.0, hop=0.0, knee_out=0.0):
+def solve_leg(rig, P, pos, sd, mark, toe_deg, heel=0.0, hop=0.0, knee_out=0.0, toe_up=0.0):
     """One leg solved on the real rig and written back into the source pose:
     the ankle over floor mark `mark` (model x, y), the foot turned `toe_deg`
-    (signed, + = toward +X), the heel lifted `heel` over the ball of the foot,
-    the whole foot `hop` off the floor. pos: model joints of the pose (fk)."""
+    (signed, + = toward +X), the heel lifted `heel` with the ball of the
+    foot staying on the floor, or the toes lifted `toe_up` with the heel
+    staying down, the whole foot `hop` off the floor. The foot pivots on the
+    boot's own contact points (Rig.sole), and its sole is set outright: flat
+    or tipped, never rolled. pos: model joints of the pose (fk)."""
     blen = lambda a, b: float(np.linalg.norm(rig.head[b] - rig.head[a]))
     slen = lambda a, b: float(np.linalg.norm(P[b] - P[a]))
+    sole = rig.sole[sd]
+    A0, T0, H0, f0 = rig.head[sd + "Foot"], sole["toe"], sole["heel"], sole["fwd"]
+    up = np.array([0.0, 0.0, 1.0])
+    lat = np.cross(up, f0)
+    length = max(0.05, float(np.dot(T0 - H0, f0)))
+    if toe_up > 0:                                         # on the heel, toes up
+        phi, pivot = -math.asin(min(0.6, toe_up / length)), H0
+    else:                                                  # on the ball of the foot, heel up
+        phi, pivot = math.asin(min(0.7, heel / length)), T0
+    f1 = f0 * math.cos(phi) - up * math.sin(phi)
+    u1 = up * math.cos(phi) + f0 * math.sin(phi)
+    Rp = np.outer(f1, f0) + np.outer(u1, up) + np.outer(lat, lat)
     yaw = math.radians(toe_deg)
     flat = np.array([math.sin(yaw), -math.cos(yaw), 0.0])
-    ankle = np.array([mark[0], mark[1], rig.foot_h + heel + hop])
+    yaw0 = math.atan2(f0[0], -f0[1])
+    Rz = np.array(Matrix.Rotation(yaw - yaw0, 3, "Z"))     # a turn about +Z carries -Y toward +X, as the yaw is measured
+    Df = Rz @ Rp
+    ankle = np.array([mark[0], mark[1], pivot[2] + float((Rp @ (A0 - pivot))[2]) + hop])
     # the knee bends over its own toes, pushed out by knee_out
     hint = flat + np.array([knee_out, 0.0, 0.25])
     d1, d2 = _ik_dirs(pos[sd + "UpperLeg"], ankle, blen(sd + "UpperLeg", sd + "LowerLeg"),
@@ -291,12 +323,11 @@ def solve_leg(rig, P, pos, sd, mark, toe_deg, heel=0.0, hop=0.0, knee_out=0.0):
     P["FitMark"] = np.zeros(3)                             # tells move_foot this leg was solved on the rig
     P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
     P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
-    # sole flat (or on the ball of the foot): the toe tip keeps its rest height
-    f0 = rig.tail[sd + "Foot"] - rig.head[sd + "Foot"]
-    L, drop = float(np.linalg.norm(f0)), float(-f0[2]) + heel
-    toe = flat * math.sqrt(max(1e-6, L * L - drop * drop)) + np.array([0.0, 0.0, -drop])
+    toe = _norm(Df @ rig.dir[sd + "Foot"])
     for k, n in zip(toe_keys, toe_len):
-        P[k] = P[sd + "Foot"] + _norm(toe) * n
+        P[k] = P[sd + "Foot"] + toe * n
+    P[sd + "Sole0"] = P[sd + "Foot"].copy()                # marker pair read by retarget: where the sole faces
+    P[sd + "Sole"] = P[sd + "Foot"] + Df @ up
     return P
 
 
@@ -433,24 +464,26 @@ def reach_hand(rig, P, sd, wrist, weight, hips_z, elbow_out=0.25, from_head=Fals
     return P
 
 
-def step_feet(rig, P, st, lead, off=None, lift=None, drop=0.0):
+def step_feet(rig, P, st, lead, off=None, lift=None, drop=0.0, heel=None, toe_up=None):
     """Both legs solved on the real rig with the feet moved from their stance
     marks (D-076): off[side] metres along the fight line (+ = toward the
-    opponent), lift[side] metres off the floor, the pelvis `drop` metres
+    opponent), lift[side] metres off the floor, heel[side] / toe_up[side]
+    metres the heel or the toes are rolled up, the pelvis `drop` metres
     below its stance height. Used for walks, dashes and crouching blocks of
     a fitted fighter, whose feet cannot be placed on the source skeleton."""
     ps = st["pose"]
     S = rig.hips_h / 0.95
     rear = "Right" if lead == "Left" else "Left"
     sgl = 1 if lead == "Left" else -1
-    off, lift = off or {}, lift or {}
+    off, lift, heel, toe_up = off or {}, lift or {}, heel or {}, toe_up or {}
     D, _h = retarget(rig, P, 1.0, ground=False)
     pos, _t = fk(rig, D, np.array([P["Hips"][0], P["Hips"][1], ps.get("pelvis_h", 0.95) * rig.hips_h - drop]))
     for sd, key, sx, sy in ((lead, "lead", sgl, -1), (rear, "rear", -sgl, 1)):
         ax, al = ps[key + "_foot"]
         mark = np.array([sx * ax * S, sy * al * S - off.get(sd, 0.0)])
-        P = solve_leg(rig, P, pos, sd, mark, ps.get(key + "_toe", 0.0) * sx, ps.get(key + "_heel", 0.0) * S,
-                      lift.get(sd, 0.0), ps.get("knees", 0.0) * sx)
+        P = solve_leg(rig, P, pos, sd, mark, ps.get(key + "_toe", 0.0) * sx,
+                      max(ps.get(key + "_heel", 0.0) * S, heel.get(sd, 0.0)) if toe_up.get(sd, 0.0) <= 0 else 0.0,
+                      lift.get(sd, 0.0), ps.get("knees", 0.0) * sx, toe_up=toe_up.get(sd, 0.0))
     return P
 
 
@@ -760,6 +793,41 @@ class Rig:
                 self.head_r = min(float(np.percentile(skull, 60)), 0.125 * hh / 0.95)
         except Exception as exc:                # measuring is a help, never a reason to fail the build
             print("[rig] body thickness not measured:", exc)
+        # Where each boot really touches the floor (D-082): the ball of the
+        # foot and the heel, from the mesh. The foot bone ends short of the
+        # boot's toe, so a foot tipped onto its toes about the bone's end
+        # pushed the boot through the floor; the build then lifted the whole
+        # fighter until it cleared, and the other foot hung in the air.
+        self.sole = {}
+        for side in ("Left", "Right"):
+            A = self.head[side + "Foot"]
+            f = self.tail[side + "Foot"] - A
+            f = _norm(np.array([f[0], f[1], 0.0]))
+            toe = np.array([self.tail[side + "Foot"][0], self.tail[side + "Foot"][1], 0.0])
+            heel = np.array([A[0], A[1], 0.0]) - f * 0.06
+            try:
+                pts = []
+                for ob in arm_obj.children:
+                    if ob.type != "MESH" or side + "Foot" not in ob.vertex_groups:
+                        continue
+                    gidx = ob.vertex_groups[side + "Foot"].index
+                    for v in ob.data.vertices:
+                        if any(g.group == gidx and g.weight > 0.5 for g in v.groups):
+                            pts.append(np.array(ob.matrix_world @ v.co))
+                if len(pts) > 30:
+                    pts = np.array(pts)
+                    along = (pts - A) @ f
+                    lo, hi = float(along.min()), float(along.max())
+                    floor = float(pts[:, 2].min())
+                    front = pts[along > lo + 0.72 * (hi - lo)]
+                    back = pts[along < lo + 0.25 * (hi - lo)]
+                    front = front[front[:, 2] < front[:, 2].min() + 0.012]
+                    back = back[back[:, 2] < back[:, 2].min() + 0.012]
+                    toe = np.array([front[:, 0].mean(), front[:, 1].mean(), floor])
+                    heel = np.array([back[:, 0].mean(), back[:, 1].mean(), floor])
+            except Exception as exc:
+                print("[rig] sole not measured:", exc)
+            self.sole[side] = {"toe": toe, "heel": heel, "fwd": f}
         self.hips_h = float(self.head["Hips"][2])
         self.foot_h = float(min(self.head["LeftFoot"][2], self.head["RightFoot"][2]))
 
@@ -785,6 +853,14 @@ def retarget(rig, P, stand_hips, ground=True):
             F = _frame(side[s], P[b] - P[a])
             # the rest torso is upright; which way it faces is measured (Rig.side0)
             R0 = _frame(rig.side0[s], rig.dir[name])
+            D[name] = F @ R0.T
+        elif name.endswith("Foot") and name[:-4] + "Sole" in P:
+            # a foot solved on the rig (solve_leg): the sole faces where it was
+            # put (flat, or tipped onto the ball of the foot), never rolled
+            sd = name[:-4]
+            a, b = LIMB[name]
+            F = _frame(P[sd + "Sole"] - P[sd + "Sole0"], P[b] - P[a])
+            R0 = _frame(np.array([0.0, 0.0, 1.0]), rig.dir[name])
             D[name] = F @ R0.T
         elif name.endswith("Hand") and name[:-4] in rig.palm0 and (name[:-4] + "Palm" in P or rig.auto_palm):
             # The hand's roll is set, not left to chance. A posed hand
@@ -976,7 +1052,7 @@ class Pose:
             p = rig.parent.get(n)
             if n in TORSO or p is None or p not in D or n not in LIMB:
                 D[n] = turn(a.D[n], b.D[n])
-            elif n.endswith("Hand"):
+            elif n.endswith("Hand") or n.endswith("Foot"):
                 D[n] = D[p] @ turn(a.D[p].T @ a.D[n], b.D[p].T @ b.D[n])
             else:
                 da, db = a.D[n] @ rig.dir[n], b.D[n] @ rig.dir[n]
@@ -2223,7 +2299,25 @@ def build(rig_obj, moves, fid, height, clip_dir):
             R = np.array(Matrix.Rotation(math.radians(st["turn"]), 3, "Z"))
             P = {k: R @ v for k, v in P.items()}
         return P
-    raw = [raw_idle_P(t) for t in range(n_idle)]
+    # The captured breathing is made to loop: its last frames cross-fade
+    # into the frames just before its first one (D-082). It used to jump
+    # from frame 59 back to frame 0, a visible cut once a second.
+    seam = min(16, i0 // 2)
+    def raw_free(t):
+        P = src(gclip, i0 + t * 2, facing_frame=st.get("facing", i0), anchor=anchor_idle)
+        P = shift(P, list(P.keys()), np.array([-P["Hips"][0], -P["Hips"][1], 0]))
+        if st.get("turn"):
+            R = np.array(Matrix.Rotation(math.radians(st["turn"]), 3, "Z"))
+            P = {k: R @ v for k, v in P.items()}
+        return P
+    raw = []
+    for t in range(n_idle):
+        P = raw_free(t)
+        if seam > 0 and t >= n_idle - seam:
+            w = ease((t - (n_idle - seam) + 1) / float(seam + 1))
+            Q = raw_free(t - n_idle)
+            P = {k: P[k] * (1 - w) + Q[k] * w for k in P}
+        raw.append(P)
     mean = {k: np.mean([r[k] for r in raw], 0) for k in raw[0]}
     def shape(P):
         return shape_stance(P, st, H)
@@ -2594,23 +2688,48 @@ def build(rig_obj, moves, fid, height, clip_dir):
             P = idle_P(t)
             ph = (t % cyc) / cyc
             if fitted:
-                # A shuffle step solved on the real legs (D-076). Each foot is
-                # planted for 60% of the step and drifts back under the body
-                # as the game carries it along, then swings forward again; the
-                # two feet are half a step apart, so the body stays between them.
-                d = min(stride, 0.26 * S_fit)
+                # A walking step solved on the real legs (D-076, redone in D-082
+                # after the owner found it robotic). One step of each foot per
+                # loop. A foot is planted for 62% of the loop and drifts back
+                # under the body as the game carries it along; near the end it
+                # rolls up onto its ball, swings through 6 cm off the floor and
+                # lands heel first. The pelvis rides toward the standing foot,
+                # dips when both feet are down and turns with the swinging leg;
+                # the shoulders turn against it, so the guard moves with the
+                # step instead of sitting still on moving legs. Everything is
+                # periodic over the loop (the old walk also carried the idle's
+                # breathing, which jumped where the loop closed).
+                S, sg = S_fit, (1 if st["_lead"] == "Left" else -1)
+                rear_fit = "Right" if st["_lead"] == "Left" else "Left"
+                d = min(stride * 2.0, 0.22 * S)
                 dirn = 1.0 if forward else -1.0
-                off, lift = {}, {}
-                for foot, shift_ph in (((lead, 0.0), (rear, 0.5)) if forward else ((rear, 0.0), (lead, 0.5))):
+                ph = t / float(n)
+                smooth = lambda x: ease(min(1.0, max(0.0, x)))
+                off, lift, heel_up, toe_up = {}, {}, {}, {}
+                order = ((st["_lead"], 0.0), (rear_fit, 0.5)) if forward else ((rear_fit, 0.0), (st["_lead"], 0.5))
+                for foot, shift_ph in order:
                     q = (ph + shift_ph) % 1.0
-                    if q < 0.6:
-                        o, up = 0.5 - q / 0.6, 0.0
-                    else:
-                        v = (q - 0.6) / 0.4
-                        o, up = -0.5 + ease(v), 0.05 * S_fit * math.sin(math.pi * v)
+                    if q < 0.62:                                   # planted
+                        o, up = 0.5 - q / 0.62, 0.0
+                        heel_up[foot] = 0.04 * S * smooth((q - 0.44) / 0.18)
+                        toe_up[foot] = 0.02 * S * (1.0 - smooth(q / 0.10)) if forward else 0.0
+                    else:                                          # swinging
+                        v = (q - 0.62) / 0.38
+                        o, up = -0.5 + ease(v), 0.06 * S * math.sin(math.pi * v)
+                        heel_up[foot] = 0.04 * S * (1.0 - smooth(v / 0.5))
+                        toe_up[foot] = 0.02 * S * smooth((v - 0.7) / 0.3) if forward else 0.0
                     off[foot], lift[foot] = dirn * d * o, up
+                side_ph = math.sin(2 * math.pi * (ph - 0.06)) * (1.0 if forward else -1.0)
+                P = shift(base, list(base.keys()), np.array([sg * 0.014 * S * side_ph, 0.0, 0.0]))
+                P = turn(P, -sg * 3.0 * side_ph)                   # pelvis and all: goes with the swinging leg
+                hp = P["Hips"].copy()
+                Rc = np.array(Matrix.Rotation(math.radians(sg * 5.5 * side_ph), 3, "Z"))
+                for k in UPPER:                                    # shoulders against the pelvis
+                    if k in P:
+                        P[k] = Rc @ (P[k] - hp) + hp
                 P = lean(P, (-3 if forward else 2))
-                P = step_feet(rig, P, st, st["_lead"], off, lift, 0.012 * S_fit * abs(math.sin(2 * math.pi * ph)))
+                dip = 0.014 * S * 0.5 * (1.0 + math.cos(4 * math.pi * (ph - 0.06)))
+                P = step_feet(rig, P, st, st["_lead"], off, lift, dip, heel_up, toe_up)
                 out.append(pose_of(P, box))
                 continue
             first, second = (lead, rear) if forward else (rear, lead)
