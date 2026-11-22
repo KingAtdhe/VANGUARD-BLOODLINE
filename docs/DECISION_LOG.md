@@ -1098,8 +1098,8 @@ Owner on Nox: "his hand is in his body and also he needs to stand straight".
   front, rear hand up in front of the rear shoulder, both clear of the body.
   This departs from the low Raven reference on the owner's instruction.
 - Kairo, Vexa, Seraphina rebuilt against their real body size: no stance
-  faults; one frame each of Kairo's ultimate and Nox's Shade Step lets an
-  arm 1-2 cm into the padded surface mid-blend (KI-050).
+  faults; one frame of Kairo's ultimate lets a forearm 1 cm into the
+  padded surface mid-blend (KI-050). Nox: none on any frame.
 - Looked at: all four stances close up from four sides; Nox's eight attacks
   and seven other animations again. 196 tests pass. Not checked: a phone.
 

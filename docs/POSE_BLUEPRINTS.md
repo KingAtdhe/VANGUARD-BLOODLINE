@@ -147,8 +147,7 @@ is upright now: side-on, both hands up in front, light on his feet.
 
 Checks: stance faults none. 72 action frames checked: 29 flagged before,
 2 after (KI-050): the forward dash has a foot in the air mid-step; defeat
-bends a wrist 67° on the floor. Shade Step frame 20 lets the rear hand
-come 2 cm inside the trunk's padded surface for a moment.
+bends a wrist 67° on the floor. No arm inside the body on any frame.
 
 ## Drakon, Ryuen — not done
 
