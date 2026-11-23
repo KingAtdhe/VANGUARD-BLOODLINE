@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo's kicks, walk and crouch
+- Kicks and the jump no longer pop: the knee jumped sideways for a frame at take-off, landing and half way up the axe kick.
+- He walks with a fighter's shuffle and keeps his stance open instead of bringing his feet together each step.
+- He crouches with his guard up and his back straighter, and goes down and gets up smoothly instead of snapping.
 ### Changed — Kairo's fists and jump
 - His fists close fully (fingers tucked into the palm, thumb folded over). His arms move with the jump instead of staying frozen in the guard.
 ### Changed — Kairo moves less like a robot

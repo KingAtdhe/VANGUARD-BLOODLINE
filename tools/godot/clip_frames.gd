@@ -55,6 +55,10 @@ func _initialize() -> void:
 	await process_frame
 	var m: FighterMovementProfile = def.movement
 	for suffix: String in names:
+		if suffix == "CROUCH_TRANSITION":
+			# stance -> crouch -> stance with the game's own blend time
+			await _transition(ap, model, fighter.to_upper(), out_dir, size)
+			continue
 		var anim: StringName = StringName("%s_%s" % [fighter.to_upper(), suffix])
 		if ap == null or not ap.has_animation(anim):
 			push_error("MISSING %s" % anim)
@@ -82,6 +86,32 @@ func _initialize() -> void:
 			shot.save_png("%s/%s/%04d.png" % [out_dir, suffix, i + 1])
 		print("frames ", suffix, " ", frames)
 	quit()
+
+
+func _transition(ap: AnimationPlayer, model: Node3D, token: String, out_dir: String, size: int) -> void:
+	var idle: StringName = StringName(token + "_IDLE_A")
+	var crouch: StringName = StringName(token + "_CROUCH")
+	for n: StringName in [idle, crouch]:
+		ap.get_animation(n).loop_mode = Animation.LOOP_LINEAR
+	DirAccess.make_dir_recursive_absolute("%s/CROUCH_TRANSITION" % out_dir)
+	model.position.y = 0.0
+	ap.play(idle)
+	for i: int in 110:
+		if i == 20:
+			ap.play(crouch, FighterAnimator.BLEND_CROUCH)
+		elif i == 70:
+			ap.play(idle, FighterAnimator.BLEND_CROUCH)
+		ap.advance(1.0 / 60.0)
+		for _f: int in 2:
+			await process_frame
+		await RenderingServer.frame_post_draw
+		var shot: Image = root.get_texture().get_image()
+		var side: int = mini(shot.get_width(), shot.get_height())
+		shot = shot.get_region(Rect2i((shot.get_width() - side) / 2, (shot.get_height() - side) / 2, side, side))
+		shot.resize(size, size, Image.INTERPOLATE_LANCZOS)
+		shot.save_png("%s/CROUCH_TRANSITION/%04d.png" % [out_dir, i + 1])
+	ap.pause()
+	print("frames CROUCH_TRANSITION 110")
 
 
 static func _arc(m: FighterMovementProfile, u: float) -> float:

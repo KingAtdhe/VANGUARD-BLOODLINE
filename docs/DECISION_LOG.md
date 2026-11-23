@@ -1441,3 +1441,42 @@ test them, also improve his fists, they seem to not be fully closed".
 - Not verified: on a phone. The video was checked by sampling frames, not
   watched.
 
+## D-092 — 2026-11-23 — Kairo: kick pops, walk, crouch
+
+Owner, from the review video: "I saw some kick glitches, improve walking and
+crouching, they look unnatural".
+- **Finding the glitches.** `GLITCH_SCAN=1` on a build (new) prints every
+  joint that moves much further on one frame than on the frames around it.
+  On Kairo it found the knee jumping 26 cm in one frame at take-off and at
+  landing, the foot snapping round half way up the axe kick, and smaller
+  toe snaps on the low kick and front kick.
+- **Cause and fix** (`fit_stance`, the `*_foot_abs` leg): a leg in the air
+  bent its knee toward one fixed direction and flipped when it swung through
+  it, and a foot leaving the floor snapped from its turned-out stance angle
+  to straight ahead. The knee now bends at right angles to the leg in the
+  fore-and-aft plane, and within about 30 cm of the floor knee and toes go
+  over to the stance's own turn-out. After: no knee pop in the jump or the
+  axe kick's rise. Still reported: the axe kick's knee on the frame it
+  chops down (20 cm, the strike itself) and toe turns of 7 to 10 cm on the
+  low kick and the landing.
+- **Walk.** The feet came together under him every step and he stood up
+  out of his stance. It is now a shuffle: the second foot follows 0.35 of a
+  loop behind the first, a shorter step, a foot down 70 % of the time (never
+  both in the air), a quicker loop (30 frames), a deeper dip and a small
+  rock of the trunk. The stance stays open the whole way. The feet still
+  slide: the game walks at 2.6 m/s and no stance step covers that.
+- **Crouch.** Sat on the rear heel with the back more upright and the guard
+  pulled in to the face instead of bowed forward with the stance's arms; it
+  breathes. Head joint at 1.07 m, against a crouch hurtbox of 1.12 m.
+  Going down and standing up blend over 0.15 s (`BLEND_CROUCH`) instead of
+  0.08: he used to drop half a metre in five frames.
+- Jab: the fist travels over three frames instead of two. Jumping kick:
+  chambered a frame earlier.
+- Review video: `CROUCH_TRANSITION` shows stance, crouch and stance again
+  with the game's own blend.
+- Checker: 5 of 84 frames flagged: the same three, plus one frame of each
+  walk where the swinging foot is off the floor (the check samples the
+  middle of the loop, which used to fall on a moment with both feet down).
+  204 tests pass.
+- Not verified: on a phone. Video checked by sampling frames, not watched.
+

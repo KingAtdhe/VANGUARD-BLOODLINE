@@ -21,12 +21,12 @@ import tempfile
 from PIL import Image, ImageDraw, ImageFont
 
 DEFAULT = {
-    "kairo": ["IDLE_A:3", "WALK_FORWARD:2", "WALK_BACKWARD:2", "DASH_FORWARD", "DASH_BACK", "CROUCH:2", "JUMP",
+    "kairo": ["IDLE_A:3", "WALK_FORWARD:2", "WALK_BACKWARD:2", "DASH_FORWARD", "DASH_BACK", "CROUCH_TRANSITION", "JUMP",
               "JUMP_ATTACK", "BLOCK_HIGH", "BLOCK_LOW", "ATTACK_LIGHT_01", "ATTACK_HEAVY_01", "KICK_LOW_01",
               "ATTACK_BODY_HOOK_01", "SPECIAL_ORIGIN_PALM", "SPECIAL_RIFT_BREAK", "SPECIAL_SLIP_COUNTER",
               "ATTACK_COUNTER_HOOK_01", "ULTIMATE_ORIGIN_BREAK", "HIT_LIGHT", "HIT_BODY", "KNOCKDOWN", "GETUP"],
 }
-TITLES = {"IDLE_A": "Stance", "ATTACK_LIGHT_01": "Light", "ATTACK_HEAVY_01": "Heavy", "KICK_LOW_01": "Kick",
+TITLES = {"IDLE_A": "Stance", "CROUCH_TRANSITION": "Crouch (down and up)", "ATTACK_LIGHT_01": "Light", "ATTACK_HEAVY_01": "Heavy", "KICK_LOW_01": "Kick",
           "ATTACK_BODY_HOOK_01": "Down + heavy", "SPECIAL_ORIGIN_PALM": "Special", "SPECIAL_RIFT_BREAK": "Forward + special",
           "SPECIAL_SLIP_COUNTER": "Back + special (counter stance)", "ATTACK_COUNTER_HOOK_01": "Counter strike",
           "ULTIMATE_ORIGIN_BREAK": "Ultimate"}

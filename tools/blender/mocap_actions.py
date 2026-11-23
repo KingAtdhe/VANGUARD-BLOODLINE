@@ -53,6 +53,9 @@ STYLES = {
     "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.04, bob_beats=1, sway=0.02, life=1.8, lead="Left",
                   # his guard: the open lead forearm upright in front of the face, the rear fist under the chin
                   block={"Left": (0.03, 0.27, -0.09), "Right": (0.08, 0.17, -0.19)},
+                  # crouch: sat on the rear heel with the back fairly upright and the guard pulled in
+                  crouch_pose=dict(drop=0.47, lean=17.0, chin=10.0, rear_heel=0.09,
+                              pose=dict(lead_hand=(0.05, 0.31, -0.15), rear_hand=(0.11, 0.17, -0.20), lead_elbow=0.3, rear_elbow=0.3)),
                   pose=dict(fit=True, hips=(-0.03, 0.0), pelvis_h=0.915, trunk=(3, 0), pelvis=48, shoulders=58, neck=6, chin=4,
                             lead_foot=(0.07, 0.25), rear_foot=(0.12, 0.23), lead_toe=-8, rear_toe=62, rear_heel=0.012,
                             lead_hand=(0.05, 0.43, -0.25), rear_hand=(0.21, 0.20, -0.35),
@@ -602,19 +605,35 @@ def fit_stance(rig, P, st, lead, u=0.0):
         hop = tap if sd == lead else 0.0
         P = solve_leg(rig, P, pos, sd, np.array([sx * ax * S, sy * al * S]), ps.get(key + "_toe", 0.0) * sx,
                       lift, hop, ps.get("knees", 0.0) * sx)
-    for sd, key in ((lead, "lead"), (rear, "rear")):
+    for sd, key, sx in ((lead, "lead", sgl), (rear, "rear", -sgl)):
         if key + "_foot_abs" in ps:
             # a foot in the air (a kick): the ankle at (x, forward, height) in
             # model space, the foot pointed in line with the shin by `point` 0..1
             x, fw, z, point = ps[key + "_foot_abs"]
-            d1, d2 = _ik_dirs(pos[sd + "UpperLeg"], np.array([x, -fw, z]), blen(sd + "UpperLeg", sd + "LowerLeg"),
-                              blen(sd + "LowerLeg", sd + "Foot"), np.array([0.0, -1.0, 0.45]))
+            # Knee and toes (D-092). The knee used to bend toward one fixed
+            # direction: when the leg swung through that direction it flipped
+            # (26 cm in a frame at take-off and landing, and half way up the
+            # axe kick), and a foot leaving the floor snapped from its turned-out
+            # stance angle to straight ahead. Now the knee bends at right
+            # angles to the leg in the fore-and-aft plane (forward when the leg
+            # hangs, up when it points forward, back when it is overhead), and
+            # near the floor both knee and toes go over to the stance's own
+            # turn-out, so leaving and landing are continuous.
+            hip_j = pos[sd + "UpperLeg"]
+            leg_d = _norm(np.array([x, -fw, z]) - hip_j)
+            near_floor = 1.0 - min(1.0, max(0.0, (z - rig.foot_h - 0.03) / 0.32))
+            yaw = math.radians(ps.get(key + "_toe", 0.0) * sx) * near_floor
+            flat = np.array([math.sin(yaw), -math.cos(yaw), 0.0])
+            sag = np.array([0.0, leg_d[2], -leg_d[1]])
+            hint = (flat + np.array([0.0, 0.0, 0.25])) * near_floor + sag * (1.0 - near_floor)
+            d1, d2 = _ik_dirs(hip_j, np.array([x, -fw, z]), blen(sd + "UpperLeg", sd + "LowerLeg"),
+                              blen(sd + "LowerLeg", sd + "Foot"), hint)
             l_thigh, l_shin = slen(sd + "UpLeg", sd + "Leg"), slen(sd + "Leg", sd + "Foot")
             toe_keys = [k for k in (sd + "ToeBase", sd + "ToeBase_end") if k in P]
             toe_len = [slen(sd + "Foot", k) for k in toe_keys]
             P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
             P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
-            toe = _norm(d2 * point + np.array([0.0, -1.0, -0.15]) * (1.0 - point))
+            toe = _norm(d2 * point + (flat + np.array([0.0, 0.0, -0.15])) * (1.0 - point))
             for k, n_ in zip(toe_keys, toe_len):
                 P[k] = P[sd + "Foot"] + toe * n_
             P.pop(sd + "Sole", None)
@@ -2410,7 +2429,7 @@ def kairo_keys(moves, base, g, S):
         "pelvis_h": [(0, ph0), (a0, low(0.012), "in"), (a1, low(0.012))] + settle(T, a1 + 5, ph0, 0.008),
         "lead_foot": [(0, lf0), (a0, (lf0[0], lf0[1] + 0.06), "in"), (a1 + 2, (lf0[0], lf0[1] + 0.06)), (T - 3, lf0)],
         "rear_heel": [(0, 0.03), (a0, 0.06, "in"), (a1 + 5, 0.03)],
-        "lead_hand_abs": [(0, L), (2, (L[0] + 0.02, L[1] - 0.13, L[2] - 0.02), "out"),   # the guard hand is already out: it snaps back to punch
+        "lead_hand_abs": [(0, L), (1, (L[0] + 0.02, L[1] - 0.12, L[2] - 0.02), "out"),   # the guard hand is already out: it snaps back to punch
                           (a0, (hit[0], hit[1] + 0.035, hit[2]), "in"),
                           (a0 + 1, hit), (a1, hit), (a1 + 4, (L[0], L[1] - 0.02, L[2] + 0.02), "out"), (T - 2, L)],
         "lead_elbow": [(0, 0.2), (a0, 0.05), (a1 + 4, 0.2)],
@@ -3089,7 +3108,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
 
     # ---- walks: the boxer's upper body over generated footwork
     def walk(speed, forward):
-        n = 36
+        n = 30
         cyc = n / 2.0                 # two shuffle steps per loop
         out = []
         base = idle_P(0)
@@ -3114,20 +3133,23 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # breathing, which jumped where the loop closed).
                 S, sg = S_fit, (1 if st["_lead"] == "Left" else -1)
                 rear_fit = "Right" if st["_lead"] == "Left" else "Left"
-                d = min(stride * 2.0, 0.22 * S)
+                d = min(stride * 2.0, 0.17 * S)
                 dirn = 1.0 if forward else -1.0
                 ph = t / float(n)
                 smooth = lambda x: ease(min(1.0, max(0.0, x)))
                 off, lift, heel_up, toe_up = {}, {}, {}, {}
-                order = ((st["_lead"], 0.0), (rear_fit, 0.5)) if forward else ((rear_fit, 0.0), (st["_lead"], 0.5))
+                # the second foot follows 0.35 of a loop behind the first (not half a
+                # loop, a stroll): the stance stretches a little and closes again,
+                # and the feet never come together under him (D-092)
+                order = ((st["_lead"], 0.0), (rear_fit, 0.35)) if forward else ((rear_fit, 0.0), (st["_lead"], 0.35))
                 for foot, shift_ph in order:
                     q = (ph + shift_ph) % 1.0
-                    if q < 0.62:                                   # planted
-                        o, up = 0.5 - q / 0.62, 0.0
-                        heel_up[foot] = 0.04 * S * smooth((q - 0.44) / 0.18)
+                    if q < 0.70:                                   # planted
+                        o, up = 0.5 - q / 0.70, 0.0
+                        heel_up[foot] = 0.04 * S * smooth((q - 0.52) / 0.18)
                         toe_up[foot] = 0.02 * S * (1.0 - smooth(q / 0.10)) if forward else 0.0
                     else:                                          # swinging
-                        v = (q - 0.62) / 0.38
+                        v = (q - 0.70) / 0.30
                         o, up = -0.5 + ease(v), 0.06 * S * math.sin(math.pi * v)
                         heel_up[foot] = 0.04 * S * (1.0 - smooth(v / 0.5))
                         toe_up[foot] = 0.02 * S * smooth((v - 0.7) / 0.3) if forward else 0.0
@@ -3140,8 +3162,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 for k in UPPER:                                    # shoulders against the pelvis
                     if k in P:
                         P[k] = Rc @ (P[k] - hp) + hp
-                P = lean(P, (-3 if forward else 2))
-                dip = 0.014 * S * 0.5 * (1.0 + math.cos(4 * math.pi * (ph - 0.06)))
+                P = lean(P, (-3 if forward else 2) + 1.2 * math.sin(4 * math.pi * (ph - 0.1)))
+                dip = 0.02 * S * 0.5 * (1.0 + math.cos(4 * math.pi * (ph - 0.06)))
                 P = step_feet(rig, P, st, st["_lead"], off, lift, dip, heel_up, toe_up)
                 out.append(pose_of(P, box))
                 continue
@@ -3320,10 +3342,12 @@ def build(rig_obj, moves, fid, height, clip_dir):
         chin0 = base_ps.get("chin", 0.0)
         home = {sd: g_foot[sd] + (0.0,) for sd in ("Left", "Right")}
         hl, hr = home[lead_sd], home[rear_sd]
-        kd = STYLES[fid].get("crouch", {})
+        kd = STYLES[fid].get("crouch_pose", {})
         # crouch: a deep squat over the stance's own feet, chest forward, eyes up
-        ct = {"pelvis_h": [(0, ph0 - kd.get("drop", 0.43)), (15, ph0 - kd.get("drop", 0.43) + 0.008), (30, ph0 - kd.get("drop", 0.43))],
-              "trunk": (tr0[0] + kd.get("lean", 26.0), tr0[1]), "chin": chin0 - kd.get("chin", 14.0),
+        cdrop, clean = kd.get("drop", 0.43), kd.get("lean", 26.0)
+        ct = {"pelvis_h": [(0, ph0 - cdrop), (15, ph0 - cdrop + 0.014), (30, ph0 - cdrop)],
+              "trunk": [(0, (tr0[0] + clean, tr0[1])), (15, (tr0[0] + clean - 1.6, tr0[1])), (30, (tr0[0] + clean, tr0[1]))],
+              "chin": chin0 - kd.get("chin", 14.0),
               "lead_heel": kd.get("lead_heel", 0.0), "rear_heel": kd.get("rear_heel", 0.07), "_name": "CROUCH"}
         ct.update(kd.get("pose", {}))
         A[f"{F}_CROUCH"] = keyed_frames(31, ct, settle=0, blend_in=0)
@@ -3366,7 +3390,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
             at = {"_name": "JUMP_ATTACK", "pelvis_h": ph0,
                   "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0, (tr0[0] - ad.get("lean", 16.0), tr0[1]), "in"),
                             (a1, (tr0[0] - ad.get("lean", 16.0), tr0[1])), (n_air - 1, (tr0[0] + 4, tr0[1]))],
-                  kick_sd + "_foot_abs": [(0, (kh[0], kh[1] * 0.45, kh[2] + tuck, 0.6)), (max(1, a0 - 2), chamber),
+                  kick_sd + "_foot_abs": [(0, (kh[0], kh[1] * 0.45, kh[2] + tuck, 0.6)), (max(1, a0 - 3), chamber),
                                           (a0, strike_at, "in"), (a1, strike_at), (n_air - 1, (kh[0], kh[1] * 0.45, kh[2] + tuck, 0.6))],
                   ("lead" if kick_sd == "rear" else "rear") + "_foot_abs": [(0, (oh[0], oh[1] * 0.6, oh[2] + tuck, 0.5)), (a0, tucked),
                                                                          (a1, tucked), (n_air - 1, (oh[0], oh[1] * 0.6, oh[2] + tuck, 0.5))]}
@@ -3434,6 +3458,27 @@ def build(rig_obj, moves, fid, height, clip_dir):
                    anim_of=lambda mv: F + mv["animation"][mv["animation"].find("_"):])
         A.update(OWN_SETS[fid](ctx))
 
+    if os.environ.get("GLITCH_SCAN"):
+        # Pops (D-092): a joint that moves much further on one frame than on the
+        # frames either side of it. Printed per action, worst first.
+        pts = ("LeftFoot", "RightFoot", "LeftLowerLeg", "RightLowerLeg", "LeftHand", "RightHand", "Head")
+        for name, poses in A.items():
+            tr = []
+            for p in poses:
+                pos, tails = fk(rig, p.D, p.hips)
+                d = {k: pos[k] for k in pts}
+                d["LeftToe"], d["RightToe"] = tails["LeftFoot"] - pos["LeftFoot"], tails["RightFoot"] - pos["RightFoot"]
+                tr.append(d)
+            found = []
+            for k in tr[0]:
+                sp = [float(np.linalg.norm(tr[i + 1][k] - tr[i][k])) for i in range(len(tr) - 1)]
+                for i, v in enumerate(sp):
+                    near = [sp[j] for j in (i - 2, i - 1, i + 1, i + 2) if 0 <= j < len(sp)]
+                    lim = 0.035 if k.endswith("Toe") else 0.06
+                    if v > lim and near and v > 2.6 * max(near):
+                        found.append((v, k, i + 2))
+            for v, k, f in sorted(found, reverse=True)[:6]:
+                print("GLITCH %-28s f%-3d %-13s moved %.3f in one frame" % (name, f, k, v))
     acts = {}
     for name, poses in A.items():
         acts[name] = key_action(rig, name, poses)

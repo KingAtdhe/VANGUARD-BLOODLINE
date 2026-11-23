@@ -16,6 +16,9 @@ extends RefCounted
 const BLEND_DEFAULT: float = 0.08
 const BLEND_ATTACK: float = 0.04
 const BLEND_REACTION: float = 0.03
+## Going down into a crouch and standing up again take longer than other
+## changes of pose: at the default blend he dropped half a metre in 5 frames.
+const BLEND_CROUCH: float = 0.15
 ## Initial hitstun at or above this uses the heavy hit reaction.
 const HEAVY_HITSTUN: int = 20
 ## The jump clip is authored on these tick counts (take-off, air, landing);
@@ -110,14 +113,15 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
 		FighterState.Action.CROUCH:
 			if _has(def.anim_crouch):
-				_show(def.anim_crouch, BLEND_DEFAULT, _advance_if_same(def.anim_crouch, dt), true)
+				_show(def.anim_crouch, BLEND_CROUCH, _advance_if_same(def.anim_crouch, dt), true)
 			else:
 				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
 		FighterState.Action.WALK:
 			var walk: StringName = def.anim_walk_forward if s.is_moving_forward() else def.anim_walk_backward
 			_show(walk, BLEND_DEFAULT, _advance_if_same(walk, dt), true)
 		_:
-			_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
+			var rise: bool = _last_action == FighterState.Action.CROUCH
+			_show(def.anim_idle, BLEND_CROUCH if rise else BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
 	if s.action != FighterState.Action.ATTACK:
 		_last_attack_key = ""
 	_last_action = s.action
