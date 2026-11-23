@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's fists and jump
+- His fists close fully (fingers tucked into the palm, thumb folded over). His arms move with the jump instead of staying frozen in the guard.
 ### Changed — Kairo moves less like a robot
 - His stance is alive: he sinks and rises with each breath, the chest turns slightly and the hands float. In his attacks the body no longer stops dead at each pose, the arm trails the body on the way back, and a held strike keeps moving slightly instead of freezing.
 ### Fixed — from the phone recording

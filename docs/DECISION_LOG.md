@@ -1419,3 +1419,25 @@ built, all in `tools/blender/mocap_actions.py`:
   fight motion would have the small irregularities that keys do not.
 - Not verified: on a phone.
 
+## D-091 — 2026-11-23 — Fists close; the jump uses the arms; review videos
+
+Owner: "keep improving him and always send me videos like this so I can
+test them, also improve his fists, they seem to not be fully closed".
+- **Fists.** Seen close up (`tools/godot/hand_shot.gd`, new) the fingers
+  were only loosely curled: fingertips stood off the palm and the thumb
+  stuck out. `FIST` joint angles raised from 78/95/62 to 88/106/80 for the
+  fingers and from 22/26/48 to 52/44/62 for the thumb. The table is shared
+  by all fighters, but only Kairo has been rebuilt and looked at with it;
+  the others take it at their next build and must be checked then.
+- **Jump.** The arms were frozen in the guard through the whole jump. They
+  now drop as he sinks, rise with the take-off and drop again to catch the
+  landing (all fitted fighters at their next build; Kairo now).
+- **Review videos.** `tools/review_video.py` + `tools/godot/clip_frames.gd`:
+  every frame of a fighter's clips from the game's side view, joined at 60
+  frames per second with each clip named; the jump is lifted along the
+  real jump arc. Standing rule added to CLAUDE.md: a video goes to the
+  owner with every animation change.
+- Checker: 3 of 84 (unchanged). 204 tests pass.
+- Not verified: on a phone. The video was checked by sampling frames, not
+  watched.
+

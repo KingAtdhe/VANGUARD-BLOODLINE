@@ -1146,7 +1146,7 @@ def key_action(rig, name, poses):
 FINGERS = ("Thumb", "Index", "Middle", "Ring", "Pinky")
 # Joint angles (degrees, knuckle -> tip) of a closed fist. The thumb folds
 # across the front of the fingers instead of into the palm.
-FIST = {"finger": (78.0, 95.0, 62.0), "thumb": (22.0, 26.0, 48.0)}
+FIST = {"finger": (88.0, 106.0, 80.0), "thumb": (52.0, 44.0, 62.0)}
 
 # Hand shape per fighter (0 = open palm, 1 = fist) as (left, right), and the
 # actions that override it. The capture has no finger data, so hands are
@@ -3341,6 +3341,16 @@ def build(rig_obj, moves, fid, height, clip_dir):
               "rear_foot_abs": [(t_off, hr), (t_off + 5, (hr[0], hr[1] - 0.05 * S_fit, hr[2] - 0.02, 0.9), "out"),
                                 (t_off + 19, (hr[0], hr[1] * 0.45, hr[2] + tuck * 1.25, 0.6)),
                                 (t_down - 6, (hr[0], hr[1], hr[2] + 0.09 * S_fit, 0.3)), (t_down - 1, hr)]}
+        # the arms work with the jump (D-091): they drop as he sinks, come up
+        # with the take-off, and drop again to catch the landing
+        for key, k in (("lead_hand", 1.0), ("rear_hand", 0.7)):
+            if key in base_ps:
+                h0 = base_ps[key]
+                def off(dx, df, dz, h0=h0, k=k):
+                    return (h0[0] + dx * k, h0[1] + df * k, h0[2] + dz * k)
+                jt[key] = [(0, h0), (t_off - 1, off(0.04, -0.10, -0.10), "out"), (t_off + 5, off(0.0, -0.02, 0.07)),
+                           (t_off + 19, h0), (t_down - 2, off(0.02, -0.03, 0.05)),
+                           (t_down + 1, off(0.03, -0.06, -0.09), "out"), (n_jump - 1, h0)]
         jt.update(jd.get("pose", {}))
         A[f"{F}_JUMP"] = keyed_frames(n_jump, jt, settle=3, air=True)
         AIRBORNE[f"{F}_JUMP"] = (t_off + 1, t_down - 1)

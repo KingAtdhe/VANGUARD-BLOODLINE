@@ -84,6 +84,14 @@ the same inspection and minimal repair automatically (`mesh_check.repair`:
 exact duplicates merged, duplicate/degenerate/loose geometry removed, winding
 made consistent and outward; no vertex is moved).
 
+## Review videos for the owner (standing rule, D-091)
+
+The owner judges animation from video, not from contact sheets. After any
+change to a fighter's animation, render a real-speed video of the clips that
+changed with `python3 tools/review_video.py <fighter> <out.mp4> [--clips ...]`
+and send it with the build link. Say that the video was not watched here,
+only checked frame by frame.
+
 ## Required report after every implementation task
 
 - Files created.
