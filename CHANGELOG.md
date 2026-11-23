@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — crouch shake (second attempt)
+- The crouch stays on screen for a tenth of a second after the input lets go, so an input that flickers cannot bounce him up and down. Not reproduced on the build machine; needs the owner's check.
 ### Fixed — Kairo's crouch shake; less stiff
 - Crouching no longer trembles: the crouch breathes slowly instead of twice a second, and the touch stick no longer flickers a direction on and off at the edge of its zone.
 - His head, chest and arms follow his attacks on springs: the head nods into a blow, and on the way back the arms swing slightly past the guard and settle.

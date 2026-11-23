@@ -19,6 +19,6 @@ func _initialize() -> void:
 		var line: String = "f%02d" % (i + 1)
 		for b: String in bones:
 			var p: Vector3 = AnimationSampler.bone_global(sk, sk.find_bone(b)).origin
-			line += "  %s(%.3f %.3f %.3f)" % [b.substr(0, 6), p.x, p.y, p.z]
+			line += "  %s(%.4f %.4f %.4f)" % [b, p.x, p.y, p.z]
 		print(line)
 	quit()

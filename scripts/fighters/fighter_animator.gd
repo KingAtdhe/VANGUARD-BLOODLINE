@@ -19,6 +19,11 @@ const BLEND_REACTION: float = 0.03
 ## Going down into a crouch and standing up again take longer than other
 ## changes of pose: at the default blend he dropped half a metre in 5 frames.
 const BLEND_CROUCH: float = 0.15
+## After the crouch input lets go the crouch stays on screen this long before
+## he stands (the simulation is not affected). An input that flickers between
+## down and neutral, or down and walking, would otherwise blend him up and
+## down every few frames, which looks like shaking (D-094).
+const CROUCH_LINGER: float = 0.1
 ## Initial hitstun at or above this uses the heavy hit reaction.
 const HEAVY_HITSTUN: int = 20
 ## The jump clip is authored on these tick counts (take-off, air, landing);
@@ -37,6 +42,7 @@ var _heavy_hit: bool = false
 var _last_combo: int = 0
 var _override: StringName = &""
 var _zone_anim: StringName = &""
+var _crouch_linger: float = 0.0
 
 
 func _init(anim_player: AnimationPlayer, definition: FighterDefinition) -> void:
@@ -112,10 +118,18 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			else:
 				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
 		FighterState.Action.CROUCH:
+			_crouch_linger = CROUCH_LINGER
 			if _has(def.anim_crouch):
 				_show(def.anim_crouch, BLEND_CROUCH, _advance_if_same(def.anim_crouch, dt), true)
 			else:
 				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
+		FighterState.Action.WALK, FighterState.Action.IDLE when _crouch_linger > 0.0 and _has(def.anim_crouch):
+			# just left the crouch: hold it a moment in case the input comes back
+			_crouch_linger -= delta
+			_show(def.anim_crouch, BLEND_CROUCH, _advance_if_same(def.anim_crouch, dt), true)
+			_last_action = FighterState.Action.CROUCH
+			_last_combo = s.combo_hits
+			return
 		FighterState.Action.WALK:
 			var walk: StringName = def.anim_walk_forward if s.is_moving_forward() else def.anim_walk_backward
 			_show(walk, BLEND_DEFAULT, _advance_if_same(walk, dt), true)

@@ -231,3 +231,43 @@ func test_kairo_completes_full_match_in_real_scene() -> Array[String]:
 		f.append("no hit sounds were triggered")
 	scene.free()
 	return f
+
+
+func test_crouch_lingers_through_an_input_flicker() -> Array[String]:
+	# D-094: one or two neutral or walking ticks in the middle of a crouch
+	# must not start him standing up; a real release must.
+	var f: Array[String] = []
+	var def: FighterDefinition = _def()
+	var model: Node = (load(MODEL) as PackedScene).instantiate()
+	_tree().root.add_child(model)
+	var ap: AnimationPlayer = model.find_child("AnimationPlayer", true, false)
+	var anim := FighterAnimator.new(ap, def)
+	var s := FighterState.new()
+	s.action = FighterState.Action.CROUCH
+	anim.update(s, 0.0, false, 0.016)
+	if anim.current != def.anim_crouch:
+		f.append("crouch state shows %s" % anim.current)
+	for flicker: FighterState.Action in [FighterState.Action.IDLE, FighterState.Action.WALK]:
+		s.action = flicker
+		anim.update(s, 0.0, false, 0.016)
+		anim.update(s, 0.0, false, 0.016)
+		if anim.current != def.anim_crouch:
+			f.append("two %s frames ended the crouch pose" % FighterState.Action.keys()[flicker])
+		s.action = FighterState.Action.CROUCH
+		anim.update(s, 0.0, false, 0.016)
+	s.action = FighterState.Action.IDLE
+	for _i: int in 12:
+		anim.update(s, 0.0, false, 0.016)
+	if anim.current != def.anim_idle:
+		f.append("still crouching 0.2 s after release (%s)" % anim.current)
+	# an attack out of a crouch is never delayed
+	s.action = FighterState.Action.CROUCH
+	anim.update(s, 0.0, false, 0.016)
+	s.action = FighterState.Action.ATTACK
+	s.move = def.move_for(&"KICK")
+	s.move_frame = 2
+	anim.update(s, 0.0, false, 0.016)
+	if anim.current != s.move.animation:
+		f.append("attack from a crouch shows %s" % anim.current)
+	model.free()
+	return f

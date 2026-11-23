@@ -1512,3 +1512,30 @@ still looks stiff and like a robot".
   docs/ANIMATION_RESEARCH.md for the packs that would do it.
 - Not verified: on a phone. Video checked by sampling frames, not watched.
 
+## D-094 — 2026-11-23 — The crouch shake again: not reproduced; crouch lingers
+
+Owner after D-093: "he still shakes when crouching, he still looks robotic".
+- **What was measured.** The installed crouch clip, joint by joint at 0.1 mm
+  (`tools/godot/clip_trace.gd`): largest frame-to-frame change of speed
+  0.5 mm, toes do not move. The real fight scene with down held
+  (`tools/godot/hold_trace.gd`, new, clock slowed so each rendered frame is
+  one tick): state CROUCH on every tick, head and hand moving smoothly.
+  So with a steady input there is no shake here, in the clip or in the
+  game. Neither change of D-093 was the cause.
+- **What is left** is an input or state that flickers on the phone and
+  does not here. Whatever its source, the animator now keeps the crouch on
+  screen for 0.1 s after the crouch state ends (`CROUCH_LINGER`), so a
+  flicker between crouch and standing or walking cannot blend him up and
+  down. The simulation is untouched (hurtbox and timing as before); an
+  attack, jump, block or hit out of a crouch is never delayed. New test.
+- **Asked of the owner:** a short recording of the shake with the training
+  input list visible, which shows whether the input flickers.
+- **Robotic.** Recorded karate was fetched with the project's own
+  `tools/mocap/fetch_clips.sh` source (CMU subject 135, a karateka: kata,
+  front kick, roundhouse, side kick, knife-hand block; free for all uses).
+  One clip looked at so far (135_08) holds a single pose and is unusable.
+  Proposed next task, awaiting the owner: find the usable strikes in those
+  recordings and build two of Kairo's moves from them beside the keyed
+  ones in one video, so the owner can choose by eye.
+- 205 tests pass. Not verified: on a phone.
+
