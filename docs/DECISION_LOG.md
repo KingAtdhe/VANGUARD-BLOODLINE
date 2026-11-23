@@ -1426,7 +1426,7 @@ test them, also improve his fists, they seem to not be fully closed".
 - **Fists.** Seen close up (`tools/godot/hand_shot.gd`, new) the fingers
   were only loosely curled: fingertips stood off the palm and the thumb
   stuck out. `FIST` joint angles raised from 78/95/62 to 88/106/80 for the
-  fingers and from 22/26/48 to 52/44/62 for the thumb. The table is shared
+  fingers and from 22/26/48 to 40/62/84 for the thumb (a first try, 52/44/62, pushed the thumb out below the fist). The table is shared
   by all fighters, but only Kairo has been rebuilt and looked at with it;
   the others take it at their next build and must be checked then.
 - **Jump.** The arms were frozen in the guard through the whole jump. They

@@ -1146,7 +1146,7 @@ def key_action(rig, name, poses):
 FINGERS = ("Thumb", "Index", "Middle", "Ring", "Pinky")
 # Joint angles (degrees, knuckle -> tip) of a closed fist. The thumb folds
 # across the front of the fingers instead of into the palm.
-FIST = {"finger": (88.0, 106.0, 80.0), "thumb": (52.0, 44.0, 62.0)}
+FIST = {"finger": (88.0, 106.0, 80.0), "thumb": (40.0, 62.0, 84.0)}
 
 # Hand shape per fighter (0 = open palm, 1 = fist) as (left, right), and the
 # actions that override it. The capture has no finger data, so hands are
