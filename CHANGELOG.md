@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo's Front Kick foot
+- The kicking foot no longer points like a ballet dancer's: the toes are pulled back and the kick lands on the ball of the foot, as a real front kick does.
 ### Changed — Kairo's Front Kick
 - The kicking leg now reaches almost straight into the target instead of arriving half bent. The knee drives up high first, the foot snaps out with the toes pointed, he leans back and rises on his standing foot to balance it, and the foot comes back fast through the same chamber before it is set down. Hitbox and timing unchanged.
 ### Fixed — crouch shake (found)

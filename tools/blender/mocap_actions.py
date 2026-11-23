@@ -633,7 +633,17 @@ def fit_stance(rig, P, st, lead, u=0.0):
             toe_len = [slen(sd + "Foot", k) for k in toe_keys]
             P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
             P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
-            toe = _norm(d2 * point + (flat + np.array([0.0, 0.0, -0.15])) * (1.0 - point))
+            if point >= 0.0:
+                toe = _norm(d2 * point + (flat + np.array([0.0, 0.0, -0.15])) * (1.0 - point))
+            else:
+                # point < 0 (D-097): the ankle pulled back for a kick that lands on
+                # the ball of the foot (front kick). -1 = foot about 100 degrees
+                # from the shin, toes up; a pointed foot read as a ballet point.
+                up = np.array([0.0, 0.0, 1.0]) - d2 * d2[2]
+                up = _norm(up) if np.linalg.norm(up) > 1e-6 else flat
+                flex = _norm(up - d2 * 0.18)
+                base = _norm(flat + np.array([0.0, 0.0, -0.15]))
+                toe = _norm(base * (1.0 + point) + flex * (-point))
             for k, n_ in zip(toe_keys, toe_len):
                 P[k] = P[sd + "Foot"] + toe * n_
             P.pop(sd + "Sole", None)
@@ -2507,11 +2517,14 @@ def kairo_keys(moves, base, g, S):
     # trunk leans back to balance it and the standing heel lifts; then the
     # foot comes back fast through the same chamber and is set down.
     a0, a1, T, hx, hz = win(moves["DOWN_HEAVY"])
-    chamber = (FR[0] * 0.35, 0.22, 0.70, 0.35)             # knee at the chest, foot tucked under it
-    out_far = (0.0, hx + 0.17, hz - 0.01, 1.0)              # ankle in the far part of the box: leg ~0.95 straight
-    out_hold = (0.0, hx + 0.15, hz - 0.02, 1.0)
-    snap = (0.0, hx - 0.04, hz - 0.07, 0.95)                 # half way out: the shin swings up and forward
-    recoil = (FR[0] * 0.3, 0.26, 0.66, 0.65)
+    # Feet (D-097, owner: "straight like a ballerina, not a kick"): the toes
+    # are pulled back from the chamber on and the kick lands on the ball of
+    # the foot (point < 0 = ankle flexed, see the *_foot_abs solver).
+    chamber = (FR[0] * 0.35, 0.22, 0.70, -0.3)             # knee at the chest, foot tucked under it, toes up
+    out_far = (0.0, hx + 0.17, hz - 0.01, -0.95)            # ankle in the far part of the box: leg ~0.95 straight
+    out_hold = (0.0, hx + 0.15, hz - 0.02, -0.95)
+    snap = (0.0, hx - 0.04, hz - 0.07, -0.7)                 # half way out: the shin swings up and forward
+    recoil = (FR[0] * 0.3, 0.26, 0.66, -0.4)
     out["DOWN_HEAVY"] = dict(_recover=1.4, **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "hips": [(0, (hips0, 0)), (2, (hips0 + 0.03, 0), "io"), (5, (hips0 + 0.05, 0)), (a0, (hips0 - 0.01, 0), "in"),
@@ -2522,9 +2535,9 @@ def kairo_keys(moves, base, g, S):
         "shoulders": [(0, sh0), (2, sho(6)), (5, sho(-10)), (a0, sho(-16), "in"), (a1, sho(-16)), (a1 + 6, sho(-4), "out"), (T - 3, sh0)],
         "trunk": [(0, tr0), (2, lean(2.5)), (5, lean(-5)), (a0, lean(-19), "in"), (a1, lean(-18)), (a1 + 5, lean(-7), "out"), (T - 3, tr0)],
         "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.065, "in"), (a1, 0.06), (a1 + 6, 0.01), (T - 4, 0.0)],
-        "rear_foot_abs": [(0, FR + (0.0,)), (3, (FR[0] * 0.7, 0.10, 0.34, 0.2), "out"), (a0 - 3, chamber, "out"),
+        "rear_foot_abs": [(0, FR + (0.0,)), (3, (FR[0] * 0.7, 0.10, 0.34, 0.0), "out"), (a0 - 3, chamber, "out"),
                           (a0 - 1, snap, "in"), (a0, out_far), (a0 + 1, out_hold), (a1, out_hold),
-                          (a1 + 3, recoil, "out"), (a1 + 6, (FR[0] * 0.8, FR[1] * 0.6, 0.30, 0.45)), (a1 + 8, (FR[0] * 0.9, FR[1] * 0.85, 0.12, 0.2)), (a1 + 10, FR + (0.0,), "in")],
+                          (a1 + 3, recoil, "out"), (a1 + 6, (FR[0] * 0.8, FR[1] * 0.6, 0.30, -0.1)), (a1 + 8, (FR[0] * 0.9, FR[1] * 0.85, 0.12, 0.0)), (a1 + 10, FR + (0.0,), "in")],
         "lead_hand_abs": [(0, L), (4, (L[0], L[1] - 0.04, L[2] + 0.03)), (a0, chin, "in"), (a1 + 4, chin), (T - 3, L)],
         "rear_hand_abs": [(0, R), (4, (R[0] - 0.06, R[1] - 0.02, R[2] - 0.03)), (a0, (-0.28, 0.07, R[2] - 0.12), "in"),
                           (a1 + 3, (-0.27, 0.05, R[2] - 0.10)), (T - 3, R)],

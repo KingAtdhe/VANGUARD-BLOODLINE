@@ -1605,3 +1605,16 @@ recorded build stays behind `KAIRO_RECORDED=1` and is not used.
   (`stretch_check.py`), three views with the hitbox (`move_shot.gd`). Hitbox,
   frame data and the other moves unchanged.
 - Not verified on a phone. Video: before / now, real speed and half speed.
+
+## D-097 — 2026-11-23 — Front kick on the ball of the foot
+
+Owner on D-096: "the foot is straight like a ballerina, not a kick". The
+`*_foot_abs` solver could only blend the foot from flat (`point` 0) to
+pointed along the shin (1); nothing pulled the toes back. New: `point` < 0
+flexes the ankle, toward about 100 degrees from the shin with the toes up
+(-1). Existing values (0..1) behave as before, so no other move changes.
+Kairo's Front Kick: toes up from the chamber (-0.3), -0.7 in the snap, -0.95
+on contact and hold, back to flat as the foot is set down. Checks: no pops
+(`GLITCH_SCAN`), stretched edges at the idle's level, three views. Not
+verified on a phone. The game skeleton has no toe bones, so the toes
+themselves cannot curl back; the whole foot angles instead.
