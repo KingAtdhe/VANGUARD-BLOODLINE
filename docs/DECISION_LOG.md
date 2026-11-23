@@ -1618,3 +1618,21 @@ on contact and hold, back to flat as the foot is set down. Checks: no pops
 (`GLITCH_SCAN`), stretched edges at the idle's level, three views. Not
 verified on a phone. The game skeleton has no toe bones, so the toes
 themselves cannot curl back; the whole foot angles instead.
+
+## D-098 — 2026-11-23 — Kairo's own Flying Side Kick
+
+Owner: "the jump kick looks bad". Kairo had no `air_kick` settings, so he
+used the generic jumping attack: square to the camera, the rear leg 0.78
+straight and pointing steeply down with the toes pointed, the other leg
+hanging, the arms frozen — he looked seated in the air.
+New Kairo branch after the generic `at` in `build()` (tobi yoko geri):
+lead leg chambers (a0-3), half key (a0-1), out heel first (point -0.95,
+D-097) at hx+0.22 / hold hx+0.27, leg 0.95-0.97 of its length; pelvis +34°
+and shoulders +24° more side-on; trunk 27° back so body and leg make a line;
+rear knee drawn up (rising over a0-3..a0+1); lead arm down over the kicking
+leg, rear fist at the chin; the leg comes back over four frames (one frame
+had moved the foot 0.46 m). `GLITCH_SCAN` clean for JUMP_ATTACK;
+stretched edges 19 worst (a tighter rear tuck gave 41, so it was eased).
+Seen in side, three-quarter and front views. KAIRO_JUMP shows a 7 cm toe
+move on frame 43 (landing) that this change does not touch. Not verified on a
+phone. Hitbox and frame data unchanged.

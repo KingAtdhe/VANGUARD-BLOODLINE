@@ -3473,6 +3473,44 @@ def build(rig_obj, moves, fid, height, clip_dir):
                   ("lead" if kick_sd == "rear" else "rear") + "_foot_abs": [(0, (oh[0], oh[1] * 0.6, oh[2] + tuck, 0.5)), (a0, tucked),
                                                                          (a1, tucked), (n_air - 1, (oh[0], oh[1] * 0.6, oh[2] + tuck, 0.5))]}
             at.update(ad.get("pose", {}))
+            if fid == "kairo":
+                # Kairo's Flying Side Kick (D-098; owner: "the jump kick looks
+                # bad" — it sat in the air as on a chair: square to the camera,
+                # rear leg bent ~0.78 and pointing steeply down, toes pointed,
+                # the other leg hanging, arms frozen). Now a tobi yoko geri: the
+                # lead knee comes up across the body, the hips and shoulders turn
+                # side-on, the leg shoots out heel first into the far part of the
+                # box (0.15-0.95 m forward, below the hips) nearly straight, the
+                # trunk leans back away from it, the rear knee is tucked high; on
+                # the way down the leg is pulled back in and the feet reach for
+                # the floor.
+                pel0, sh0 = base_ps.get("pelvis", 48), base_ps.get("shoulders", 58)
+                lh0, rh0 = base_ps["lead_hand"], base_ps["rear_hand"]
+                T = n_air - 1
+                k_tuck = (hl[0], 0.02 * S_fit, hl[2] + tuck, 0.2)
+                k_chamber = (hl[0] * 0.3, 0.16 * S_fit, hl[2] + 0.50 * S_fit, -0.4)     # knee high, foot under it
+                k_half = (0.02, hx * 0.70, hz + 0.14, -0.7)
+                k_out = (0.02, hx + 0.22, hz + 0.07, -0.95)                            # heel first, leg ~0.95
+                k_hold = (0.02, hx + 0.27, hz + 0.07, -0.95)
+                k_back = (0.02, hx * 0.95, hz + 0.10, -0.8)                            # first frames of the pull back
+                k_back2 = (hl[0] * 0.15, hx * 0.55, hz + 0.20, -0.6)
+                r_tuck = (hr[0] * 0.8, 0.0, hr[2] + 0.54 * S_fit, 0.45)               # rear knee drawn up, heel under the seat
+                at = {"_name": "JUMP_ATTACK", "pelvis_h": ph0,
+                      "pelvis": [(0, pel0), (a0 - 3, pel0 + 16, "io"), (a0, pel0 + 34, "io"), (a1, pel0 + 32), (a1 + 3, pel0 + 22, "io"), (T, pel0 + 6, "io")],
+                      "shoulders": [(0, sh0), (a0 - 3, sh0 + 8, "io"), (a0 + 1, sh0 + 24, "io"), (a1, sh0 + 22), (a1 + 3, sh0 + 14, "io"), (T, sh0 + 4, "io")],
+                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 27, tr0[1]), "io"),
+                                (a1, (tr0[0] - 26, tr0[1])), (a1 + 4, (tr0[0] - 10, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
+                      "lead_foot_abs": [(0, k_tuck), (a0 - 3, k_chamber, "out"), (a0 - 1, k_half), (a0, k_out),
+                                        (a0 + 2, k_hold), (a1, k_hold), (a1 + 1, k_back), (a1 + 2, k_back2), (a1 + 4, k_chamber),
+                                        (T, (hl[0], hl[1] * 0.6, hl[2] + tuck * 0.6, 0.2))],
+                      "rear_foot_abs": [(0, (hr[0], hr[1] * 0.45, hr[2] + tuck, 0.5)), (a0 - 3, (hr[0] * 0.9, hr[1] * 0.3, hr[2] + tuck + 0.12 * S_fit, 0.45), "io"),
+                                        (a0 + 1, r_tuck, "io"), (a1, r_tuck),
+                                        (T, (hr[0], hr[1] * 0.6, hr[2] + tuck * 0.6, 0.3))],
+                      # lead arm drops along the kicking leg as a shield, rear fist up at the chin
+                      "lead_hand": [(0, lh0), (a0, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] - 0.16), "in"), (a1, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] - 0.15)),
+                                    (T, lh0, "out")],
+                      "rear_hand": [(0, rh0), (a0, (rh0[0] - 0.06, rh0[1] - 0.02, rh0[2] + 0.12), "in"), (a1, (rh0[0] - 0.06, rh0[1] - 0.02, rh0[2] + 0.11)),
+                                    (T, rh0, "out")]}
             A[f"{F}_JUMP_ATTACK"] = keyed_frames(n_air, at, settle=0, air=True, blend_in=0)
             AIRBORNE[f"{F}_JUMP_ATTACK"] = (0, n_air)
     else:

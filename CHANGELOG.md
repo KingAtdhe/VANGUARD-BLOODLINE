@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's Flying Side Kick
+- No longer sits in the air: the lead knee comes up, the hips and shoulders turn side-on and the leg drives out heel first, nearly straight, into the target, the body leaning back in line with it, the rear knee drawn up and the arms guarding; the leg is pulled back in before landing. Hitbox and timing unchanged.
 ### Fixed — Kairo's Front Kick foot
 - The kicking foot no longer points like a ballet dancer's: the toes are pulled back and the kick lands on the ball of the foot, as a real front kick does.
 ### Changed — Kairo's Front Kick

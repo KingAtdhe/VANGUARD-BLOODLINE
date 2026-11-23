@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-096 (2026-11-23). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-098 (2026-11-23). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -15,7 +15,7 @@ change goes to the owner with a real-speed review video).
 2. **Robotic look: owner chose the keyed moves (D-096)** over recorded
    karate (D-095 trial, still behind `KAIRO_RECORDED=1`, not used), and
    asked for the leg extended more and better motion. Front Kick redone
-   (D-096): leg ~0.95 straight, chamber, lean-back, recoil. Next: the same
+   (D-096, D-097 ball of the foot); Flying Side Kick redone (D-098). Next: the same
    kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side
    Kick) if the owner likes this one; check `legext` in `KEYED_DEBUG`.
 
