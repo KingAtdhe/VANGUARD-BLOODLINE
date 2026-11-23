@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo's Flying Side Kick, second pass
+- The other leg is no longer crushed (it was folded so tight the knee and thigh deformed): it now trails behind and below, bent naturally. The kicking leg goes fully straight and shoots out over three frames instead of one.
 ### Changed — Kairo's Flying Side Kick
 - No longer sits in the air: the lead knee comes up, the hips and shoulders turn side-on and the leg drives out heel first, nearly straight, into the target, the body leaning back in line with it, the rear knee drawn up and the arms guarding; the leg is pulled back in before landing. Hitbox and timing unchanged.
 ### Fixed — Kairo's Front Kick foot

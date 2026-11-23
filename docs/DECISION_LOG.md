@@ -1636,3 +1636,16 @@ stretched edges 19 worst (a tighter rear tuck gave 41, so it was eased).
 Seen in side, three-quarter and front views. KAIRO_JUMP shows a 7 cm toe
 move on frame 43 (landing) that this change does not touch. Not verified on a
 phone. Hitbox and frame data unchanged.
+
+## D-099 — 2026-11-23 — Flying Side Kick: rear leg, full extension
+
+Owner on D-098: "his other leg gets deformed, he does it so unnatural, the
+leg needs to be fully extended". Measured (`KEYED_DEBUG` legext): the rear
+leg was folded to 0.28 of its length on the hold frames (foot almost at the
+hip), which crushed the knee and pinched the thigh mesh. It now trails behind
+and below (fw -0.28, +0.30 above its air ankle), bent ~0.53. The kicking
+ankle target is out of reach (hx+0.34), so the leg is straight (1.00) on all
+active frames; a more extended half key (0.71 the frame before) spreads the
+snap (it had moved the shin 0.32 m in one frame). Stretched edges: worst 16,
+mean 9.4 per frame (the idle: 10). `GLITCH_SCAN` clean. Not verified on a
+phone.
