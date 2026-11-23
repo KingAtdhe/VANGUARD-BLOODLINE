@@ -2799,8 +2799,10 @@ def build(rig_obj, moves, fid, height, clip_dir):
 
     # ---- strikes retimed to frame data, limb guided onto the hitbox
     def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None, blend_in=0,
-               aim=None, lift=None):
-        """aim: horizontal direction of the capture that must point at the
+               aim=None, lift=None, foot_last=False):
+        """foot_last: aim the kicking foot onto the hitbox once more after the
+        feet are re-planted (as the fist is; the recorded karate kicks, D-095).
+        aim: horizontal direction of the capture that must point at the
         opponent (kicks thrown sideways from the hips); lift(t): metres the
         whole body is raised on frame t (jumps; those frames are not grounded)."""
         start, total = mv["startup"], mv["startup"] + mv["active"] - 1 + mv["recovery"]
@@ -2866,6 +2868,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # a kick leans the trunk away from the leg to stay over the standing foot
                 P = steady(P, max_side=40.0, max_forward=40.0) if limb == "foot" else steady(P)
                 P = plant_feet(rig, P, st, st["_lead"], c.stand_hips, free=side if limb == "foot" else None)
+                if limb == "foot" and foot_last:
+                    P = move_foot(P, side, np.array([P[side + "Foot"][0], tgt_fwd + 0.08 + guard_P["Hips"][1], tgt_h]), w)
+                    if os.environ.get("KEYED_DEBUG") and a0 <= t <= a1:
+                        print("FOOT t%d foot %s target fwd %.2f h %.2f hips %s" % (t, np.round(P[side + "Foot"], 2),
+                              tgt_fwd + 0.08 + guard_P["Hips"][1], tgt_h, np.round(P["Hips"], 2)))
                 if limb == "hand":
                     # the fist itself (8 cm past the wrist) into the middle of the hitbox, on the real arm
                     P = reach_hand(rig, P, side, (None, -(hc[0] - 0.08), hc[1]), w,
@@ -3487,6 +3494,43 @@ def build(rig_obj, moves, fid, height, clip_dir):
         for mv_key, tracks in kairo_keys(moves, base_ps, dict(g_hand, feet=g_foot), S_fit).items():
             mv = moves[mv_key]
             A[F + mv["animation"][mv["animation"].find("_"):]] = keyed_move(mv, tracks)
+        if os.environ.get("KAIRO_RECORDED"):
+            # Trial (D-095): two of his moves from recorded karate instead of
+            # keys, to compare side by side. CMU 135 is a karateka: 135_09
+            # oi-zuki (the right punch at frame 762; the step is dropped, his
+            # feet stay on his stance), 135_04 front kicks (the rear-leg kick
+            # at frame 813). Same frame data and hitboxes as the keyed moves.
+            zuki, geri = clip("135_09"), clip("135_04")
+
+            def held_back(mv, root, mid, end, ext):
+                """The karateka lunges deeper than Kairo's hitbox allows: his
+                shoulder (hip) arrives so close to the box that the arm (leg)
+                hits it still folded. Move the whole body back, around the
+                active frames, until the limb reaches the box at `ext` of its
+                length. Forward is -Y."""
+                total, a0, a1 = frames_of(mv)
+                tgt_y, tgt_z = -mv["hc"][0], mv["hc"][1]
+                def fn(P, t, T):
+                    w = track(t, [(0, 0.0), (max(1, a0 - 3), 1.0), (a1 + 2, 1.0), (total - 1, 0.0)])
+                    L = np.linalg.norm(P[mid] - P[root]) + np.linalg.norm(P[end] - P[mid])
+                    dz = tgt_z - P[root][2]
+                    reach = math.sqrt(max(0.0, (ext * L) ** 2 - dz * dz))
+                    excess = (tgt_y + reach) - P[root][1]          # > 0: the root is too far forward
+                    if excess <= 0.0 or w <= 0.0:
+                        return P
+                    return shift(P, list(P.keys()), np.array([0.0, excess * w, 0.0]))
+                return fn
+
+            mv = moves["HEAVY"]
+            A[F + mv["animation"][mv["animation"].find("_"):]] = strike(
+                zuki, 762, "Right", "hand", mv, pre=36, post=50, blend_in=4,
+                extra=held_back(mv, "RightArm", "RightForeArm", "RightHand", 0.93))
+            mv = moves["DOWN_HEAVY"]
+            d = (geri.at(813)["RightFoot"] - geri.at(813)["Hips"])[:2]
+            A[F + mv["animation"][mv["animation"].find("_"):]] = strike(
+                geri, 813, "Right", "foot", mv, pre=30, post=22, blend_in=4,
+                aim=d / (np.linalg.norm(d) + 1e-9),
+                extra=held_back(mv, "RightUpLeg", "RightLeg", "RightFoot", 0.7), foot_last=True)
 
     # ---- fighters with their own move sets (docs/FIGHTER_COMBAT_DESIGN.md)
     if fid in OWN_SETS:

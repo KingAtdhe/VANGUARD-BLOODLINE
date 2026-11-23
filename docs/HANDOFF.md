@@ -1,41 +1,27 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last commit of the session of 2026-11-22/23:
-D-094. Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-095 (2026-11-23). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
-## Where things stand (2026-11-23)
+## Where things stand (2026-11-23, after D-095)
 
-The whole session was about **Kairo looking and moving like a fighter**. In
-order: D-086 every-frame checks, D-087 jump and crouch for all fighters +
-Kairo rebuilt as a karate-kickboxing fighter + four-hit Origin Break, D-088
-and D-089 fixes from the owner's phone recording (camera follows jumps,
-strikes hold), D-090 smoother keys and a living stance, D-091 fists and
-review videos, D-092 kick pops, shuffle walk, crouch, D-093 springs
-(`follow_through`), D-094 crouch linger.
-
-**Two things the owner still reports, both open:**
-1. **"He still shakes when crouching."** Not reproduced: the installed
-   clip is steady to half a millimetre (`tools/godot/clip_trace.gd`) and so
-   is the running fight scene with down held (`tools/godot/hold_trace.gd`).
-   D-094 keeps the crouch on screen 0.1 s after the state ends in case the
-   phone's input flickers. **Asked the owner for a screen recording of the
-   shake in training mode with the input list visible.** Do not guess
-   again: look at that recording first (cut it into frames with ffmpeg, as
-   in D-089).
-2. **"He still looks robotic."** Told the owner plainly that hand-set poses
-   have reached their limit. **Proposed next task, awaiting the owner's
-   yes:** a trial on recorded karate. CMU subject 135 (a karateka; free for
-   all uses) is downloaded to `~/tools/cmu_mocap` on the build machine as
-   135_01 to 135_11 (not in the repo; `tools/mocap/fetch_clips.sh` has the
-   source and should get those clip numbers added when they are used).
-   Titles in the CMU index: kata (01-03, 06), front kick (04, already used
-   for Seraphina), gedan barai, mawashi geri, oi-zuki, shuto uke, yoko
-   geri. Only 135_08 has been looked at and it is one held pose, unusable.
-   The trial: find the usable strikes, build two of Kairo's moves from them
-   next to the keyed versions, send ONE video with both, let the owner
-   choose. Earlier (before D-084) recorded boxing did not look right on
-   him, so it is a trial.
+1. **Crouch shake: found and fixed (D-095), not yet seen on a phone.** It
+   was the touch stick: a thumb resting a short way down flipped down on and
+   off. Down now lets go much later (`RELEASE_FACTOR_DOWN`). The earlier
+   trace tool had been running the versus scene; `hold_trace.gd` now loads
+   training, and `touch_trace.gd` drives the real stick with a trembling
+   thumb. If the owner still sees a shake, run `touch_trace.gd` with other
+   thumb positions before anything else.
+2. **Robotic look: recorded-karate trial built, owner to choose.** Kairo's
+   Reverse Punch (135_09 f762) and Front Kick (135_04 f813) from recorded
+   karate, behind `KAIRO_RECORDED=1` in `mocap_actions.build()`. The game
+   still ships the keyed versions. Side-by-side video sent
+   (`kairo_karate_trial.mp4`, keyed A / recorded B). The punch is clearly
+   more natural; the kick reaches its box but the knee flares a little in
+   front view. If the owner picks B: make it the default for these two, then
+   look at 135_07 (mawashi geri: Origin Break's roundhouse?) and 135_11
+   (yoko geri: the Flying Side Kick) for the rest of his set. CMU 135 clips
+   are in `tools/mocap/fetch_clips.sh` now.
 
 ## Kairo as built
 
@@ -67,7 +53,7 @@ review videos, D-092 kick pops, shuffle walk, crouch, D-093 springs
 - Video for the owner: `python3 tools/review_video.py <fighter> out.mp4`
   (needs xvfb-run, ffmpeg, Pillow). Say it was sampled, not watched.
 - Tests: `godot --headless --path . --script res://tests/run_tests.gd`
-  (205 passing at D-094).
+  (206 at D-095).
 - APK: every push builds a release `apk-0.0.8-m7-<shortsha>`; give the
   owner the direct download link and remind them to uninstall the previous
   test app.

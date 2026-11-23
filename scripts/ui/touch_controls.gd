@@ -27,6 +27,12 @@ const HIT_SLOP: float = 1.15
 ## zone, so a thumb resting on the edge does not flick it on and off (a
 ## crouch that flickers looks like shaking, D-093).
 const RELEASE_FACTOR: float = 0.7
+## Down (crouch) lets go much later: a thumb resting a short way down sat
+## between 0.7 and 1.0 of the dead zone, so ordinary thumb movement flipped
+## crouch and stand every few frames — the "shaking crouch" from the phone
+## (reproduced with simulated drags, D-095). Down now holds until the thumb
+## is back within 0.35 of the dead zone (about a fifth of the stick radius).
+const RELEASE_FACTOR_DOWN: float = 0.35
 ## Stick dead zone (fraction of STICK_RADIUS) for left/right; up/down need more.
 const DEADZONE_X: float = 0.3
 const DEADZONE_Y: float = 0.55
@@ -242,7 +248,8 @@ func _stick_move(pos: Vector2) -> void:
 	var sy: int = 1 if offset.y > 0.0 else -1
 	if absf(offset.x) > r * DEADZONE_X * (RELEASE_FACTOR if held.x == sx else 1.0):
 		dir.x = sx
-	if absf(offset.y) > r * DEADZONE_Y * (RELEASE_FACTOR if held.y == sy else 1.0):
+	var keep_y: float = (RELEASE_FACTOR_DOWN if sy > 0 else RELEASE_FACTOR) if held.y == sy else 1.0
+	if absf(offset.y) > r * DEADZONE_Y * keep_y:   # screen y grows downward: sy > 0 is down
 		dir.y = sy
 	_set_stick_dir(dir)
 	_canvas.queue_redraw()

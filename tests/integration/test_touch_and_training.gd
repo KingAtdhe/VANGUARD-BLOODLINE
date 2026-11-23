@@ -80,6 +80,38 @@ func test_touch_walk_and_attack_with_two_fingers() -> Array[String]:
 	return f
 
 
+## D-095: a thumb resting a short way down, moving a little, must not flip
+## crouch on and off (the shaking crouch seen on the phone).
+func test_touch_down_holds_through_thumb_wobble() -> Array[String]:
+	var f: Array[String] = []
+	var tc := TouchControls.new()
+	_tree().root.add_child(tc)
+	var stick: Vector2 = tc.stick_rest()
+	var r: float = TouchControls.STICK_RADIUS * tc.get_viewport().get_visible_rect().size.y / TouchControls.REF_HEIGHT
+	_touch(tc, 0, stick, true)
+	_drag(tc, 0, stick + Vector2(0, r * 0.6))          # past the dead zone: down
+	if not Input.is_action_pressed(InputActions.MOVE_DOWN):
+		f.append("down not pressed at 0.6 of the radius")
+	var flips: int = 0
+	var was: bool = true
+	for k: int in 40:                                   # wobble between 0.3 and 0.6 of the radius
+		_drag(tc, 0, stick + Vector2(sin(k * 1.7) * r * 0.1, r * (0.45 + 0.15 * sin(k * 2.3))))
+		var now: bool = Input.is_action_pressed(InputActions.MOVE_DOWN)
+		flips += int(now != was)
+		was = now
+	if flips > 0:
+		f.append("down flipped %d times while the thumb wobbled" % flips)
+	_drag(tc, 0, stick + Vector2(0, r * 0.1))           # thumb back near the centre: lets go
+	if Input.is_action_pressed(InputActions.MOVE_DOWN):
+		f.append("down still held with the thumb near the centre")
+	_drag(tc, 0, stick + Vector2(0, -r * 0.45))         # up keeps its own threshold (no jump at 0.45)
+	if Input.is_action_pressed(InputActions.MOVE_UP):
+		f.append("up pressed inside its dead zone")
+	tc.release_all()
+	tc.free()
+	return f
+
+
 func test_touch_left_handed_mirrors_layout() -> Array[String]:
 	var f: Array[String] = []
 	var tc := TouchControls.new()

@@ -1539,3 +1539,48 @@ Owner after D-093: "he still shakes when crouching, he still looks robotic".
   ones in one video, so the owner can choose by eye.
 - 205 tests pass. Not verified: on a phone.
 
+
+## D-095 — 2026-11-23 — Crouch shake found in the touch stick; recorded-karate trial
+
+**Crouch shake.** The owner's "he still shakes when crouching" is now reproduced.
+- `tools/godot/hold_trace.gd` had loaded the VERSUS scene (`COMBAT_GREYBOX`),
+  which ignores a training setup: D-094's "steady" trace ran against the
+  Standard AI, never in training mode. It now loads `TRAINING_GREYBOX`.
+- New `tools/godot/touch_trace.gd` drives P1 through the real touch stick with
+  a trembling thumb. Held well down (0.73 of the radius) or on the diagonal:
+  steady. Resting a short way down (0.40–0.48 of the radius, a natural
+  "press down a little"): the thumb sits between the press line (0.55) and
+  the release line (0.55 × 0.7 = 0.385), so down flipped every few frames,
+  the state went CROUCH/IDLE/CROUCH and the head jumped up to 0.22 m in one
+  frame. D-094's 0.1 s linger does not cover it. It also flickered the
+  hurtbox, so it was a gameplay fault as well.
+- Fix (input layer only, `touch_controls.gd`): down lets go at
+  `RELEASE_FACTOR_DOWN` = 0.35 of the dead zone (about 0.19 of the radius)
+  instead of 0.7. Up and left/right are unchanged. With the same simulated
+  thumbs the crouch is now held on every frame (head moves ≤ 1 mm/frame).
+  Test: `test_touch_down_holds_through_thumb_wobble`.
+- Not verified on a phone.
+
+**Recorded-karate trial (owner's decision pending).** CMU subject 135
+(karateka): 135_09 = oi-zuki, 135_04 = front kicks, 135_05 = gedan barai,
+135_07 = mawashi geri, 135_11 = yoko geri, 135_10 = no strikes, 135_08 = one
+held pose. Built behind `KAIRO_RECORDED=1` in `mocap_actions.build()`:
+- Heavy (Reverse Punch) from 135_09 f762 (right punch), Front Kick (down +
+  heavy) from 135_04 f813 (right, rear-leg kick). Same frame data, hitboxes
+  and fists as the keyed moves.
+- `held_back()`: the karateka lunges so deep that the shoulder (hip) arrived
+  beside the hitbox and the limb hit it folded; the body is held back around
+  the active frames until the arm reaches at 0.93 / the leg at 0.7 of its
+  length. `strike(foot_last=True)` aims the kicking foot once more after the
+  feet are re-planted (as the fist already was); off for every other caller,
+  so Seraphina's kicks are unchanged. The kick uses 30 source frames before
+  and 22 after the peak (the karateka's long stance and forward landing
+  around it read as a lunge back and a sitting recovery).
+- Looked at in side, three-quarter and front views (`move_shot.gd`), no pops
+  (`GLITCH_SCAN`). The punch reads as a real gyaku-zuki (hips drive, other
+  fist pulled to the hip). The kick reaches its box with a proper chamber, but
+  the knee still flares a little to the side in the front view.
+- The shipped `kairo.glb` is still the keyed one. Video for the owner: keyed
+  and recorded side by side, real speed and half speed.
+- If chosen: build with `KAIRO_RECORDED=1` (or make it the default), then the
+  rest of his set from 135_07/135_11 where a capture exists.

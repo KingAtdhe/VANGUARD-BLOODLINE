@@ -1,5 +1,5 @@
 extends SceneTree
-## Runs the real fight scene (training), holds one input action and prints,
+## Runs the real training scene (TRAINING_GREYBOX; before D-095 this loaded the versus scene, whose AI attacked), holds one input action and prints,
 ## for every rendered frame, P1's state and where a few of its joints are on
 ## screen-space world axes. For jitter that only exists in the running game
 ## (state flicker, blending), which a clip on its own does not show (D-094).
@@ -16,7 +16,7 @@ func _initialize() -> void:
 	s.mode = MatchSetup.Mode.TRAINING
 	s.rules_path = MatchSetup.RULES_TRAINING
 	ModeFlow.setup = s
-	var scene: Node = (load(ScenePaths.COMBAT_GREYBOX) as PackedScene).instantiate()
+	var scene: Node = (load(ScenePaths.TRAINING_GREYBOX) as PackedScene).instantiate()
 	root.add_child(scene)
 	await create_timer(3.0).timeout
 	var action: StringName = StringName(a[1]) if a.size() > 1 else &"move_down"
