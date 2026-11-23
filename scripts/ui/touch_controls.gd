@@ -23,6 +23,10 @@ const KNOB_RADIUS: float = 64.0
 const EDGE_MARGIN: float = 60.0
 ## Touches within radius × this count as a button hit (generous targets).
 const HIT_SLOP: float = 1.15
+## A direction that is already held lets go only below this share of its dead
+## zone, so a thumb resting on the edge does not flick it on and off (a
+## crouch that flickers looks like shaking, D-093).
+const RELEASE_FACTOR: float = 0.7
 ## Stick dead zone (fraction of STICK_RADIUS) for left/right; up/down need more.
 const DEADZONE_X: float = 0.3
 const DEADZONE_Y: float = 0.55
@@ -233,10 +237,13 @@ func _stick_move(pos: Vector2) -> void:
 	var offset: Vector2 = (pos - _stick.origin).limit_length(r)
 	_stick.knob = _stick.origin + offset
 	var dir := Vector2i.ZERO
-	if absf(offset.x) > r * DEADZONE_X:
-		dir.x = 1 if offset.x > 0.0 else -1
-	if absf(offset.y) > r * DEADZONE_Y:
-		dir.y = 1 if offset.y > 0.0 else -1
+	var held: Vector2i = _stick.dir
+	var sx: int = 1 if offset.x > 0.0 else -1
+	var sy: int = 1 if offset.y > 0.0 else -1
+	if absf(offset.x) > r * DEADZONE_X * (RELEASE_FACTOR if held.x == sx else 1.0):
+		dir.x = sx
+	if absf(offset.y) > r * DEADZONE_Y * (RELEASE_FACTOR if held.y == sy else 1.0):
+		dir.y = sy
 	_set_stick_dir(dir)
 	_canvas.queue_redraw()
 

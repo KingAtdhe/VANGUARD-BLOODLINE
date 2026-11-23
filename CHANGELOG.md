@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo's crouch shake; less stiff
+- Crouching no longer trembles: the crouch breathes slowly instead of twice a second, and the touch stick no longer flickers a direction on and off at the edge of its zone.
+- His head, chest and arms follow his attacks on springs: the head nods into a blow, and on the way back the arms swing slightly past the guard and settle.
+- Changes from one animation to the next are a little softer for every fighter.
 ### Fixed — Kairo's kicks, walk and crouch
 - Kicks and the jump no longer pop: the knee jumped sideways for a frame at take-off, landing and half way up the axe kick.
 - He walks with a fighter's shuffle and keeps his stance open instead of bringing his feet together each step.

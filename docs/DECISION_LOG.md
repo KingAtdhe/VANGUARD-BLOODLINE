@@ -1480,3 +1480,35 @@ crouching, they look unnatural".
   204 tests pass.
 - Not verified: on a phone. Video checked by sampling frames, not watched.
 
+## D-093 — 2026-11-23 — Kairo: the crouch shake; loose parts on springs
+
+Owner: "there's an issue when crouching, he starts shaking, and overall he
+still looks stiff and like a robot".
+- **Crouch shake.** The crouch clip itself is smooth, both as built and as
+  installed (`tools/godot/clip_trace.gd`, new, prints joints per frame of
+  the installed model). Two causes were found and both removed, without
+  knowing from here which one the owner saw:
+  1. the crouch "breathed" twice a second (a 31-frame loop with a 1.4 cm
+     rise and a 1.6 degree rock), which at that rate is a tremble. It is
+     now one slow breath over 97 frames;
+  2. the touch stick had no slack: a thumb resting at the edge of the
+     down zone switches crouch on and off every frame. A held direction now
+     lets go only below 0.7 of its dead zone (`RELEASE_FACTOR`).
+- **Stiffness: follow-through on springs** (`follow_through()`). Every part
+  of a keyed pose was placed exactly, on its frame: nothing lagged,
+  overshot or settled. Now the head and neck ride a spring through every
+  keyed move, and after the last active frame the chest, both arms and the
+  hands do too, so the return swings slightly past the guard and settles.
+  Up to the last active frame chest and arms are untouched (hit boxes and
+  limb alignment unchanged; the alignment test passes).
+- The strike hold of D-089/D-090 was shortened (at most 4 frames, arms
+  1 frame behind the chest): with the springs the arm stayed out 12 frames.
+- Cross-fades between clips lengthened from 0.08 s to 0.12 s
+  (`BLEND_DEFAULT`), for every fighter: walking off and stopping snapped.
+- Checker: 5 of 84 (unchanged). Pop scan: the same seven small entries as
+  D-092. 204 tests pass.
+- Honest limit, repeated: the method computes motion from set poses. The
+  remaining stiffness is the kind recorded fight motion removes; see
+  docs/ANIMATION_RESEARCH.md for the packs that would do it.
+- Not verified: on a phone. Video checked by sampling frames, not watched.
+

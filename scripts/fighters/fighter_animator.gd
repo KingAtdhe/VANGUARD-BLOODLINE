@@ -13,7 +13,7 @@ extends RefCounted
 ## Short cross-fades smooth state changes; attack poses are fully reached
 ## before their first active frame (blend < startup).
 
-const BLEND_DEFAULT: float = 0.08
+const BLEND_DEFAULT: float = 0.12
 const BLEND_ATTACK: float = 0.04
 const BLEND_REACTION: float = 0.03
 ## Going down into a crouch and standing up again take longer than other

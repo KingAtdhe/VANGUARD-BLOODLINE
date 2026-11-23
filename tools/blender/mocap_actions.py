@@ -1309,6 +1309,45 @@ def curve(t, keys):
     return val[-1]
 
 
+def follow_through(rig, poses, a1):
+    """Loose parts follow on springs instead of being placed (D-093).
+
+    Every part of a keyed pose is put exactly where its key says, on the
+    frame it says: nothing lags, overshoots or settles, which is what reads
+    as a robot. Here the head and neck ride a spring through the whole move
+    (they nod into a blow and come back late), and after the last active
+    frame `a1` the chest and both arms do too, so the return swings a little
+    past the guard and settles. Up to `a1` chest and arms are untouched: the
+    striking limb stays on its hit box.
+    Each bone's world rotation chases its keyed rotation: stiffness from a
+    natural frequency, damping below critical."""
+    dt = 1.0 / FPS_OUT
+    groups = ((("Neck", "Head"), 5.0, 0.5, 0),
+              (("Chest", "LeftUpperArm", "LeftLowerArm", "RightUpperArm", "RightLowerArm", "LeftHand", "RightHand"), 5.5, 0.6,
+               (a1 or 0) + 1))
+    out = [Pose(dict(p.D), p.hips) for p in poses]
+    for bones, hz, zeta, start in groups:
+        w0 = 2 * math.pi * hz
+        for b in bones:
+            if b not in poses[0].D or start >= len(poses):
+                continue
+            q = Matrix(poses[start].D[b].tolist()).to_quaternion()
+            vel = Vector((0.0, 0.0, 0.0))
+            for f in range(start + 1, len(poses)):
+                tgt = Matrix(poses[f].D[b].tolist()).to_quaternion()
+                err = tgt @ q.inverted()
+                if err.w < 0:
+                    err = -err
+                axis, ang = err.to_axis_angle()
+                e = Vector(axis) * ang
+                vel += (e * (w0 * w0) - vel * (2 * zeta * w0)) * dt
+                step = vel * dt
+                if step.length > 1e-9:
+                    q = Quaternion(step.normalized(), step.length) @ q
+                out[f].D[b] = np.array(q.to_matrix())
+    return out
+
+
 def track(t, keys):
     """Value at frame t of a keyed track [(frame, value), ...], eased between keys."""
     if t <= keys[0][0]:
@@ -3305,6 +3344,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
                             np.linalg.norm(rig.head[n + "LowerArm"] - rig.head[n + "UpperArm"]) + np.linalg.norm(rig.head[n + "Hand"] - rig.head[n + "LowerArm"])))
                         for n in ("Left", "Right")), "F " + " ".join("(%.2f %.2f %.2f)" % tuple(J[n + "Foot"]) for n in ("Left", "Right")),
                         "head %.2f" % J["Head"][2])
+            if tracks.get("_spring", a1 is not None):
+                poses = follow_through(rig, poses, a1)
             for t in range(min(blend_in, total)):          # out of the stance without a seam
                 poses[t] = Pose.blend(guard, poses[t], (t + 1) / float(blend_in + 1))
             for t in range(max(0, total - settle), total):
@@ -3316,11 +3357,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
             tr = dict(tracks, _name=mv["animation"])
             if "_recover" in tr and "_hold" not in tr:     # a single strike: hold it, then return in the time left
                 rec = mv["recovery"]
-                tr["_hold"] = min(5, int(round(rec * 0.22)))
+                tr["_hold"] = min(4, int(round(rec * 0.16)))
                 tr["_recover"] = max(1.0, tr["_recover"] * (rec - tr["_hold"]) / float(rec))
                 # who starts home when: hips and legs first, then the chest, the arms, the head last
                 tr.setdefault("_lag", (("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0),
-                                       ("trunk", 1.0), ("shoulders", 1.5), ("hand", 2.0), ("elbow", 2.0), ("palm", 2.0),
+                                       ("trunk", 1.0), ("shoulders", 1.5), ("hand", 1.0), ("elbow", 1.0), ("palm", 1.0),
                                        ("chin", 3.0), ("neck", 3.0), ("head", 3.0)))
             return keyed_frames(total, tr, mv["startup"] + mv["active"] - 2, settle)
 
@@ -3345,12 +3386,14 @@ def build(rig_obj, moves, fid, height, clip_dir):
         kd = STYLES[fid].get("crouch_pose", {})
         # crouch: a deep squat over the stance's own feet, chest forward, eyes up
         cdrop, clean = kd.get("drop", 0.43), kd.get("lean", 26.0)
-        ct = {"pelvis_h": [(0, ph0 - cdrop), (15, ph0 - cdrop + 0.014), (30, ph0 - cdrop)],
-              "trunk": [(0, (tr0[0] + clean, tr0[1])), (15, (tr0[0] + clean - 1.6, tr0[1])), (30, (tr0[0] + clean, tr0[1]))],
+        n_cr = 97                                              # one slow breath: it was two a second, which read as shaking (D-093)
+        ct = {"pelvis_h": [(0, ph0 - cdrop), (n_cr // 2, ph0 - cdrop + 0.012, "io"), (n_cr - 1, ph0 - cdrop, "io")],
+              "trunk": [(0, (tr0[0] + clean, tr0[1])), (n_cr // 2, (tr0[0] + clean - 1.4, tr0[1]), "io"),
+                        (n_cr - 1, (tr0[0] + clean, tr0[1]), "io")],
               "chin": chin0 - kd.get("chin", 14.0),
               "lead_heel": kd.get("lead_heel", 0.0), "rear_heel": kd.get("rear_heel", 0.07), "_name": "CROUCH"}
         ct.update(kd.get("pose", {}))
-        A[f"{F}_CROUCH"] = keyed_frames(31, ct, settle=0, blend_in=0)
+        A[f"{F}_CROUCH"] = keyed_frames(n_cr, ct, settle=0, blend_in=0)
         jd = STYLES[fid].get("jump", {})
         tuck = jd.get("tuck", 0.30) * S_fit
         jt = {"_name": "JUMP", "_feet_abs": (t_off, t_down - 1),
