@@ -1,5 +1,85 @@
 # Handoff — continue from here in a new session
 
+Branch: `arena-severed-line`, last commit of the session of 2026-11-22/23:
+D-094. Read `CLAUDE.md` first (it now has a standing rule: every animation
+change goes to the owner with a real-speed review video).
+
+## Where things stand (2026-11-23)
+
+The whole session was about **Kairo looking and moving like a fighter**. In
+order: D-086 every-frame checks, D-087 jump and crouch for all fighters +
+Kairo rebuilt as a karate-kickboxing fighter + four-hit Origin Break, D-088
+and D-089 fixes from the owner's phone recording (camera follows jumps,
+strikes hold), D-090 smoother keys and a living stance, D-091 fists and
+review videos, D-092 kick pops, shuffle walk, crouch, D-093 springs
+(`follow_through`), D-094 crouch linger.
+
+**Two things the owner still reports, both open:**
+1. **"He still shakes when crouching."** Not reproduced: the installed
+   clip is steady to half a millimetre (`tools/godot/clip_trace.gd`) and so
+   is the running fight scene with down held (`tools/godot/hold_trace.gd`).
+   D-094 keeps the crouch on screen 0.1 s after the state ends in case the
+   phone's input flickers. **Asked the owner for a screen recording of the
+   shake in training mode with the input list visible.** Do not guess
+   again: look at that recording first (cut it into frames with ffmpeg, as
+   in D-089).
+2. **"He still looks robotic."** Told the owner plainly that hand-set poses
+   have reached their limit. **Proposed next task, awaiting the owner's
+   yes:** a trial on recorded karate. CMU subject 135 (a karateka; free for
+   all uses) is downloaded to `~/tools/cmu_mocap` on the build machine as
+   135_01 to 135_11 (not in the repo; `tools/mocap/fetch_clips.sh` has the
+   source and should get those clip numbers added when they are used).
+   Titles in the CMU index: kata (01-03, 06), front kick (04, already used
+   for Seraphina), gedan barai, mawashi geri, oi-zuki, shuto uke, yoko
+   geri. Only 135_08 has been looked at and it is one held pose, unusable.
+   The trial: find the usable strikes, build two of Kairo's moves from them
+   next to the keyed versions, send ONE video with both, let the owner
+   choose. Earlier (before D-084) recorded boxing did not look right on
+   him, so it is a trial.
+
+## Kairo as built
+
+- Stance and style: `STYLES["kairo"]` in `tools/blender/mocap_actions.py`
+  (blueprint in `docs/POSE_BLUEPRINTS.md`); moves in `kairo_keys()`;
+  crouch / jump / jumping attack in the generic block of `build()`.
+- Inputs and frame data of his normals are unchanged since D-062; what the
+  moves ARE changed in D-087 (see `docs/FIGHTER_COMBAT_DESIGN.md`).
+- Only Kairo has: strike holds, overlap, springs, the living stance, his own
+  block, the shuffle walk tuning as inspected, the tighter fists as
+  inspected. The other five get the shared parts (fists, jump arms, walk,
+  kick knee fix) at their next build and must be looked at then.
+- Drakon and Ryuen are still on unfitted stances (rough jump and crouch).
+
+## How to work on a fighter (build machine)
+
+- Build: `python3 tools/blender/import_rigged.py --src assets/characters/_source/<id>/<id>.fbx --fighter <id> --moves /root/work/moves_<id>.json --out /root/work/out --mocap-dir /root/tools/cmu_mocap`
+  (about 4 minutes; export the moves json first with
+  `godot --headless --path . --script res://tools/blender/export_move_timing.gd -- /root/work/moves_<id>.json <id>`),
+  copy `out/<id>/<id>.glb` to `assets/characters/<id>/`, then
+  `godot --headless --path . --import`.
+- Env switches on a build: `STANCE_ONLY=1` (idle only, fast),
+  `KEYED_DEBUG=1` (wrists, feet, head per frame of keyed clips),
+  `GLITCH_SCAN=1` (joints that pop on one frame).
+- Look: `tools/godot/move_shot.gd` (every frame of a move with its hit box),
+  `anim_shot.gd`, `pose_views.gd`, `hand_shot.gd` (a hand close up),
+  `jump_shot.gd` (a jump in the real scene), `clip_trace.gd`,
+  `hold_trace.gd`.
+- Video for the owner: `python3 tools/review_video.py <fighter> out.mp4`
+  (needs xvfb-run, ffmpeg, Pillow). Say it was sampled, not watched.
+- Tests: `godot --headless --path . --script res://tests/run_tests.gd`
+  (205 passing at D-094).
+- APK: every push builds a release `apk-0.0.8-m7-<shortsha>`; give the
+  owner the direct download link and remind them to uninstall the previous
+  test app.
+
+## Not verified by anyone but the owner
+
+Everything on a phone.
+
+---
+
+# Earlier handoff (before 2026-11-22), kept for reference
+
 Branch: `arena-severed-line`. Last task done: Ryuen's move set (D-068) —
 all six fighters now have their own sets.
 Hit feel (D-069: counter-hits, reactions by height, effects, KO slow
