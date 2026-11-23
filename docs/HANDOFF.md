@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-095 (2026-11-23). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-096 (2026-11-23). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -12,16 +12,12 @@ change goes to the owner with a real-speed review video).
    training, and `touch_trace.gd` drives the real stick with a trembling
    thumb. If the owner still sees a shake, run `touch_trace.gd` with other
    thumb positions before anything else.
-2. **Robotic look: recorded-karate trial built, owner to choose.** Kairo's
-   Reverse Punch (135_09 f762) and Front Kick (135_04 f813) from recorded
-   karate, behind `KAIRO_RECORDED=1` in `mocap_actions.build()`. The game
-   still ships the keyed versions. Side-by-side video sent
-   (`kairo_karate_trial.mp4`, keyed A / recorded B). The punch is clearly
-   more natural; the kick reaches its box but the knee flares a little in
-   front view. If the owner picks B: make it the default for these two, then
-   look at 135_07 (mawashi geri: Origin Break's roundhouse?) and 135_11
-   (yoko geri: the Flying Side Kick) for the rest of his set. CMU 135 clips
-   are in `tools/mocap/fetch_clips.sh` now.
+2. **Robotic look: owner chose the keyed moves (D-096)** over recorded
+   karate (D-095 trial, still behind `KAIRO_RECORDED=1`, not used), and
+   asked for the leg extended more and better motion. Front Kick redone
+   (D-096): leg ~0.95 straight, chamber, lean-back, recoil. Next: the same
+   kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side
+   Kick) if the owner likes this one; check `legext` in `KEYED_DEBUG`.
 
 ## Kairo as built
 

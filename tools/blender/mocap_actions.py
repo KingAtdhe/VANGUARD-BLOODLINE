@@ -2498,23 +2498,36 @@ def kairo_keys(moves, base, g, S):
         "rear_elbow": [(0, 0.1), (a0, 0.06), (a1 + 5, 0.1)],
     })
 
-    # Front kick (down + heavy; the old body hook's frame data): the rear
-    # knee is lifted to the chest, the foot snaps out into the body and
-    # comes straight back through the same chamber
+    # Front kick (down + heavy; the old body hook's frame data). D-096, from
+    # the owner's look at the side-by-side video ("extend his leg more"): the
+    # ankle used to stop at the middle of the hitbox with the hips pushed 10
+    # cm forward, so the leg arrived half bent. Now: a small dip onto the lead
+    # foot, the rear knee driven up high into the chamber, the foot snaps out
+    # to the far part of the box (the leg nearly straight, toes pointed), the
+    # trunk leans back to balance it and the standing heel lifts; then the
+    # foot comes back fast through the same chamber and is set down.
     a0, a1, T, hx, hz = win(moves["DOWN_HEAVY"])
-    knee_up = (FR[0] * 0.5, 0.16, 0.66, 0.2)
-    out["DOWN_HEAVY"] = dict(_recover=1.5, **head(a0, a1, T, 3.0), **{
+    chamber = (FR[0] * 0.35, 0.22, 0.70, 0.35)             # knee at the chest, foot tucked under it
+    out_far = (0.0, hx + 0.17, hz - 0.01, 1.0)              # ankle in the far part of the box: leg ~0.95 straight
+    out_hold = (0.0, hx + 0.15, hz - 0.02, 1.0)
+    snap = (0.0, hx - 0.04, hz - 0.07, 0.95)                 # half way out: the shin swings up and forward
+    recoil = (FR[0] * 0.3, 0.26, 0.66, 0.65)
+    out["DOWN_HEAVY"] = dict(_recover=1.4, **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "hips": [(0, (hips0, 0)), (4, (hips0 + 0.05, 0)), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.10, 0)), (a1 + 9, (hips0, 0), "out")],
-        "pelvis_h": [(0, ph0), (4, ph0 + 0.03), (a0, ph0 + 0.045, "in"), (a1, ph0 + 0.045)] + settle(T, a1 + 9, ph0, 0.016),
-        "pelvis": [(0, pel0), (4, pel(-24)), (a0, pel(-34), "in"), (a1, pel(-34)), (a1 + 9, pel0, "out")],
-        "shoulders": [(0, sh0), (4, sho(-14)), (a0, sho(-20), "in"), (a1, sho(-20)), (a1 + 9, sh0, "out")],
-        "trunk": [(0, tr0), (4, lean(-3)), (a0, lean(-12), "in"), (a1, lean(-11)), (a1 + 9, tr0, "out")],
-        "lead_heel": [(0, 0.0), (a0, 0.03, "in"), (a1, 0.03), (a1 + 6, 0.0)],
-        "rear_foot_abs": [(0, FR + (0.0,)), (5, knee_up), (a0, (0.0, hx - 0.03, hz - 0.02, 0.1), "in"),
-                          (a1, (0.0, hx - 0.05, hz - 0.02, 0.1)), (a1 + 3, knee_up, "lin"), (a1 + 7, FR + (0.0,))],
-        "lead_hand_abs": [(0, L), (a0, chin, "in"), (a1 + 3, chin), (T - 3, L)],
-        "rear_hand_abs": [(0, R), (a0, (-0.26, 0.04, R[2] - 0.08), "in"), (a1 + 3, (-0.26, 0.04, R[2] - 0.08)), (T - 3, R)],
+        "hips": [(0, (hips0, 0)), (2, (hips0 + 0.03, 0), "io"), (5, (hips0 + 0.05, 0)), (a0, (hips0 - 0.01, 0), "in"),
+                 (a1, (hips0 - 0.01, 0)), (a1 + 4, (hips0 + 0.04, 0), "out"), (T - 3, (hips0, 0))],
+        "pelvis_h": [(0, ph0), (2, ph0 - 0.02, "io"), (5, ph0 + 0.03, "out"), (a0, ph0 + 0.05, "in"), (a1, ph0 + 0.045),
+                     (a1 + 4, ph0 + 0.03)] + settle(T, a1 + 9, ph0, 0.018),
+        "pelvis": [(0, pel0), (2, pel(4)), (5, pel(-26)), (a0, pel(-38), "in"), (a1, pel(-37)), (a1 + 6, pel(-12), "out"), (T - 3, pel0)],
+        "shoulders": [(0, sh0), (2, sho(6)), (5, sho(-10)), (a0, sho(-16), "in"), (a1, sho(-16)), (a1 + 6, sho(-4), "out"), (T - 3, sh0)],
+        "trunk": [(0, tr0), (2, lean(2.5)), (5, lean(-5)), (a0, lean(-19), "in"), (a1, lean(-18)), (a1 + 5, lean(-7), "out"), (T - 3, tr0)],
+        "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.065, "in"), (a1, 0.06), (a1 + 6, 0.01), (T - 4, 0.0)],
+        "rear_foot_abs": [(0, FR + (0.0,)), (3, (FR[0] * 0.7, 0.10, 0.34, 0.2), "out"), (a0 - 3, chamber, "out"),
+                          (a0 - 1, snap, "in"), (a0, out_far), (a0 + 1, out_hold), (a1, out_hold),
+                          (a1 + 3, recoil, "out"), (a1 + 6, (FR[0] * 0.8, FR[1] * 0.6, 0.30, 0.45)), (a1 + 8, (FR[0] * 0.9, FR[1] * 0.85, 0.12, 0.2)), (a1 + 10, FR + (0.0,), "in")],
+        "lead_hand_abs": [(0, L), (4, (L[0], L[1] - 0.04, L[2] + 0.03)), (a0, chin, "in"), (a1 + 4, chin), (T - 3, L)],
+        "rear_hand_abs": [(0, R), (4, (R[0] - 0.06, R[1] - 0.02, R[2] - 0.03)), (a0, (-0.28, 0.07, R[2] - 0.12), "in"),
+                          (a1 + 3, (-0.27, 0.05, R[2] - 0.10)), (T - 3, R)],
     })
 
     # Counter strike (the Rift Guard's answer): after the open-hand parry the
@@ -3350,7 +3363,9 @@ def build(rig_obj, moves, fid, height, clip_dir):
                         "%s=(%.2f %.2f %.2f) ext=%.2f" % (n[:1], *J[n + "Hand"], np.linalg.norm(J[n + "Hand"] - J[n + "UpperArm"]) / (
                             np.linalg.norm(rig.head[n + "LowerArm"] - rig.head[n + "UpperArm"]) + np.linalg.norm(rig.head[n + "Hand"] - rig.head[n + "LowerArm"])))
                         for n in ("Left", "Right")), "F " + " ".join("(%.2f %.2f %.2f)" % tuple(J[n + "Foot"]) for n in ("Left", "Right")),
-                        "head %.2f" % J["Head"][2])
+                        "head %.2f" % J["Head"][2], "legext " + " ".join("%s=%.2f" % (n[:1], np.linalg.norm(J[n + "Foot"] - J[n + "UpperLeg"]) / (
+                            np.linalg.norm(rig.head[n + "LowerLeg"] - rig.head[n + "UpperLeg"]) + np.linalg.norm(rig.head[n + "Foot"] - rig.head[n + "LowerLeg"])))
+                            for n in ("Left", "Right")))
             if tracks.get("_spring", a1 is not None):
                 poses = follow_through(rig, poses, a1)
             for t in range(min(blend_in, total)):          # out of the stance without a seam

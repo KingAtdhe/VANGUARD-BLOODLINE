@@ -1,10 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's Front Kick
+- The kicking leg now reaches almost straight into the target instead of arriving half bent. The knee drives up high first, the foot snaps out with the toes pointed, he leans back and rises on his standing foot to balance it, and the foot comes back fast through the same chamber before it is set down. Hitbox and timing unchanged.
 ### Fixed — crouch shake (found)
 - A thumb resting a short way down on the touch stick flipped the crouch on and off every few frames, so Kairo bobbed up and down. Down now stays held until the thumb comes most of the way back to the centre. Reproduced and fixed with simulated touch input on the build machine.
-### Trial — recorded karate for Kairo (not in the game yet)
-- His Reverse Punch and Front Kick were rebuilt from a recorded karateka for a side-by-side comparison with the current keyed versions. The game still uses the keyed ones until the owner chooses.
+### Trial — recorded karate for Kairo (not chosen)
+- His Reverse Punch and Front Kick were rebuilt from a recorded karateka for a side-by-side comparison. The owner chose the keyed versions; the recorded build stays behind a switch.
 ### Fixed — crouch shake (second attempt)
 - The crouch stays on screen for a tenth of a second after the input lets go, so an input that flickers cannot bounce him up and down. Not reproduced on the build machine; needs the owner's check.
 ### Fixed — Kairo's crouch shake; less stiff

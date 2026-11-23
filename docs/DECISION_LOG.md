@@ -1584,3 +1584,24 @@ held pose. Built behind `KAIRO_RECORDED=1` in `mocap_actions.build()`:
   and recorded side by side, real speed and half speed.
 - If chosen: build with `KAIRO_RECORDED=1` (or make it the default), then the
   rest of his set from 135_07/135_11 where a capture exists.
+
+## D-096 — 2026-11-23 — Kairo's keyed Front Kick extended; recorded karate not chosen
+
+Owner on the D-095 side-by-side video: "A" (keyed), "but he needs to extend
+his leg more, also improve motion". So the game stays on keyed moves; the
+recorded build stays behind `KAIRO_RECORDED=1` and is not used.
+- Measured (new `legext` column in `KEYED_DEBUG`): the old kick's ankle
+  stopped at the middle of the hitbox (0.57 m) with the hips pushed 0.10 m
+  forward, so the leg reached the box half bent.
+- New `DOWN_HEAVY` in `kairo_keys()`: dip onto the lead foot (frames 1-3),
+  rear knee driven up to the chest (chamber at a0-3), one in-between key
+  (a0-1) so the snap is spread over two frames (one frame had moved the shin
+  22 cm: `GLITCH_SCAN`), ankle at hx+0.17 / hold hx+0.15 inside the 0.35-0.85 m
+  box, leg 0.97 then 0.95 of its length, toes pointed; trunk leans back 19°,
+  standing heel up 6.5 cm, hips no longer pushed forward; recoil to the
+  chamber in 3 frames, foot set down over the last frames through a low key
+  (the toe flicked 9 cm in one frame without it).
+- Checks: `GLITCH_SCAN` clean for the move, stretched edges at the idle's level
+  (`stretch_check.py`), three views with the hitbox (`move_shot.gd`). Hitbox,
+  frame data and the other moves unchanged.
+- Not verified on a phone. Video: before / now, real speed and half speed.
