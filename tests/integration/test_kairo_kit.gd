@@ -88,3 +88,32 @@ func test_rising_uppercut_is_invulnerable_anti_air() -> Array[String]:
 	if not (r.hits as Array).has(&"kairo_rising_uppercut") or not r.knocked:
 		f.append("down + Light did not land a knockdown uppercut: %s / %s" % [r.started, r.hits])
 	return f
+
+
+## The Knee Throw holds its victim from the grab and lands on the knee
+## (throw_release_frame): no damage before, the hit on that frame.
+func test_knee_throw_holds_then_lands_on_the_knee() -> Array[String]:
+	var f: Array[String] = []
+	var sim: CombatSimulation = _sim(0.9)
+	var idle := FighterInputFrame.new()
+	var release: int = (load("res://data/moves/kairo_knee_throw.tres") as MoveData).throw_release_frame
+	var held_seen: bool = false
+	var hit_frame: int = -1
+	var hp0: int = sim.fighters[1].health
+	for t: int in 40:
+		var ins: Array[FighterInputFrame] = [_in(L | K) if t == 0 else idle, idle]
+		sim.step(ins)
+		if sim.fighters[1].held_by == 0:
+			held_seen = true
+			if sim.fighters[1].health != hp0:
+				f.append("damage taken while only held")
+		for ev: CombatEvent in sim.combat_log.events_since(sim.combat_log.total_count() - 3):
+			if ev.type == CombatEvent.Type.HIT and ev.move_id == &"kairo_knee_throw" and hit_frame < 0:
+				hit_frame = sim.fighters[0].move_frame
+	if not held_seen:
+		f.append("the grab did not hold the opponent")
+	if hit_frame != release:
+		f.append("the throw landed on move frame %d, expected the knee (%d)" % [hit_frame, release])
+	if sim.fighters[1].held_by != -1 or sim.fighters[0].throw_target != -1:
+		f.append("hold not cleared after the throw")
+	return f

@@ -24,3 +24,4 @@ tags = PackedStringArray("throw")
 cancel_tags = PackedStringArray()
 meter_gain_on_hit = 10
 knockdown = true
+throw_release_frame = 12

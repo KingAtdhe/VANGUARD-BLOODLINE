@@ -194,10 +194,59 @@ func step(inputs: Array[FighterInputFrame]) -> void:
 		clash.point = point
 		combat_log.add(clash)
 	var contacts: Array[HitboxSystem.Contact] = HitboxSystem.find_contacts(definitions, fighters, projectiles)
+	contacts = _throw_holds(contacts)
 	hitstop_remaining = HitResolver.resolve(contacts, self)
 	for k: int in range(projectiles.size() - 1, -1, -1):
 		if projectiles[k].spent:
 			projectiles.remove_at(k)
+
+
+## Throws that hold their victim (MoveData.throw_release_frame, D-103).
+## A grab before the release frame only catches: the victim is held in place
+## (HITSTUN, no hurtbox) until the thrower reaches the release frame, where a
+## contact is made for the throw to land. If the thrower is no longer in that
+## throw (hit by a projectile, say), the victim is let go.
+func _throw_holds(contacts: Array[HitboxSystem.Contact]) -> Array[HitboxSystem.Contact]:
+	var out: Array[HitboxSystem.Contact] = []
+	for a: int in 2:
+		var f: FighterState = fighters[a]
+		if f.throw_target < 0:
+			continue
+		var d: FighterState = fighters[f.throw_target]
+		var holding: bool = f.action == FighterState.Action.ATTACK and f.move != null \
+				and f.move.throw_release_frame > 0 and f.move_frame <= f.move.throw_release_frame
+		if not holding:
+			d.held_by = -1                       # let go: the victim recovers at once
+			d.stun_remaining = mini(d.stun_remaining, 1)
+			f.throw_target = -1
+		elif f.move_frame == f.move.throw_release_frame:
+			var c := HitboxSystem.Contact.new()
+			c.attacker = a
+			c.defender = f.throw_target
+			c.move = f.move
+			c.point = Vector2(d.position_x - f.facing * 0.1, f.move.hitbox_center.y - 0.2)
+			d.held_by = -1
+			d.action = FighterState.Action.IDLE   # the throw starts a fresh combo, not hit 2 of the hold
+			d.combo_hits = 0
+			d.combo_damage = 0
+			f.throw_target = -1
+			out.append(c)
+	for c: HitboxSystem.Contact in contacts:
+		var att: FighterState = fighters[c.attacker]
+		if c.projectile == null and c.move.is_throw() and c.move.throw_release_frame > att.move_frame:
+			var d: FighterState = fighters[c.defender]
+			d.action = FighterState.Action.HITSTUN
+			d.stun_remaining = c.move.throw_release_frame - att.move_frame + 2
+			d.hit_zone = FighterState.HitZone.BODY
+			d.move = null
+			d.chain.clear()
+			d.pushback_remaining = 0.0
+			d.held_by = c.attacker
+			att.throw_target = c.defender
+			att.move_connected = true
+			continue
+		out.append(c)
+	return out
 
 
 func separation() -> float:

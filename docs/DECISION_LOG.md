@@ -1780,3 +1780,22 @@ no strings, no reversal). Owner said yes to the first three.
 - Tests: `tests/integration/test_kairo_kit.gd` (throw, leniency, plain
   buttons unchanged, sweep low knockdown, uppercut data and hit),
   `test_touch_throw_spot_presses_light_and_kick`; striker table updated.
+
+## D-104 — 2026-11-24 — Throws that hold their victim (Knee Throw)
+
+Owner: "the second one does a hit and does a knee after, why". A throw lands
+on its grab frame (damage, HIT event, effects, knockdown), so the Knee Throw
+hit on frame 5 and its knee played afterwards on a falling opponent.
+- New `MoveData.throw_release_frame` (0 = old behaviour, unchanged for
+  Drakon and Ryuen). With it, the grab only catches: `_throw_holds` (before
+  HitResolver.resolve) puts the victim in HITSTUN with `held_by` set (no
+  hurtbox while held, body-hit reaction, no pushback), the thrower gets
+  `throw_target`; on the release frame a contact is made and the throw lands
+  as a fresh hit (victim set to IDLE first so it is not counted as hit 2 of a
+  combo). A thrower no longer in that throw (hit by a projectile) lets go.
+  FighterState copies the new fields.
+- Kairo: release on frame 12 = the knee. The shove after the knee is gone
+  (the knee sends them down); the throw clip has no recovery warp, so its keys
+  play on their own frames (the warp had put the knee 8 frames after the hit).
+  The knee rises over three frames (a 26 cm one-frame pop before).
+- Test: `test_knee_throw_holds_then_lands_on_the_knee`. 215 tests pass.

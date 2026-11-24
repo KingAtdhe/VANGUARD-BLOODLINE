@@ -103,6 +103,10 @@ var pushback_step: float = 0.0
 ## defender then simply stops at the wall instead of sliding the (possibly
 ## far away) attacker back.
 var pushback_transfers: bool = true
+## Throw hold (D-103): the fighter holding this one (-1 = none) and, on the
+## thrower, the fighter it holds (-1 = none).
+var held_by: int = -1
+var throw_target: int = -1
 
 
 func copy() -> FighterState:
@@ -148,6 +152,8 @@ func copy() -> FighterState:
 	s.pushback_remaining = pushback_remaining
 	s.pushback_step = pushback_step
 	s.pushback_transfers = pushback_transfers
+	s.held_by = held_by
+	s.throw_target = throw_target
 	return s
 
 

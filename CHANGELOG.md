@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Knee Throw order
+- The throw used to hit on the grab and play the knee afterwards on an opponent already falling. Now the grab only catches and holds the opponent, and the hit (damage, effects, knockdown) lands when the knee drives in. If Kairo is hit while holding, the opponent is let go.
 ### Added — three new moves for Kairo
 - **Knee Throw** (Light + Kick together, or the new THROW spot between the L and K buttons): grabs the collar, drives a knee into the body and shoves the opponent to the floor. Cannot be blocked. Pressing Light a moment before Kick still throws.
 - **Leg Sweep** (down + Kick): drops low and sweeps the legs; a low attack (block it crouching) that knocks down.

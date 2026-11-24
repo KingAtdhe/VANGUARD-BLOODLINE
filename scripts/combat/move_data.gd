@@ -111,6 +111,13 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 @export var armor_end_frame: int = 0
 @export var armor_hits: int = 0
 
+@export_group("Throw hold")
+## A throw that holds its victim (D-103): on the grab the opponent is only
+## caught — held where they stand, no damage, no hurtbox for anyone else —
+## and the throw lands (damage, knockdown, hit effects) on this move frame,
+## e.g. when the knee drives in. 0 = the throw lands on the grab.
+@export var throw_release_frame: int = 0
+
 @export_group("Evasion")
 ## The user has no hurtbox on frames invuln_start_frame..invuln_end_frame
 ## (0 = never). D-064.

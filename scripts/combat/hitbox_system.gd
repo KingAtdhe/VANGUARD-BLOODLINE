@@ -12,7 +12,7 @@ extends RefCounted
 
 ## Standing hurtbox. Empty (no area) when the fighter cannot be hit (KO).
 static func hurtbox(def: FighterDefinition, s: FighterState) -> Rect2:
-	if s.action == FighterState.Action.KO or s.is_downed():
+	if s.action == FighterState.Action.KO or s.is_downed() or s.held_by >= 0:
 		return Rect2()
 	# Evasive moves, and a launched fighter that has taken its juggle limit.
 	if s.action == FighterState.Action.ATTACK and s.move != null and s.move.is_invulnerable_on(s.move_frame):
