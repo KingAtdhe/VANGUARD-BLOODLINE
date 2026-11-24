@@ -237,3 +237,25 @@ func test_versus_p2_is_ai_by_default_and_acts() -> Array[String]:
 		f.append("cycling did not reach the dummy modes")
 	scene.free()
 	return f
+
+
+## D-103: the spot between Light and Kick presses both (the throw).
+func test_touch_throw_spot_presses_light_and_kick() -> Array[String]:
+	var f: Array[String] = []
+	var tc := TouchControls.new()
+	_tree().root.add_child(tc)
+	var spot: Vector2 = tc.throw_spot()
+	_touch(tc, 3, spot, true)
+	if not Input.is_action_pressed(InputActions.ATTACK_LIGHT) or not Input.is_action_pressed(InputActions.ATTACK_KICK):
+		f.append("throw spot: light=%s kick=%s" % [Input.is_action_pressed(InputActions.ATTACK_LIGHT),
+			Input.is_action_pressed(InputActions.ATTACK_KICK)])
+	_touch(tc, 3, spot, false)
+	if Input.is_action_pressed(InputActions.ATTACK_LIGHT) or Input.is_action_pressed(InputActions.ATTACK_KICK):
+		f.append("lifting the finger did not release both")
+	# the middle of the Light button is still only Light
+	_touch(tc, 4, tc.button_center(InputActions.ATTACK_LIGHT), true)
+	if Input.is_action_pressed(InputActions.ATTACK_KICK):
+		f.append("Light's centre also pressed Kick")
+	tc.release_all()
+	tc.free()
+	return f

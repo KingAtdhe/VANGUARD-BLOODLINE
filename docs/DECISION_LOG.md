@@ -1743,3 +1743,40 @@ and a torus, the same for every hit; knockdowns had none.
 - Test: `test_impact_effects_spawn`. Checked on recorded frames of the
   training scene (`scene_video.gd`). Not verified on a phone (cost: at most
   a few dozen particles per hit, ~50 per knockdown).
+
+## D-103 — 2026-11-24 — Kairo: throw, sweep, anti-air
+
+Owner asked whether Kairo has enough moves; the gaps named were a throw, a
+real low/sweep and an anti-air (also: no crouching normals, one air attack,
+no strings, no reversal). Owner said yes to the first three.
+- **Input**: new command `CMD_THROW` (pattern THROW): Light and Kick pressed
+  within `THROW_WINDOW` = 2 ticks. `_merge_throw` turns the two buffered
+  presses into one THROW, only for a fighter that has a THROW move (everyone
+  else keeps Light and Kick as before; fallback THROW → Light). If the Light
+  or Kick attack already started in that window it is replaced by the throw
+  (throw leniency, `_update_state`). The AI knows the pattern (L|K).
+  Touch: a "THROW" spot where the L and K buttons meet presses both with one
+  thumb (`TouchControls.throw_spot`, radius 0.42 of a button).
+  A throw only starts from neutral or from a Light/Kick that just started on
+  its own (chain of one, not connected): the first version also merged
+  presses inside a running combo and turned the documented L, L, K route
+  into a whiffed throw (caught by test_combos).
+- **Moves** (data/moves): `kairo_knee_throw` THROW 5/2/26, 85 dmg, throw
+  level (unblockable), knockdown; `kairo_leg_sweep` DOWN_KICK 8/3/20, 55,
+  LOW, knockdown; `kairo_rising_uppercut` DOWN_LIGHT 5/5/24, 70, invulnerable
+  frames 1-5, tall hitbox 1.2-2.2 m, knockdown, fire on the fist
+  (`fire_hands`), cancellable into the ultimate. Balance untested by a person.
+- **Animations** keyed in `kairo_keys()` (DOWN_LIGHT, DOWN_KICK, THROW):
+  uppercut dips, drops the fist to the hip and explodes up onto the toes;
+  sweep drops deep (lead hand near the floor, guard lowered with him) and the
+  rear leg swings round along the ground; throw seizes the collar, pulls onto
+  a rising knee, shoves with both palms. The keyed leg stays in charge for the
+  whole sweep and throw (`_feet_abs` (0, T-1)): handing back to the stance
+  solver mid-move jumped the foot 0.44-0.64 m in a frame. GLITCH_SCAN clean
+  apart from a 3.7 cm toe move as the uppercut takes off.
+- Known limits: the thrown opponent has no "being thrown" animation (falls
+  with the normal knockdown, as for Drakon and Ryuen, KI-049); no throw
+  escape yet.
+- Tests: `tests/integration/test_kairo_kit.gd` (throw, leniency, plain
+  buttons unchanged, sweep low knockdown, uppercut data and hit),
+  `test_touch_throw_spot_presses_light_and_kick`; striker table updated.

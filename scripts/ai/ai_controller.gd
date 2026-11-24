@@ -30,9 +30,9 @@ const S: int = FighterInputFrame.BUTTON_SPECIAL
 const U: int = FighterInputFrame.BUTTON_ULTIMATE
 const _BUTTON_FOR: Dictionary = {&"LIGHT": L, &"HEAVY": H, &"KICK": K,
 	&"SPECIAL": S, &"FORWARD_SPECIAL": S, &"ULTIMATE": U,
-	&"DOWN_LIGHT": L, &"DOWN_HEAVY": H, &"DOWN_KICK": K, &"DOWN_SPECIAL": S, &"BACK_SPECIAL": S}
+	&"DOWN_LIGHT": L, &"DOWN_HEAVY": H, &"DOWN_KICK": K, &"DOWN_SPECIAL": S, &"BACK_SPECIAL": S, &"THROW": L | K}
 const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL", &"FORWARD_SPECIAL",
-	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL", &"BACK_SPECIAL"]
+	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL", &"BACK_SPECIAL", &"THROW"]
 ## Extra distance at which a visible attack is treated as a threat.
 const THREAT_MARGIN: float = 0.35
 ## Start guarding an incoming projectile this many ticks before it arrives.

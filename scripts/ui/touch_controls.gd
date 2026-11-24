@@ -33,6 +33,9 @@ const RELEASE_FACTOR: float = 0.7
 ## (reproduced with simulated drags, D-095). Down now holds until the thumb
 ## is back within 0.35 of the dead zone (about a fifth of the stick radius).
 const RELEASE_FACTOR_DOWN: float = 0.35
+## Touches this close to the point between Light and Kick (× button radius)
+## press both: the throw (D-103).
+const THROW_SPOT_RADIUS: float = 0.42
 ## Stick dead zone (fraction of STICK_RADIUS) for left/right; up/down need more.
 const DEADZONE_X: float = 0.3
 const DEADZONE_Y: float = 0.55
@@ -126,6 +129,22 @@ func button_center(action: StringName) -> Vector2:
 	return Vector2(-1, -1)
 
 
+## Centre of the throw spot between the Light and Kick buttons (D-103).
+func throw_spot() -> Vector2:
+	var bl: Dictionary = _button(InputActions.ATTACK_LIGHT)
+	var bk: Dictionary = _button(InputActions.ATTACK_KICK)
+	if bl.is_empty() or bk.is_empty():
+		return Vector2.INF
+	return ((bl.center as Vector2) + (bk.center as Vector2)) * 0.5
+
+
+func _button(action: StringName) -> Dictionary:
+	for b: Dictionary in _buttons:
+		if b.action == action:
+			return b
+	return {}
+
+
 func stick_rest() -> Vector2:
 	return _stick.rest
 
@@ -202,6 +221,18 @@ func _input(event: InputEvent) -> void:
 
 func _touch_down(index: int, pos: Vector2) -> bool:
 	touched.emit()
+	# The spot where Light and Kick meet presses both: the throw (D-103) with
+	# one thumb.
+	var chord: Vector2 = throw_spot()
+	var bl: Dictionary = _button(InputActions.ATTACK_LIGHT)
+	var bk: Dictionary = _button(InputActions.ATTACK_KICK)
+	if not bl.is_empty() and not bk.is_empty() and bl.finger == -1 and bk.finger == -1 \
+			and pos.distance_to(chord) <= float(bl.radius) * THROW_SPOT_RADIUS:
+		for b: Dictionary in [bl, bk]:
+			b.finger = index
+			_press(b.action)
+		_canvas.queue_redraw()
+		return true
 	for b: Dictionary in _buttons:
 		if _disabled.has(b.action):
 			continue
@@ -319,3 +350,15 @@ func _draw_controls() -> void:
 		var tc: Color = Color.WHITE if pressed else col.lightened(0.35)
 		_canvas.draw_string(_font, b.center + Vector2(-text_size.x * 0.5, fs * 0.32), b.label,
 			HORIZONTAL_ALIGNMENT_CENTER, -1, fs, Color(tc, 0.97 * a))
+	# the throw spot between Light and Kick: a small chip
+	var ts: Vector2 = throw_spot()
+	var bl: Dictionary = _button(InputActions.ATTACK_LIGHT)
+	if ts != Vector2.INF and not bl.is_empty():
+		var tr: float = float(bl.radius) * THROW_SPOT_RADIUS
+		var both: bool = bl.finger != -1 and _button(InputActions.ATTACK_KICK).finger == bl.finger
+		_canvas.draw_circle(ts, tr, Color(UiTheme.ACCENT.darkened(0.3), 0.85 * a) if both else glass)
+		_canvas.draw_arc(ts, tr, 0.0, TAU, 32, Color(1, 1, 1, 0.55 * a), 2.5, true)
+		var tfs: int = int(tr * 0.62)
+		var tsz: Vector2 = _font.get_string_size("THROW", HORIZONTAL_ALIGNMENT_CENTER, -1, tfs)
+		_canvas.draw_string(_font, ts + Vector2(-tsz.x * 0.5, tfs * 0.32), "THROW", HORIZONTAL_ALIGNMENT_CENTER, -1, tfs,
+			Color(1, 1, 1, 0.85 * a))

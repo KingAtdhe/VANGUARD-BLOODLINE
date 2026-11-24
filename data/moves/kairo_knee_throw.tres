@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_knee_throw"
+display_name = "Knee Throw"
+input_pattern = &"THROW"
+animation = &"KAIRO_THROW_KNEE_01"
+startup_frames = 5
+active_frames = 2
+recovery_frames = 26
+hitstun_frames = 1
+blockstun_frames = 1
+hitstop_frames = 12
+damage = 85
+chip_damage = 0
+pushback = 0.6
+hit_level = 3
+hitbox_center = Vector2(0.55, 1.2)
+hitbox_size = Vector2(0.35, 0.6)
+tags = PackedStringArray("throw")
+cancel_tags = PackedStringArray()
+meter_gain_on_hit = 10
+knockdown = true

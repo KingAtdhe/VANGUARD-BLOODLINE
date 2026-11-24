@@ -16,6 +16,8 @@ func _kairo(kick_level: MoveData.HitLevel, extra: MoveData = null) -> FighterDef
 			var k: MoveData = m.duplicate()
 			k.hit_level = kick_level
 			moves.append(k)
+		elif m.input_pattern == &"DOWN_KICK":
+			continue                 # his own Leg Sweep (D-103): these tests bring their own DOWN_KICK move or none
 		else:
 			moves.append(m)
 	if extra != null:

@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-102 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-103 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -19,7 +19,9 @@ change goes to the owner with a real-speed review video).
    Ultimate redone and stance/walk made livelier (D-100). Fire: Fireball
    (down + special), burning fists/feet in the ultimate, ignite (D-101);
    see effects with `tools/godot/scene_video.gd`. Hit/block/knockdown
-   effects redone (D-102). Next: the same
+   effects redone (D-102). New moves: Knee Throw (L+K), Leg Sweep (down+K),
+   Rising Uppercut (down+L) (D-103). Still missing for Kairo: crouching
+   jab, a second air attack, combo strings, throw escape for everyone. Next: the same
    kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side
    Kick) if the owner likes this one; check `legext` in `KEYED_DEBUG`.
 

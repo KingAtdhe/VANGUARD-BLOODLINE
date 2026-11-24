@@ -12,6 +12,8 @@ const STRIKER: Dictionary = {
 	&"kairo_light_punch": ["LeftHand", 0.06], &"kairo_heavy_punch": ["RightHand", 0.06],
 	&"kairo_low_kick": ["RightFoot", 0.08], &"kairo_origin_palm": ["LeftHand", 0.06],
 	&"kairo_rift_break": ["RightFoot", 0.08], &"kairo_body_hook": ["RightFoot", 0.08],
+	# D-103
+	&"kairo_rising_uppercut": ["RightHand", 0.06], &"kairo_leg_sweep": ["RightFoot", 0.08],
 }
 ## A multi-hit move: the limb that lands each hit, checked on the first two
 ## frames of that hit's window (the limb is on its way in or out otherwise).

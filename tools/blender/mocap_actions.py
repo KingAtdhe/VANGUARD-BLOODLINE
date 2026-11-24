@@ -1186,7 +1186,9 @@ HANDS = {
 }
 HANDS_BY_ACTION = {
     "SPECIAL_ORIGIN_PALM": (0.05, 0.05),         # open-palm strike
-    "SPECIAL_FIREBALL": (0.04, 0.04),            # Kairo: both palms open to throw the fireball (D-101)
+    "SPECIAL_FIREBALL": (0.04, 0.04),
+    "THROW_KNEE_01": (0.5, 0.5),                # Kairo: hands closing on the collar (D-103)
+    "ATTACK_RISING_UPPERCUT_01": (1.0, 1.0), "KICK_SWEEP_01": (0.6, 1.0),            # Kairo: both palms open to throw the fireball (D-101)
     # Kairo's lead hand is an open guard; it closes to punch
     "ATTACK_LIGHT_01": (1.0, 1.0), "ULTIMATE_ORIGIN_BREAK": (1.0, 1.0),
     "KNOCKDOWN": (0.35, 0.35), "GETUP": (0.35, 0.35), "DEFEAT": (0.3, 0.3),
@@ -2636,6 +2638,85 @@ def kairo_keys(moves, base, g, S):
                           (a1 + 6, push_r), (T - 3, R, "io")],
         "lead_elbow": [(0, 0.2), (a0 - 4, 0.3), (a0, 0.08), (a1 + 6, 0.08), (T - 3, 0.2)],
         "rear_elbow": [(0, 0.05), (a0 - 4, 0.25), (a0, 0.1), (a1 + 6, 0.1), (T - 3, 0.05)],
+    })
+
+    # D-103: the three moves that filled the gaps in his kit (owner: "yes" to
+    # a throw, a sweep and an anti-air).
+    # Rising Uppercut (down + light): a quick dip with the rear fist dropped
+    # to the hip, then he explodes up onto his toes and the fist drives up
+    # past his head, the body turning behind it; a slow landing (punishable).
+    a0, a1, T, hx, hz = win(moves["DOWN_LIGHT"])
+    u_low = (-0.16, 0.04, R[2] - 0.24)
+    u_hit = (0.02, hx - 0.14, hz + 0.08)
+    u_top = (0.0, hx - 0.18, hz + 0.20)
+    out["DOWN_LIGHT"] = dict(_recover=1.7, **head(a0, a1, T, -6.0), **{
+        "hips": [(0, (hips0, 0)), (2, (hips0 - 0.02, 0), "io"), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.12, 0)), (T - 4, (hips0, 0), "io")],
+        "pelvis_h": [(0, ph0), (2, low(0.12), "io"), (a0, ph0 + 0.06, "out"), (a1, ph0 + 0.075)] + settle(T, T - 8, ph0, 0.03),
+        "pelvis": [(0, pel0), (2, pel(16), "io"), (a0, pel(-44), "in"), (a1, pel(-48)), (T - 4, pel0, "io")],
+        "shoulders": [(0, sh0), (2, sho(24), "io"), (a0, sho(-70), "in"), (a1, sho(-76)), (T - 4, sh0, "io")],
+        "trunk": [(0, tr0), (2, lean(12), "io"), (a0, lean(-6), "in"), (a1, lean(-12)), (T - 4, tr0, "io")],
+        "lead_heel": [(0, 0.0), (2, 0.0), (a0, 0.07, "in"), (a1, 0.08), (T - 5, 0.0)],
+        "rear_heel": [(0, 0.012), (2, 0.0), (a0, 0.12, "in"), (a1, 0.12), (T - 5, 0.012)],
+        "rear_toe": [(0, base["rear_toe"]), (a0, 10.0, "in"), (a1, 8.0), (T - 4, base["rear_toe"])],
+        "rear_hand_abs": [(0, R), (2, u_low, "io"), (a0, u_hit, "in"), (a1, u_top), (a1 + 6, u_top), (T - 3, R, "io")],
+        "rear_elbow": [(0, 0.05), (2, 0.2), (a0, 0.02), (a1 + 6, 0.02), (T - 3, 0.05)],
+        "lead_hand_abs": [(0, L), (2, (L[0] - 0.02, L[1] - 0.06, L[2] - 0.08), "io"), (a0 + 2, hik, "io"), (a1 + 6, hik), (T - 3, L, "io")],
+    })
+
+    # Leg Sweep (down + kick): he drops deep with the lead hand near the floor
+    # for balance and the rear leg swings round low along the ground into the
+    # opponent's ankles, then he draws it back and rises.
+    a0, a1, T, hx, hz = win(moves["DOWN_KICK"])
+    sw_back = (FR[0] * 1.1, FR[1] - 0.10, 0.10, 0.4)
+    sw_hit = (0.06, hx - 0.06, max(hz, 0.11), 0.75)
+    sw_through = (0.18, hx - 0.16, max(hz, 0.11), 0.75)
+    deep = ph0 - 0.40
+    out["DOWN_KICK"] = dict(_recover=1.5, **head(a0, a1, T, 6.0), **{
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (4, (hips0 + 0.04, 0), "io"), (a0, (hips0 + 0.08, 0)), (a1 + 6, (hips0 + 0.06, 0)), (T - 4, (hips0, 0), "io")],
+        "pelvis_h": [(0, ph0), (4, deep, "io"), (a1 + 6, deep + 0.02), (T - 6, ph0, "io")],
+        "pelvis": [(0, pel0), (4, pel(10), "io"), (a0, pel(-40), "in"), (a1, pel(-52)), (a1 + 7, pel(-20), "io"), (T - 4, pel0, "io")],
+        "shoulders": [(0, sh0), (4, sho(10), "io"), (a0, sho(-24), "in"), (a1, sho(-30)), (T - 4, sh0, "io")],
+        "trunk": [(0, tr0), (4, lean(22, 6), "io"), (a0, lean(28, 8)), (a1 + 6, lean(24, 6)), (T - 4, tr0, "io")],
+        "lead_heel": [(0, 0.0), (4, 0.05), (a1 + 6, 0.05), (T - 5, 0.0)],
+        "_feet_abs": (0, T - 1),               # the keyed leg all the way (handing back to the stance solver mid-move jumped)
+        "rear_foot_abs": [(0, FR + (0.0,)), (2, FR + (0.0,)), (4, sw_back, "io"), (a0, sw_hit, "in"), (a1, sw_through), (a1 + 5, (FR[0] * 0.6, 0.20, 0.10, 0.4), "out"),
+                          (a1 + 9, FR + (0.0,), "in")],
+        "lead_hand_abs": [(0, L), (4, (0.26, 0.30, 0.42), "io"), (a1 + 6, (0.26, 0.30, 0.42)), (T - 3, L, "io")],
+        "rear_hand_abs": [(0, R), (4, (chin[0] - 0.08, chin[1] - 0.02, chin[2] - 0.40), "io"),     # the guard drops with him
+                          (a1 + 6, (chin[0] - 0.08, chin[1] - 0.02, chin[2] - 0.38)), (T - 3, R, "io")],
+    })
+
+    # Knee Throw (light + kick): both hands seize the collar, he pulls the
+    # opponent in onto a rising knee, then shoves them away with both palms.
+    a0, a1, T, hx, hz = win(moves["THROW"])
+    grab_l = (0.10, hx - 0.06, hz + 0.20)
+    grab_r = (-0.08, hx - 0.08, hz + 0.18)
+    pull_l = (0.08, hx - 0.30, hz + 0.12)
+    pull_r = (-0.08, hx - 0.32, hz + 0.10)
+    shove_l = (0.08, hx + 0.08, hz + 0.08)
+    shove_r = (-0.08, hx + 0.06, hz + 0.02)
+    kn = a1 + 6                                            # the knee lands
+    sh = a1 + 13                                           # the shove
+    knee_up = (FR[0] * 0.4, 0.26, 0.62, 0.35)
+    out["THROW"] = dict(_recover=1.6, **head(a0, a1, T, 8.0), **{
+        "lead_palm": "auto", "rear_palm": "auto",
+        "hips": [(0, (hips0, 0)), (a0, (hips0 + 0.10, 0), "in"), (kn - 3, (hips0 + 0.02, 0)), (kn, (hips0 + 0.10, 0), "in"),
+                 (sh - 2, (hips0 + 0.04, 0)), (sh, (hips0 + 0.16, 0), "in"), (sh + 4, (hips0 + 0.14, 0)), (T - 4, (hips0, 0), "io")],
+        "pelvis_h": [(0, ph0), (a0, low(0.04), "in"), (kn, ph0 + 0.04, "in"), (sh, low(0.05), "in")] + settle(T, T - 7, ph0),
+        "pelvis": [(0, pel0), (a0, pel(-10), "in"), (kn, pel(-36), "in"), (sh, pel(-20), "in"), (T - 4, pel0, "io")],
+        "shoulders": [(0, sh0), (a0, sho(-30), "in"), (kn, sho(-40)), (sh, sho(-46), "in"), (T - 4, sh0, "io")],
+        "trunk": [(0, tr0), (a0, lean(8), "in"), (kn, lean(14), "in"), (sh, lean(10), "in"), (T - 4, tr0, "io")],
+        "rear_heel": [(0, 0.012), (a0, 0.04), (sh, 0.09, "in"), (T - 4, 0.012)],
+        "_feet_abs": (0, T - 1),
+        "rear_foot_abs": [(0, FR + (0.0,)), (kn - 5, FR + (0.0,)), (kn - 2, (FR[0] * 0.6, 0.06, 0.32, 0.2), "io"), (kn, knee_up, "in"),
+                          (kn + 2, knee_up), (kn + 5, FR + (0.0,), "in")],
+        "lead_hand_abs": [(0, L), (a0, grab_l, "in"), (a1, grab_l), (kn - 2, pull_l, "io"), (kn + 2, pull_l), (sh, shove_l, "in"),
+                          (sh + 4, shove_l), (T - 3, L, "io")],
+        "rear_hand_abs": [(0, R), (a0, grab_r, "in"), (a1, grab_r), (kn - 2, pull_r, "io"), (kn + 2, pull_r), (sh, shove_r, "in"),
+                          (sh + 4, shove_r), (T - 3, R, "io")],
+        "lead_elbow": [(0, 0.2), (a0, 0.3), (kn, 0.45), (sh, 0.1), (T - 3, 0.2)],
+        "rear_elbow": [(0, 0.05), (a0, 0.3), (kn, 0.45), (sh, 0.1), (T - 3, 0.05)],
     })
 
     # Rift Break: an axe kick. The rear leg swings up past the head as he

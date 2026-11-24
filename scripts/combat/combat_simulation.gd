@@ -49,7 +49,12 @@ const _PATTERNS: Dictionary = {
 	FighterInputFrame.CMD_DOWN_LIGHT: &"DOWN_LIGHT",
 	FighterInputFrame.CMD_DOWN_HEAVY: &"DOWN_HEAVY",
 	FighterInputFrame.CMD_DOWN_KICK: &"DOWN_KICK",
+	FighterInputFrame.CMD_THROW: &"THROW",
 }
+## Light and Kick pressed this many ticks apart or less count as together
+## (the throw, D-103). A Light or Kick attack already started that recently
+## is turned into the throw (fighting games call this throw leniency).
+const THROW_WINDOW: int = 2
 ## Direction + button commands a fighter has no move for act as the plain
 ## button, so holding a direction never eats an attack.
 const _FALLBACK: Dictionary = {
@@ -58,6 +63,7 @@ const _FALLBACK: Dictionary = {
 	FighterInputFrame.CMD_DOWN_LIGHT: FighterInputFrame.BUTTON_LIGHT,
 	FighterInputFrame.CMD_DOWN_HEAVY: FighterInputFrame.BUTTON_HEAVY,
 	FighterInputFrame.CMD_DOWN_KICK: FighterInputFrame.BUTTON_KICK,
+	FighterInputFrame.CMD_THROW: FighterInputFrame.BUTTON_LIGHT,
 }
 const _DOWN_COMMANDS: Dictionary = {
 	FighterInputFrame.BUTTON_SPECIAL: FighterInputFrame.CMD_DOWN_SPECIAL,
@@ -340,6 +346,16 @@ func _update_state(i: int, input: FighterInputFrame) -> void:
 				f.stun_remaining -= 1
 
 	if f.action == FighterState.Action.ATTACK:
+		# A throw input completed on the first frames of a Light / Kick attack
+		# replaces that attack (D-103, see _merge_throw).
+		if f.move != null and not f.move_connected and f.move_frame <= THROW_WINDOW + 1 and f.chain.size() <= 1 \
+				and (f.move.input_pattern in [&"LIGHT", &"DOWN_LIGHT", &"KICK", &"DOWN_KICK"]):
+			var throw_move: MoveData = _take_buffered(i, func(m: MoveData) -> bool: return m.input_pattern == &"THROW")
+			if throw_move != null:
+				f.chain.clear()
+				_start_attack(i, throw_move, false)
+				_age_buffer(f)
+				return
 		# Still attacking: only a legal cancel may consume a buffered press.
 		f.move_x = 0
 		var cancel_move: MoveData = _take_buffered(i, _can_cancel_into.bind(i))
@@ -463,6 +479,48 @@ func _register_presses(f: FighterState, input: FighterInputFrame) -> void:
 				code = FighterInputFrame.CMD_FORWARD_SPECIAL if move_x == f.facing \
 						else FighterInputFrame.CMD_BACK_SPECIAL
 			f.buffer.append(Vector2i(code, 0))
+	if pressed & (FighterInputFrame.BUTTON_LIGHT | FighterInputFrame.BUTTON_KICK):
+		_merge_throw(f)
+
+
+## Light + Kick together → one THROW press (D-103), only for a fighter that
+## has a throw on that input (everyone else keeps Light and Kick as they were).
+## The partner press may be in the buffer, or may already have started its
+## attack in the last THROW_WINDOW ticks (that attack is then replaced, see
+## _update_state).
+func _merge_throw(f: FighterState) -> void:
+	var i: int = fighters.find(f)
+	if i < 0 or definitions[i] == null or definitions[i].moves_for(&"THROW").is_empty():
+		return
+	# A throw starts from neutral, or from a Light / Kick that has only just
+	# started on its own. Never out of a running combo: there Light and Kick
+	# stay what they are (the L, L, K route).
+	var started: bool = f.action == FighterState.Action.ATTACK and f.move != null and not f.move_connected \
+			and f.move_frame <= THROW_WINDOW + 1 and f.chain.size() <= 1
+	if not (f.is_neutral() or started):
+		return
+	var light_k: int = -1
+	var kick_k: int = -1
+	for k: int in range(f.buffer.size() - 1, -1, -1):
+		var e: Vector2i = f.buffer[k]
+		if e.y > THROW_WINDOW:
+			continue
+		if light_k < 0 and (e.x == FighterInputFrame.BUTTON_LIGHT or e.x == FighterInputFrame.CMD_DOWN_LIGHT):
+			light_k = k
+		elif kick_k < 0 and (e.x == FighterInputFrame.BUTTON_KICK or e.x == FighterInputFrame.CMD_DOWN_KICK):
+			kick_k = k
+	if started:
+		var pat: StringName = f.move.input_pattern
+		if light_k < 0 and (pat == &"LIGHT" or pat == &"DOWN_LIGHT"):
+			light_k = -2                       # the Light half is the attack just started
+		elif kick_k < 0 and (pat == &"KICK" or pat == &"DOWN_KICK"):
+			kick_k = -2
+	if light_k == -1 or kick_k == -1:
+		return
+	for k: int in [maxi(light_k, kick_k), mini(light_k, kick_k)]:
+		if k >= 0:
+			f.buffer.remove_at(k)
+	f.buffer.append(Vector2i(FighterInputFrame.CMD_THROW, 0))
 
 
 ## Double-tap detection on the horizontal direction (see CombatTuning "Dash").

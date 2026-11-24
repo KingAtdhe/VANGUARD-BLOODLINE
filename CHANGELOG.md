@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — three new moves for Kairo
+- **Knee Throw** (Light + Kick together, or the new THROW spot between the L and K buttons): grabs the collar, drives a knee into the body and shoves the opponent to the floor. Cannot be blocked. Pressing Light a moment before Kick still throws.
+- **Leg Sweep** (down + Kick): drops low and sweeps the legs; a low attack (block it crouching) that knocks down.
+- **Rising Uppercut** (down + Light): a flaming uppercut that explodes upward; invulnerable on its first frames, so it beats jump-ins, and knocks down. Very punishable if blocked.
 ### Changed — hit and knockdown effects
 - Hits: a white-hot impact star, a warm glow, a spray of sparks flying away from the attacker and falling, a shockwave ring on heavy hits and counter-hits (red-orange) and a swoosh on kicks and heavy blows. Blocks throw cold blue sparks back at the attacker. All sized by damage and kept small enough never to hide the fighters.
 - The hit flash on the victim is shorter and fades (it whited the whole body out for 7 frames and buried the effects).

@@ -25,6 +25,8 @@ const CMD_DOWN_SPECIAL: int = 256
 const CMD_DOWN_LIGHT: int = 512
 const CMD_DOWN_HEAVY: int = 1024
 const CMD_DOWN_KICK: int = 2048
+## Light + Kick pressed together (within CombatSimulation.THROW_WINDOW ticks): a throw (D-103).
+const CMD_THROW: int = 4096
 
 ## World-space horizontal direction: -1 = left, 0 = none, +1 = right.
 var move_x: int = 0

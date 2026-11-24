@@ -23,7 +23,7 @@ This file is the in-repo summary; update both when the design changes.
 
 | Fighter | Normals | Specials | Ultimate |
 | --- | --- | --- | --- |
-| Kairo | Lead Straight, Reverse Punch, Front Kick (down + heavy), Low Kick, Flying Side Kick (air) | Origin Palm, Rift Break (axe kick), Rift Guard (counter), Fireball (down + special, D-101) | Origin Break (four hits; fists and feet on fire, sets the opponent burning) |
+| Kairo | Lead Straight, Reverse Punch, Front Kick (down + heavy), Low Kick, Leg Sweep (down + kick, low, knockdown; D-103), Flying Side Kick (air) | Origin Palm, Rift Break (axe kick), Rift Guard (counter), Fireball (down + special, D-101), Rising Uppercut (down + light: invulnerable anti-air, D-103), Knee Throw (light + kick, D-103) | Origin Break (four hits; fists and feet on fire, sets the opponent burning) |
 | Drakon | Hammer Fist, Haymaker, Shoulder Check, Stomp | Forge Charge, Anvil Slam, Quake Stomp | Molten Colossus |
 | Seraphina | Knife-hand, Side Kick, Roundhouse, Low Sweep | Crescent Arc, Halo Step, Seraph Dive | Radiant Ascension |
 | Nox | Fang Jab, Rising Backfist, Scythe Sweep, Drop Heel | Shade Step, Feint Fang, Throat Pierce | Eclipse |
@@ -40,7 +40,7 @@ Balance values go in `data/`, never in controller code.
 | Per-fighter move sets and frame data | All six |
 | Low attacks and a low block | Nox, Seraphina, Vexa, Drakon, Kairo, Ryuen |
 | Overhead attacks | Nox |
-| Throws (unblockable grabs) | Drakon, Ryuen |
+| Throws (unblockable grabs) | Drakon, Ryuen, Kairo (Knee Throw, light + kick, D-103) |
 | Counter and parry | Ryuen, Vexa, Kairo |
 | Armour (absorb one hit while attacking) | Drakon |
 | Projectile | Vexa, Kairo (Fireball, D-101) |
