@@ -1915,3 +1915,16 @@ goes sideways" and "his walking is okay but his legs still move too fast".
   behind (0.45). Walk speed unchanged. Planted feet still match the ground:
   0.28 cm average slide per planted frame (`foot_slide.gd`).
 - Not verified on a phone.
+
+## D-109 — 2026-11-24 — Kairo's Low Kick: fighting-game lean
+
+Owner: "the low kick still doesn't look good, he needs to lean with that
+kick, check how it's done in Street Fighter". The fighting-game low
+roundhouse (Ryu, Ken, Sagat) counter-leans the upper body back, away from
+the opponent, as the shin goes out, with the head over the bent standing leg:
+leg and torso make one long line. D-108's lean was mostly sideways (across
+his body), which points at or away from the side-on game camera and does not
+read in play. The trunk now leans back ~36° (`lean(-30, 12)` × 1.22) at
+contact with a little side lean, the standing leg sinks, and the lean comes
+back in two steps through the recovery. Checked from the side, the front
+and in the arena camera. Not verified on a phone.

@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's Low Kick leans like a fighting-game kick
+- His upper body now leans well back, away from the opponent, as the shin swings out (the Street Fighter low roundhouse look), with the standing leg bent and his guard up.
 ### Fixed — Kairo's Low Kick and walk
 - **Low Kick**: his whole body now turns over with the kick, and his back arm stays by his hip instead of swinging out to the side.
 - **Walk**: calmer legs — longer steps at a slower rhythm, each leg swings through about twice as slowly. Same walking speed; feet still planted.

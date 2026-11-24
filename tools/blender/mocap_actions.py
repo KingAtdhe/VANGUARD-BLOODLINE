@@ -2581,16 +2581,20 @@ def kairo_keys(moves, base, g, S):
     # D-108 (owner: "his body doesn't turn with the kick, his arm goes
     # sideways"): the chest now turns over with the hips (it stayed back, the
     # body twisted against itself) and the rear arm drops to his own hip
-    # instead of flinging 33 cm out to the side
+    # instead of flinging 33 cm out to the side. Second pass (owner: "he needs
+    # to lean with that kick, check how it's done in Street Fighter"): the
+    # fighting-game low roundhouse, the upper body counter-leans back and away
+    # from the kicking leg with the head over the bent standing leg, so leg and
+    # body make one long line
     a0, a1, T, hx, hz = win(moves["KICK"])
     home = FR
     out["KICK"] = dict(_recover=1.3, **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "hips": [(0, (hips0, 0)), (4, (hips0 + 0.04, 0)), (a0, (hips0 + 0.06, 0), "in"), (a1, (hips0 + 0.06, 0)), (a1 + 6, (hips0, 0), "out")],
-        "pelvis_h": [(0, ph0), (4, low(0.02)), (a0, ph0 + 0.008, "in"), (a1, ph0 + 0.006)] + settle(T, a1 + 9, ph0, 0.018),
+        "pelvis_h": [(0, ph0), (4, low(0.03)), (a0, low(0.035), "in"), (a1, low(0.035))] + settle(T, a1 + 9, ph0, 0.018),
         "pelvis": [(0, pel0), (4, pel(-10)), (a0, pel(-54), "in"), (a1, pel(-52)), (a1 + 9, pel0, "out")],
         "shoulders": [(0, sh0), (4, sho(8)), (a0, sho(-50), "in"), (a1, sho(-47)), (a1 + 9, sh0, "out")],
-        "trunk": [(0, tr0), (4, lean(-1)), (a0, lean(-5, 6), "in"), (a1, lean(-5, 6)), (a1 + 6, tr0, "out")],
+        "trunk": [(0, tr0), (4, lean(-4, 3)), (a0, lean(-30, 12), "in"), (a1, lean(-28, 11)), (a1 + 4, lean(-12, 5), "out"), (a1 + 9, tr0)],
         "lead_heel": [(0, 0.0), (a0, 0.045, "in"), (a1, 0.045), (a1 + 6, 0.0)],
         "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] + 60, "in"), (a1, base["lead_toe"] + 60), (a1 + 8, base["lead_toe"])],
         "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.18, 0.02, 0.32, 0.6)), (a0 - 1, (-0.25, hx - 0.30, hz + 0.10, 1.0), "in"),
