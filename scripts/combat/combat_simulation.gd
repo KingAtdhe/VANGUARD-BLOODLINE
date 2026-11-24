@@ -55,6 +55,8 @@ const _PATTERNS: Dictionary = {
 ## (the throw, D-103). A Light or Kick attack already started that recently
 ## is turned into the throw (fighting games call this throw leniency).
 const THROW_WINDOW: int = 2
+## How fast a held victim is drawn in to the thrower (m per tick, D-104).
+const THROW_PULL_PER_TICK: float = 0.05
 ## Direction + button commands a fighter has no move for act as the plain
 ## button, so holding a direction never eats an attack.
 const _FALLBACK: Dictionary = {
@@ -219,7 +221,12 @@ func _throw_holds(contacts: Array[HitboxSystem.Contact]) -> Array[HitboxSystem.C
 			d.held_by = -1                       # let go: the victim recovers at once
 			d.stun_remaining = mini(d.stun_remaining, 1)
 			f.throw_target = -1
-		elif f.move_frame == f.move.throw_release_frame:
+		elif f.move_frame < f.move.throw_release_frame:
+			# drawn in to the clinch over a few ticks (pushboxes ignored while held)
+			if f.move.throw_hold_distance > 0.0:
+				var want: float = f.position_x + f.facing * f.move.throw_hold_distance
+				d.position_x = _clamped_x(f.throw_target, move_toward(d.position_x, want, THROW_PULL_PER_TICK))
+		if holding and f.move_frame == f.move.throw_release_frame:
 			var c := HitboxSystem.Contact.new()
 			c.attacker = a
 			c.defender = f.throw_target
@@ -805,7 +812,7 @@ func _resolve_pushboxes() -> void:
 	var min_dist: float = profile(0).pushbox_half_width + profile(1).pushbox_half_width
 	var dx: float = b.position_x - a.position_x
 	var overlap: float = min_dist - absf(dx)
-	if overlap <= 0.0:
+	if overlap <= 0.0 or a.held_by >= 0 or b.held_by >= 0:     # a clinch: the held fighter is inside the pushboxes
 		return
 	# A pass-through move (side switch) ignores pushboxes while it travels,
 	# and so does a fighter high enough in a jump (it can land behind).

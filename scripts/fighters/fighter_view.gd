@@ -52,6 +52,9 @@ var _burn_left: float = 0.0
 ## (consume_landing) so the scene can slam dust and debris there.
 const LAND_HIPS_Y: float = 0.36
 var _land_watch: float = 0.0
+## Held in a throw: lean toward the thrower (0..1 eased) and its size in degrees.
+var _held_lean: float = 0.0
+const HELD_LEAN_DEG: float = 15.0
 var _land_strength: float = 1.0
 var _landing: Vector3 = Vector3.INF
 const HAND_BONES: Array[String] = ["LeftHand", "RightHand"]
@@ -228,7 +231,13 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 		_shield_mat.set_shader_parameter("hit", _shield_hit)
 	if model != null:
 		# glTF models face +Z; turn to face the opponent (±X), slightly toward camera.
-		_model_root.rotation.y = deg_to_rad(profile_yaw_degrees) * float(current.facing)
+		var yaw_basis := Basis(Vector3.UP, deg_to_rad(profile_yaw_degrees) * float(current.facing))
+		# Held in a throw (D-104): the whole body is pulled forward toward the
+		# thrower, tipping from the feet, eased in and out.
+		_held_lean = move_toward(_held_lean, 1.0 if current.held_by >= 0 else 0.0, delta * 7.0)
+		var tip: float = -float(current.facing) * deg_to_rad(HELD_LEAN_DEG) * ease(_held_lean, -1.6)
+		var sc: Vector3 = _model_root.scale
+		_model_root.basis = (Basis(Vector3.BACK, tip) * yaw_basis).scaled(sc) if not is_zero_approx(tip) else yaw_basis.scaled(sc)
 		if animator != null:
 			animator.update(current, alpha, frozen, delta)
 	else:

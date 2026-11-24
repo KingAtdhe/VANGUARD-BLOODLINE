@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Knee Throw looks like a grab
+- Kairo's hands now go round the back of the opponent's neck, the opponent is pulled in close and tipped forward toward him, and he drags their head down onto the knee (a clinch), instead of his hands stopping in front of a guard a step away.
 ### Fixed — Knee Throw order
 - The throw used to hit on the grab and play the knee afterwards on an opponent already falling. Now the grab only catches and holds the opponent, and the hit (damage, effects, knockdown) lands when the knee drives in. If Kairo is hit while holding, the opponent is let go.
 ### Added — three new moves for Kairo

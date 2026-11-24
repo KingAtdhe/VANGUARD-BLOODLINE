@@ -2693,10 +2693,13 @@ def kairo_keys(moves, base, g, S):
     # (MoveData.throw_release_frame = 12 = frame kn + 1); the long shove that
     # followed the knee is gone (owner: "it does a hit and a knee after, why").
     a0, a1, T, hx, hz = win(moves["THROW"])
-    grab_l = (0.10, hx - 0.06, hz + 0.20)
-    grab_r = (-0.08, hx - 0.08, hz + 0.18)
-    pull_l = (0.08, hx - 0.30, hz + 0.12)
-    pull_r = (-0.08, hx - 0.32, hz + 0.10)
+    # D-104 (owner: "it does not look like he is grabbing"): the hands reach
+    # round the back of the opponent's neck (the game draws the opponent in
+    # to 0.58 m and tips them forward), then pull the head down onto the knee.
+    grab_l = (0.11, 0.62, hz + 0.24)
+    grab_r = (-0.07, 0.60, hz + 0.22)
+    pull_l = (0.10, 0.50, hz + 0.06)
+    pull_r = (-0.06, 0.48, hz + 0.04)
     shove_l = (0.08, hx - 0.14, hz + 0.06)
     shove_r = (-0.08, hx - 0.16, hz + 0.0)
     kn = a1 + 6                                            # the knee lands
@@ -2705,7 +2708,8 @@ def kairo_keys(moves, base, g, S):
     # no recovery warp: the knee is keyed after the grab's active frames and
     # must play on exactly the frame the throw lands (throw_release_frame)
     out["THROW"] = dict(**head(a0, a1, T, 8.0), **{
-        "lead_palm": "auto", "rear_palm": "auto",
+        "lead_palm": [(0, base["lead_palm"]), (a0, (0.0, 0.4, -1.0), "in"), (kn + 2, (0.0, 0.4, -1.0)), (T - 3, base["lead_palm"])],
+        "rear_palm": [(0, (0.0, 0.0, 1.0)), (a0, (0.0, 0.4, -1.0), "in"), (kn + 2, (0.0, 0.4, -1.0)), (T - 3, (0.0, 0.0, 1.0))],
         "hips": [(0, (hips0, 0)), (a0, (hips0 + 0.10, 0), "in"), (kn - 3, (hips0 + 0.02, 0)), (kn, (hips0 + 0.10, 0), "in"),
                  (sh - 2, (hips0 + 0.04, 0)), (sh, (hips0 + 0.16, 0), "in"), (sh + 4, (hips0 + 0.14, 0)), (T - 4, (hips0, 0), "io")],
         "pelvis_h": [(0, ph0), (a0, low(0.04), "in"), (kn, ph0 + 0.04, "in"), (sh, low(0.05), "in")] + settle(T, T - 7, ph0),
@@ -2716,9 +2720,9 @@ def kairo_keys(moves, base, g, S):
         "_feet_abs": (0, T - 1),
         "rear_foot_abs": [(0, FR + (0.0,)), (kn - 5, FR + (0.0,)), (kn - 3, (FR[0] * 0.7, 0.02, 0.26, 0.2), "io"), (kn - 1, (FR[0] * 0.5, 0.16, 0.50, 0.3)), (kn, knee_up),
                           (kn + 2, knee_up), (kn + 5, FR + (0.0,), "in")],
-        "lead_hand_abs": [(0, L), (a0, grab_l, "in"), (a1, grab_l), (kn - 2, pull_l, "io"), (kn + 2, pull_l), (sh, shove_l, "in"),
+        "lead_hand_abs": [(0, L), (a0, grab_l, "in"), (a1 + 1, grab_l), (kn - 1, pull_l, "io"), (kn + 2, pull_l), (sh, shove_l, "in"),
                           (sh + 4, shove_l), (T - 3, L, "io")],
-        "rear_hand_abs": [(0, R), (a0, grab_r, "in"), (a1, grab_r), (kn - 2, pull_r, "io"), (kn + 2, pull_r), (sh, shove_r, "in"),
+        "rear_hand_abs": [(0, R), (a0, grab_r, "in"), (a1 + 1, grab_r), (kn - 1, pull_r, "io"), (kn + 2, pull_r), (sh, shove_r, "in"),
                           (sh + 4, shove_r), (T - 3, R, "io")],
         "lead_elbow": [(0, 0.2), (a0, 0.3), (kn, 0.45), (sh, 0.1), (T - 3, 0.2)],
         "rear_elbow": [(0, 0.05), (a0, 0.3), (kn, 0.45), (sh, 0.1), (T - 3, 0.05)],

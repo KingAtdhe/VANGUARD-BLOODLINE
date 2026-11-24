@@ -117,6 +117,9 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## and the throw lands (damage, knockdown, hit effects) on this move frame,
 ## e.g. when the knee drives in. 0 = the throw lands on the grab.
 @export var throw_release_frame: int = 0
+## While held the victim is drawn in to this distance from the thrower
+## (metres, inside the pushboxes: a clinch). 0 = left where it was grabbed.
+@export var throw_hold_distance: float = 0.0
 
 @export_group("Evasion")
 ## The user has no hurtbox on frames invuln_start_frame..invuln_end_frame

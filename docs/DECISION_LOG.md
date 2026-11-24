@@ -1799,3 +1799,19 @@ hit on frame 5 and its knee played afterwards on a falling opponent.
   play on their own frames (the warp had put the knee 8 frames after the hit).
   The knee rises over three frames (a 26 cm one-frame pop before).
 - Test: `test_knee_throw_holds_then_lands_on_the_knee`. 215 tests pass.
+
+## D-105 — 2026-11-24 — The Knee Throw reads as a grab
+
+Owner: "it does not look like he is grabbing the opponent". Frames showed
+his hands stopping in front of the opponent's raised guard at his own chest
+and pulling back to himself, with the opponent a full step away leaning back.
+- `MoveData.throw_hold_distance` (Kairo 0.66 m): the held victim is drawn in
+  at 0.05 m per tick (`THROW_PULL_PER_TICK`); pushboxes are not resolved
+  while someone is held (a clinch is closer than the 0.70 m they allow).
+  0.58 m put the opponent's torso inside Kairo's.
+- FighterView: a held fighter is tipped forward toward the thrower from the
+  feet (`HELD_LEAN_DEG` 15°, eased in and out); every fighter gets it, no clip
+  needed. 24° clipped into the thrower.
+- Kairo's throw keys: hands to the back of the neck (0.60-0.62 m forward,
+  palms down), then pull the head down to 0.48-0.50 m onto the knee.
+- Not verified on a phone.
