@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — hit and knockdown effects
+- Hits: a white-hot impact star, a warm glow, a spray of sparks flying away from the attacker and falling, a shockwave ring on heavy hits and counter-hits (red-orange) and a swoosh on kicks and heavy blows. Blocks throw cold blue sparks back at the attacker. All sized by damage and kept small enough never to hide the fighters.
+- The hit flash on the victim is shorter and fades (it whited the whole body out for 7 frames and buried the effects).
+- Knockdowns: when the body hits the floor, a shockwave ring runs along the floor, dust rolls out, grit and chunks of floor are thrown up and the camera thumps. Bigger for a KO.
 ### Added — Kairo's fire
 - **Fireball** (down + SP): Kairo draws both palms to his hip and drives them forward, throwing a fireball with a trail of real flames and sparks that lights up the floor as it passes. A hit sets the opponent briefly alight.
 - **Origin Break burns**: during the ultimate his fists and feet are on fire, leaving trails of flame, and every hit bursts into fire and sets the opponent burning for a few seconds.

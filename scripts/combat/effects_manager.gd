@@ -1,13 +1,10 @@
 class_name EffectsManager
 extends Node3D
-## Placeholder impact effects (spec §4.7): a short spark at the contact point.
-## Hits: warm, bigger for more damage. Blocks: cool and small.
+## Impact effects (spec §4.7; D-102): flash, sparks, rings and swooshes at the
+## contact point, a ground slam where a knocked-down body hits the floor, fire
+## (D-101). Hits: warm, bigger for more damage. Blocks: cool and small.
 ## Presentation only — never affects the simulation.
 
-const LIFETIME: float = 0.18
-const HIT_COLOR := Color(1.0, 0.75, 0.3)
-const BLOCK_COLOR := Color(0.45, 0.75, 1.0)
-const COUNTER_COLOR := Color(1.0, 0.3, 0.2)
 
 var _sparks: Array[Dictionary] = []
 ## Projectile id -> its placeholder mesh (D-066).
@@ -86,65 +83,77 @@ func _make_shot(p: ProjectileState) -> Node3D:
 	return root
 
 
-func spawn_for(event: CombatEvent) -> void:
+func spawn_for(event: CombatEvent, dir: float = 0.0, move: MoveData = null) -> void:
+	## D-102: a flash, a glow, sparks flying away from the attacker ([param dir]
+	## = +1/-1 along X, 0 = both ways), a shockwave ring on strong hits and a
+	## swoosh on kicks and heavy blows; a block throws cold sparks back at
+	## the attacker. Sized by damage, capped so a hit never hides the fighters.
 	var is_hit: bool = event.type == CombatEvent.Type.HIT
+	var is_block: bool = event.type == CombatEvent.Type.BLOCK
 	var strong: bool = is_hit and (event.counter_hit or event.damage >= 60)
-	# Capped so even an ultimate never hides the fighters (spec §4.7).
-	var size: float = minf(0.55, 0.25 + event.damage / 250.0) if is_hit else 0.22
+	var size: float = minf(0.55, 0.25 + event.damage / 250.0) if is_hit else 0.24
 	if is_hit and event.counter_hit:
 		size = minf(0.65, size * 1.25)
-	var color: Color = (COUNTER_COLOR if event.counter_hit else HIT_COLOR) if is_hit else BLOCK_COLOR
-	var at := Vector3(event.point.x, event.point.y, 0.3)
-	# bright core
-	var core := SphereMesh.new()
-	core.radius = 0.5
-	core.height = 1.0
-	core.radial_segments = 12
-	core.rings = 6
-	_add_part(core, color.lerp(Color.WHITE, 0.35), at, Vector3.ONE * size, 0.0, 0.4, 1.0, LIFETIME)
-	if not is_hit:
-		return
-	# streaks flying out from the contact point (their angles come from the
-	# event's tick, so the same fight always looks the same)
+	var tint: Color = (ImpactFX.COUNTER_TINT if event.counter_hit else ImpactFX.HIT_TINT) if is_hit else ImpactFX.BLOCK_TINT
+	var at := Vector3(event.point.x, event.point.y, 0.35)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = event.tick * 7919 + event.damage
-	var streak := BoxMesh.new()
-	streak.size = Vector3(1.0, 0.07, 0.07)
-	for k: int in (7 if strong else 4):
-		var angle: float = TAU * (k + rng.randf() * 0.7) / (7.0 if strong else 4.0)
-		var reach: float = size * (1.5 + rng.randf() * 0.8)
-		_add_part(streak, color.lerp(Color.WHITE, 0.2), at, Vector3(reach * 0.45, 1.0, 1.0), angle, 0.5, 1.6, LIFETIME * 1.2)
-	# heavy hits and counter-hits: a ring that opens around the impact
+	# white-hot flash with rays, and the coloured glow under it
+	_add_sprite(ImpactFX.sprite(ImpactFX.STAR, Vector2.ONE * size * 2.2, Color(1, 1, 1).lerp(tint, 0.2)), at,
+			0.13, 0.6, 1.2, rng.randf_range(-0.4, 0.4))
+	_add_sprite(ImpactFX.sprite(ImpactFX.GLOW, Vector2.ONE * size * 1.5, Color(tint.r, tint.g, tint.b, 0.45)), at,
+			0.12, 0.8, 1.3, 0.0)
+	var spark_dir: float = -dir if is_block else dir
+	var count: int = (34 if strong else 20) if is_hit else 12
+	var sp: CPUParticles3D = ImpactFX.sparks(count, (7.5 if strong else 5.5) if is_hit else 4.0,
+			spark_dir, tint, 180.0 if is_zero_approx(spark_dir) else (60.0 if is_hit else 45.0))
+	_burst(sp, at, 0.8)
 	if strong:
-		var ring := TorusMesh.new()
-		ring.inner_radius = 0.42
-		ring.outer_radius = 0.5
-		ring.rings = 20
-		ring.ring_segments = 6
-		_add_part(ring, color, at, Vector3.ONE * size, 0.0, 0.5, 2.4, LIFETIME * 1.6, true)
+		_add_sprite(ImpactFX.sprite(ImpactFX.RING, Vector2.ONE * size * 1.2, tint), at, 0.24, 0.35, 1.7, 0.0)
+	if is_block:
+		_add_sprite(ImpactFX.sprite(ImpactFX.RING, Vector2.ONE * 0.4, ImpactFX.BLOCK_TINT), at, 0.2, 0.6, 1.6, 0.0)
+	# a swoosh trailing into the blow: kicks and heavy hits
+	if is_hit and move != null and not is_zero_approx(dir) \
+			and (String(move.animation).contains("KICK") or event.damage >= 60) and not move.is_projectile():
+		var sl: MeshInstance3D = ImpactFX.sprite(ImpactFX.SLASH, Vector2(size * 2.3, size * 1.3), Color(tint.r, tint.g, tint.b, 0.55))
+		sl.scale = Vector3(-dir, 1.0, 1.0)            # the arc's bright head on the far side of the target
+		_add_sprite(sl, at - Vector3(dir * size * 0.35, 0.0, 0.0), 0.14, 0.85, 1.1, rng.randf_range(-0.35, 0.35), true)
 
 
-## One short-lived unshaded mesh: grows from [param grow_from] to [param grow_to]
-## times its scale while fading out. Streaks also travel outward as they grow.
-func _add_part(mesh: Mesh, color: Color, at: Vector3, scale: Vector3, angle: float, grow_from: float,
-		grow_to: float, life: float, face_camera: bool = false) -> void:
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.no_depth_test = true
-	mi.material_override = mat
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+## A fighter's body slamming into the floor (knockdown, D-102): a shockwave
+## ring along the floor, dust rolling out, grit and chunks thrown up.
+## [param strength] 1 = a knockdown, more for a KO.
+func spawn_ground_slam(x: float, z: float, strength: float = 1.0) -> void:
+	var at := Vector3(x, 0.04, z)
+	var ring: MeshInstance3D = ImpactFX.floor_sprite(ImpactFX.RING, 1.0, Color(1.0, 0.9, 0.75, 0.7))
+	_add_sprite(ring, at, 0.45, 0.4, 2.6 * strength, 0.0, true)
+	_burst(ImpactFX.dust(int(18 * strength), 0.8 * strength, 2.4 * strength), at + Vector3(0, 0.12, 0), 1.6)
+	_burst(ImpactFX.debris(int(14 * strength), 3.2 * sqrt(strength)), at + Vector3(0, 0.05, 0), 1.2)
+	_add_sprite(ImpactFX.sprite(ImpactFX.GLOW, Vector2(1.6, 0.5) * strength, Color(1.0, 0.85, 0.6, 0.35)), at + Vector3(0, 0.15, 0.2),
+			0.25, 0.8, 1.6, 0.0)
+
+
+## A fading, growing sprite (animated in _process with the other parts).
+## [param keep_scale]: the sprite already carries a scale (a mirrored swoosh).
+func _add_sprite(mi: MeshInstance3D, at: Vector3, life: float, grow_from: float, grow_to: float, angle: float,
+		keep_scale: bool = false) -> void:
 	mi.position = at
-	mi.rotation.z = angle
-	if face_camera:
-		mi.rotation.x = PI * 0.5          # a torus lies flat by default: stand it up toward the side camera
-	mi.scale = scale * grow_from
+	if not is_zero_approx(angle):
+		mi.rotation.z = angle
+	var base: Vector3 = mi.scale if keep_scale else Vector3.ONE
+	mi.scale = base * grow_from
 	add_child(mi)
-	_sparks.append({"node": mi, "mat": mat, "age": 0.0, "life": life, "scale": scale, "from": grow_from, "to": grow_to,
-		"origin": at, "dir": Vector3(cos(angle), sin(angle), 0.0) if mesh is BoxMesh else Vector3.ZERO})
+	_sparks.append({"node": mi, "mat": mi.material_override, "age": 0.0, "life": life, "scale": base,
+		"from": grow_from, "to": grow_to, "origin": at, "dir": Vector3.ZERO})
+
+
+## Starts a one-shot particle burst at [param at]; it frees itself.
+func _burst(p: CPUParticles3D, at: Vector3, free_after: float) -> void:
+	p.position = at
+	add_child(p)
+	p.emitting = true
+	if is_inside_tree():
+		get_tree().create_timer(free_after).timeout.connect(p.queue_free)
 
 
 func _process(delta: float) -> void:
@@ -161,7 +170,9 @@ func _process(delta: float) -> void:
 		node.scale = (s.scale as Vector3) * grow
 		node.position = (s.origin as Vector3) + (s.dir as Vector3) * (s.scale as Vector3).x * grow * 0.5
 		var c: Color = (s.mat as StandardMaterial3D).albedo_color
-		c.a = 1.0 - t
+		if not s.has("a0"):
+			s["a0"] = c.a                       # the sprite's own opacity (a soft glow starts below 1)
+		c.a = float(s.a0) * (1.0 - t) * (1.0 - t * 0.35)
 		(s.mat as StandardMaterial3D).albedo_color = c
 
 

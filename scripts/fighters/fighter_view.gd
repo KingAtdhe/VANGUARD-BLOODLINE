@@ -15,7 +15,9 @@ extends Node3D
 ## Model yaw toward the camera: 90° = pure profile. Slightly less reads better.
 @export_range(60.0, 90.0) var profile_yaw_degrees: float = 78.0
 
-const FLASH_SECONDS: float = 0.12
+## Hit flash (D-102: was 0.12 s at a fixed 0.65 white, which buried the hit
+## effects; now a short flash that fades).
+const FLASH_SECONDS: float = 0.07
 const HITSTOP_SHAKE: float = 0.03
 
 @onready var _body_pivot: Node3D = %BodyPivot
@@ -45,6 +47,13 @@ var _fist_rest: Vector3
 var _limb_fire: Dictionary = {}       # bone name -> fire source
 var _burn_fire: Array[Node3D] = []
 var _burn_left: float = 0.0
+## Knockdown landing watch (D-102): after a knockdown or KO the hips are
+## followed until they come down to the floor; that moment is reported once
+## (consume_landing) so the scene can slam dust and debris there.
+const LAND_HIPS_Y: float = 0.36
+var _land_watch: float = 0.0
+var _land_strength: float = 1.0
+var _landing: Vector3 = Vector3.INF
 const HAND_BONES: Array[String] = ["LeftHand", "RightHand"]
 const FOOT_BONES: Array[String] = ["LeftFoot", "RightFoot"]
 ## Where a burning body catches: bone, flame size (m), flames at once.
@@ -227,6 +236,7 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 	_update_surge(current, delta)
 	_update_flash(delta)
 	_update_fire(current, delta)
+	_update_landing(delta)
 
 
 func flash() -> void:
@@ -275,6 +285,8 @@ func _update_flash(delta: float) -> void:
 	_flash_left = maxf(0.0, _flash_left - delta)
 	var flashing: bool = _flash_left > 0.0
 	_material.albedo_color = body_color.lerp(Color.WHITE, 0.8) if flashing else body_color
+	if flashing:
+		_flash_material.albedo_color = Color(1, 1, 1, 0.6 * _flash_left / FLASH_SECONDS)
 	for mi: MeshInstance3D in _model_meshes:
 		mi.material_overlay = _flash_material if flashing else null
 
@@ -334,3 +346,36 @@ func _attach_fire(bone: String, size: float, amount: int, radius: float, offset:
 	src.position = offset
 	att.add_child(src)
 	return src
+
+
+# --- knockdown landing (D-102) ------------------------------------------------
+
+## Watch for the body reaching the floor within [param seconds].
+func watch_landing(seconds: float, strength: float) -> void:
+	_land_watch = maxf(_land_watch, seconds)
+	_land_strength = maxf(_land_strength if _land_watch > 0.0 else 0.0, strength)
+
+
+## Where the body hit the floor since the last call (x, floor, z), or
+## Vector3.INF; and how hard (landing_strength).
+func consume_landing() -> Vector3:
+	var p: Vector3 = _landing
+	_landing = Vector3.INF
+	return p
+
+
+func landing_strength() -> float:
+	return _land_strength
+
+
+func _update_landing(delta: float) -> void:
+	if _land_watch <= 0.0 or skeleton == null:
+		return
+	_land_watch -= delta
+	var hips: int = skeleton.find_bone("Hips")
+	if hips < 0:
+		return
+	var p: Vector3 = (skeleton.global_transform * skeleton.get_bone_global_pose(hips)).origin
+	if p.y < LAND_HIPS_Y:
+		_landing = Vector3(p.x, 0.0, p.z)
+		_land_watch = 0.0

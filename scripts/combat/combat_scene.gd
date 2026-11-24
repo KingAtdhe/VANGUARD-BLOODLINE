@@ -376,18 +376,22 @@ func _present_new_events() -> void:
 		_audio.on_event(ev, simulation)
 		match ev.type:
 			CombatEvent.Type.HIT:
-				_effects.spawn_for(ev)
+				var m: MoveData = simulation.definitions[ev.actor].move_for_id(ev.move_id)
+				_effects.spawn_for(ev, _attack_dir(ev), m)
 				_fighter_views[ev.target].flash()
 				_camera_rig.add_shake((0.015 + ev.damage / 2500.0) * (1.6 if ev.counter_hit else 1.0))
-				var m: MoveData = simulation.definitions[ev.actor].move_for_id(ev.move_id)
 				_fire_hit(m, ev)
 				if m != null and m.tags.has("ultimate"):
 					var mid: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5
 					_camera_rig.start_cinematic(mid, float(m.hitstop_frames) / CombatConstants.TICK_RATE)
 			CombatEvent.Type.BLOCK:
-				_effects.spawn_for(ev)
+				_effects.spawn_for(ev, _attack_dir(ev))
 				_camera_rig.add_shake(0.008)
+			CombatEvent.Type.KNOCKDOWN:
+				_fighter_views[ev.target].watch_landing(1.6, 1.0)
 			CombatEvent.Type.KO:
+				if ev.target == 0 or ev.target == 1:
+					_fighter_views[ev.target].watch_landing(2.0, 1.5)
 				if not match_rules.training and ko_slowmo_scale < 1.0:
 					_slowmo_left = ko_slowmo_seconds
 			CombatEvent.Type.PROJECTILE_CLASH:
@@ -398,6 +402,14 @@ func _present_new_events() -> void:
 				_camera_rig.add_shake(0.012)
 		_arena_react(ev)
 	_seen_events = combat_log.total_count()
+
+
+## +1 / -1: the direction along X the blow travels (attacker toward target);
+## 0 when unknown (a projectile clash).
+func _attack_dir(ev: CombatEvent) -> float:
+	if ev.actor < 0 or ev.target < 0 or ev.actor > 1 or ev.target > 1:
+		return 0.0
+	return signf(simulation.fighters[ev.target].position_x - simulation.fighters[ev.actor].position_x)
 
 
 ## A hit by a fire move (D-101): fire bursts from the contact point and the
@@ -437,6 +449,11 @@ func _render(delta: float) -> void:
 		_fighter_views[i].sync(_previous[i], simulation.fighters[i], alpha, frozen, delta)
 		xs.append(lerpf(_previous[i].position_x, simulation.fighters[i].position_x, alpha))
 	_effects.sync_projectiles(simulation.projectiles, 0.0 if frozen else alpha)
+	for v: FighterView in _fighter_views:
+		var landed: Vector3 = v.consume_landing()
+		if landed != Vector3.INF:
+			_effects.spawn_ground_slam(landed.x, landed.z, v.landing_strength())
+			_camera_rig.add_shake(0.03 * v.landing_strength())
 	_hitbox_view.show_boxes(simulation, xs)
 	_camera_rig.follow(xs[0], xs[1], delta, maxf(_fighter_views[0].position.y, _fighter_views[1].position.y))
 	_hud.refresh(simulation, director, delta)

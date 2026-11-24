@@ -18,6 +18,7 @@ Record every third-party asset, font, sound, plugin or tool output here
 | `assets/arenas/*/*_arena.glb` | Generated from scratch by `tools/blender/arena_builder.py` | Project-owned | Arena geometry | 2026-11-18 |
 | `docs/art/reference_roster_sheet.png` | Character art sheet supplied by the project owner (source/tool to be recorded by the owner before release) | Owner-supplied — confirm rights before release | Approved design reference for the 3D models | 2026-11-18 |
 | `assets/vfx/fire/*.png` (flame flipbook, fireball, burst, sparks, ember) and `assets/vfx/fire/_source/owner_red_flame_sheet.png` | Red flame effects sheet supplied by the project owner (2026-11-24); cut by `tools/art/cut_fire_sheet.py` (the ember dot is generated) | Owner-supplied — confirm rights before release | Kairo's fire: Fireball, burning fists/feet in the ultimate, burning opponents | 2026-11-24 |
+| `assets/vfx/impact/*.png` | Generated from scratch by `tools/art/make_impact_textures.py` (the slash arc is the brightness of the owner's flame sheet arc) | Project-owned / owner-supplied | Hit, block and knockdown effects | 2026-11-24 |
 | Story text, signage text, fighter names | Original, written for this project | Project-owned | Story/arenas | 2026-11-18 |
 | `audio/sfx/placeholder_*.wav` | Synthesized by `tools/audio/generate_placeholder_sfx.py` (no samples) | Project-owned | Placeholder SFX | 2026-11-18 |
 | Blender 5.3 (tool only, not shipped) | blender.org | GPL (tool output is not GPL) | Build pipeline | 2026-11-18 |

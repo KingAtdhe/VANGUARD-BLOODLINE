@@ -88,3 +88,33 @@ func test_fire_switches_with_the_move_and_ignite() -> Array[String]:
 		f.append("still burning after the ignite time ran out")
 	view.queue_free()
 	return f
+
+
+## D-102: hit, block and knockdown effects spawn and clear themselves.
+func test_impact_effects_spawn() -> Array[String]:
+	var f: Array[String] = []
+	var fx := EffectsManager.new()
+	_tree().root.add_child(fx)
+	for type: int in [CombatEvent.Type.HIT, CombatEvent.Type.BLOCK, CombatEvent.Type.PROJECTILE_CLASH]:
+		var ev := CombatEvent.new()
+		ev.type = type
+		ev.damage = 80
+		ev.point = Vector2(0.5, 1.2)
+		var before: int = fx.get_child_count()
+		fx.spawn_for(ev, 1.0, null)
+		if fx.get_child_count() <= before:
+			f.append("no effect for event type %d" % type)
+	var before_slam: int = fx.get_child_count()
+	fx.spawn_ground_slam(0.0, 0.0, 1.5)
+	if fx.get_child_count() < before_slam + 3:
+		f.append("ground slam spawned %d parts" % (fx.get_child_count() - before_slam))
+	for i: int in 60:                     # the sprites fade and free themselves
+		fx._process(FRAME)
+	var sprites: int = 0
+	for c: Node in fx.get_children():
+		if c is MeshInstance3D and not c.is_queued_for_deletion():
+			sprites += 1
+	if sprites > 0:
+		f.append("%d effect sprites still alive after a second" % sprites)
+	fx.queue_free()
+	return f

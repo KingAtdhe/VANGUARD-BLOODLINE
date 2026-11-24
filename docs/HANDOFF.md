@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-101 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-102 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -18,7 +18,8 @@ change goes to the owner with a real-speed review video).
    (D-096, D-097 ball of the foot); Flying Side Kick redone (D-098, D-099).
    Ultimate redone and stance/walk made livelier (D-100). Fire: Fireball
    (down + special), burning fists/feet in the ultimate, ignite (D-101);
-   see effects with `tools/godot/scene_video.gd`. Next: the same
+   see effects with `tools/godot/scene_video.gd`. Hit/block/knockdown
+   effects redone (D-102). Next: the same
    kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side
    Kick) if the owner likes this one; check `legext` in `KEYED_DEBUG`.
 

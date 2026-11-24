@@ -1714,3 +1714,32 @@ enemy, also put a normal attack so he can fire a fireball".
 - **Tests**: `tests/integration/test_fire.gd` (data, a down + special fires
   and hits, fire switches on and off with the move, ignite times out).
 - Not verified on a phone (particle cost is small: ~200 quads at most).
+
+## D-102 — 2026-11-24 — Hit, block and knockdown effects
+
+Owner: "work on the game's special effects when hit and knockdown". The hit
+effect was the M-era placeholder: an unshaded sphere, a few box "streaks"
+and a torus, the same for every hit; knockdowns had none.
+- Textures (`tools/art/make_impact_textures.py`, `assets/vfx/impact/`):
+  impact star, shockwave ring, glow, spark streak, smoke puff and debris
+  atlas generated from scratch, white for tinting; the slash arc is the
+  brightness of the owner's flame-sheet arc.
+- `scripts/vfx/impact_fx.gd` (`ImpactFX`): tinted sprites on the fighting
+  plane, velocity-aligned spark particles (flat to the camera, falling),
+  dust (blended, billowing, lifting) and tumbling debris; one-shot CPU
+  particles that free themselves.
+- `EffectsManager.spawn_for(event, dir, move)`: flash + glow + sparks away
+  from the attacker (`CombatScene._attack_dir`), a ring on strong hits
+  (counter-hit or 60+ damage), a swoosh on kicks and heavy blows; blocks: blue
+  sparks back toward the attacker and a small ring. First version was too
+  big (glow and ring grew to ~2 m and washed both fighters out on the light
+  arena); sizes and lives were cut after looking at recorded frames.
+- Knockdown slam: on KNOCKDOWN (and KO, stronger) the scene asks the victim's
+  view to watch its Hips bone; the first frame they are below 0.36 m is
+  reported (`consume_landing`) and `spawn_ground_slam` puts a floor ring,
+  dust, debris and a glow there, with a camera shake — so it lands with the
+  body for every fighter and every knockdown animation.
+- Victim hit flash: 0.12 s at 65 % white → 0.07 s fading from 60 %.
+- Test: `test_impact_effects_spawn`. Checked on recorded frames of the
+  training scene (`scene_video.gd`). Not verified on a phone (cost: at most
+  a few dozen particles per hit, ~50 per knockdown).
