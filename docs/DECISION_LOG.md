@@ -1559,6 +1559,12 @@ Owner after D-093: "he still shakes when crouching, he still looks robotic".
   instead of 0.7. Up and left/right are unchanged. With the same simulated
   thumbs the crouch is now held on every frame (head moves ≤ 1 mm/frame).
   Test: `test_touch_down_holds_through_thumb_wobble`.
+- `THROW_WINDOW` 2 → 1 tick. With 2, the AI test's scripted pressure
+  (Light, -, Light, -, Kick: Light and Kick two ticks apart) became throw spam
+  and blocking no longer ranked by difficulty (the commit before this fix
+  was pushed with that test failing). Light then Kick two frames apart is a
+  deliberate sequence, not a simultaneous press; the touch THROW spot and a
+  two-thumb press land in the same or the next tick.
 - Not verified on a phone.
 
 **Recorded-karate trial (owner's decision pending).** CMU subject 135
@@ -1814,4 +1820,10 @@ and pulling back to himself, with the opponent a full step away leaning back.
   needed. 24° clipped into the thrower.
 - Kairo's throw keys: hands to the back of the neck (0.60-0.62 m forward,
   palms down), then pull the head down to 0.48-0.50 m onto the knee.
+- `THROW_WINDOW` 2 → 1 tick. With 2, the AI test's scripted pressure
+  (Light, -, Light, -, Kick: Light and Kick two ticks apart) became throw spam
+  and blocking no longer ranked by difficulty (the commit before this fix
+  was pushed with that test failing). Light then Kick two frames apart is a
+  deliberate sequence, not a simultaneous press; the touch THROW spot and a
+  two-thumb press land in the same or the next tick.
 - Not verified on a phone.

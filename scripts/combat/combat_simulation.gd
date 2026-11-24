@@ -54,7 +54,7 @@ const _PATTERNS: Dictionary = {
 ## Light and Kick pressed this many ticks apart or less count as together
 ## (the throw, D-103). A Light or Kick attack already started that recently
 ## is turned into the throw (fighting games call this throw leniency).
-const THROW_WINDOW: int = 2
+const THROW_WINDOW: int = 1
 ## How fast a held victim is drawn in to the thrower (m per tick, D-104).
 const THROW_PULL_PER_TICK: float = 0.05
 ## Direction + button commands a fighter has no move for act as the plain
