@@ -16,7 +16,8 @@ const STRIKER: Dictionary = {
 ## A multi-hit move: the limb that lands each hit, checked on the first two
 ## frames of that hit's window (the limb is on its way in or out otherwise).
 const MULTI_STRIKER: Dictionary = {
-	&"kairo_origin_break": [["LeftHand", 0.06], ["RightHand", 0.06], ["RightFoot", 0.08], ["LeftHand", 0.06]],
+	# D-100: straight, body hook, high roundhouse, rising uppercut
+	&"kairo_origin_break": [["LeftHand", 0.06], ["LeftHand", 0.06], ["RightFoot", 0.08], ["RightHand", 0.06]],
 }
 const TOLERANCE: float = 0.06
 

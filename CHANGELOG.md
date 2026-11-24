@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's ultimate (Origin Break)
+- Four different strikes at four heights instead of punches at one height: he coils, lunges in with a straight, drops into a hook to the body, throws a head-high roundhouse and finishes with an explosive rising uppercut onto his toes, held for a moment. Damage, hits and timing unchanged.
+### Changed — Kairo moves more naturally
+- His stance bounces deeper, up onto the ball of the rear foot at the top, and his hands, shoulders and head move more and follow the body a beat behind. Walking, his hands bob with each step and swing against his legs, his shoulders turn more and his head nods with the step instead of the guard staying frozen.
 ### Fixed — Kairo's Flying Side Kick, second pass
 - The other leg is no longer crushed (it was folded so tight the knee and thigh deformed): it now trails behind and below, bent naturally. The kicking leg goes fully straight and shoots out over three frames instead of one.
 ### Changed — Kairo's Flying Side Kick

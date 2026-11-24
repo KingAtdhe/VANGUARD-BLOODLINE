@@ -1649,3 +1649,29 @@ active frames; a more extended half key (0.71 the frame before) spreads the
 snap (it had moved the shin 0.32 m in one frame). Stretched edges: worst 16,
 mean 9.4 per frame (the idle: 10). `GLITCH_SCAN` clean. Not verified on a
 phone.
+
+## D-100 — 2026-11-24 — Kairo's ultimate redone; natural-motion pass on stance and walk
+
+Owner: "let me see his ultimate, change it a bit, it's boring; also the
+characters' motion needs to be more natural".
+**Ultimate** (`kairo_keys()` ULTIMATE): same frame data, hit points and
+rehit spacing (hits on frames 7, 17, 27, 37). Coil on frames 0-3; 1 lunging
+lead straight (head); 2 dropping lead hook to the body (elbow out, pelvis
+low 0.11); 3 head-high rear roundhouse: knee lifts round in front (a chamber
+behind him flicked the heel up like a donkey kick, a high chamber flipped the
+knee 0.73 m in a frame, a tight one folded the leg to 0.28), out to 0.96,
+back through the same front chamber; 4 deep sink (0.12) and explosive rear
+uppercut up onto the toes, held 8 frames. `GLITCH_SCAN`: two toe moves of
+10-11 cm on single frames remain (the foot leaving the floor for the kick,
+the pivot into the uppercut). Stretched edges: worst 37 at the kick (pelvis
+twist plus high leg), mean 12 per frame.
+**Motion pass** (Kairo only, STYLES knobs): the build's frames showed a stance
+that barely moved (hands 2-3 cm) and a walk whose upper body was one frozen
+stance frame. Stance: `bob` 0.04→0.05, `life` 1.8→2.6, new `heel_bounce`
+(rear heel up at the top of the bounce). Measured on the installed clip
+(`clip_trace.gd`): hips and head rise and fall 5.2 cm, lead hand 6.3 cm.
+Walk: new `walk_life` builds each frame's guard through `idle_P(0, mod=...)`:
+hands sink a beat after each landing and swing against the legs, chin and
+trunk nod with the step, shoulder counter-turn 5.5→8°, step dip 2→3 cm.
+Other fighters are unchanged (the knobs default off). No pops in stance,
+walk or dashes; stretched edges at the idle's level. Not verified on a phone.
