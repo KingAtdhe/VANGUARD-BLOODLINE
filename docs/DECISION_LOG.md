@@ -1827,3 +1827,23 @@ and pulling back to himself, with the opponent a full step away leaning back.
   deliberate sequence, not a simultaneous press; the touch THROW spot and a
   two-thumb press land in the same or the next tick.
 - Not verified on a phone.
+
+## D-106 — 2026-11-24 — Kairo's walk: planted feet (no ice skating)
+
+Owner: "his walking looks like it's sliding on ice". Kairo walks at 2.6 m/s
+forward / 2.0 back (unchanged: he is a fast fighter in the design and a test
+keeps the roster's walk order), but the walk loop was 30 frames with each
+planted foot moving back at most 17 cm: against 0.9 m of ground per planted
+phase, the feet skated ~0.7 m per step.
+- `walk()` for fitted fighters: the loop length n is chosen so a step is
+  ~0.40 m (stance ~0.48 m long), and the planted travel is exactly
+  speed x 0.70 x n / 60 (feet planted 70 % of the loop): the planted foot
+  moves back under the body as fast as the game moves him. Kairo: 15-frame
+  forward loop (~4 steps a second, a kickboxer's shuffle), 19-frame back loop.
+  Other fighters get the same at their next build (KI-048).
+- Measured in the real training scene (`tools/godot/foot_slide.gd`, new: the
+  lowest point of each foot on the floor, heel or ball once the heel is up):
+  forward 3.6 → 0.2 cm per frame while planted (body 4.3), backward 2.7 →
+  0.3 cm. Measuring the ankle alone had shown 1.2 cm — the ankle rolls
+  forward over the ball of the foot as the heel lifts, which is not sliding.
+- Not verified on a phone. Video: before / now side by side.

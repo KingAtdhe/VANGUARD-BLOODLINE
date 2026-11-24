@@ -3331,6 +3331,14 @@ def build(rig_obj, moves, fid, height, clip_dir):
     # ---- walks: the boxer's upper body over generated footwork
     def walk(speed, forward):
         n = 30
+        if fitted:
+            # D-106 (owner: "his walking looks like sliding on ice"): the loop is
+            # timed to the game's walk speed so a planted foot moves back under
+            # the body exactly as fast as the game carries him (it was capped at
+            # 17 cm a step against 2.6 m/s: ~0.7 m of skating per step). A step
+            # of about 0.40 m (Kairo's stance is ~0.48 m long), planted 70 % of
+            # the loop: n frames such that speed x 0.7 x n / 60 = the step.
+            n = int(min(40, max(14, round(0.40 * S_fit * FPS_OUT / (0.70 * speed)))))
         cyc = n / 2.0                 # two shuffle steps per loop
         out = []
         base = idle_P(0)
@@ -3355,7 +3363,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # breathing, which jumped where the loop closed).
                 S, sg = S_fit, (1 if st["_lead"] == "Left" else -1)
                 rear_fit = "Right" if st["_lead"] == "Left" else "Left"
-                d = min(stride * 2.0, 0.17 * S)
+                d = speed * 0.70 * n / float(FPS_OUT)     # planted travel = ground covered: no sliding
                 dirn = 1.0 if forward else -1.0
                 ph = t / float(n)
                 smooth = lambda x: ease(min(1.0, max(0.0, x)))

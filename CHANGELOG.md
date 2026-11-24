@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo no longer walks on ice
+- His steps now match how fast the game moves him: each foot stays put on the floor while it carries his weight, then lifts and steps forward. Before, his feet slid along with his body. Walking speed is unchanged; the steps are longer and quicker (a kickboxer's shuffle).
 ### Changed — Knee Throw looks like a grab
 - Kairo's hands now go round the back of the opponent's neck, the opponent is pulled in close and tipped forward toward him, and he drags their head down onto the knee (a clinch), instead of his hands stopping in front of a guard a step away.
 ### Fixed — Knee Throw order

@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-105 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-106 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -22,7 +22,9 @@ change goes to the owner with a real-speed review video).
    effects redone (D-102). New moves: Knee Throw (L+K), Leg Sweep (down+K),
    Rising Uppercut (down+L) (D-103). Throws can hold their victim until a
    release frame (D-104; Kairo's knee); the victim is drawn into a clinch and
-   tipped forward (D-105). Still missing for Kairo: crouching
+   tipped forward (D-105). Walk loop timed to the walk speed: planted feet
+   (D-106; `tools/godot/foot_slide.gd` measures it). Other fighters still
+   slide until rebuilt. Still missing for Kairo: crouching
    jab, a second air attack, combo strings, throw escape for everyone. Next: the same
    kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side
    Kick) if the owner likes this one; check `legext` in `KEYED_DEBUG`.
