@@ -1952,3 +1952,17 @@ arm reaches forward and down along the kick at chest height. The rear hand
 now goes to (−0.24, 0.36 forward, 22 cm below the guard) with a near-straight
 elbow and comes home through the recovery; the guard hand stays at the face.
 Checked side, front and in the arena camera. Not verified on a phone.
+
+## D-112 — 2026-11-24 — Rift Break and Flying Side Kick: the Low Kick lessons
+
+After the owner approved the Low Kick ("its good now, continue"), the same
+pass on the other kicks. **Rift Break** (axe kick): at the top he stood like
+a pole on a straight leg, up on his toes, and the kicking-side arm flung out
+sideways. Now the trunk leans back 29° as the leg rises, on a soft standing
+knee with the heel down; the chest chops forward over the drop (spread over
+the whole drop: a first try snapped the head 21 cm in one frame); the
+kicking-side arm goes forward along the leg. **Flying Side Kick**: the leg
+keeps driving forward 4 cm through the hold instead of freezing, and the
+trunk leans back a little more (30–34°, a small visible change).
+Pre-existing one-frame flag left as is: the Rift Break heel drop (0.18 m,
+the speed of the chop). Not verified on a phone.

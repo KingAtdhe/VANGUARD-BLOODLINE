@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Rift Break and Flying Side Kick
+- **Rift Break**: he leans back as the leg rises over his head on a bent standing knee, then chops his chest forward as the heel comes down; the arm on the kicking side reaches forward along the leg instead of flinging out to the side.
+- **Flying Side Kick**: the leg keeps driving forward while it is held out, with a little more lean back.
 ### Fixed — Kairo's Low Kick arms
 - The arm on the kicking side now reaches forward along the kick at chest height (it swung up behind his head); the other hand stays up at his face.
 ### Changed — Kairo's Low Kick, Street Fighter style

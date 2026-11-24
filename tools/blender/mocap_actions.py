@@ -2757,7 +2757,12 @@ def kairo_keys(moves, base, g, S):
     })
 
     # Rift Break: an axe kick. The rear leg swings up past the head as he
-    # closes in, then the heel is brought down through the chest
+    # closes in, then the heel is brought down through the chest.
+    # D-112 (same pass as the Low Kick, D-109..D-111): at the top he stood like
+    # a pole on a straight leg, up on his toes. Now he leans well back as the
+    # leg rises, on a soft standing knee with the heel down, chops the chest
+    # forward as the heel drops, and the kicking-side arm goes forward along
+    # the leg instead of flinging out to the side
     a0, a1, T, hx, hz = win(moves["FORWARD_SPECIAL"])
     top = (-0.03, 0.46, head_z + 0.06, 0.85)
     out["FORWARD_SPECIAL"] = dict(_recover=1.35, **{
@@ -2765,18 +2770,20 @@ def kairo_keys(moves, base, g, S):
         "chin": [(0, chin0), (a0 - 4, chin0 - 4), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
         "hips": [(0, (hips0, 0)), (6, (hips0 + 0.05, 0)), (a0, (hips0 + 0.10, 0)), (a1, (hips0 + 0.10, 0)),
                  (a1 + 10, (hips0, 0), "out")],
-        "pelvis_h": [(0, ph0), (5, low(0.03)), (a0 - 4, ph0 + 0.055, "out"), (a0, ph0 + 0.02, "in"), (a1, ph0 - 0.01)]
+        "pelvis_h": [(0, ph0), (5, low(0.025)), (a0 - 4, ph0 + 0.005, "out"), (a0, low(0.02), "in"), (a1, low(0.045))]
                     + settle(T, a1 + 10, ph0, 0.02),
         "pelvis": [(0, pel0), (6, pel(-22)), (a0 - 4, pel(-34)), (a1, pel(-34)), (a1 + 10, pel0, "out")],
         "shoulders": [(0, sh0), (6, sho(-10)), (a0 - 4, sho(-22)), (a1, sho(-26)), (a1 + 10, sh0, "out")],
-        "trunk": [(0, tr0), (5, lean(4)), (a0 - 4, lean(-13), "out"), (a0, lean(2), "in"), (a1, lean(7)), (a1 + 10, tr0, "out")],
-        "lead_heel": [(0, 0.0), (a0 - 4, 0.05), (a0, 0.02), (a1 + 3, 0.0)],
+        "trunk": [(0, tr0), (5, lean(3)), (a0 - 4, lean(-24, 4), "out"), (a0 - 2, lean(-19, 3)), (a0, lean(-6)), (a1, lean(8)), (a1 + 3, lean(12)),
+                  (a1 + 8, lean(3), "out"), (a1 + 12, tr0)],
+        "lead_heel": [(0, 0.0), (a0 - 4, 0.012), (a0, 0.0), (a1 + 3, 0.0)],
         "rear_foot_abs": [(0, FR + (0.0,)), (6, (FR[0] * 0.6, 0.10, 0.50, 0.4)), (a0 - 4, top, "out"), (a0 - 2, top),
                           (a0, (0.0, hx - 0.06, hz + 0.20, 0.35), "in"), (a1, (0.0, hx - 0.08, hz - 0.22, 0.25), "lin"),
                           (a1 + 4, (FR[0] * 0.7, 0.30, FR[2] + 0.04, 0.0), "out"), (a1 + 9, FR + (0.0,))],
         "lead_hand_abs": [(0, L), (a0 - 4, chin), (a1 + 4, chin), (T - 4, L)],
-        "rear_hand_abs": [(0, R), (a0 - 4, (-0.30, -0.02, R[2] + 0.10)), (a0, (-0.33, 0.10, R[2] - 0.12), "in"),
-                          (a1 + 3, (-0.33, 0.10, R[2] - 0.12)), (T - 4, R)],
+        "rear_hand_abs": [(0, R), (a0 - 4, (-0.20, 0.30, R[2] - 0.06)), (a0, (-0.20, 0.32, R[2] - 0.20), "in"),
+                          (a1 + 3, (-0.18, 0.28, R[2] - 0.18)), (T - 4, R)],
+        "rear_elbow": [(0, 0.05), (a0 - 4, 0.12), (a1 + 3, 0.12), (T - 4, 0.05)],
     })
 
     # Rift Guard (the counter stance): he sits back onto the rear leg and the
@@ -3717,10 +3724,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 at = {"_name": "JUMP_ATTACK", "pelvis_h": ph0,
                       "pelvis": [(0, pel0), (a0 - 3, pel0 + 16, "io"), (a0, pel0 + 34, "io"), (a1, pel0 + 32), (a1 + 3, pel0 + 22, "io"), (T, pel0 + 6, "io")],
                       "shoulders": [(0, sh0), (a0 - 3, sh0 + 8, "io"), (a0 + 1, sh0 + 24, "io"), (a1, sh0 + 22), (a1 + 3, sh0 + 14, "io"), (T, sh0 + 4, "io")],
-                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 27, tr0[1]), "io"),
-                                (a1, (tr0[0] - 26, tr0[1])), (a1 + 4, (tr0[0] - 10, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
+                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 30, tr0[1]), "io"),
+                                (a0 + 5, (tr0[0] - 34, tr0[1])), (a1, (tr0[0] - 32, tr0[1])), (a1 + 4, (tr0[0] - 12, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
+                      # D-112: the leg keeps driving through the hold (it froze)
                       "lead_foot_abs": [(0, k_tuck), (a0 - 3, k_chamber, "out"), (a0 - 1, k_half), (a0, k_out),
-                                        (a0 + 2, k_hold), (a1, k_hold), (a1 + 1, k_back), (a1 + 2, k_back2), (a1 + 4, k_chamber),
+                                        (a0 + 5, (k_hold[0], k_hold[1] + 0.04, k_hold[2] + 0.01, k_hold[3])), (a1, (k_hold[0], k_hold[1] - 0.02, k_hold[2], k_hold[3])), (a1 + 1, k_back), (a1 + 2, k_back2), (a1 + 4, k_chamber),
                                         (T, (hl[0], hl[1] * 0.6, hl[2] + tuck * 0.6, 0.2))],
                       "rear_foot_abs": [(0, (hr[0], hr[1] * 0.45, hr[2] + tuck, 0.5)), (a0 - 3, (hr[0] * 0.9, hr[1] * 0.3 - 0.08 * S_fit, hr[2] + tuck + 0.06 * S_fit, 0.45), "io"),
                                         (a0 + 1, r_tuck, "io"), (a1, r_tuck),
