@@ -1186,6 +1186,7 @@ HANDS = {
 }
 HANDS_BY_ACTION = {
     "SPECIAL_ORIGIN_PALM": (0.05, 0.05),         # open-palm strike
+    "SPECIAL_FIREBALL": (0.04, 0.04),            # Kairo: both palms open to throw the fireball (D-101)
     # Kairo's lead hand is an open guard; it closes to punch
     "ATTACK_LIGHT_01": (1.0, 1.0), "ULTIMATE_ORIGIN_BREAK": (1.0, 1.0),
     "KNOCKDOWN": (0.35, 0.35), "GETUP": (0.35, 0.35), "DEFEAT": (0.3, 0.3),
@@ -2605,6 +2606,36 @@ def kairo_keys(moves, base, g, S):
                           (a1 + 7, (L[0], L[1] + 0.06, L[2] - 0.05), "out"), (T - 4, L)],
         "lead_elbow": [(0, 0.15), (8, 0.35), (a0, 0.05), (a1 + 7, 0.15)],
         "rear_hand_abs": [(0, R), (8, (-0.10, 0.24, R[2] + 0.20)), (a0, (R[0], R[1] - 0.04, R[2]), "in"), (a1 + 4, (R[0], R[1] - 0.04, R[2])), (T - 4, R)],
+    })
+
+    # Fireball (down + special, D-101): both open palms are drawn back to the
+    # rear hip as he sinks and coils away, then driven forward together at
+    # chest height as the fireball leaves on the first active frame; the
+    # palms stay out a moment, then he settles back into the stance.
+    a0, a1, T, hx, hz = win(moves["DOWN_SPECIAL"])
+    cup_l = (-0.04, -0.02, ph0 * 0.0 + R[2] - 0.20)        # lead palm over the rear hip
+    cup_r = (-0.12, -0.06, R[2] - 0.28)                    # rear palm under it
+    push_l = (0.03, hx - 0.30, hz + 0.02)
+    push_r = (-0.05, hx - 0.33, hz - 0.08)
+    out["DOWN_SPECIAL"] = dict(_recover=1.6, **head(a0, a1, T, 5.0), **{
+        "lead_palm": [(0, base["lead_palm"]), (a0 - 4, (0.0, 0.3, -1.0)), (a0, (0.0, -1.0, 0.25), "in"), (a1 + 6, (0.0, -1.0, 0.25)),
+                      (T - 4, base["lead_palm"])],
+        "rear_palm": [(0, (0.0, 0.0, 1.0)), (a0 - 4, (0.0, 0.3, 1.0)), (a0, (0.0, -1.0, -0.25), "in"), (a1 + 6, (0.0, -1.0, -0.25)),
+                      (T - 4, (0.0, 0.0, 1.0))],
+        "hips": [(0, (hips0, 0)), (a0 - 4, (hips0 - 0.10, 0), "io"), (a0, (hips0 + 0.14, 0), "in"), (a1 + 5, (hips0 + 0.13, 0)),
+                 (T - 4, (hips0, 0), "io")],
+        "pelvis_h": [(0, ph0), (a0 - 4, low(0.09), "io"), (a0, low(0.06), "in"), (a1 + 5, low(0.06))] + settle(T, T - 8, ph0),
+        "pelvis": [(0, pel0), (a0 - 4, pel(22), "io"), (a0, pel(-30), "in"), (a1 + 5, pel(-28)), (T - 4, pel0, "io")],
+        "shoulders": [(0, sh0), (a0 - 4, sho(30), "io"), (a0, sho(-46), "in"), (a1 + 5, sho(-44)), (T - 4, sh0, "io")],
+        "trunk": [(0, tr0), (a0 - 4, lean(-4), "io"), (a0, lean(9), "in"), (a1 + 5, lean(8)), (T - 4, tr0, "io")],
+        "lead_foot": [(0, lf0), (a0 - 1, (lf0[0], lf0[1] + 0.12), "in"), (a1 + 6, (lf0[0], lf0[1] + 0.12)), (T - 4, lf0, "io")],
+        "rear_heel": [(0, 0.012), (a0 - 4, 0.0), (a0, 0.08, "in"), (a1 + 5, 0.08), (T - 4, 0.012)],
+        "lead_hand_abs": [(0, L), (a0 - 4, cup_l, "io"), (a0, (push_l[0], push_l[1] + 0.04, push_l[2]), "in"), (a0 + 1, push_l),
+                          (a1 + 6, push_l), (T - 3, L, "io")],
+        "rear_hand_abs": [(0, R), (a0 - 4, cup_r, "io"), (a0, (push_r[0], push_r[1] + 0.04, push_r[2]), "in"), (a0 + 1, push_r),
+                          (a1 + 6, push_r), (T - 3, R, "io")],
+        "lead_elbow": [(0, 0.2), (a0 - 4, 0.3), (a0, 0.08), (a1 + 6, 0.08), (T - 3, 0.2)],
+        "rear_elbow": [(0, 0.05), (a0 - 4, 0.25), (a0, 0.1), (a1 + 6, 0.1), (T - 3, 0.05)],
     })
 
     # Rift Break: an axe kick. The rear leg swings up past the head as he

@@ -39,6 +39,17 @@ var _shield_hit: float = 0.0
 var _shield_rest_y: float = 0.0
 var _flash_left: float = 0.0
 var _fist_rest: Vector3
+## Fire (D-101): sources on the hands and feet (moves tagged fire_hands /
+## fire_limbs) and on the body while burning (hit by a move tagged ignite).
+## Made the first time they are needed.
+var _limb_fire: Dictionary = {}       # bone name -> fire source
+var _burn_fire: Array[Node3D] = []
+var _burn_left: float = 0.0
+const HAND_BONES: Array[String] = ["LeftHand", "RightHand"]
+const FOOT_BONES: Array[String] = ["LeftFoot", "RightFoot"]
+## Where a burning body catches: bone, flame size (m), flames at once.
+const BURN_BONES: Array = [["Hips", 0.6, 16], ["Chest", 0.66, 18], ["LeftUpperLeg", 0.44, 9], ["RightUpperLeg", 0.44, 9],
+	["LeftUpperArm", 0.4, 8], ["RightUpperArm", 0.4, 8], ["Head", 0.36, 7], ["LeftLowerLeg", 0.36, 6], ["RightLowerLeg", 0.36, 6]]
 
 
 func _ready() -> void:
@@ -215,6 +226,7 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 		_update_capsule_pose(current)
 	_update_surge(current, delta)
 	_update_flash(delta)
+	_update_fire(current, delta)
 
 
 func flash() -> void:
@@ -265,3 +277,60 @@ func _update_flash(delta: float) -> void:
 	_material.albedo_color = body_color.lerp(Color.WHITE, 0.8) if flashing else body_color
 	for mi: MeshInstance3D in _model_meshes:
 		mi.material_overlay = _flash_material if flashing else null
+
+
+# --- fire (D-101) ---------------------------------------------------------------
+
+## Sets the body burning for [param seconds] (a later, longer ignite extends it).
+func ignite(seconds: float) -> void:
+	if skeleton == null:
+		return
+	if _burn_fire.is_empty():
+		for spec: Array in BURN_BONES:
+			var src: Node3D = _attach_fire(spec[0], spec[1], spec[2], 0.11, Vector3.ZERO)
+			if src != null:
+				_burn_fire.append(src)
+	_burn_left = maxf(_burn_left, seconds)
+	for src: Node3D in _burn_fire:
+		FireFX.set_burning(src, true)
+
+
+func is_burning() -> bool:
+	return _burn_left > 0.0
+
+
+func _update_fire(s: FighterState, delta: float) -> void:
+	if skeleton == null:
+		return
+	var hands: bool = false
+	var feet: bool = false
+	if s.action == FighterState.Action.ATTACK and s.move != null:
+		feet = s.move.tags.has("fire_limbs")
+		hands = feet or s.move.tags.has("fire_hands")
+	for bone: String in HAND_BONES + FOOT_BONES:
+		var want: bool = hands if HAND_BONES.has(bone) else feet
+		if want and not _limb_fire.has(bone):
+			# the fist (a few cm past the wrist) and the foot (toward the toes)
+			_limb_fire[bone] = _attach_fire(bone, 0.4 if HAND_BONES.has(bone) else 0.44, 20, 0.05,
+					Vector3(0.0, 0.07, 0.0))
+		if _limb_fire.has(bone):
+			FireFX.set_burning(_limb_fire[bone], want)
+	if _burn_left > 0.0:
+		_burn_left -= delta
+		if _burn_left <= 0.0:
+			for src: Node3D in _burn_fire:
+				FireFX.set_burning(src, false)      # the flames already alive burn out
+
+
+func _attach_fire(bone: String, size: float, amount: int, radius: float, offset: Vector3) -> Node3D:
+	var idx: int = skeleton.find_bone(bone)
+	if idx < 0:
+		return null
+	var att := BoneAttachment3D.new()
+	att.name = "Fire_%s" % bone
+	att.bone_name = bone
+	skeleton.add_child(att)
+	var src: Node3D = FireFX.fire_source(size, amount, radius)
+	src.position = offset
+	att.add_child(src)
+	return src

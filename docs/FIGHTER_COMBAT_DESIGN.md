@@ -23,7 +23,7 @@ This file is the in-repo summary; update both when the design changes.
 
 | Fighter | Normals | Specials | Ultimate |
 | --- | --- | --- | --- |
-| Kairo | Lead Straight, Reverse Punch, Front Kick (down + heavy), Low Kick, Flying Side Kick (air) | Origin Palm, Rift Break (axe kick), Rift Guard (counter) | Origin Break (four hits) |
+| Kairo | Lead Straight, Reverse Punch, Front Kick (down + heavy), Low Kick, Flying Side Kick (air) | Origin Palm, Rift Break (axe kick), Rift Guard (counter), Fireball (down + special, D-101) | Origin Break (four hits; fists and feet on fire, sets the opponent burning) |
 | Drakon | Hammer Fist, Haymaker, Shoulder Check, Stomp | Forge Charge, Anvil Slam, Quake Stomp | Molten Colossus |
 | Seraphina | Knife-hand, Side Kick, Roundhouse, Low Sweep | Crescent Arc, Halo Step, Seraph Dive | Radiant Ascension |
 | Nox | Fang Jab, Rising Backfist, Scythe Sweep, Drop Heel | Shade Step, Feint Fang, Throat Pierce | Eclipse |
@@ -43,7 +43,7 @@ Balance values go in `data/`, never in controller code.
 | Throws (unblockable grabs) | Drakon, Ryuen |
 | Counter and parry | Ryuen, Vexa, Kairo |
 | Armour (absorb one hit while attacking) | Drakon |
-| Projectile | Vexa |
+| Projectile | Vexa, Kairo (Fireball, D-101) |
 | Evasive dash with invulnerability, side switch | Nox, Seraphina, Ryuen |
 | Launch and air hits (juggle) | Seraphina |
 

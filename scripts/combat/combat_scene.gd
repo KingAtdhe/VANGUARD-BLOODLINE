@@ -380,6 +380,7 @@ func _present_new_events() -> void:
 				_fighter_views[ev.target].flash()
 				_camera_rig.add_shake((0.015 + ev.damage / 2500.0) * (1.6 if ev.counter_hit else 1.0))
 				var m: MoveData = simulation.definitions[ev.actor].move_for_id(ev.move_id)
+				_fire_hit(m, ev)
 				if m != null and m.tags.has("ultimate"):
 					var mid: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5
 					_camera_rig.start_cinematic(mid, float(m.hitstop_frames) / CombatConstants.TICK_RATE)
@@ -397,6 +398,18 @@ func _present_new_events() -> void:
 				_camera_rig.add_shake(0.012)
 		_arena_react(ev)
 	_seen_events = combat_log.total_count()
+
+
+## A hit by a fire move (D-101): fire bursts from the contact point and the
+## target catches fire — long for the ultimate (tag ignite, refreshed by every
+## hit), briefly for the fireball (ignite_short). Presentation only: burning
+## does no damage.
+func _fire_hit(m: MoveData, ev: CombatEvent) -> void:
+	if m == null or not (m.tags.has("ignite") or m.tags.has("ignite_short")):
+		return
+	_effects.spawn_fire_burst(Vector3(ev.point.x, ev.point.y, 0.35), 0.9 if m.tags.has("ignite") else 0.7)
+	if ev.target == 0 or ev.target == 1:
+		_fighter_views[ev.target].ignite(3.5 if m.tags.has("ignite") else 1.3)
 
 
 ## Lets the arena answer the fight (dust, crowd, glow). Presentation only.

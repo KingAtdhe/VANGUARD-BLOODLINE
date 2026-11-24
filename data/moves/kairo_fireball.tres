@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_fireball"
+display_name = "Fireball"
+input_pattern = &"DOWN_SPECIAL"
+animation = &"KAIRO_SPECIAL_FIREBALL"
+startup_frames = 14
+active_frames = 1
+recovery_frames = 16
+hitstun_frames = 17
+blockstun_frames = 12
+hitstop_frames = 5
+damage = 48
+chip_damage = 6
+pushback = 0.38
+hit_level = 4
+hitbox_center = Vector2(0.85, 1.2)
+hitbox_size = Vector2(0.55, 0.45)
+tags = PackedStringArray("special", "projectile", "fire", "fire_hands", "ignite_short")
+cancel_tags = PackedStringArray("ultimate")
+meter_gain_on_hit = 4
+meter_gain_on_block = 2
+projectile_speed = 9.0
+projectile_range = 7.0
+projectile_color = Color(1, 0.18, 0.08, 1)

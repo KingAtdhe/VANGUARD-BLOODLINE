@@ -1675,3 +1675,42 @@ hands sink a beat after each landing and swing against the legs, chin and
 trunk nod with the step, shoulder counter-turn 5.5→8°, step dip 2→3 cm.
 Other fighters are unchanged (the knobs default off). No pops in stance,
 walk or dashes; stretched edges at the idle's level. Not verified on a phone.
+
+## D-101 — 2026-11-24 — Kairo's fire: Fireball, burning ultimate, ignite
+
+Owner (with a red flame effects sheet): "on ultimate his legs and fists should
+be on fire, create real flames not just red colour, it should ignite the
+enemy, also put a normal attack so he can fire a fireball".
+- **Art**: the owner's sheet is cut by `tools/art/cut_fire_sheet.py` into
+  `assets/vfx/fire/` (6-frame flame flipbook from the top row, fireball,
+  burst, sparks, streak, pillar, ring; ember dot generated). Source kept in
+  `assets/vfx/fire/_source/` (`.gdignore`, not shipped). LICENSES.md entry.
+- **Flames** (`scripts/vfx/fire_fx.gd`, `FireFX`): CPUParticles3D whose
+  particles are the drawn flames (additive, billboard, flipbook through the six
+  frames), born small, swelling, rising faster as they go, shrinking and
+  fading; world-space so a moving limb leaves a trail; embers with them. CPU
+  particles: work on every Mobile-renderer device and in headless renders.
+- **Ultimate**: `kairo_origin_break` tags `fire_limbs` + `ignite`. FighterView
+  puts a fire source on each hand and foot bone (BoneAttachment3D, made on
+  first use) and burns while a `fire_limbs` (hands and feet) or `fire_hands`
+  (hands) move plays; switching off lets the live flames burn out.
+- **Ignite**: a hit by an `ignite` move bursts fire from the contact point
+  (`EffectsManager.spawn_fire_burst`) and sets the target burning for 3.5 s
+  (refreshed by every hit; `ignite_short`: 1.3 s) — fire sources on hips,
+  chest, upper arms and legs, shins, head. Presentation only: no damage over
+  time (that would be a balance change; ask the owner first).
+- **Fireball** (`data/moves/kairo_fireball.tres`): input DOWN_SPECIAL (Kairo's
+  free slot), 14/1/16, 48 damage, projectile speed 9 m/s, range 7 m, tags
+  special, projectile, fire, fire_hands, ignite_short; cancellable into the
+  ultimate. Animation `KAIRO_SPECIAL_FIREBALL` keyed in `kairo_keys()`
+  (DOWN_SPECIAL): both open palms drawn to the rear hip as he sinks and
+  coils, driven forward together at chest height on the release frame, held,
+  settle. Open hands via HANDS_BY_ACTION. Drawn by `EffectsManager._make_fireball`:
+  the fireball sprite (head toward travel), flame trail and sparks, a red
+  OmniLight; the trail is left to burn out when it ends.
+- **Tools**: `tools/godot/scene_video.gd` records the real training scene with
+  Godot's movie writer from a scripted input list (the only way to see
+  effects, which clip renders do not draw).
+- **Tests**: `tests/integration/test_fire.gd` (data, a down + special fires
+  and hits, fire switches on and off with the move, ignite times out).
+- Not verified on a phone (particle cost is small: ~200 quads at most).

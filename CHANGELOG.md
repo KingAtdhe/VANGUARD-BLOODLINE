@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Kairo's fire
+- **Fireball** (down + SP): Kairo draws both palms to his hip and drives them forward, throwing a fireball with a trail of real flames and sparks that lights up the floor as it passes. A hit sets the opponent briefly alight.
+- **Origin Break burns**: during the ultimate his fists and feet are on fire, leaving trails of flame, and every hit bursts into fire and sets the opponent burning for a few seconds.
+- The flames are the owner's own flame drawings, animated (each flame flickers through six drawn frames, rises and fades), not tinted shapes. Burning is a visual effect only (no extra damage).
 ### Changed — Kairo's ultimate (Origin Break)
 - Four different strikes at four heights instead of punches at one height: he coils, lunges in with a straight, drops into a hook to the body, throws a head-high roundhouse and finishes with an explosive rising uppercut onto his toes, held for a moment. Damage, hits and timing unchanged.
 ### Changed — Kairo moves more naturally

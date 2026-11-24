@@ -462,8 +462,10 @@ func test_ai_sees_and_blocks_a_pulse_shot_and_uses_it_itself() -> Array[String]:
 	var f: Array[String] = []
 	var profile: AIProfile = (load("res://data/ai/expert.tres") as AIProfile).duplicate()
 	profile.block_reaction_chance = 1.0
-	var sim: CombatSimulation = _sim("vexa", "kairo", 5.0)
-	var ai := AIController.new(profile, 1, _def("kairo"), _def("vexa"), 7)
+	# the blocker has no projectile of its own (Kairo answers with his
+	# Fireball since D-101, and the two shots clash)
+	var sim: CombatSimulation = _sim("vexa", "drakon", 5.0)
+	var ai := AIController.new(profile, 1, _def("drakon"), _def("vexa"), 7)
 	for t: int in 70:
 		ai.observe(AIObservation.from_sim(sim))
 		sim.step([_press(S if t == 0 else 0), ai.next_input()])

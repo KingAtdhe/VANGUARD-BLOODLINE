@@ -25,14 +25,42 @@ func sync_projectiles(projectiles: Array[ProjectileState], alpha: float) -> void
 			node = _make_shot(p)
 			_shots[p.id] = node
 			add_child(node)
+			node.position = Vector3(p.position_x, p.move.hitbox_center.y, 0.0)
+			for c: Node in node.get_children():
+				if c is CPUParticles3D:
+					(c as CPUParticles3D).emitting = true      # a fireball's trail (only in the tree)
 		node.position = Vector3(lerpf(p.previous_x, p.position_x, alpha), p.move.hitbox_center.y, 0.0)
 	for id: int in _shots.keys():
 		if not alive.has(id):
-			(_shots[id] as Node).queue_free()
+			_retire_shot(_shots[id] as Node3D)
 			_shots.erase(id)
+	# the fireball's flames flicker and pulse (D-101)
+	for id: int in _shots.keys():
+		var core: Node3D = (_shots[id] as Node3D).get_node_or_null("Fireball")
+		if core != null:
+			var k: float = 1.0 + 0.07 * sin(Time.get_ticks_msec() * 0.031) + 0.04 * sin(Time.get_ticks_msec() * 0.077)
+			core.scale = Vector3(core.scale.x / absf(core.scale.x) * k, k, 1.0)
+
+
+## A gone projectile: a fireball's trail and sparks are left to burn out
+## where they are instead of vanishing with it.
+func _retire_shot(node: Node3D) -> void:
+	var lingering: bool = false
+	for c: Node in node.get_children():
+		if c is CPUParticles3D:
+			(c as CPUParticles3D).emitting = false
+			lingering = true
+		elif c is Node3D:
+			(c as Node3D).visible = false
+	if lingering and is_inside_tree():
+		get_tree().create_timer(0.8).timeout.connect(node.queue_free)
+	else:
+		node.queue_free()
 
 
 func _make_shot(p: ProjectileState) -> Node3D:
+	if p.move.tags.has("fire"):
+		return _make_fireball(p)
 	var root := Node3D.new()
 	root.name = "ProjectilePlaceholder%d" % p.id
 	var size: Vector2 = p.move.hitbox_size
@@ -135,3 +163,56 @@ func _process(delta: float) -> void:
 		var c: Color = (s.mat as StandardMaterial3D).albedo_color
 		c.a = 1.0 - t
 		(s.mat as StandardMaterial3D).albedo_color = c
+
+
+# --- fire (D-101): sprites and flames from the owner's flame sheet --------------
+
+## The fireball: the drawn fireball (head toward the direction of travel), a
+## trail of real flames and sparks left behind it, and a red glow on the
+## fighters and floor as it passes.
+func _make_fireball(p: ProjectileState) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Fireball%d" % p.id
+	var size: Vector2 = p.move.hitbox_size
+	var ball: MeshInstance3D = FireFX.sprite(FireFX.FIREBALL, Vector2(size.x * 2.2, size.x * 2.2))
+	ball.name = "Fireball"
+	ball.position = Vector3(-p.direction * size.x * 0.45, 0.0, 0.05)   # the sprite's head is on its right
+	ball.scale = Vector3(float(p.direction), 1.0, 1.0)
+	root.add_child(ball)
+	var trail: CPUParticles3D = FireFX.flames(size.y * 1.1, 26, 0.32, size.y * 0.3, 0.6)
+	root.add_child(trail)
+	var sparks: CPUParticles3D = FireFX.embers(14, 0.5, size.y * 0.3, 1.0)
+	root.add_child(sparks)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.22, 0.08)
+	glow.light_energy = 1.6
+	glow.omni_range = 2.6
+	glow.shadow_enabled = false
+	root.add_child(glow)
+	return root
+
+
+## Fire bursting out of a hit by a fire move: the drawn burst, a puff of
+## flames and sparks. [param size] in metres.
+func spawn_fire_burst(at: Vector3, size: float) -> void:
+	var b: MeshInstance3D = FireFX.sprite(FireFX.BURST, Vector2(size, size))
+	b.position = at
+	add_child(b)
+	_sparks.append({"node": b, "mat": b.material_override, "age": 0.0, "life": 0.22, "scale": Vector3.ONE,
+		"from": 0.5, "to": 1.5, "origin": at, "dir": Vector3.ZERO, "tex": true})
+	var puff: CPUParticles3D = FireFX.flames(size * 0.7, 18, 0.45, size * 0.2, 1.4)
+	puff.one_shot = true
+	puff.explosiveness = 0.85
+	puff.position = at
+	add_child(puff)
+	puff.emitting = true
+	var sp: CPUParticles3D = FireFX.embers(18, 0.6, size * 0.15, 2.4)
+	sp.one_shot = true
+	sp.explosiveness = 0.9
+	sp.spread = 180.0
+	sp.position = at
+	add_child(sp)
+	sp.emitting = true
+	if is_inside_tree():
+		get_tree().create_timer(1.0).timeout.connect(puff.queue_free)
+		get_tree().create_timer(1.0).timeout.connect(sp.queue_free)

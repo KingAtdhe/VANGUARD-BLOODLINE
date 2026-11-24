@@ -285,9 +285,19 @@ func test_ai_is_deterministic_and_logs_decisions() -> Array[String]:
 	if ai.decision_log.total_count() < 20:
 		f.append("decision log nearly empty (%d)" % ai.decision_log.total_count())
 	var text: String = ai.decision_log.to_text()
-	for word: String in ["decide", "press", "APPROACH"]:
+	for word: String in ["decide", "press"]:
 		if not text.contains(word):
 			f.append("decision log has no '%s' entries" % word)
+	# Walking in is logged too. Since Kairo has a fireball (D-101) one seeded
+	# fight can be played entirely at close range or with fireballs from afar,
+	# so look over a few fights.
+	var approached: bool = text.contains("APPROACH")
+	for seed: int in [43, 44, 45]:
+		if approached:
+			break
+		approached = ((_play("expert", "beginner", seed).ais[0] as AIController).decision_log.to_text()).contains("APPROACH")
+	if not approached:
+		f.append("no APPROACH decision in four fights")
 	return f
 
 
