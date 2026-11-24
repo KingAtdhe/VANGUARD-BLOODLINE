@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo's Low Kick and walk
+- **Low Kick**: his whole body now turns over with the kick, and his back arm stays by his hip instead of swinging out to the side.
+- **Walk**: calmer legs — longer steps at a slower rhythm, each leg swings through about twice as slowly. Same walking speed; feet still planted.
 ### Fixed — Kairo, from the in-game test
 - **Stance**: his rear arm no longer sinks into his chest. The guard is less side-on and the rear fist sits up by the cheek.
 - **Face**: no longer sheared sideways when he turns his head. The face now moves only with the head, and the stance turns the neck less.

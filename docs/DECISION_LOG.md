@@ -1898,3 +1898,20 @@ look like a real 3D fighter.
 - Pre-existing fast-motion flags left as they are: Rift Break lower leg and
   Low Kick toe (kick speed), jump landing toes (one frame).
 - Not verified on a phone.
+
+## D-108 — 2026-11-24 — Kairo: Low Kick turns over, calmer walk legs
+
+Owner: "When he low kicks his body doesn't turn with the kick, also his arm
+goes sideways" and "his walking is okay but his legs still move too fast".
+
+- **Low Kick**: the hips turned 54° into the kick but the chest only ~27°, so
+  the body twisted against itself and read as not turning. The chest now
+  turns over with the hips (shoulders −22 → −50 in `kairo_keys`), the trunk
+  leans back and away a little, and the rear arm drops to his own hip
+  ((−0.13, 0.08) instead of (−0.33, −0.04): 33 cm out to the side).
+- **Walk legs**: a foot is planted 55 % of the loop (was 70 %), so each leg
+  swings through in ~11 frames instead of ~6; the step is 0.42 m (was 0.40)
+  and the loop 25 frames at 1.8 m/s (was 19), the second foot half a loop
+  behind (0.45). Walk speed unchanged. Planted feet still match the ground:
+  0.28 cm average slide per planted frame (`foot_slide.gd`).
+- Not verified on a phone.

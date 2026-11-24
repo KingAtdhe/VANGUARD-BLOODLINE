@@ -2577,7 +2577,11 @@ def kairo_keys(moves, base, g, S):
         "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (a0, hik, "in"), (a1 + 3, hik), (T - 3, L)],
     })
 
-    # Low kick: weight onto the lead leg, the rear shin whips round into theirs
+    # Low kick: weight onto the lead leg, the rear shin whips round into theirs.
+    # D-108 (owner: "his body doesn't turn with the kick, his arm goes
+    # sideways"): the chest now turns over with the hips (it stayed back, the
+    # body twisted against itself) and the rear arm drops to his own hip
+    # instead of flinging 33 cm out to the side
     a0, a1, T, hx, hz = win(moves["KICK"])
     home = FR
     out["KICK"] = dict(_recover=1.3, **head(a0, a1, T, 3.0), **{
@@ -2585,14 +2589,15 @@ def kairo_keys(moves, base, g, S):
         "hips": [(0, (hips0, 0)), (4, (hips0 + 0.04, 0)), (a0, (hips0 + 0.06, 0), "in"), (a1, (hips0 + 0.06, 0)), (a1 + 6, (hips0, 0), "out")],
         "pelvis_h": [(0, ph0), (4, low(0.02)), (a0, ph0 + 0.008, "in"), (a1, ph0 + 0.006)] + settle(T, a1 + 9, ph0, 0.018),
         "pelvis": [(0, pel0), (4, pel(-10)), (a0, pel(-54), "in"), (a1, pel(-52)), (a1 + 9, pel0, "out")],
-        "shoulders": [(0, sh0), (4, sho(8)), (a0, sho(-22), "in"), (a1, sho(-20)), (a1 + 9, sh0, "out")],
-        "trunk": [(0, tr0), (a0, lean(-2, 3), "in"), (a1, lean(-2, 3)), (a1 + 5, tr0, "out")],
+        "shoulders": [(0, sh0), (4, sho(8)), (a0, sho(-50), "in"), (a1, sho(-47)), (a1 + 9, sh0, "out")],
+        "trunk": [(0, tr0), (4, lean(-1)), (a0, lean(-5, 6), "in"), (a1, lean(-5, 6)), (a1 + 6, tr0, "out")],
         "lead_heel": [(0, 0.0), (a0, 0.045, "in"), (a1, 0.045), (a1 + 6, 0.0)],
         "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] + 60, "in"), (a1, base["lead_toe"] + 60), (a1 + 8, base["lead_toe"])],
         "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.18, 0.02, 0.32, 0.6)), (a0 - 1, (-0.25, hx - 0.30, hz + 0.10, 1.0), "in"),
                           (a0, (-0.02, hx - 0.03, hz, 1.0), "in"), (a1, (0.06, hx - 0.08, hz - 0.02, 1.0)),
                           (a1 + 3, (-0.14, 0.05, 0.28, 0.6), "lin"), (a1 + 9, home + (0.0,))],
-        "rear_hand_abs": [(0, R), (a0, (-0.33, -0.04, R[2] - 0.16), "in"), (a1, (-0.33, -0.06, R[2] - 0.16)), (T - 3, R)],
+        "rear_hand_abs": [(0, R), (4, (R[0] - 0.04, R[1] - 0.02, R[2] - 0.04)), (a0, (-0.13, 0.08, R[2] - 0.13), "in"),
+                          (a1, (-0.14, 0.06, R[2] - 0.13)), (T - 3, R)],
         "lead_hand_abs": [(0, L), (a0, chin, "in"), (a1 + 3, chin), (T - 3, L)],
     })
 
@@ -3341,6 +3346,12 @@ def build(rig_obj, moves, fid, height, clip_dir):
     A[f"{F}_VICTORY"] = vc
 
     # ---- walks: the boxer's upper body over generated footwork
+    # D-108 (owner: "his legs still move too fast"): a foot is planted 55 % of
+    # the loop (was 70 %), so each leg swings through in ~11 frames instead of
+    # ~6, with a slightly longer step (0.42 m) and a slower loop (25 frames at
+    # 1.8 m/s, was 19). Planted travel still equals the ground covered.
+    WALK_PLANT, WALK_SHIFT = 0.55, 0.45
+
     def walk(speed, forward):
         n = 30
         if fitted:
@@ -3350,7 +3361,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
             # 17 cm a step against 2.6 m/s: ~0.7 m of skating per step). A step
             # of about 0.40 m (Kairo's stance is ~0.48 m long), planted 70 % of
             # the loop: n frames such that speed x 0.7 x n / 60 = the step.
-            n = int(min(40, max(14, round(0.40 * S_fit * FPS_OUT / (0.70 * speed)))))
+            n = int(min(40, max(14, round(0.42 * S_fit * FPS_OUT / (WALK_PLANT * speed)))))
         cyc = n / 2.0                 # two shuffle steps per loop
         out = []
         base = idle_P(0)
@@ -3375,24 +3386,24 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # breathing, which jumped where the loop closed).
                 S, sg = S_fit, (1 if st["_lead"] == "Left" else -1)
                 rear_fit = "Right" if st["_lead"] == "Left" else "Left"
-                d = speed * 0.70 * n / float(FPS_OUT)     # planted travel = ground covered: no sliding
+                d = speed * WALK_PLANT * n / float(FPS_OUT)  # planted travel = ground covered: no sliding
                 dirn = 1.0 if forward else -1.0
                 ph = t / float(n)
                 smooth = lambda x: ease(min(1.0, max(0.0, x)))
                 off, lift, heel_up, toe_up = {}, {}, {}, {}
-                # the second foot follows 0.35 of a loop behind the first (not half a
+                # the second foot follows 0.45 of a loop (WALK_SHIFT) behind the first (not half a
                 # loop, a stroll): the stance stretches a little and closes again,
                 # and the feet never come together under him (D-092)
-                order = ((st["_lead"], 0.0), (rear_fit, 0.35)) if forward else ((rear_fit, 0.0), (st["_lead"], 0.35))
+                order = ((st["_lead"], 0.0), (rear_fit, WALK_SHIFT)) if forward else ((rear_fit, 0.0), (st["_lead"], WALK_SHIFT))
                 for foot, shift_ph in order:
                     q = (ph + shift_ph) % 1.0
-                    if q < 0.70:                                   # planted
-                        o, up = 0.5 - q / 0.70, 0.0
-                        heel_up[foot] = 0.04 * S * smooth((q - 0.52) / 0.18)
+                    if q < WALK_PLANT:                             # planted
+                        o, up = 0.5 - q / WALK_PLANT, 0.0
+                        heel_up[foot] = 0.04 * S * smooth((q - (WALK_PLANT - 0.18)) / 0.18)
                         toe_up[foot] = 0.02 * S * (1.0 - smooth(q / 0.10)) if forward else 0.0
                     else:                                          # swinging
-                        v = (q - 0.70) / 0.30
-                        o, up = -0.5 + ease(v), 0.06 * S * math.sin(math.pi * v)
+                        v = (q - WALK_PLANT) / (1.0 - WALK_PLANT)
+                        o, up = -0.5 + ease(v), 0.065 * S * math.sin(math.pi * v)
                         heel_up[foot] = 0.04 * S * (1.0 - smooth(v / 0.5))
                         toe_up[foot] = 0.02 * S * smooth((v - 0.7) / 0.3) if forward else 0.0
                     off[foot], lift[foot] = dirn * d * o, up
