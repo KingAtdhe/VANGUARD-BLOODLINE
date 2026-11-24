@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo's Low Kick arms
+- The arm on the kicking side now reaches forward along the kick at chest height (it swung up behind his head); the other hand stays up at his face.
 ### Changed — Kairo's Low Kick, Street Fighter style
 - Hips turn fully over, the body leans hard away, the kicking leg goes straight and far out into the shin, the arm on the kicking side swings back as a counterweight and the standing knee bends, like the owner's reference picture.
 ### Changed — Kairo's Low Kick leans like a fighting-game kick

@@ -1943,3 +1943,12 @@ The guard hand is now placed relative to the head (`lead_hand`): the fixed
 chin point in model space was left behind by the lean and straightened the
 arm (a 14 cm one-frame hand pop). Checked side, front and in the arena
 camera. Not verified on a phone.
+
+## D-111 — 2026-11-24 — Low Kick arms
+
+Owner: "the hands swing totally wrong". D-110 threw the kicking-side arm up
+and back behind the head as a counterweight; in the owner's reference that
+arm reaches forward and down along the kick at chest height. The rear hand
+now goes to (−0.24, 0.36 forward, 22 cm below the guard) with a near-straight
+elbow and comes home through the recovery; the guard hand stays at the face.
+Checked side, front and in the arena camera. Not verified on a phone.

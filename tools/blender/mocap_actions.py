@@ -2600,11 +2600,13 @@ def kairo_keys(moves, base, g, S):
         "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.22, 0.02, 0.34, 0.6)), (a0 - 1, (-0.36, hx - 0.36, hz + 0.16, 1.0), "in"),
                           (a0, (0.02, hx + 0.04, hz + 0.09, 1.0), "in"), (a1, (0.12, hx - 0.04, hz + 0.05, 1.0)),
                           (a1 + 3, (-0.14, 0.05, 0.28, 0.6), "lin"), (a1 + 9, home + (0.0,))],
-        # the kicking side's arm is thrown back as a counterweight (the
-        # owner's reference picture), the other hand stays up at the chin
-        "rear_hand_abs": [(0, R), (4, (R[0] - 0.04, R[1] - 0.02, R[2] - 0.04)), (a0, (-0.26, -0.16, R[2] - 0.02), "in"),
-                          (a1, (-0.27, -0.18, R[2] - 0.04)), (a1 + 5, (-0.10, 0.06, R[2] - 0.06), "out"), (T - 3, R)],
-        "rear_elbow": [(0, 0.1), (a0, 0.04), (a1, 0.05), (a1 + 6, 0.1)],
+        # the kicking side's arm reaches forward and down along the kick, at
+        # chest height (the owner's reference picture; D-110 threw it up and
+        # back behind the head: "the hands swing totally wrong"), the other
+        # hand stays up at the face
+        "rear_hand_abs": [(0, R), (4, (R[0] + 0.01, R[1] - 0.05, R[2] - 0.06)), (a0, (-0.24, 0.36, R[2] - 0.22), "in"),
+                          (a1, (-0.25, 0.34, R[2] - 0.24)), (a1 + 5, (-0.15, 0.26, R[2] - 0.10), "out"), (T - 3, R)],
+        "rear_elbow": [(0, 0.1), (a0, 0.08), (a1, 0.08), (a1 + 6, 0.1)],
         # the guard hand rides with the leaning chest (a fixed chin point in
         # model space was left behind by the lean and pulled the arm straight)
         "lead_hand": [(0, base["lead_hand"]), (a0, (base["lead_hand"][0] + 0.04, 0.13, base["lead_hand"][2] + 0.07), "in"),
