@@ -17,7 +17,10 @@ const BURST: Texture2D = preload("res://assets/vfx/fire/burst.png")
 const EMBER: Texture2D = preload("res://assets/vfx/fire/ember.png")
 const FLIP_FRAMES: int = 6
 
-static var _flame_mat: StandardMaterial3D = null
+const FLAME_SHADER: Shader = preload("res://assets/vfx/fire/flame_particles.gdshader")
+const NOISE: Texture2D = preload("res://assets/vfx/fire/noise.png")
+
+static var _flame_mat: ShaderMaterial = null
 static var _ember_mat: StandardMaterial3D = null
 
 
@@ -40,9 +43,15 @@ static func additive(tex: Texture2D, particles: bool, frames: int = 1) -> Standa
 	return m
 
 
-static func flame_material() -> StandardMaterial3D:
+## The flame look (D-107): the fire shader (frame cross-fades, heat shimmer,
+## core-to-edge fire colours) on the owner's flipbook.
+static func flame_material() -> ShaderMaterial:
 	if _flame_mat == null:
-		_flame_mat = additive(FLIPBOOK, true, FLIP_FRAMES)
+		_flame_mat = ShaderMaterial.new()
+		_flame_mat.shader = FLAME_SHADER
+		_flame_mat.set_shader_parameter("flipbook", FLIPBOOK)
+		_flame_mat.set_shader_parameter("noise_tex", NOISE)
+		_flame_mat.set_shader_parameter("frames", FLIP_FRAMES)
 	return _flame_mat
 
 
@@ -135,11 +144,24 @@ static func embers(amount: int, lifetime: float = 0.7, radius: float = 0.06, spe
 
 ## A flame source (flames + embers) under [param parent]; returns the node
 ## holding both, switched off. Turn it on and off with [method set_burning].
-static func fire_source(size: float, amount: int, radius: float = 0.05) -> Node3D:
+## [param glow] > 0: a warm light that the fire throws on the body and floor
+## (light energy), on while burning.
+static func fire_source(size: float, amount: int, radius: float = 0.05, glow: float = 0.0) -> Node3D:
 	var n := Node3D.new()
 	n.name = "FireSource"
-	n.add_child(flames(size, amount, 0.42, radius))
+	# two layers: a bright, tight core and larger, slower outer flames
+	n.add_child(flames(size * 0.5, maxi(3, amount / 3), 0.28, radius * 0.6, 1.4))
+	n.add_child(flames(size, amount, 0.48, radius))
 	n.add_child(embers(maxi(4, amount / 2), 0.7, radius))
+	if glow > 0.0:
+		var l := OmniLight3D.new()
+		l.name = "Glow"
+		l.light_color = Color(1.0, 0.42, 0.14)
+		l.light_energy = glow
+		l.omni_range = 1.1
+		l.shadow_enabled = false
+		l.visible = false
+		n.add_child(l)
 	return n
 
 
@@ -149,6 +171,8 @@ static func set_burning(source: Node, on: bool) -> void:
 	for c: Node in source.get_children():
 		if c is CPUParticles3D:
 			(c as CPUParticles3D).emitting = on
+		elif c is OmniLight3D:
+			(c as OmniLight3D).visible = on
 
 
 ## A flat textured quad facing the side camera (a sprite on the fighting plane).

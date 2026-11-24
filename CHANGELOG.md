@@ -1,6 +1,15 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed — Kairo, from the in-game test
+- **Stance**: his rear arm no longer sinks into his chest. The guard is less side-on and the rear fist sits up by the cheek.
+- **Face**: no longer sheared sideways when he turns his head. The face now moves only with the head, and the stance turns the neck less.
+- **Walk**: slower (1.8 m/s forward, 1.5 m/s back, was 2.6 and 2.0); his feet still stay planted.
+- **Jump**: he crouches to load, tucks both knees high at the top with his guard up, reaches for the floor and lands with a deep dip.
+- **Crouch**: no longer squashed flat; a lower, compact crouch with the guard up.
+- **Rift Guard**: the counter stance now clearly sits back and slips the head instead of standing almost still.
+- **Flames**: new fire look — flickering tongues of flame with a heat shimmer, a yellow core fading to orange and deep red, two layers on each burning limb, and a warm glow they cast on him.
+- **Lighting**: fighters get edge lights from behind on both sides, so they stand out from the arena.
 ### Fixed — Kairo no longer walks on ice
 - His steps now match how fast the game moves him: each foot stays put on the floor while it carries his weight, then lifts and steps forward. Before, his feet slid along with his body. Walking speed is unchanged; the steps are longer and quicker (a kickboxer's shuffle).
 ### Changed — Knee Throw looks like a grab

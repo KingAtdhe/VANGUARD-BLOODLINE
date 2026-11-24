@@ -6,8 +6,8 @@
 script = ExtResource("1_move")
 fighter_id = &"kairo"
 display_name = "Kairo (placeholder)"
-walk_forward_speed = 2.6
-walk_backward_speed = 2.0
+walk_forward_speed = 1.8
+walk_backward_speed = 1.5
 pushbox_half_width = 0.35
 dash_forward_distance = 1.4
 dash_forward_ticks = 13

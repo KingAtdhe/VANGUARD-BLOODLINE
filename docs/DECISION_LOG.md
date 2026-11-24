@@ -1847,3 +1847,54 @@ phase, the feet skated ~0.7 m per step.
   0.3 cm. Measuring the ankle alone had shown 1.2 cm — the ankle rolls
   forward over the ball of the foot as the heel lifts, which is not sliding.
 - Not verified on a phone. Video: before / now side by side.
+
+## D-107 — 2026-11-24 — Kairo: fixes from the owner's in-game test
+
+Owner, after testing on a phone: arm inside the body in the stance, face
+slightly deformed sideways, walks too fast, jump does not look like a fighter,
+crouch squashed, fighting needs improvement, flames low quality, does not
+look like a real 3D fighter.
+
+- **Arm in the body**: the rear fist sat low at the ribs and the chest was
+  turned 58° side-on, so the rear forearm sank into the armoured trunk. The
+  stance is now less side-on (pelvis 48 → 40°, shoulders 58 → 38°) with the
+  rear fist up at the cheek line (`STYLES["kairo"]`, rear_hand
+  (0.10, 0.26, -0.16)). Forearm clearance outside the trunk is 6.3 cm.
+  Checked from the side and the front.
+- **Face shear**: 1,246 face and head vertices carried neck weight (0.14 on
+  average), so the 43° neck twist of the stance sheared the jaw against the
+  skull. `import_rigged.py` moves vertices above the jaw line fully onto the
+  head bone, blended over 20% of the head length, and the stance now turns
+  the neck only 28°. `tools/godot/face_shot.gd` (new) renders the head in
+  rest pose and in the stance: they now match.
+- **Walk speed**: forward 2.6 → 1.8 m/s, back 2.0 → 1.5 m/s
+  (`kairo_movement.tres`). Gameplay data change: Kairo is now the slowest
+  walker (Drakon 1.9). The walk loop keeps planted feet: 0.3 cm average slide
+  per planted frame (`foot_slide.gd`). The Ryuen test that ranked walk speeds
+  now checks that Ryuen is slower than the agile fighters only.
+- **Jump**: a real crouch before take-off, both knees tucked high at the
+  apex, guard pulled in, chest over the knees, legs reaching for the floor
+  and a deep landing dip. **Crouch**: shallower (pelvis drop 0.47 → 0.33,
+  lean 17 → 13°) with the guard up, so the legs are no longer folded flat
+  under him.
+- **Fighting**: every attack was checked frame by frame from side and front
+  under the new stance. The Rift Guard (counter stance) barely moved; it now
+  sits clearly back, sinks and slips the head off the line. The rest kept
+  their keys.
+- **Flames**: a fire shader (`assets/vfx/fire/flame_particles.gdshader`) on
+  the owner's flipbook: frames cross-fade instead of popping, a scrolling
+  noise makes a heat shimmer (more at the tips), and the brightness is mapped
+  to fire colours (yellow core, orange, deep red edge). Each fire on the body
+  is two layers (a tight core and larger outer flames), and the fists and
+  feet cast a warm light on him while burning. Mipmaps on for the VFX
+  textures (no shimmering when small). A first pass was too bright (white
+  blobs under bloom) and was toned down before shipping.
+- **3D look**: two edge lights per fighter, behind and to each side, lighting
+  only fighters (light cull mask), so his shoulders, arms and legs get a
+  bright outline against the arena. The model itself (Tripo-generated mesh,
+  10,683 triangles, 4K/2K PBR textures) limits how close he gets to a AAA
+  fighter. The next real step would be a higher-detail sculpt and hand-made
+  face rig.
+- Pre-existing fast-motion flags left as they are: Rift Break lower leg and
+  Low Kick toe (kick speed), jump landing toes (one frame).
+- Not verified on a phone.

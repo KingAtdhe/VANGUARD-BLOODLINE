@@ -318,7 +318,9 @@ func test_combat_log_is_deterministic() -> Array[String]:
 	dummy.mode = TrainingDummyController.Mode.JAB
 	var texts: Array[String] = []
 	for run: int in 2:
-		var sim := _sim(2.0)
+		# 1.6 m apart (was 2.0): Kairo walks slower since D-107 and the script
+		# must still bring him into the dummy's jab range to block it
+		var sim := _sim(1.6)
 		sim.ko_enabled = false   # the whole script runs whoever is winning
 		for t: int in 1200:
 			var buttons: int = [0, L, B, B, K, B, H, 0, B, B, 0, B][(t / 9) % 12]
@@ -328,5 +330,5 @@ func test_combat_log_is_deterministic() -> Array[String]:
 	if texts[0] != texts[1]:
 		f.append("combat log differs between identical runs")
 	if texts[0].count("HIT") == 0 or texts[0].count("BLOCK") == 0:
-		f.append("scripted fight produced no hits or no blocks — scenario too weak")
+		f.append("scripted fight produced no hits or no blocks — scenario too weak (HIT %d, BLOCK %d)" % [texts[0].count("HIT"), texts[0].count("BLOCK")])
 	return f

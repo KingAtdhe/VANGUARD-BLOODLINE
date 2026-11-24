@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-106 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-107 (2026-11-24). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -23,7 +23,10 @@ change goes to the owner with a real-speed review video).
    Rising Uppercut (down+L) (D-103). Throws can hold their victim until a
    release frame (D-104; Kairo's knee); the victim is drawn into a clinch and
    tipped forward (D-105). Walk loop timed to the walk speed: planted feet
-   (D-106; `tools/godot/foot_slide.gd` measures it). Other fighters still
+   (D-106; `tools/godot/foot_slide.gd` measures it). D-107 fixed the owner's
+   in-game list: stance arm, face shear (head weights; `face_shot.gd`),
+   slower walk (1.8 m/s), fighter jump/crouch, Rift Guard, fire shader
+   (`flame_particles.gdshader`), fighter edge lights. Other fighters still
    slide until rebuilt. Still missing for Kairo: crouching
    jab, a second air attack, combo strings, throw escape for everyone. Next: the same
    kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side

@@ -171,6 +171,7 @@ func _make_energy_shield() -> void:
 const FIGHTER_LAYER: int = 1 << 1
 var _key_light: OmniLight3D = null
 var _rim_light: OmniLight3D = null
+var _edge_lights: Array[OmniLight3D] = []
 
 
 ## Key + rim light that follow this fighter and light only fighters
@@ -193,10 +194,26 @@ func set_fighter_lighting(key_color: Color, key_energy: float, rim_color: Color,
 		_rim_light.light_specular = 0.8
 		_rim_light.light_cull_mask = FIGHTER_LAYER
 		add_child(_rim_light)
+		# D-107 (owner: "he looks far from a real 3D fighter"): two edge lights
+		# behind and to each side, so the arms, shoulders and legs get a bright
+		# outline and he separates from the arena like a fighting-game hero
+		for side: float in [-1.0, 1.0]:
+			var e := OmniLight3D.new()
+			e.name = "FighterEdge%s" % ("L" if side < 0.0 else "R")
+			e.position = Vector3(1.35 * side, 1.9, -0.9)
+			e.omni_range = 3.0
+			e.omni_attenuation = 1.0
+			e.light_specular = 1.0
+			e.light_cull_mask = FIGHTER_LAYER
+			add_child(e)
+			_edge_lights.append(e)
 	_key_light.light_color = key_color
 	_key_light.light_energy = key_energy
 	_rim_light.light_color = rim_color
 	_rim_light.light_energy = rim_energy
+	for e: OmniLight3D in _edge_lights:
+		e.light_color = rim_color.lerp(Color.WHITE, 0.5)
+		e.light_energy = rim_energy * 1.1
 
 
 func has_model() -> bool:
@@ -308,7 +325,7 @@ func ignite(seconds: float) -> void:
 		return
 	if _burn_fire.is_empty():
 		for spec: Array in BURN_BONES:
-			var src: Node3D = _attach_fire(spec[0], spec[1], spec[2], 0.11, Vector3.ZERO)
+			var src: Node3D = _attach_fire(spec[0], spec[1], spec[2], 0.11, Vector3.ZERO, 1.2 if spec[0] == "Chest" else 0.0)
 			if src != null:
 				_burn_fire.append(src)
 	_burn_left = maxf(_burn_left, seconds)
@@ -332,8 +349,8 @@ func _update_fire(s: FighterState, delta: float) -> void:
 		var want: bool = hands if HAND_BONES.has(bone) else feet
 		if want and not _limb_fire.has(bone):
 			# the fist (a few cm past the wrist) and the foot (toward the toes)
-			_limb_fire[bone] = _attach_fire(bone, 0.4 if HAND_BONES.has(bone) else 0.44, 20, 0.05,
-					Vector3(0.0, 0.07, 0.0))
+			_limb_fire[bone] = _attach_fire(bone, 0.4 if HAND_BONES.has(bone) else 0.44, 24, 0.05,
+					Vector3(0.0, 0.07, 0.0), 0.9)
 		if _limb_fire.has(bone):
 			FireFX.set_burning(_limb_fire[bone], want)
 	if _burn_left > 0.0:
@@ -343,7 +360,7 @@ func _update_fire(s: FighterState, delta: float) -> void:
 				FireFX.set_burning(src, false)      # the flames already alive burn out
 
 
-func _attach_fire(bone: String, size: float, amount: int, radius: float, offset: Vector3) -> Node3D:
+func _attach_fire(bone: String, size: float, amount: int, radius: float, offset: Vector3, glow: float = 0.0) -> Node3D:
 	var idx: int = skeleton.find_bone(bone)
 	if idx < 0:
 		return null
@@ -351,7 +368,7 @@ func _attach_fire(bone: String, size: float, amount: int, radius: float, offset:
 	att.name = "Fire_%s" % bone
 	att.bone_name = bone
 	skeleton.add_child(att)
-	var src: Node3D = FireFX.fire_source(size, amount, radius)
+	var src: Node3D = FireFX.fire_source(size, amount, radius, glow)
 	src.position = offset
 	att.add_child(src)
 	return src

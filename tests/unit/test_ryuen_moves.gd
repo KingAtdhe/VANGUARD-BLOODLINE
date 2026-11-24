@@ -79,12 +79,13 @@ func test_move_set_is_valid_and_complete() -> Array[String]:
 			f.append("no move for %s" % pattern)
 	if def.base_health != 1000 or def.block_pushes_attacker <= 0.0:
 		f.append("expected 1000 health and a deflecting block")
+	# Ryuen walks slower than the agile fighters. Drakon (heavy) and, since
+	# D-107, Kairo (the owner asked for a slower, deliberate walk) are slower.
 	var walks: Array[float] = []
-	for id: String in ["kairo", "drakon", "seraphina", "nox", "vexa", "ryuen"]:
+	for id: String in ["seraphina", "nox", "vexa"]:
 		walks.append(_def(id).movement.walk_forward_speed)
-	walks.sort()
-	if def.movement.fighter_id != &"ryuen" or walks[1] != def.movement.walk_forward_speed:
-		f.append("Ryuen should have the slowest walk after Drakon (speeds %s)" % [walks])
+	if def.movement.fighter_id != &"ryuen" or def.movement.walk_forward_speed >= walks.min():
+		f.append("Ryuen should walk slower than Seraphina, Nox and Vexa (%s vs %s)" % [def.movement.walk_forward_speed, walks])
 	return f
 
 

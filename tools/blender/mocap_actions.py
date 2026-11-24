@@ -54,12 +54,22 @@ STYLES = {
                   # his guard: the open lead forearm upright in front of the face, the rear fist under the chin
                   block={"Left": (0.03, 0.27, -0.09), "Right": (0.08, 0.17, -0.19)},
                   # crouch: sat on the rear heel with the back fairly upright and the guard pulled in
-                  crouch_pose=dict(drop=0.47, lean=17.0, chin=10.0, rear_heel=0.09,
-                              pose=dict(lead_hand=(0.05, 0.31, -0.15), rear_hand=(0.11, 0.17, -0.20), lead_elbow=0.3, rear_elbow=0.3)),
-                  pose=dict(fit=True, hips=(-0.03, 0.0), pelvis_h=0.915, trunk=(3, 0), pelvis=48, shoulders=58, neck=6, chin=4,
+                  # D-107 (owner: "while crouching he kinda gets squished"): 0.47 sat him
+                  # almost on his heels and the thighs crushed into the calves. A
+                  # fighter's crouch: a third less deep, knees spread out, back upright.
+                  crouch_pose=dict(drop=0.33, lean=13.0, chin=8.0, rear_heel=0.07,
+                              pose=dict(lead_hand=(0.05, 0.31, -0.15), rear_hand=(0.10, 0.22, -0.17), lead_elbow=0.3, rear_elbow=0.3,
+                                        knees=0.45)),
+                  # D-107 (owner: "part of his arm is inside his body", "face deformed
+                  # sideways"): the rear fist was held low at the ribs (karate chamber)
+                  # with the chest turned 58 deg side-on, so the rear forearm ran into
+                  # the belly and the neck turned 43 deg to face the opponent. Now a
+                  # kickboxing guard: chest 38 deg, rear fist up by the chin in front
+                  # of the chest, elbow out; neck turn 28 deg.
+                  pose=dict(fit=True, hips=(-0.03, 0.0), pelvis_h=0.915, trunk=(3, 0), pelvis=40, shoulders=38, neck=6, chin=4,
                             lead_foot=(0.07, 0.25), rear_foot=(0.12, 0.23), lead_toe=-8, rear_toe=62, rear_heel=0.012,
-                            lead_hand=(0.05, 0.43, -0.25), rear_hand=(0.21, 0.20, -0.35),
-                            lead_elbow=0.2, rear_elbow=0.05, lead_palm=(-0.5, -0.6, -0.6), rear_palm="up")),
+                            lead_hand=(0.05, 0.43, -0.25), rear_hand=(0.10, 0.26, -0.16),
+                            lead_elbow=0.2, rear_elbow=0.3, lead_palm=(-0.5, -0.6, -0.6), rear_palm="auto")),
     # Drakon, after Zangief: wide and square, knees out, chest forward, both
     # arms held open and high at the sides ready to grab.
     "drakon": dict(clip="14_02", frame=4530, amp=0.25, sway=0.035,
@@ -2757,16 +2767,18 @@ def kairo_keys(moves, base, g, S):
     c0, c1 = mv["counter"]
     T = mv["startup"] + mv["active"] - 1 + mv["recovery"]
     lh0 = base["lead_hand"]
+    # D-107 (owner: "his fighting needs improvement"): the guard read as standing
+    # still; he now sits clearly back, sinks and slips his head off the line
     out["BACK_SPECIAL"] = {
         "rear_palm": "auto",
         "lead_palm": [(0, base["lead_palm"]), (c0, (-0.9, -0.4, 0.0), "out"), (c1, (-0.9, -0.4, 0.0)), (T - 3, base["lead_palm"])],
-        "hips": [(0, (hips0, 0)), (c0, (hips0 - 0.07, 0), "out"), (c1, (hips0 - 0.07, 0)), (T - 3, (hips0, 0))],
-        "pelvis_h": [(0, ph0), (c0, low(0.05), "out"), (c0 + 5, low(0.043)), (c1, low(0.05))] + settle(T, T - 6, ph0),
-        "trunk": [(0, tr0), (c0, lean(-3), "out"), (c1, lean(-3)), (T - 3, tr0)],
-        "pelvis": [(0, pel0), (c0, pel(8), "out"), (c1, pel(8)), (T - 3, pel0)],
-        "shoulders": [(0, sh0), (c0, sho(12), "out"), (c1, sho(10)), (T - 3, sh0)],
-        "chin": [(0, chin0), (c0, chin0 + 5, "out"), (c1, chin0 + 5), (T - 3, chin0)],
-        "lead_heel": [(0, 0.0), (c0, 0.04, "out"), (c1, 0.04), (T - 3, 0.0)],
+        "hips": [(0, (hips0, 0)), (c0, (hips0 - 0.12, 0), "out"), (c1, (hips0 - 0.115, 0)), (T - 3, (hips0, 0))],
+        "pelvis_h": [(0, ph0), (c0, low(0.085), "out"), (c0 + 5, low(0.075)), (c1, low(0.08))] + settle(T, T - 6, ph0),
+        "trunk": [(0, tr0), (c0, lean(-6, 7), "out"), (c1, lean(-5, 6)), (T - 3, tr0)],
+        "pelvis": [(0, pel0), (c0, pel(10), "out"), (c1, pel(10)), (T - 3, pel0)],
+        "shoulders": [(0, sh0), (c0, sho(16), "out"), (c1, sho(14)), (T - 3, sh0)],
+        "chin": [(0, chin0), (c0, chin0 + 8, "out"), (c1, chin0 + 8), (T - 3, chin0)],
+        "lead_heel": [(0, 0.0), (c0, 0.05, "out"), (c1, 0.05), (T - 3, 0.0)],
         "lead_hand": [(0, lh0), (2, (lh0[0] + 0.10, lh0[1] - 0.06, lh0[2] + 0.02)), (c0, (-0.04, 0.34, -0.14), "out"),
                       (c1, (-0.03, 0.33, -0.15)), (T - 3, lh0)],
         "lead_elbow": [(0, 0.2), (c0, 0.45), (c1, 0.45), (T - 3, 0.2)],
@@ -3607,17 +3619,24 @@ def build(rig_obj, moves, fid, height, clip_dir):
         jd = STYLES[fid].get("jump", {})
         tuck = jd.get("tuck", 0.30) * S_fit
         jt = {"_name": "JUMP", "_feet_abs": (t_off, t_down - 1),
-              "pelvis_h": [(0, ph0), (t_off - 1, ph0 - 0.13, "out"), (t_off + 3, ph0 + 0.02, "out"), (t_down - 1, ph0),
-                           (t_down + 1, ph0 - 0.11, "out"), (n_jump - 1, ph0)],
-              "trunk": [(0, tr0), (t_off - 1, (tr0[0] + 14, tr0[1]), "out"), (t_off + 4, (tr0[0] - 5, tr0[1])),
-                        (t_off + 19, (tr0[0] + 5, tr0[1])), (t_down - 2, (tr0[0] + 2, tr0[1])),
+              "pelvis_h": [(0, ph0), (t_off - 1, ph0 - 0.16, "out"), (t_off + 3, ph0 + 0.02, "out"), (t_down - 1, ph0),
+                           (t_down + 1, ph0 - 0.13, "out"), (n_jump - 1, ph0)],
+              "trunk": [(0, tr0), (t_off - 1, (tr0[0] + 16, tr0[1]), "out"), (t_off + 3, (tr0[0] - 4, tr0[1])),
+                        (t_off + 12, (tr0[0] + 10, tr0[1]), "io"), (t_off + 26, (tr0[0] + 9, tr0[1])), (t_down - 2, (tr0[0] + 3, tr0[1])),
                         (t_down + 1, (tr0[0] + 12, tr0[1]), "out"), (n_jump - 1, tr0)],
-              "lead_foot_abs": [(t_off, hl), (t_off + 5, (hl[0], hl[1] - 0.04 * S_fit, hl[2] - 0.02, 0.9), "out"),
-                                (t_off + 19, (hl[0], hl[1] * 0.75, hl[2] + tuck, 0.5)),
-                                (t_down - 6, (hl[0], hl[1], hl[2] + 0.07 * S_fit, 0.25)), (t_down - 1, hl)],
-              "rear_foot_abs": [(t_off, hr), (t_off + 5, (hr[0], hr[1] - 0.05 * S_fit, hr[2] - 0.02, 0.9), "out"),
-                                (t_off + 19, (hr[0], hr[1] * 0.45, hr[2] + tuck * 1.25, 0.6)),
-                                (t_down - 6, (hr[0], hr[1], hr[2] + 0.09 * S_fit, 0.3)), (t_down - 1, hr)]}
+              # D-107 (owner: "jumping does not look like a fighter"): a short
+              # push-off with the toes pointed, then BOTH knees drawn up high in
+              # front of the chest through the rise and the top (the feet came up
+              # 0.3 and the rear leg trailed), held compact, then the legs reach
+              # down for the floor over the last frames.
+              "lead_foot_abs": [(t_off, hl), (t_off + 3, (hl[0], hl[1] - 0.03 * S_fit, hl[2] - 0.02, 0.9), "out"),
+                                (t_off + 10, (hl[0] * 0.9, hl[1] * 0.45, hl[2] + tuck * 1.35, 0.55), "io"),
+                                (t_off + 26, (hl[0] * 0.9, hl[1] * 0.40, hl[2] + tuck * 1.45, 0.55)),
+                                (t_down - 7, (hl[0], hl[1] * 0.9, hl[2] + 0.12 * S_fit, 0.35), "io"), (t_down - 1, hl)],
+              "rear_foot_abs": [(t_off, hr), (t_off + 3, (hr[0], hr[1] - 0.05 * S_fit, hr[2] - 0.02, 0.9), "out"),
+                                (t_off + 11, (hr[0] * 0.8, hr[1] * 0.10, hr[2] + tuck * 1.45, 0.6), "io"),
+                                (t_off + 26, (hr[0] * 0.8, hr[1] * 0.05, hr[2] + tuck * 1.5, 0.6)),
+                                (t_down - 7, (hr[0], hr[1] * 0.9, hr[2] + 0.14 * S_fit, 0.35), "io"), (t_down - 1, hr)]}
         # the arms work with the jump (D-091): they drop as he sinks, come up
         # with the take-off, and drop again to catch the landing
         for key, k in (("lead_hand", 1.0), ("rear_hand", 0.7)):
@@ -3625,8 +3644,9 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 h0 = base_ps[key]
                 def off(dx, df, dz, h0=h0, k=k):
                     return (h0[0] + dx * k, h0[1] + df * k, h0[2] + dz * k)
-                jt[key] = [(0, h0), (t_off - 1, off(0.04, -0.10, -0.10), "out"), (t_off + 5, off(0.0, -0.02, 0.07)),
-                           (t_off + 19, h0), (t_down - 2, off(0.02, -0.03, 0.05)),
+                jt[key] = [(0, h0), (t_off - 1, off(0.04, -0.10, -0.10), "out"), (t_off + 4, off(0.0, -0.02, 0.08)),
+                           (t_off + 12, off(-0.01, -0.05, 0.03), "io"), (t_off + 26, off(-0.01, -0.05, 0.03)),   # guard pulled in, compact
+                           (t_down - 2, off(0.02, -0.03, 0.05)),
                            (t_down + 1, off(0.03, -0.06, -0.09), "out"), (n_jump - 1, h0)]
         jt.update(jd.get("pose", {}))
         A[f"{F}_JUMP"] = keyed_frames(n_jump, jt, settle=3, air=True)

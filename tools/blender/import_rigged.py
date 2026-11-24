@@ -470,6 +470,27 @@ def main():
         W[cloth, idx["Hips"]] += moved
         if a.cloth_fix:
             print(f"[rigged] cloth off the arms: {int((moved > 0.01).sum())} vertices")
+        # Head fix (D-107; owner: "his face looks slightly deformed sideways"):
+        # the supplied weights let the neck pull on the jaw and lower face, so
+        # when the head turns toward the opponent from his side-on stance the
+        # face shears. Everything of the head above the base of the skull
+        # (just under the head joint) and near the head follows the Head bone
+        # alone; the neck takes the twist below it, under the collar.
+        if "Head" in idx and "Neck" in idx:
+            hj = np.array(B["Head"][0], float)
+            ht = np.array(B["Head"][1], float)
+            head_len = float(np.linalg.norm(ht - hj))
+            near = np.linalg.norm(co_[:, :2] - hj[:2], axis=1) < 0.75 * head_len + 0.05
+            above = co_[:, 2] > hj[2] - 0.25 * head_len
+            fix = near & above & (W[:, idx["Head"]] + W[:, idx["Neck"]] > 0.5)
+            neck_before = float(W[fix, idx["Neck"]].mean()) if fix.any() else 0.0
+            # a short blend just under the skull so the jawline does not crease
+            z = co_[:, 2]
+            blend = np.clip((z - (hj[2] - 0.25 * head_len)) / (0.2 * head_len), 0.0, 1.0)
+            tot = W[fix].sum(1)
+            W[fix] = W[fix] * (1.0 - blend[fix])[:, None]
+            W[fix, idx["Head"]] += tot * blend[fix]
+            print(f"[rigged] head fix: {int(fix.sum())} vertices onto the head bone (mean neck weight before {neck_before:.2f})")
         orphan = W.sum(1) <= 1e-6
         W[orphan, idx["Hips"]] = 1.0
         # top 4, drop dust, normalise
