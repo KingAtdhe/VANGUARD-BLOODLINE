@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Kairo's Low Kick, Street Fighter style
+- Hips turn fully over, the body leans hard away, the kicking leg goes straight and far out into the shin, the arm on the kicking side swings back as a counterweight and the standing knee bends, like the owner's reference picture.
 ### Changed — Kairo's Low Kick leans like a fighting-game kick
 - His upper body now leans well back, away from the opponent, as the shin swings out (the Street Fighter low roundhouse look), with the standing leg bent and his guard up.
 ### Fixed — Kairo's Low Kick and walk

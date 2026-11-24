@@ -2591,18 +2591,25 @@ def kairo_keys(moves, base, g, S):
     out["KICK"] = dict(_recover=1.3, **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "hips": [(0, (hips0, 0)), (4, (hips0 + 0.04, 0)), (a0, (hips0 + 0.06, 0), "in"), (a1, (hips0 + 0.06, 0)), (a1 + 6, (hips0, 0), "out")],
-        "pelvis_h": [(0, ph0), (4, low(0.03)), (a0, low(0.035), "in"), (a1, low(0.035))] + settle(T, a1 + 9, ph0, 0.018),
-        "pelvis": [(0, pel0), (4, pel(-10)), (a0, pel(-54), "in"), (a1, pel(-52)), (a1 + 9, pel0, "out")],
-        "shoulders": [(0, sh0), (4, sho(8)), (a0, sho(-50), "in"), (a1, sho(-47)), (a1 + 9, sh0, "out")],
-        "trunk": [(0, tr0), (4, lean(-4, 3)), (a0, lean(-30, 12), "in"), (a1, lean(-28, 11)), (a1 + 4, lean(-12, 5), "out"), (a1 + 9, tr0)],
+        "pelvis_h": [(0, ph0), (4, low(0.04)), (a0, low(0.055), "in"), (a1, low(0.055))] + settle(T, a1 + 9, ph0, 0.018),
+        "pelvis": [(0, pel0), (4, pel(-14)), (a0, pel(-74), "in"), (a1, pel(-72)), (a1 + 4, pel(-40), "out"), (a1 + 10, pel0)],
+        "shoulders": [(0, sh0), (4, sho(10)), (a0, sho(-58), "in"), (a1, sho(-56)), (a1 + 4, sho(-30), "out"), (a1 + 10, sh0)],
+        "trunk": [(0, tr0), (4, lean(-5, 6)), (a0, lean(-26, 24), "in"), (a1, lean(-25, 23)), (a1 + 4, lean(-11, 10), "out"), (a1 + 10, tr0)],
         "lead_heel": [(0, 0.0), (a0, 0.045, "in"), (a1, 0.045), (a1 + 6, 0.0)],
         "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] + 60, "in"), (a1, base["lead_toe"] + 60), (a1 + 8, base["lead_toe"])],
-        "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.18, 0.02, 0.32, 0.6)), (a0 - 1, (-0.25, hx - 0.30, hz + 0.10, 1.0), "in"),
-                          (a0, (-0.02, hx - 0.03, hz, 1.0), "in"), (a1, (0.06, hx - 0.08, hz - 0.02, 1.0)),
+        "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.22, 0.02, 0.34, 0.6)), (a0 - 1, (-0.36, hx - 0.36, hz + 0.16, 1.0), "in"),
+                          (a0, (0.02, hx + 0.04, hz + 0.09, 1.0), "in"), (a1, (0.12, hx - 0.04, hz + 0.05, 1.0)),
                           (a1 + 3, (-0.14, 0.05, 0.28, 0.6), "lin"), (a1 + 9, home + (0.0,))],
-        "rear_hand_abs": [(0, R), (4, (R[0] - 0.04, R[1] - 0.02, R[2] - 0.04)), (a0, (-0.13, 0.08, R[2] - 0.13), "in"),
-                          (a1, (-0.14, 0.06, R[2] - 0.13)), (T - 3, R)],
-        "lead_hand_abs": [(0, L), (a0, chin, "in"), (a1 + 3, chin), (T - 3, L)],
+        # the kicking side's arm is thrown back as a counterweight (the
+        # owner's reference picture), the other hand stays up at the chin
+        "rear_hand_abs": [(0, R), (4, (R[0] - 0.04, R[1] - 0.02, R[2] - 0.04)), (a0, (-0.26, -0.16, R[2] - 0.02), "in"),
+                          (a1, (-0.27, -0.18, R[2] - 0.04)), (a1 + 5, (-0.10, 0.06, R[2] - 0.06), "out"), (T - 3, R)],
+        "rear_elbow": [(0, 0.1), (a0, 0.04), (a1, 0.05), (a1 + 6, 0.1)],
+        # the guard hand rides with the leaning chest (a fixed chin point in
+        # model space was left behind by the lean and pulled the arm straight)
+        "lead_hand": [(0, base["lead_hand"]), (a0, (base["lead_hand"][0] + 0.04, 0.13, base["lead_hand"][2] + 0.07), "in"),
+                      (a1 + 3, (base["lead_hand"][0] + 0.04, 0.13, base["lead_hand"][2] + 0.07)), (T - 3, base["lead_hand"])],
+        "lead_elbow": [(0, 0.2), (a0, 0.5), (a1 + 3, 0.5), (T - 3, 0.2)],
     })
 
     # Origin Palm: a long load onto the rear leg with the palm chambered at

@@ -1928,3 +1928,18 @@ read in play. The trunk now leans back ~36° (`lean(-30, 12)` × 1.22) at
 contact with a little side lean, the standing leg sinks, and the lean comes
 back in two steps through the recovery. Checked from the side, the front
 and in the arena camera. Not verified on a phone.
+
+## D-110 — 2026-11-24 — Kairo's Low Kick to the owner's reference picture
+
+Owner sent a Street Fighter V low roundhouse (back view) with "like this".
+What the picture has that D-109 lacked: hips turned fully over (back to the
+camera behind him), upper body leaning hard away from the leg, the kicking
+leg near straight and reaching far out, the kicking-side arm thrown back as a
+counterweight, the standing knee bent. Changes in `kairo_keys` KICK: pelvis
+−54 → −74°, shoulders −50 → −58°, trunk `lean(-26, 24)`, standing leg
+sinks 0.055, foot arc wider (wind-up 0.36 out) and contact 9 cm higher and
+7 cm further, rear arm swung back and out (straight elbow) and home again.
+The guard hand is now placed relative to the head (`lead_hand`): the fixed
+chin point in model space was left behind by the lean and straightened the
+arm (a 14 cm one-frame hand pop). Checked side, front and in the arena
+camera. Not verified on a phone.
