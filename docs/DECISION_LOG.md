@@ -2181,3 +2181,20 @@ Palm still gives 4 hits). Tests updated: the hitbox test expects the right
 foot; the AI legality check verifies cancels against the move data (the
 One-Two Cross may cancel into a special since D-113); the exhaustive combo
 search now includes neutral special. 222 tests pass. Not verified on a phone.
+
+## D-123 — 2026-11-25 — Agent skills from awesome-gamedev-agent-skills
+
+Owner ran `npx skills add gamedev-skills/awesome-gamedev-agent-skills`
+(Apache-2.0, commit c6ca6c4, 80 skills). Installed as project skills in
+`.claude/skills/` (copies, pinned in `skills-lock.json`) so every Claude
+session on this repo gets them: 12 Godot skills (gdscript, headless testing,
+animation, 3d essentials, nodes/scenes, signals/groups, resources, physics,
+shaders, ui-control, audio, export) and 6 general ones (game-feel,
+input-systems, camera-systems, performance-optimization, game-ai,
+game-ui-ux). Left out on purpose: Unity (CLAUDE.md rule 3), Unreal, Roblox,
+web and other engines, Godot C# / 2D / tilemap / multiplayer (rule 19), the
+router and genre skills. The skills are reference only: CLAUDE.md, the
+project's own test runner (no GUT/gdUnit, rule in conventions) and the
+decision log win where they differ. Reviewed before commit: their helper
+scripts (4 .gd checks, 1 .py project checker) do no network, shell or file
+deletion. No game code changed; tests not affected.
