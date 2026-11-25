@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-124 (2026-11-25; last animation change D-122). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-125 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -33,10 +33,13 @@ change goes to the owner with a real-speed review video).
   `compare_reference.py`, `before_after_video.sh`). New tool
   `tools/godot/body_angles.gd` (hips, chest, lean, knees per frame). Owner
   pictures go into `docs/images/references/`.
-- Found by the new checks, not yet changed: Rift Break's leg snaps to
-  vertical in one frame and waits eight at the top; the Front Kick's knee is
-  bent 34° at contact; the Flying Side Kick leans 13° back, not the 20–24°
-  keyed. Offered to the owner as the next fixes.
+- D-125: Rift Break's leg now rises over seven frames instead of snapping to
+  vertical in one and waiting eight (keys of the rise only). Not yet
+  confirmed by the owner.
+- Found by the new checks, not yet changed: the Front Kick's knee is bent 34°
+  at contact; the Flying Side Kick leans 13° back, not the 20–24° keyed; the
+  Leg Sweep's right hand is inside the torso on frame 25. Offered to the
+  owner as the next fixes.
 - D-123: Godot and game-design agent skills installed in `.claude/skills/`.
 
 ## Where things stand (2026-11-23, after D-095)

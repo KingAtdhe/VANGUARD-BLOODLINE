@@ -60,6 +60,12 @@ approval looked like · Process failures (ours).
 | "it needs to be with the other leg and the leg needs to be fully straight" | wrong leg; knee not locked through the swing | other leg; every target on an arc beyond the leg's length | D-121 |
 | "he needs to use the other leg, also the movement is too fast and unnatural" → "the leg nearer the camera" | leg named in screen terms; phases had too few frames | asked which leg; rear leg; startup 16 → 22, recovery 22 → 26 (balance change) | D-122 |
 
+Faults found by the checks before she had to name them:
+
+| Found | Fix | Where |
+|---|---|---|
+| Rift Break's leg snapped to vertical in one frame and waited eight at the top (likely what "too fast and unnatural" still meant) | the rise re-spaced over seven frames on a growing radius; no frame data change | D-125 |
+
 ## Rounds per move
 
 | Move | Rounds | Why |

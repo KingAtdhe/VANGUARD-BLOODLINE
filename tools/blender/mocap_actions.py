@@ -2828,6 +2828,10 @@ def kairo_keys(moves, base, g, S):
     def arc(deg, x=FR[0] * 0.6):
         a = math.radians(deg)
         return (x, arc_r * math.cos(a), hip_z + arc_r * math.sin(a), 0.7)
+
+    def rise(deg, r, x=FR[0] * 0.6):                        # a point inside the leg's reach: the leg is still unfolding
+        a = math.radians(deg)
+        return (x, r * math.cos(a), hip_z + r * math.sin(a), 0.5)
     out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 2, hop1), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 4, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
@@ -2847,8 +2851,15 @@ def kairo_keys(moves, base, g, S):
         # down straight, heel first, through the target -> down in front
         "rear_foot_abs": [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,)),
                           (m0 + 1, (FR[0] * 0.9, FR[1] - travel(m0 + 1) * 0.4, FR[2] + 0.08, 0.3), "out"),
-                          (hop0 + 1, (FR[0] * 0.6, 0.22, 0.70, 0.3), "io"),
-                          (hop0 + 4, arc(80), "io"), (a0 - 6, arc(96), "io"), (a0 - 4, arc(98)),
+                          # D-125: the rise takes its share of the startup. It used to go from the
+                          # knee-up to vertical in one frame (the target jumped from inside the
+                          # leg's reach to beyond it) and then wait eight frames at the top. Now the
+                          # knee comes up a frame later and the leg unfolds upward over eight frames
+                          # on a growing radius (rise()), locks just before the top, and the top is
+                          # one moment (a0 - 5 .. a0 - 4) before it swings down.
+                          (hop0 + 2, (FR[0] * 0.6, 0.22, 0.70, 0.3)),
+                          (hop0 + 4, rise(50, 0.46)), (hop0 + 6, rise(68, 0.62)), (hop0 + 8, rise(84, 0.71)),
+                          (a0 - 5, arc(93)), (a0 - 4, arc(98)),
                           (a0 - 2, arc(62), "io"), (a0, arc(26), "in"), (a1, arc(-6), "lin"),
                           (a1 + 5, (FR[0] * 0.7, 0.30, FR[2] + 0.04, 0.0), "out"), (a1 + 7, (FR[0] * 0.7, 0.30, FR[2], 0.0)),
                           (a1 + 11, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 15, FR + (0.0,), "in")],

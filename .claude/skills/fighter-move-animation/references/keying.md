@@ -279,9 +279,11 @@ column of `body_angles.gd`.
 
 Before building, lay the keys of the striking limb on the startup and count:
 how many frames to the chamber or the top, how many there, how many into the
-hit (technique-form.md "Sharing out the frames"). Rift Break at D-122 spends
-two frames rising and eight waiting: the keys were right, their frames were
-not.
+hit (technique-form.md "Sharing out the frames"). Rift Break before D-125
+spent one frame rising and eight waiting: the keys were right, their frames
+were not. A target that jumps from inside the leg's reach to an arc beyond it
+locks the knee in a single frame; lead up to the arc with keys on a growing
+radius (`rise(deg, r)` in Rift Break).
 
 ### Retiming an existing move
 

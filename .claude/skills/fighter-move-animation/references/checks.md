@@ -229,18 +229,17 @@ godot --headless --path . --script res://tests/run_tests.gd -- kairo   # only fi
 
 Wait for the full run to end before committing. Report the real count.
 
-## Known flags on Kairo at D-122 (the baseline)
+## Known flags on Kairo at D-125 (the baseline)
 
 So you can tell your own flags from the ones already there. Update this list
 when a build changes it.
 
 Pops: Low Kick f9 right toe (the strike); Rift Break f9 both hands (the hop
-starting), f10 right toe, f19 left lower leg; ultimate f18 and f37 right toe;
+starting), f19 left lower leg; ultimate f18 and f37 right toe;
 jump f43 both toes (landing); Rising Uppercut f5 left toe.
 
-Motion report: Rift Break FAST f7, f9, f10 (right ankle 33, 45, 56 cm) and
-DWELL f11–18 (the leg whips to vertical in one frame, then waits eight);
-Leg Sweep FAST f3–4 (left wrist to the floor); Fireball FROZEN f20–24;
+Motion report: Rift Break clean since D-125 (before it: FAST f7, f9, f10 and
+DWELL f11–18, the example of a leg that snaps up and waits); Leg Sweep FAST f3–4 (left wrist to the floor); Fireball FROZEN f20–24;
 Knee Throw FAST f17 (right ankle 38 cm); ultimate several FAST (its later
 hits are strikes the report does not know about); Flying Side Kick FOLD 0.28
 (the kicking leg's chamber, f3); Knee Throw FOLD 0.31 (f15).
@@ -255,7 +254,7 @@ Body angles at contact:
 | Rift Break | 4° | 25° | 17° | 6° | 6° forward |
 
 Stretched edges, worst frame: idle 8; Low Kick 12; Front Kick 10; Flying
-Side Kick 19; **Rift Break 38 (frame 14)**.
+Side Kick 19; **Rift Break 41 (frame 17, the leg beside the head)**.
 
 Pose checker (9 of 99 frames): Front Kick, Low Kick and ultimate with the
 centre of gravity outside the feet; counter hook and string cross with the

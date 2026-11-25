@@ -2246,3 +2246,33 @@ touched.
   frame 25. Listed as the baseline in the skill's `references/checks.md`.
 - No game code, data or model changed (a rebuild of Kairo left the `.glb`
   identical). Not verified on a phone: nothing to verify.
+
+## D-125 — 2026-11-25 — Rift Break: the leg rises over the startup instead of snapping up and waiting
+
+Found by the D-124 checks and offered to the owner, who said to continue. A
+fix, not a rework: the picture (D-120) and the leg (D-122) stand.
+
+- **Fault, measured on the game model.** The kicking knee went from 127° to
+  locked and the ankle from 0.90 m to 1.46 m in one frame (frame 10), then
+  the leg stood at the top for eight frames (11–18) and came down in four.
+  The foot target jumped from inside the leg's reach to an arc beyond it.
+  Probably what "too fast and unnatural" (D-122) still meant.
+- **Change** (`kairo_keys`, `FORWARD_SPECIAL`, `rear_foot_abs` only): the
+  knee comes up one frame later; three new keys carry the foot upward on a
+  growing radius close to the body (`rise()`: 50°, 68°, 84°), so the leg
+  unfolds as it rises; it locks at frame 16 and the top is frames 16–18.
+  Keys from the swing down onward, the body, the arms and the skip are
+  unchanged. No frame data changed.
+- **After.** Knee per frame 140, 128, 97, 75, 61, 55, 28, 4 (frames 9–16);
+  ankle height 0.53 → 1.48 m over seven frames; at most 29 cm of ankle
+  travel in a frame (was 56). Gone: the right-toe pop on frame 10, the three
+  snap flags and the eight-frame wait. Leg still locked (4°) from the top
+  through the strike; the active frames are the same poses as before.
+- **Left as it is:** pops on frame 9 (both hands, the hop starting) and frame
+  19 (left lower leg, the landing); skin stretch at the top 41 edges on frame
+  17 (was 38 on frame 14; the leg beside the head); the leg holds level for
+  four frames after the hit (the moving hold).
+- Checked: every frame of 6–29 in the side view, before and now side by side;
+  `motion_report.py`, `body_angles.gd`, `stretch_check.py`. 222 tests pass.
+  Video: before / now, real speed then half speed, checked frame by frame,
+  not watched. Not verified on a phone.

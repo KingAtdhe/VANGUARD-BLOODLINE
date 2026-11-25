@@ -216,12 +216,12 @@ nearer the camera), leg fully straight, slower and less abrupt.
 - Foot ends on the floor in front; step back into the stance.
 - The leg stays locked from the top to the strike (knee 4° measured). See
   keying.md "Lock a limb straight" for the arc that does this.
-- **Open at D-122 (measured, not yet raised by the owner):** the frames are
-  badly shared. The knee goes from 127° to locked and the ankle from 0.9 m to
-  1.46 m in one frame (frame 10), then the leg waits at the top for eight
-  frames (11–18) and comes down in four. The rise should take most of the
-  startup and the top be a moment (see "Sharing out the frames"). The skin
-  also stretches most here (38 edges on frame 14; the idle has 8).
+- Frames (D-125): knee up by frame 9, the leg unfolds upward close to the
+  body over frames 10–15 (knee 128° → 28°), locks at 16, top 16–18, down
+  19–21, strike 22. Until D-125 it snapped to vertical in one frame and
+  waited eight at the top: the keys were right and their frames were not
+  (see "Sharing out the frames"). The skin stretches most at the top (41
+  edges on frame 17; the idle has 8).
 - The move carries him 1.4 m, so the standing foot does a skip (plant, hop,
   plant) to cover it; see keying.md "Travel".
 
