@@ -2319,3 +2319,43 @@ nearer the camera (D-122).
   peak and the active frames from the front; before and now side by side.
   222 tests pass. Video: before / now, real speed then half speed, checked
   frame by frame, not watched. Not verified on a phone.
+
+## D-127 — 2026-11-25 — Rift Break: one step in instead of the hop; travel 1.4 m → 0.7 m
+
+Asked which was better, the skip forward or kicking on the spot, the owner
+got a third option (a step in: the kick keeps reach and stands on a planted
+foot) and said to do it.
+
+- **Animation** (`kairo_keys`, `FORWARD_SPECIAL`, rewritten around the step):
+  the lead foot steps in over frames 4–6 and lands on frame 7 while the rear
+  foot pushes on the floor with its heel coming up; the rear leg leaves the
+  floor as the lead foot lands, passes low under the hip (frames 8–12) and is
+  locked straight from frame 13; it rises evenly (about 20 cm a frame) to the
+  vertical peak on frame 20, chops down heel first into the contact on frame
+  22 and on to the floor by frame 30, and he steps back into the stance. The
+  supporting foot is planted from its landing to the end: its keys move back
+  in model space exactly as far as the game moves him. No frame in the air
+  (`_air` removed). Guard, lean and the D-126 leg shape are kept.
+- **Balance change** (`data/moves/kairo_rift_break.tres`): `move_distance`
+  1.4 → 0.7 m, `move_end_frame` 22 → 18 (frames 4–18, was 4–22). Frame data
+  (22 / 4 / 26), damage, hitbox and on-block (−15) unchanged. Effect: the
+  move reaches 0.7 m less far; the travel now ends four frames before the
+  hit instead of on it; the AI's range for it follows the data
+  (`ai_controller` uses `move_distance`).
+- **Why 0.7 and not the 0.9–1.0 first estimated:** with the rear foot still
+  on the floor when the lead foot lands, the feet are (travel + stance
+  length) apart. At 0.7 m that is 0.83 m, the widest his legs take with the
+  hips at lunge height; more needs a second step or a hop.
+- **Checks.** `motion_report.py`: no new flags; the three pops of the hop
+  (frames 9 and 19) are gone; one FAST left on frame 11 (30 cm, the leg
+  swinging through under the hip). `body_angles.gd`: kicking knee 4° on
+  frames 13–30. `stretch_check.py`: worst 29 edges (was 33), mean 8.6. Heel
+  in the hitbox on frames 22–25 (`move_shot.gd`). Every frame looked at in
+  the side view and the move in the training scene. 222 tests pass, after
+  one test was corrected: `test_ai_actions_are_legal_player_actions` looked up
+  every cancel in Kairo's move set, so a legal cancel by P2 (the training
+  dummy, into its own `kairo_kick`) counted as illegal as soon as the new
+  travel changed the course of that test fight. It now looks in the move set
+  of the fighter who cancelled. Video:
+  before / now, real speed then half speed, checked frame by frame, not
+  watched. Not verified on a phone.

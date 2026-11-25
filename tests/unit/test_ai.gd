@@ -210,13 +210,17 @@ func test_ai_actions_are_legal_player_actions() -> Array[String]:
 	# enforces this; check the log agrees: cancels only after contact).
 	# D-122: checked against the move data (the cancel lists and strings), not a
 	# fixed list: since D-113 the One-Two Cross may cancel into a special too.
-	var kdef: FighterDefinition = load("res://data/fighters/kairo.tres")
+	# D-127: each cancel is looked up in the move set of the fighter who did it.
+	# Looking only in Kairo's set called a legal P2 (training dummy) cancel into
+	# its own kick (kairo_kick, which Kairo does not have) illegal.
+	var defs: Array[FighterDefinition] = _defs()
 	for line: String in res.log.split("\n"):
 		if not line.contains("cancels"):
 			continue
+		var who: FighterDefinition = defs[1] if line.contains(" P2 cancels") else defs[0]
 		var parts: PackedStringArray = line.split("cancels ")[1].split(" -> ")
-		var from: MoveData = kdef.move_for_id(StringName(parts[0].strip_edges()))
-		var to: MoveData = kdef.move_for_id(StringName(parts[1].strip_edges()))
+		var from: MoveData = who.move_for_id(StringName(parts[0].strip_edges()))
+		var to: MoveData = who.move_for_id(StringName(parts[1].strip_edges()))
 		if from == null or to == null or not (from.can_cancel_into(to) or to.string_after == from.id):
 			f.append("illegal cancel route in AI fight: %s" % line)
 	return f

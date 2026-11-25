@@ -222,13 +222,17 @@ sequence itself, which rules out a knee-up chamber.
   in front, and is drawn back into the stance.
 - The leg stays locked from frame 10 to the floor (knee 4° measured). See
   keying.md "Lock a limb straight".
-- The move carries him 1.4 m, so the supporting foot does a skip (plant,
-  hop, plant); see keying.md "Travel". Her sequence has no step forward:
-  whether to keep the travel is her call (a balance change).
-- Earlier versions, replaced: a lean of 29–32° with wide arms (D-116); a
+- The move carries him 0.7 m with **one step in** (D-127, her choice over the
+  hop or kicking on the spot): the lead foot steps and lands (frames 4–7)
+  while the rear foot pushes, then the rear leg swings up from behind. The
+  supporting foot is planted from its landing to the end. Frames: step 4–7,
+  swing through 8–12, locked rise 13–19, peak 20, chop 21–22, floor by 30.
+  See keying.md "Travel" for how far one step can go.
+- Earlier versions, replaced: a hop covering 1.4 m (D-115 … D-126); a lean
+  of 29–32° with wide arms (D-116); a
   raised knee then the leg unfolding upward (D-120, D-125); a leg that
   snapped to vertical in one frame and waited eight at the top (until
-  D-125). The skin stretches most at the peak (33 edges; the idle has 8).
+  D-125). The skin stretches most at the peak (29 edges; the idle has 8).
 
 ### Flying side kick (Kairo: `JUMP_ATTACK`)
 

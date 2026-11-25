@@ -2759,20 +2759,7 @@ def kairo_keys(moves, base, g, S):
         "rear_elbow": [(0, 0.05), (a0, 0.3), (kn, 0.45), (sh, 0.1), (T - 3, 0.05)],
     })
 
-    # Rift Break: an axe kick. The rear leg swings up past the head as he
-    # closes in, then the heel is brought down through the chest.
-    # D-112: leans back at the top on a soft standing knee, chops forward on
-    # the drop. D-115 (owner: "they look robotic and unnatural"): the move
-    # carries him 1.4 m forward (move frames 4-16) and he used to glide that
-    # far on a planted foot. Now it is a skip axe kick: a short sink, the
-    # standing foot stays put on the floor for the first frames of travel,
-    # pushes off, he hops (frames 6-11 in the air) while the kicking leg
-    # swings up in a crescent (chamber, out to the side, over the top), lands
-    # ahead and the body travels over the planted foot until the travel ends,
-    # then the heel drops with the standing knee giving under it, and he steps
-    # back into his stance. Every planted frame moves the foot back in model
-    # space exactly as far as the game moves him (v per frame), so it holds
-    # still on the floor.
+    # Rift Break: an axe kick with one step in (history and the current design below).
     a0, a1, T, hx, hz = win(moves["FORWARD_SPECIAL"])
     mvf = moves["FORWARD_SPECIAL"]
     m0, m1 = mvf.get("move_start", 4) - 1, mvf.get("move_end", 16) - 1      # animation frames the game moves him on
@@ -2781,47 +2768,33 @@ def kairo_keys(moves, base, g, S):
     def travel(k):
         return v * min(max(0, k - m0 + 1), m1 - m0 + 1)
 
-    top = (-0.03, 0.66, head_z + 0.16, 0.85)                # out of reach: the leg goes straight at the top (D-114)
+    # History of this move, shortest form: D-115 a skip axe kick (hop); D-120 to a
+    # taekwondo picture (knee up first); D-121/D-122 the leg nearer the camera (his
+    # right, rear leg), locked straight; D-125 the rise re-spaced; D-126 to the owner's
+    # written sequence (no chamber, straight leg up and down, heel first, driven to the
+    # floor); D-127 the hop replaced by one step in.
+    #
+    # D-127 (owner chose a step forward over the hop or kicking on the spot): the lead
+    # foot steps in while the rear foot pushes on the floor, lands, and the body rolls
+    # forward over it as the rear leg swings up; the supporting foot is planted from the
+    # landing to the end of the move. Every planted frame moves the foot back in model
+    # space exactly as far as the game moves him (travel()), so it holds still on the
+    # floor. One step cannot cover the old 1.4 m: with the rear foot still down when the
+    # lead foot lands, the feet are (travel + stance length) apart, so the travel is
+    # 0.7 m now (kairo_rift_break.tres, frames 4-18): a balance change.
     lf_x, lf_f, lf_h = FL
-    land_k, f_end = m1 - 3, 0.06                             # lands 3 frames before the travel ends, ends under his hips
-    w_land = f_end + travel(m1)                              # world spot of the landing (model fwd + travel)
-    lead_abs = [(0, FL + (0.0,)), (m0 - 1, FL + (0.0,))]
-    for k in range(m0, m0 + 3):                              # planted while the travel starts
-        lead_abs.append((k, (lf_x, lf_f - travel(k), lf_h, 0.0)))
-    hop0, hop1 = m0 + 3, land_k - 1
-    lead_abs += [(hop0 + 1, (lf_x, lf_f - travel(hop0 + 1) + 0.04, lf_h + 0.07, 0.3), "out"),
-                 (hop1 - 1, (lf_x, w_land - travel(hop1 - 1) - 0.06, lf_h + 0.06, 0.2)),
-                 (land_k, (lf_x, w_land - travel(land_k), lf_h, 0.0), "in")]
-    for k in range(land_k + 1, m1 + 1):                      # planted while the body rides over it
+    fr_x, fr_f, fr_h = FR
+    step_k = m0 + 3                                          # the lead foot lands (key frame): a quick step, the frames belong to the kick
+    f_end = -0.08                                            # the supporting foot ends just behind the hips: he is driving forward
+    w_land = f_end + travel(m1)                              # world spot of the landing (model forward + travel)
+    lead_abs = [(0, FL + (0.0,)), (m0 - 1, FL + (0.0,)),
+                (m0 + 1, (lf_x, lf_f + 0.05, lf_h + 0.06, 0.2), "out"),
+                (step_k - 1, (lf_x, w_land - travel(step_k) - 0.03, lf_h + 0.06, -0.2)),
+                (step_k, (lf_x, w_land - travel(step_k), lf_h, 0.0), "in")]
+    for k in range(step_k + 1, m1 + 1):                      # planted while the body rolls over it
         lead_abs.append((k, (lf_x, w_land - travel(k), lf_h, 0.0)))
     lead_abs += [(a1 + 5, (lf_x, f_end, lf_h, 0.0)), (a1 + 8, (lf_x, (f_end + lf_f) * 0.5, lf_h + 0.05, 0.2), "io"),
                  (a1 + 11, FL + (0.0,), "in")]
-    # D-120, to the owner's reference (a taekwondo axe kick): knee raised,
-    # leg straight up with the foot above the head, body upright, compact
-    # guard, heel down onto the target; the D-115 skip covers the travel.
-    # D-121 (owner: "it needs to be with the other leg and the leg needs to be
-    # fully straight"): the lead (left) leg kicks and the rear foot does the
-    # skip; from the top to the strike every foot target lies on an arc around
-    # the hip beyond the leg's length, so the leg stays locked straight and
-    # swings down like a pendulum.
-    # D-122 (owner: "he needs to use the other leg" = the leg nearer the camera,
-    # measured in the game view: his right, rear leg; "the movement is too fast
-    # and unnatural"): the rear leg kicks again, still locked straight, the
-    # lead foot does the skip; the move is slower (startup 16 -> 22, recovery
-    # 22 -> 26 in kairo_rift_break.tres), so every phase gets more frames.
-    fr_x, fr_f, fr_h = FR
-    f_end_r = -0.12                                          # standing foot ends a little behind the hips
-    w_land_r = f_end_r + travel(m1)
-    rear_abs = [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,))]
-    for k in range(m0, m0 + 3):
-        rear_abs.append((k, (fr_x, fr_f - travel(k), fr_h, 0.0)))
-    rear_abs += [(hop0 + 1, (fr_x, fr_f - travel(hop0 + 1) + 0.04, fr_h + 0.06, 0.3), "out"),
-                 (hop1 - 1, (fr_x, w_land_r - travel(hop1 - 1) - 0.06, fr_h + 0.05, 0.2)),
-                 (land_k, (fr_x, w_land_r - travel(land_k), fr_h, 0.0), "in")]
-    for k in range(land_k + 1, m1 + 1):
-        rear_abs.append((k, (fr_x, w_land_r - travel(k), fr_h, 0.0)))
-    rear_abs += [(a1 + 5, (fr_x, f_end_r, fr_h, 0.0)), (a1 + 8, (fr_x, (f_end_r + fr_f) * 0.5, fr_h + 0.05, 0.2), "io"),
-                 (a1 + 11, FR + (0.0,), "in")]
     hip_z = head_z - 0.60
     arc_r = 1.25                                             # beyond the leg: the knee locks
 
@@ -2829,51 +2802,49 @@ def kairo_keys(moves, base, g, S):
         a = math.radians(deg)
         return (x, arc_r * math.cos(a), hip_z + arc_r * math.sin(a), pt)
 
-
-    def rise(deg, r, x=FR[0] * 0.6):                        # a point inside the leg's reach: the leg is still unfolding
-        a = math.radians(deg)
-        return (x, r * math.cos(a), hip_z + r * math.sin(a), 0.5)
-    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 2, hop1), _hold=1,     # the heel drives on down to the floor: no hold at hip height
+    # the kicking (rear) foot: pushes off the floor through the step (heel coming up),
+    # leaves it as the lead foot lands, passes low under the hip on a soft knee, and
+    # from there every key is on arc(): locked straight up to the peak, down through
+    # the target heel first (toes pulled back), on down to the floor, back to the stance
+    kick = [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,))]
+    for k in range(m0, step_k + 1):
+        u = (k - m0 + 1) / float(step_k - m0 + 1)
+        kick.append((k, (fr_x, fr_f - travel(k), fr_h + 0.05 * u, 0.5 * u)))
+    back = fr_f - travel(step_k)
+    kick += [(step_k + 1, (fr_x * 0.9, back + 0.10, fr_h + 0.10, 0.4)),
+             (step_k + 3, (fr_x * 0.7, 0.08, fr_h + 0.10, 0.0)), (step_k + 4, (fr_x * 0.6, 0.38, fr_h + 0.15, -0.2)),
+             (step_k + 5, (fr_x * 0.6, 0.62, fr_h + 0.20, -0.3))]
+    k0 = step_k + 6                                          # locked from here; the rise is even, about 17 degrees a frame
+    for k in range(k0, a0 - 2):
+        u = (k - k0) / float(a0 - 2 - k0)
+        kick.append((k, arc(-27 + 117 * u, x=FR[0] * (0.6 + 0.3 * u), pt=-0.4 - 0.2 * u)))
+    kick += [
+             (a0 - 2, arc(90, x=FR[0] * 0.9, pt=-0.7)),      # the peak: vertical, beside his head, one moment
+             (a0 - 1, arc(62, x=FR[0] * 0.75, pt=-0.8)), (a0, arc(26, pt=-0.9), "in"), (a1, arc(-6, pt=-0.9), "lin"),
+             (a1 + 2, arc(-34, pt=-0.6)), (a1 + 4, (FR[0] * 0.7, 0.38, FR[2] + 0.03, -0.2)),
+             (a1 + 7, (FR[0] * 0.7, 0.34, FR[2], 0.0), "out"),
+             (a1 + 11, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 15, FR + (0.0,), "in")]
+    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _hold=1,    # the heel drives on down to the floor: no hold at hip height
                                   _lag=(("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0), ("trunk", 1.0),
                                         ("shoulders", 1.5), ("hand", 1.0), ("elbow", 1.0), ("palm", 1.0), ("chin", 3.0), ("neck", 3.0)), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 4, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
-        "hips": [(0, (hips0, 0)), (m0, (hips0 + 0.045, 0)), (hop0 + 1, (hips0 + 0.03, 0)), (a0 - 4, (hips0 - 0.03, 0)),     # D-126: weight onto the supporting (lead) leg first
+        "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 2, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
+        "hips": [(0, (hips0, 0)), (step_k, (hips0 + 0.03, 0)), (a0 - 2, (hips0 - 0.02, 0)),
                  (a0, (hips0 + 0.03, 0)), (a1, (hips0 + 0.06, 0)), (a1 + 10, (hips0, 0), "out")],
-        "pelvis_h": [(0, ph0), (m0 - 1, low(0.03), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 2, ph0 - 0.05, "out"),
-                     (hop0 + 4, ph0 - 0.035, "out"), (hop1, ph0 - 0.065, "io"), (land_k, low(0.02), "in"), (a0 - 4, ph0 + 0.01),
-                     (a0 - 2, ph0 + 0.01), (a0, low(0.02), "in"), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.03), "out")]
+        # sinks into the step, stands up tall on the supporting leg at the peak, drops with the chop
+        "pelvis_h": [(0, ph0), (m0 - 1, low(0.015), "io"), (step_k, low(0.06)), (step_k + 4, low(0.04)),
+                     (a0 - 2, ph0 + 0.015), (a0, low(0.02), "in"), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.03), "out")]
                     + settle(T, a1 + 12, ph0, 0.02),
-        "pelvis": [(0, pel0), (m0, pel(-6)), (hop0 + 2, pel(-16)), (a0 - 4, pel(-20)), (a1, pel(-20)), (a1 + 10, pel0, "out")],
-        "shoulders": [(0, sh0), (m0, sho(2)), (hop0 + 2, sho(-8)), (a0 - 4, sho(-12)), (a1, sho(-14)), (a1 + 10, sh0, "out")],
-        "trunk": [(0, tr0), (m0 - 1, lean(3)), (hop0, lean(-2)), (a0 - 4, lean(-9), "out"), (a0 - 2, lean(-7)), (a0, lean(2)),
+        "pelvis": [(0, pel0), (m0, pel(-4)), (step_k, pel(-10)), (a0 - 2, pel(-20)), (a1, pel(-20)), (a1 + 10, pel0, "out")],
+        "shoulders": [(0, sh0), (m0, sho(2)), (step_k, sho(-5)), (a0 - 2, sho(-12)), (a1, sho(-14)), (a1 + 10, sh0, "out")],
+        "trunk": [(0, tr0), (m0 - 1, lean(2)), (step_k, lean(5)), (a0 - 2, lean(-8), "out"), (a0 - 1, lean(-5)), (a0, lean(2)),
                   (a1, lean(8)), (a1 + 3, lean(10)), (a1 + 9, lean(3), "out"), (a1 + 13, tr0)],
-        "lead_heel": [(0, 0.0), (m0 + 1, 0.0), (hop0, 0.06), (land_k, 0.0), (a1 + 6, 0.0)],
         "lead_foot_abs": lead_abs,
-        # guard -> knee raised high -> leg straight up past vertical -> swung
-        # down straight, heel first, through the target -> down in front
-        # D-126, to the owner's written axe-kick sequence: the weight goes onto the
-        # supporting leg, then the kicking leg swings straight up in front of the body
-        # with the knee extended (no knee-up chamber: D-120's raised knee and D-125's
-        # unfolding rise are gone), near vertical above the head at the peak, and is
-        # driven straight down heel first (toes pulled back) through the target to the
-        # floor, then drawn back into the stance. The foot passes low under the hip on a
-        # soft knee (two plain keys), then every key is on arc(), beyond reach (locked).
-        "rear_foot_abs": [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,)),
-                          (m0 + 1, (FR[0] * 0.9, FR[1] + 0.05, FR[2] + 0.06, 0.2), "out"),
-                          (hop0 - 1, (FR[0] * 0.75, FR[1] + 0.20, FR[2] + 0.10, 0.1)), (hop0 + 1, (FR[0] * 0.6, 0.36, FR[2] + 0.15, -0.2)),
-                          (hop0 + 2, (FR[0] * 0.6, 0.60, FR[2] + 0.19, -0.3)), (hop0 + 3, arc(-16, pt=-0.4)),
-                          (hop0 + 5, arc(12, pt=-0.5)), (hop0 + 7, arc(40, x=FR[0] * 0.7, pt=-0.6)), (hop0 + 9, arc(64, x=FR[0] * 0.8, pt=-0.6)),
-                          (a0 - 4, arc(82, x=FR[0] * 0.9, pt=-0.6)),
-                          (a0 - 3, arc(90, x=FR[0] * 0.9, pt=-0.7)),                         # the peak: vertical, beside his head, one moment
-                          # the chop gathers speed: 13, 22, 29 degrees a frame
-                          (a0 - 2, arc(77, x=FR[0] * 0.85, pt=-0.8)), (a0 - 1, arc(55, x=FR[0] * 0.75, pt=-0.8)), (a0, arc(26, pt=-0.9), "in"), (a1, arc(-6, pt=-0.9), "lin"),
-                          (a1 + 2, arc(-34, pt=-0.6)), (a1 + 4, (FR[0] * 0.7, 0.38, FR[2] + 0.03, -0.2)), (a1 + 7, (FR[0] * 0.7, 0.34, FR[2], 0.0), "out"),
-                          (a1 + 11, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 15, FR + (0.0,), "in")],
-        # both fists stay up in a compact guard, as in the reference
-        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 4, (L[0] + 0.03, L[1] - 0.08, L[2] + 0.02)),
+        "rear_foot_abs": kick,
+        # both fists stay up in a compact guard
+        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 2, (L[0] + 0.03, L[1] - 0.08, L[2] + 0.02)),
                           (a0, (L[0] + 0.02, L[1] - 0.05, L[2] - 0.04), "in"), (a1 + 4, (L[0], L[1] - 0.04, L[2] - 0.04)), (T - 4, L)],
-        "rear_hand_abs": [(0, R), (m0 - 1, (R[0], R[1] - 0.02, R[2] - 0.02)), (a0 - 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.02)),
+        "rear_hand_abs": [(0, R), (m0 - 1, (R[0], R[1] - 0.02, R[2] - 0.02)), (a0 - 2, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.02)),
                           (a0, (R[0] + 0.03, R[1] + 0.04, R[2] - 0.06), "in"), (a1 + 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.05)), (T - 4, R)],
     })
 

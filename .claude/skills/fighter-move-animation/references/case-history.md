@@ -62,6 +62,8 @@ approval looked like · Process failures (ours).
 
 | (an eight-step written axe-kick sequence) "lift the kicking leg straight upward ... keeping the knee relatively extended ... Do NOT ... chamber ... heel as the striking point ... retract the leg, lower it naturally" | no knee-up at all; straight leg up and down; heel first; no hanging leg after the hit. She will write the motion out when pictures have not got her what she wants: treat it as the reference and follow it step by step | chamber removed, leg locked from lift to floor, flexed foot, peak vertical, `_hold` 1 | D-126 |
 
+| "Whats better" (the skip forward or kicking on the spot), then "Do it" | she wants a recommendation, not a list of options; give one, with the cost in a sentence | a step in instead of the hop; travel 1.4 → 0.7 m, named as a balance change | D-127 |
+
 Faults found by the checks before she had to name them:
 
 | Found | Fix | Where |
@@ -75,7 +77,7 @@ Faults found by the checks before she had to name them:
 | Low Kick | 4 (D-108 … D-111), 2 after the picture | first two were guesses from words |
 | Front Kick | 2 (D-096, D-097) | each a named, measured fault |
 | Flying Side Kick | 8 entries so far (D-098, 099, 112, 115–119) | no picture until D-118; then misread (leg, trunk) |
-| Rift Break | 10 entries so far (D-112, 114–117, 120–122, 125, 126) | no picture until D-120; leg misread twice; timing; then her written sequence |
+| Rift Break | 11 entries so far (D-112, 114–117, 120–122, 125–127) | no picture until D-120; leg misread twice; timing; then her written sequence |
 
 The pattern: with a picture and a careful reading, one or two rounds. Without,
 any number.

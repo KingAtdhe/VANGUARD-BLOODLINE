@@ -94,7 +94,7 @@ limit, pushback, and no move being plus enough to link into itself.
 | Move | Input | Startup | Active | Recovery | Total | Damage | Chip | On hit | On block | Meter | Notes |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Origin Palm | Special (neutral/back) | 14 | 5 | 24 | 42 | 105 | 15 | **+12** | −12 | 25 | Spec §4.4 values; links Heavy at close range; cancels into the ultimate |
-| Rift Break | toward + Special | 22 | 4 | 26 | 51 | 90 | 10 | KD | −15 | 0 | Travels 1.4 m (frames 4–22); knockdown. D-122: slower so the axe kick reads (was 16/4/22, −11) |
+| Rift Break | toward + Special | 22 | 4 | 26 | 51 | 90 | 10 | KD | −15 | 0 | Travels 0.7 m (frames 4–18): one step in. D-127: was 1.4 m (frames 4–22), covered by a hop; knockdown. D-122: slower so the axe kick reads (was 16/4/22, −11) |
 | Origin Surge | Ultimate at full meter | 20 | — | 10 | 30 | — | — | — | — | 100 | No hitbox; then 5 s Surge |
 | Origin Break | Ultimate during Surge | 7 | 4 | 45 | 55 | 320 | 40 | KD | −28 | ≥ 30, spends all | Ends Surge; 60-tick hitstop (camera cinematic, skippable) |
 

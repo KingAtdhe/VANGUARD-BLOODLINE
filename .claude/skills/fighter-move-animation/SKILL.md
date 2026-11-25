@@ -62,7 +62,7 @@ table instead of searching.
 | Leg Sweep (down + K) | `kairo_leg_sweep` | `DOWN_KICK` | `KICK_SWEEP_01` | 8/3/20 | — |
 | Origin Palm (S) | `kairo_origin_palm` | `SPECIAL` | `SPECIAL_ORIGIN_PALM` | 14/5/24 | — |
 | Fireball (down + S) | `kairo_fireball` | `DOWN_SPECIAL` | `SPECIAL_FIREBALL` | 14/1/16 | — |
-| **Rift Break** axe kick (forward + S) | `kairo_rift_break` | `FORWARD_SPECIAL` | `SPECIAL_RIFT_BREAK` | 22/4/26, travels 1.4 m | awaiting her OK (D-126, her written sequence) |
+| **Rift Break** axe kick (forward + S) | `kairo_rift_break` | `FORWARD_SPECIAL` | `SPECIAL_RIFT_BREAK` | 22/4/26, travels 0.7 m (one step in) | awaiting her OK (D-127; target: her written sequence) |
 | Rift Guard (back + S) / Counter Strike | `kairo_slip_counter` / `kairo_counter_hook` | counter stance / `FOLLOWUP` | `SPECIAL_SLIP_COUNTER` / `ATTACK_COUNTER_HOOK_01` | 4/13/14, 5/3/16 | — |
 | Knee Throw (L + K) | `kairo_knee_throw` | throw | `THROW_KNEE_01` | 5/2/26 | — |
 | **Flying Side Kick** (any attack in the air) | `kairo_jump_attack` | in `build()`, not `kairo_keys` | `JUMP_ATTACK` | 6/12/6 | awaiting her OK (D-119) |

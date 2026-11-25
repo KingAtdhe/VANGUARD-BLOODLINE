@@ -229,6 +229,13 @@ def travel(k):
 (k, (foot_x, foot_fwd - travel(k), foot_h, 0.0))
 ```
 
+**How far one step goes.** If the rear foot is still on the floor when the
+lead foot lands, the feet are then (travel so far + stance length) apart, and
+by the end the supporting foot has to be near the hips. For Kairo that caps
+a single step at about 0.7 m of travel (feet 0.83 m apart at lunge height,
+D-127). More distance needs a second step or a hop, or less travel in the
+data: say so to the owner rather than stretching the legs.
+
 Cover the distance with something a body does: a step, a skip (plant → push
 off → hop with `_air` → land ahead → body rides over the planted foot), or a
 lunge off the rear foot. A planted pose gliding 1.4 m was "robotic and

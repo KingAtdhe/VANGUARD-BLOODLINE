@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-126 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-127 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -36,9 +36,9 @@ change goes to the owner with a real-speed review video).
 - D-126: Rift Break re-keyed to the owner's written axe-kick sequence
   (`docs/images/references/kairo_rift_break_axe_kick.md`): no chamber, a
   straight leg swung up in front, vertical peak above the head, heel-first
-  chop driven to the floor. It replaces D-120/D-125's knee-up rise. The skip
-  forward (1.4 m of travel) is kept; removing it was offered to her. Not yet
-  confirmed by the owner.
+  chop driven to the floor. It replaces D-120/D-125's knee-up rise.
+- D-127: the hop is replaced by one step in (her choice); travel 1.4 → 0.7 m,
+  frames 4–18 (a balance change). Not yet confirmed by the owner.
 - Found by the new checks, not yet changed: the Front Kick's knee is bent 34°
   at contact; the Flying Side Kick leans 13° back, not the 20–24° keyed; the
   Leg Sweep's right hand is inside the torso on frame 25. Offered to the
