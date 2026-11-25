@@ -151,16 +151,18 @@ func test_documented_route_light_light_kick() -> Array[String]:
 	var hits: Array[CombatEvent] = _events(sim, CombatEvent.Type.HIT, 0)
 	if hits.size() != 3:
 		return ["route L,L,K should hit 3 times, log:\n%s" % sim.combat_log.to_text()]
-	var expected_dmg: Array[int] = [35, 35, 40]   # low kick (50) scaled to 80 %
+	# D-113: the second Light is the string's One-Two Cross (55)
+	var expected_dmg: Array[int] = [35, 55, 40]   # low kick (50) scaled to 80 %
 	var expected_pct: Array[int] = [100, 100, 80]
 	for h: int in 3:
 		if hits[h].combo_hits != h + 1 or hits[h].damage != expected_dmg[h] or hits[h].scaling_percent != expected_pct[h]:
 			f.append("hit %d: combo %d dmg %d pct %d" % [h + 1, hits[h].combo_hits, hits[h].damage, hits[h].scaling_percent])
 	var starts_ev: Array[CombatEvent] = _events(sim, CombatEvent.Type.ATTACK_START, 0)
-	if starts_ev[1].cancel_from != &"kairo_light_punch" or starts_ev[2].cancel_from != &"kairo_light_punch":
-		f.append("route was not performed through cancels")
-	if sim.fighters[1].combo_hits != 0 or sim.fighters[1].health != 1000 - 110:
-		f.append("after combo: P2 combo %d (should reset on recovery), hp %d (expected 890)" % [
+	if starts_ev[1].cancel_from != &"kairo_light_punch" or starts_ev[2].cancel_from != &"kairo_string_cross" \
+			or starts_ev[1].move_id != &"kairo_string_cross":
+		f.append("route was not performed through the jab, cross, low kick string")
+	if sim.fighters[1].combo_hits != 0 or sim.fighters[1].health != 1000 - 130:
+		f.append("after combo: P2 combo %d (should reset on recovery), hp %d (expected 870)" % [
 			sim.fighters[1].combo_hits, sim.fighters[1].health])
 	return f
 

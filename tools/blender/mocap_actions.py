@@ -2877,6 +2877,38 @@ def kairo_keys(moves, base, g, S):
                           (T - 3, R, "io")],
         "rear_elbow": [(0, 0.1), (b2, 0.3), (b3 - 3, 0.15), (b3, 0.02), (b3 + 8, 0.02), (T - 3, 0.1)],
     }
+
+    # One-Two Cross (D-113): the second hit of the jab string. The same cross
+    # as the Heavy Punch (hip, then chest, then fist, the jab hand pulled back
+    # to the ribs) on the string's faster timing: every key is moved so the
+    # wind-up, the active frames and the recovery each scale on their own.
+    if "string_cross" in moves and "HEAVY" in out:
+        h0, h1, hT = win(moves["HEAVY"])[:3]
+        n0, n1, nT = win(moves["string_cross"])[:3]
+
+        def remap(t):
+            if h0 - 3 <= t <= h0:                          # the last frames into the hit keep their spacing
+                return n0 - (h0 - t)
+            if t < h0 - 3:
+                return round(t * (n0 - 3) / max(1, h0 - 3))
+            if t <= h1:
+                return n0 + round((t - h0) * (n1 - n0) / max(1, h1 - h0))
+            return n1 + round((t - h1) * (nT - n1) / max(1, hT - h1))
+
+        sc = {}
+        for ch, tr in out["HEAVY"].items():
+            if isinstance(tr, list) and tr and isinstance(tr[0], tuple) and isinstance(tr[0][0], int):
+                keyed, seen = [], set()
+                for k in tr:
+                    t2 = min(nT - 1, remap(k[0]))
+                    if t2 in seen:
+                        continue
+                    seen.add(t2)
+                    keyed.append((t2,) + tuple(k[1:]))
+                sc[ch] = keyed
+            else:
+                sc[ch] = tr
+        out["string_cross"] = sc
     return out
 
 
@@ -3724,8 +3756,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 at = {"_name": "JUMP_ATTACK", "pelvis_h": ph0,
                       "pelvis": [(0, pel0), (a0 - 3, pel0 + 16, "io"), (a0, pel0 + 34, "io"), (a1, pel0 + 32), (a1 + 3, pel0 + 22, "io"), (T, pel0 + 6, "io")],
                       "shoulders": [(0, sh0), (a0 - 3, sh0 + 8, "io"), (a0 + 1, sh0 + 24, "io"), (a1, sh0 + 22), (a1 + 3, sh0 + 14, "io"), (T, sh0 + 4, "io")],
-                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 30, tr0[1]), "io"),
-                                (a0 + 5, (tr0[0] - 34, tr0[1])), (a1, (tr0[0] - 32, tr0[1])), (a1 + 4, (tr0[0] - 12, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
+                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 40, tr0[1]), "io"),
+                                (a0 + 5, (tr0[0] - 46, tr0[1])), (a1, (tr0[0] - 43, tr0[1])), (a1 + 4, (tr0[0] - 16, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
                       # D-112: the leg keeps driving through the hold (it froze)
                       "lead_foot_abs": [(0, k_tuck), (a0 - 3, k_chamber, "out"), (a0 - 1, k_half), (a0, k_out),
                                         (a0 + 5, (k_hold[0], k_hold[1] + 0.04, k_hold[2] + 0.01, k_hold[3])), (a1, (k_hold[0], k_hold[1] - 0.02, k_hold[2], k_hold[3])), (a1 + 1, k_back), (a1 + 2, k_back2), (a1 + 4, k_chamber),

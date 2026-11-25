@@ -1966,3 +1966,31 @@ keeps driving forward 4 cm through the hold instead of freezing, and the
 trunk leans back a little more (30–34°, a small visible change).
 Pre-existing one-frame flag left as is: the Rift Break heel drop (0.18 m,
 the speed of the chop). Not verified on a phone.
+
+## D-113 — 2026-11-25 — Strings (target combos); Kairo's One-Two; kick polish
+
+Owner agreed to combo strings next and asked to keep polishing the kicks.
+
+- **Strings (engine)**: `MoveData.string_after` (move id). Such a move is
+  offered only while the fighter is attacking with that move, ahead of the
+  ordinary move on the same input, through the normal cancel rules (contact,
+  window, `cancel_tags`); otherwise it is left out
+  (`CombatSimulation._string_first`). The AI ignores string moves when picking
+  attacks; `FighterDefinition.validate()` lets a string share an input and
+  checks that the move it continues exists.
+- **Chain cap**: `CombatTuning.max_normals_in_chain = 3`: after three moves in
+  a chain only specials may follow. Without it the new string opened a loop
+  (jab, cross, low kick, jab, cross...). The exhaustive route search
+  (`test_no_infinite_combo_exhaustive_routes`) still finds 3 as the longest.
+- **Kairo's One-Two**: Light, Light, Kick = jab, **One-Two Cross**
+  (`kairo_string_cross`: 8/3/17, 55 damage, cancels into kick or special), Low
+  Kick — the kickboxing 1-2-low kick. The jab's cancel list gains "string".
+  A second Light after a jab is now the cross (the old jab-jab chain is
+  gone). Animation: the Heavy Punch's cross keys retimed to the string's
+  frame data (`kairo_keys` "string_cross"), the last three frames into the
+  hit kept at their own spacing (a plain rescale moved the fist 46 cm in one
+  frame).
+- **Kick polish**: Flying Side Kick trunk lean back 30–34 → 40–46°, now
+  plainly visible in the air.
+- Tests: `test_kairo_strings.gd` (4, new), `test_combos` route updated
+  (jab 35, cross 55, low kick 40 at 80 %). 219 pass.

@@ -488,7 +488,7 @@ func _moves_in_range(dist: float) -> Array[StringName]:
 ## In range and affordable (meter/Surge as seen on the HUD).
 func _move_in_range(pattern: StringName, dist: float, surge_move: bool) -> bool:
 	for m: MoveData in me_def.moves_for(pattern):
-		if m.activates_surge or m.requires_surge != surge_move or m.is_counter() or m.no_hitbox:
+		if m.activates_surge or m.requires_surge != surge_move or m.is_counter() or m.no_hitbox or m.string_after != &"":
 			continue
 		var reach: float = _reach(m, opp_def) + m.move_distance
 		if dist <= reach - 0.05 and _affordable_move(m):

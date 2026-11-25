@@ -52,6 +52,10 @@ enum HitLevel { HIGH, MID, LOW, THROW, PROJECTILE }
 ## Tags of moves this move may be cancelled INTO on contact (spec §4.5).
 ## Empty = this move cannot be cancelled.
 @export var cancel_tags: PackedStringArray = PackedStringArray()
+## A string (target combo, D-113): this move only comes out as a cancel from
+## the move with this id, and then takes the place of the ordinary move with
+## the same input (Kairo: Light after his jab is a cross). Empty = ordinary.
+@export var string_after: StringName = &""
 
 @export_group("Movement")
 ## Negative = backward (evasive steps).

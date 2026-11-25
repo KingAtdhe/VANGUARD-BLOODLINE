@@ -21,6 +21,6 @@ hit_level = 1
 hitbox_center = Vector2(0.6, 1.45)
 hitbox_size = Vector2(0.5, 0.3)
 tags = PackedStringArray("normal", "light")
-cancel_tags = PackedStringArray("light", "kick", "hook")
+cancel_tags = PackedStringArray("light", "kick", "hook", "string")
 meter_gain_on_hit = 6
 meter_gain_on_block = 3

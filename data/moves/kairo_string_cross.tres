@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="MoveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/move_data.gd" id="1_move"]
+
+[resource]
+script = ExtResource("1_move")
+id = &"kairo_string_cross"
+display_name = "One-Two Cross"
+input_pattern = &"LIGHT"
+animation = &"KAIRO_ATTACK_STRING_CROSS_01"
+startup_frames = 8
+active_frames = 3
+recovery_frames = 17
+hitstun_frames = 21
+blockstun_frames = 14
+hitstop_frames = 9
+damage = 55
+chip_damage = 5
+pushback = 0.2
+hit_level = 1
+hitbox_center = Vector2(0.7, 1.4)
+hitbox_size = Vector2(0.6, 0.35)
+tags = PackedStringArray("normal", "string")
+cancel_tags = PackedStringArray("kick", "special")
+string_after = &"kairo_light_punch"
+meter_gain_on_hit = 8
+meter_gain_on_block = 4

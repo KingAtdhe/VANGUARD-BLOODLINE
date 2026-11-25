@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Kairo's One-Two string
+- **Light, Light, Kick**: when the jab connects, pressing Light again throws a hard cross (One-Two Cross), and Kick after it finishes with the Low Kick — the classic kickboxing 1-2-low kick, three hits.
+- A combo can hold at most three normal attacks before only specials can follow.
+### Changed — Flying Side Kick
+- Kairo now leans well back in the air as the leg shoots out, the classic flying side kick line.
 ### Changed — Rift Break and Flying Side Kick
 - **Rift Break**: he leans back as the leg rises over his head on a bent standing knee, then chops his chest forward as the heel comes down; the arm on the kicking side reaches forward along the leg instead of flinging out to the side.
 - **Flying Side Kick**: the leg keeps driving forward while it is held out, with a little more lean back.

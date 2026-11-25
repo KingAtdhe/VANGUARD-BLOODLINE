@@ -23,6 +23,9 @@ extends Resource
 ## The same move may appear at most this many times in one cancel chain
 ## (e.g. 2 → Light, Light is allowed, a third Light is not).
 @export var max_same_move_in_chain: int = 2
+## A chain holds at most this many moves before only specials may follow
+## (D-113: keeps strings like Kairo's jab, cross, low kick at three normals).
+@export var max_normals_in_chain: int = 3
 
 @export_group("Origin meter")
 @export var meter_max: int = 100
@@ -88,6 +91,8 @@ func validate() -> Array[String]:
 		p.append("input_buffer_ticks must be >= 0")
 	if cancel_grace_frames < 0:
 		p.append("cancel_grace_frames must be >= 0")
+	if max_normals_in_chain < 2:
+		p.append("max_normals_in_chain must be >= 2")
 	if max_same_move_in_chain < 1:
 		p.append("max_same_move_in_chain must be >= 1")
 	for v: int in combo_scaling_percent:

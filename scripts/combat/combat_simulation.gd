@@ -632,7 +632,7 @@ func _take_buffered(i: int, accept: Callable) -> MoveData:
 		var code: int = f.buffer[k].x
 		if _FALLBACK.has(code) and definitions[i].moves_for(_PATTERNS[code]).is_empty():
 			code = _FALLBACK[code]
-		for move: MoveData in definitions[i].moves_for(_PATTERNS.get(code, &"")):
+		for move: MoveData in _string_first(i, definitions[i].moves_for(_PATTERNS.get(code, &""))):
 			# Meter/Surge conditions first: an unaffordable move stays buffered.
 			# One own projectile on screen: the press waits in the buffer.
 			if move.is_projectile() and has_projectile(i):
@@ -641,6 +641,23 @@ func _take_buffered(i: int, accept: Callable) -> MoveData:
 				f.buffer.remove_at(k)
 				return move
 	return null
+
+
+## Strings (D-113): a move with [member MoveData.string_after] is offered only
+## while P[param i] is attacking with that move, and then ahead of the
+## ordinary move on the same input; otherwise it is left out.
+func _string_first(i: int, candidates: Array[MoveData]) -> Array[MoveData]:
+	var f: FighterState = fighters[i]
+	var current: StringName = f.move.id if (f.action == FighterState.Action.ATTACK and f.move != null) else &""
+	var strings: Array[MoveData] = []
+	var rest: Array[MoveData] = []
+	for m: MoveData in candidates:
+		if m.string_after == &"":
+			rest.append(m)
+		elif current != &"" and m.string_after == current:
+			strings.append(m)
+	strings.append_array(rest)
+	return strings
 
 
 ## Cancel legality (spec §4.5, docs/COMBAT_FRAME_DATA.md):
@@ -658,6 +675,8 @@ func _can_cancel_into(target: MoveData, i: int) -> bool:
 	if f.move_frame < m.startup_frames or f.move_frame > last_active + tuning.cancel_grace_frames:
 		return false
 	if not m.can_cancel_into(target):
+		return false
+	if target.tags.has("normal") and f.chain.size() >= tuning.max_normals_in_chain:
 		return false
 	return f.chain.count(target.id) < tuning.max_same_move_in_chain
 

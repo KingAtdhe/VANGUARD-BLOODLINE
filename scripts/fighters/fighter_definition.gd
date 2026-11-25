@@ -139,9 +139,12 @@ func validate() -> Array[String]:
 			p.append("%s: null move entry" % fighter_id)
 			continue
 		p.append_array(m.validate())
-		# Shared patterns must be told apart by their surge requirement.
-		var key: String = "%s/%s/%s" % [m.input_pattern, m.requires_surge, m.activates_surge]
+		# Shared patterns must be told apart by their surge requirement, or by
+		# the move a string continues from (D-113).
+		var key: String = "%s/%s/%s/%s" % [m.input_pattern, m.requires_surge, m.activates_surge, m.string_after]
 		if patterns.has(key):
 			p.append("%s: duplicate input_pattern %s" % [fighter_id, m.input_pattern])
 		patterns[key] = true
+		if m.string_after != &"" and move_for_id(m.string_after) == null:
+			p.append("%s: %s continues a string from %s, which is not in the move list" % [fighter_id, m.id, m.string_after])
 	return p
