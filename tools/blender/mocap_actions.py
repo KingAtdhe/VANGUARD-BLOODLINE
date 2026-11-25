@@ -2796,43 +2796,61 @@ def kairo_keys(moves, base, g, S):
         lead_abs.append((k, (lf_x, w_land - travel(k), lf_h, 0.0)))
     lead_abs += [(a1 + 5, (lf_x, f_end, lf_h, 0.0)), (a1 + 8, (lf_x, (f_end + lf_f) * 0.5, lf_h + 0.05, 0.2), "io"),
                  (a1 + 11, FL + (0.0,), "in")]
-    # D-120, to the owner's reference (a taekwondo axe kick: fighting stance;
-    # the knee raised high; the leg straight and almost vertical, the foot
-    # above the head, the body upright on a straight standing leg, both fists
-    # kept up in a compact guard; then the leg comes down forward and the heel
-    # strikes downward). The skip forward of D-115 stays (the move travels
-    # 1.4 m), kept low.
+    # D-120, to the owner's reference (a taekwondo axe kick): knee raised,
+    # leg straight up with the foot above the head, body upright, compact
+    # guard, heel down onto the target; the D-115 skip covers the travel.
+    # D-121 (owner: "it needs to be with the other leg and the leg needs to be
+    # fully straight"): the lead (left) leg kicks and the rear foot does the
+    # skip; from the top to the strike every foot target lies on an arc around
+    # the hip beyond the leg's length, so the leg stays locked straight and
+    # swings down like a pendulum.
+    fr_x, fr_f, fr_h = FR
+    f_end_r = -0.12                                          # standing foot ends a little behind the hips
+    w_land_r = f_end_r + travel(m1)
+    rear_abs = [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,))]
+    for k in range(m0, m0 + 3):
+        rear_abs.append((k, (fr_x, fr_f - travel(k), fr_h, 0.0)))
+    rear_abs += [(hop0 + 1, (fr_x, fr_f - travel(hop0 + 1) + 0.04, fr_h + 0.06, 0.3), "out"),
+                 (hop1 - 1, (fr_x, w_land_r - travel(hop1 - 1) - 0.06, fr_h + 0.05, 0.2)),
+                 (land_k, (fr_x, w_land_r - travel(land_k), fr_h, 0.0), "in")]
+    for k in range(land_k + 1, m1 + 1):
+        rear_abs.append((k, (fr_x, w_land_r - travel(k), fr_h, 0.0)))
+    rear_abs += [(a1 + 5, (fr_x, f_end_r, fr_h, 0.0)), (a1 + 8, (fr_x, (f_end_r + fr_f) * 0.5, fr_h + 0.05, 0.2), "io"),
+                 (a1 + 11, FR + (0.0,), "in")]
+    hip_z = head_z - 0.60
+    arc_r = 1.25                                             # beyond the leg: the knee locks
+
+    def arc(deg, x=FL[0] * 0.6):
+        a = math.radians(deg)
+        return (x, arc_r * math.cos(a), hip_z + arc_r * math.sin(a), 0.7)
     out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 2, hop1), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 4, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
-        "hips": [(0, (hips0, 0)), (m0 - 1, (hips0 - 0.02, 0)), (hop0, (hips0 + 0.03, 0)), (a0 - 4, (hips0 - 0.02, 0)),
-                 (a0, (hips0 + 0.05, 0)), (a1, (hips0 + 0.08, 0)), (a1 + 10, (hips0, 0), "out")],
-        # (airborne frames place the hips from pelvis_h directly: these values sit
-        # ~7 cm under the grounded ones so the hop leaves and lands without a jump)
-        "pelvis_h": [(0, ph0), (m0 - 1, low(0.03), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 2, ph0 - 0.05, "out"),
-                     (hop0 + 3, ph0 - 0.035, "out"), (hop1, ph0 - 0.065, "io"), (land_k, low(0.02), "in"), (a0 - 4, ph0 + 0.01), (a0 - 2, ph0 + 0.01),
-                     (a0, low(0.02), "in"), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.03), "out")] + settle(T, a1 + 12, ph0, 0.02),
-        "pelvis": [(0, pel0), (m0, pel(-6)), (hop0 + 2, pel(-16)), (a0 - 4, pel(-20)), (a1, pel(-20)), (a1 + 10, pel0, "out")],
-        "shoulders": [(0, sh0), (m0, sho(2)), (hop0 + 2, sho(-8)), (a0 - 4, sho(-12)), (a1, sho(-14)), (a1 + 10, sh0, "out")],
+        "hips": [(0, (hips0, 0)), (m0 - 1, (hips0 - 0.02, 0)), (hop0, (hips0 + 0.02, 0)), (a0 - 4, (hips0 - 0.03, 0)),
+                 (a0, (hips0 + 0.03, 0)), (a1, (hips0 + 0.06, 0)), (a1 + 10, (hips0, 0), "out")],
+        "pelvis_h": [(0, ph0), (m0 - 1, low(0.03), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 2, ph0 - 0.12, "out"),
+                     (hop0 + 3, ph0 - 0.105, "out"), (hop1, ph0 - 0.13, "io"), (land_k, low(0.02), "in"), (a0 - 4, ph0 + 0.01),
+                     (a0 - 2, ph0 + 0.01), (a0, low(0.02), "in"), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.03), "out")]
+                    + settle(T, a1 + 12, ph0, 0.02),
+        "pelvis": [(0, pel0), (m0, pel(2)), (hop0 + 2, pel(8)), (a0 - 4, pel(10)), (a1, pel(8)), (a1 + 10, pel0, "out")],
+        "shoulders": [(0, sh0), (m0, sho(2)), (hop0 + 2, sho(6)), (a0 - 4, sho(8)), (a1, sho(6)), (a1 + 10, sh0, "out")],
         "trunk": [(0, tr0), (m0 - 1, lean(3)), (hop0, lean(-2)), (a0 - 4, lean(-6), "out"), (a0 - 2, lean(-5)), (a0, lean(2)),
                   (a1, lean(8)), (a1 + 3, lean(10)), (a1 + 9, lean(3), "out"), (a1 + 13, tr0)],
-        "lead_heel": [(0, 0.0), (m0 + 1, 0.0), (hop0, 0.06), (land_k, 0.0), (a1 + 6, 0.0)],
-        "lead_foot_abs": lead_abs,
-        # stance -> knee raised high (foot under the knee) -> leg straight up,
-        # foot above the head -> down forward, heel first, onto the target
-        "rear_foot_abs": [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,)), (m0 + 1, (FR[0] * 0.9, FR[1] - travel(m0 + 1) * 0.4, FR[2] + 0.08, 0.3), "out"),
-                          (hop0, (FR[0] * 0.5, 0.16, 0.74, 0.3), "io"),
-                          (hop0 + 2, (FR[0] * 0.35, 0.26, head_z - 0.30, 0.5), "io"),
-                          (a0 - 5, (FR[0] * 0.2, 0.26, head_z + 0.50, 0.7), "io"), (a0 - 4, (FR[0] * 0.2, 0.30, head_z + 0.48, 0.7)),
-                          (a0 - 2, (FR[0] * 0.1, hx - 0.20, head_z + 0.12, 0.6), "io"),
-                          (a0, (0.0, hx - 0.06, hz + 0.20, 0.5), "in"), (a1, (0.0, hx - 0.08, hz - 0.22, 0.4), "lin"),
-                          (a1 + 4, (FR[0] * 0.7, 0.30, FR[2] + 0.04, 0.0), "out"), (a1 + 6, (FR[0] * 0.7, 0.30, FR[2], 0.0)),
-                          (a1 + 9, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 12, FR + (0.0,), "in")],
+        "rear_heel": [(0, 0.03), (m0 + 1, 0.03), (hop0, 0.08), (land_k, 0.03), (a1 + 6, 0.03)],
+        "rear_foot_abs": rear_abs,
+        # guard -> knee raised high -> leg straight up past vertical -> swung
+        # down straight, heel first, through the target -> down in front
+        "lead_foot_abs": [(0, FL + (0.0,)), (m0, FL + (0.0,)), (m0 + 2, (FL[0] * 0.7, FL[1] + 0.02, 0.45, 0.3), "out"),
+                          (hop0, (FL[0] * 0.6, 0.26, 0.70, 0.3), "io"),
+                          (hop0 + 2, arc(78), "io"), (a0 - 5, arc(96), "io"), (a0 - 4, arc(98)),
+                          (a0 - 2, arc(60), "io"), (a0, arc(24), "in"), (a1, arc(-6), "lin"),
+                          (a1 + 4, (FL[0] * 0.8, FL[1] + 0.14, FL[2] + 0.04, 0.0), "out"), (a1 + 6, (FL[0] * 0.8, FL[1] + 0.14, FL[2], 0.0)),
+                          (a1 + 9, (FL[0] * 0.9, FL[1] + 0.06, FL[2] + 0.05, 0.2), "io"), (a1 + 12, FL + (0.0,), "in")],
         # both fists stay up in a compact guard, as in the reference
-        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 4, (L[0] - 0.02, L[1] - 0.06, L[2] + 0.02)),
-                          (a0, (L[0] - 0.02, L[1] - 0.04, L[2] - 0.04), "in"), (a1 + 4, (L[0], L[1] - 0.04, L[2] - 0.04)), (T - 4, L)],
-        "rear_hand_abs": [(0, R), (m0 - 1, (R[0], R[1] - 0.02, R[2] - 0.02)), (a0 - 4, (R[0] + 0.03, R[1] + 0.02, R[2] - 0.04)),
-                          (a0, (R[0] + 0.03, R[1] + 0.04, R[2] - 0.08), "in"), (a1 + 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.06)), (T - 4, R)],
+        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 4, (L[0] + 0.03, L[1] - 0.08, L[2] + 0.02)),
+                          (a0, (L[0] + 0.02, L[1] - 0.05, L[2] - 0.04), "in"), (a1 + 4, (L[0], L[1] - 0.04, L[2] - 0.04)), (T - 4, L)],
+        "rear_hand_abs": [(0, R), (m0 - 1, (R[0], R[1] - 0.02, R[2] - 0.02)), (a0 - 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.02)),
+                          (a0, (R[0] + 0.03, R[1] + 0.04, R[2] - 0.06), "in"), (a1 + 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.05)), (T - 4, R)],
     })
 
     # Rift Guard (the counter stance): he sits back onto the rear leg and the

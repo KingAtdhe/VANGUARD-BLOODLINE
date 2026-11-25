@@ -2146,3 +2146,17 @@ spread over the drop and the rise) and a 7–10 cm body jump entering and
 leaving the hop (airborne hips set from `pelvis_h` sat above the grounded
 height). Remaining flags: hands 7–8 cm on the hop's first frame. 222 tests
 pass. Not verified on a phone.
+
+## D-121 — 2026-11-25 — Rift Break: lead leg, locked straight
+
+Owner on D-120: "it needs to be with the other leg and the leg needs to be
+fully straight". The lead (left) leg now kicks and the rear foot does the
+skip (the same planted/hop/planted path, moved to the rear foot, ending
+0.12 m behind the hips). From the top to the strike every target of the
+kicking foot lies on an arc 1.25 m around the hip, beyond the leg's length,
+so the leg stays locked (knee 1–4° on frames 8–21 as Godot plays it,
+`knee_angles.gd`) and swings down like a pendulum; from the chamber it goes
+straight up to vertical (no horizontal front-kick pass). Fixed on the way: a
+13 cm head jump entering the hop (airborne `pelvis_h` lowered for the new
+standing leg) and a too-tight chamber (extension 0.28) that snapped open.
+222 tests pass. Not verified on a phone.

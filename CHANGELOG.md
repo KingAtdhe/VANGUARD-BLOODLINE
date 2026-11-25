@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Rift Break with the front leg, fully straight
+- The axe kick is now thrown with the other (front) leg, and the leg stays completely straight from the top until it strikes down.
 ### Changed — Rift Break follows the owner's axe kick reference
 - Knee up high, the leg rises straight with the foot above his head while his body stays upright with both fists in guard, then the heel comes down onto the opponent.
 ### Changed — Flying Side Kick, second pass
