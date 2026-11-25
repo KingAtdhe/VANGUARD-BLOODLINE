@@ -107,6 +107,8 @@ var pushback_transfers: bool = true
 ## thrower, the fighter it holds (-1 = none).
 var held_by: int = -1
 var throw_target: int = -1
+## Tick the hold began (throw escape window, D-114).
+var held_since: int = 0
 
 
 func copy() -> FighterState:
@@ -154,6 +156,7 @@ func copy() -> FighterState:
 	s.pushback_transfers = pushback_transfers
 	s.held_by = held_by
 	s.throw_target = throw_target
+	s.held_since = held_since
 	return s
 
 

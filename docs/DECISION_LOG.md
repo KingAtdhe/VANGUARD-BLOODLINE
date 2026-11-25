@@ -1994,3 +1994,26 @@ Owner agreed to combo strings next and asked to keep polishing the kicks.
   plainly visible in the air.
 - Tests: `test_kairo_strings.gd` (4, new), `test_combos` route updated
   (jab 35, cross 55, low kick 40 at 80 %). 219 pass.
+
+## D-114 — 2026-11-25 — Kicks straighten fully; throw escape for everyone
+
+**Kick legs** (owner: "his leg isn't fully extended"). The build log's leg
+extension read 1.00, but measured on the game skeleton the Flying Side Kick's
+knee stayed bent 11°: the two-bone IK never opened a limb past 0.995 of its
+length, and 2·acos(0.995) ≈ 11°. `_ik_dirs` takes a `reach`; the kicking-foot
+solve (`*_foot_abs`) uses 0.9995 (~3.6°), standing legs and arms keep 0.995.
+Measured with the new `tools/godot/knee_angles.gd` (knee bend per frame as
+Godot plays the clip): Flying Side Kick 11 → 4°, Low Kick 7° at contact,
+Rift Break top 37 → 4° (its top target moved out of reach, with an
+in-between key and in/out easing on the way up: the first try snapped the
+shin 0.57 m in one frame).
+
+**Throw escape** (all fighters). A fighter held by a throw that holds
+(currently Kairo's Knee Throw) breaks it by pressing Light + Kick within
+`throw_break_window` (10) ticks of the grab; presses made before the grab do
+not count. Both are let go, pushed `throw_break_push` (0.45 m) apart, recover
+for `throw_break_stun` (14) ticks, no damage; `CombatEvent.THROW_BREAK` (spark
+effect, block sound, training-panel text). Throws without a hold cannot be
+broken this way. The CPU does not use the escape yet. Tests:
+`tests/integration/test_throw_escape.gd` (3). 222 pass. Not verified on a
+phone; the review video shows the kicks only (the video tool drives P1).

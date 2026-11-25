@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-113 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-114 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Where things stand (2026-11-23, after D-095)
@@ -28,7 +28,7 @@ change goes to the owner with a real-speed review video).
    slower walk (1.8 m/s), fighter jump/crouch, Rift Guard, fire shader
    (`flame_particles.gdshader`), fighter edge lights. Other fighters still
    slide until rebuilt. Still missing for Kairo: crouching
-   jab, a second air attack, more strings (D-113 added the One-Two), throw escape for everyone. Next: the same
+   jab, a second air attack, more strings (D-113 added the One-Two), CPU use of the throw escape (D-114). Next: the same
    kind of pass on his other kicks (Low Kick, Rift Break, the Flying Side
    Kick) if the owner likes this one; check `legext` in `KEYED_DEBUG`.
 

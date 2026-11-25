@@ -3,7 +3,7 @@ extends RefCounted
 ## One entry in the combat log, stamped with the simulation tick.
 
 enum Type { ATTACK_START, HIT, BLOCK, WHIFF, KO, RESET, SURGE_START, SURGE_END, KNOCKDOWN, COUNTER,
-	PROJECTILE_FIRED, PROJECTILE_CLASH, DASH, JUMP }
+	PROJECTILE_FIRED, PROJECTILE_CLASH, DASH, JUMP, THROW_BREAK }
 
 var tick: int = 0
 var type: Type = Type.HIT
@@ -48,6 +48,8 @@ func to_text() -> String:
 				tick, who, move_id, target + 1, damage, target_health, hitstop]
 		Type.COUNTER:
 			return "t%d %s %s COUNTERED P%d" % [tick, who, move_id, target + 1]
+		Type.THROW_BREAK:
+			return "t%d %s breaks P%d's %s" % [tick, who, target + 1, move_id]
 		Type.DASH, Type.JUMP:
 			return "t%d %s %s" % [tick, who, move_id]
 		Type.PROJECTILE_FIRED:

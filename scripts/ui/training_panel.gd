@@ -77,6 +77,8 @@ func on_event(ev: CombatEvent, sim: CombatSimulation) -> void:
 			_last_hit_text = "%s  blocked  chip %d" % [_name_of(sim, ev.move_id), ev.damage]
 		CombatEvent.Type.COUNTER:
 			_last_hit_text = "%s  countered" % _name_of(sim, ev.move_id)
+		CombatEvent.Type.THROW_BREAK:
+			_last_hit_text = "%s  THROW BROKEN" % _name_of(sim, ev.move_id)
 
 
 func refresh(sim: CombatSimulation, history: InputHistory) -> void:

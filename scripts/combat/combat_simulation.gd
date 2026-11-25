@@ -221,6 +221,9 @@ func _throw_holds(contacts: Array[HitboxSystem.Contact]) -> Array[HitboxSystem.C
 			d.held_by = -1                       # let go: the victim recovers at once
 			d.stun_remaining = mini(d.stun_remaining, 1)
 			f.throw_target = -1
+		elif f.move_frame < f.move.throw_release_frame and _breaks_throw(d):
+			_break_throw(a, f.throw_target)
+			continue
 		elif f.move_frame < f.move.throw_release_frame:
 			# drawn in to the clinch over a few ticks (pushboxes ignored while held)
 			if f.move.throw_hold_distance > 0.0:
@@ -249,11 +252,62 @@ func _throw_holds(contacts: Array[HitboxSystem.Contact]) -> Array[HitboxSystem.C
 			d.chain.clear()
 			d.pushback_remaining = 0.0
 			d.held_by = c.attacker
+			d.held_since = tick
 			att.throw_target = c.defender
 			att.move_connected = true
 			continue
 		out.append(c)
 	return out
+
+
+## Throw escape (D-114): the held fighter pressed Light and Kick, both since
+## the grab and within the break window.
+func _breaks_throw(d: FighterState) -> bool:
+	var since: int = tick - d.held_since
+	if since > tuning.throw_break_window:
+		return false
+	var light: bool = false
+	var kick: bool = false
+	for e: Vector2i in d.buffer:
+		if e.y > since:
+			continue
+		if e.x == FighterInputFrame.CMD_THROW:
+			return true
+		light = light or e.x == FighterInputFrame.BUTTON_LIGHT or e.x == FighterInputFrame.CMD_DOWN_LIGHT
+		kick = kick or e.x == FighterInputFrame.BUTTON_KICK or e.x == FighterInputFrame.CMD_DOWN_KICK
+	return light and kick
+
+
+## Both let go and pushed apart; neither can act for throw_break_stun ticks.
+## The presses that broke it are used up (they would start attacks).
+func _break_throw(a: int, v: int) -> void:
+	var att: FighterState = fighters[a]
+	var d: FighterState = fighters[v]
+	var move_id: StringName = att.move.id if att.move != null else &""
+	att.throw_target = -1
+	d.held_by = -1
+	d.buffer.clear()
+	var mid: float = (att.position_x + d.position_x) * 0.5
+	for k: int in [a, v]:
+		var f: FighterState = fighters[k]
+		f.action = FighterState.Action.BLOCKSTUN
+		f.stun_remaining = tuning.throw_break_stun
+		f.move = null
+		f.chain.clear()
+		f.combo_hits = 0
+		f.combo_damage = 0
+		var away: float = signf(f.position_x - mid) if not is_equal_approx(f.position_x, mid) else float(-f.facing)
+		f.pushback_remaining = away * tuning.throw_break_push
+		f.pushback_step = tuning.throw_break_push / 8.0
+		f.pushback_transfers = false
+	var ev := CombatEvent.new()
+	ev.tick = tick
+	ev.type = CombatEvent.Type.THROW_BREAK
+	ev.actor = v
+	ev.target = a
+	ev.move_id = move_id
+	ev.point = Vector2(mid, 1.2)
+	combat_log.add(ev)
 
 
 func separation() -> float:

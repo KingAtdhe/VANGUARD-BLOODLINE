@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Added — Throw escape
+- When grabbed by a throw, press Light + Kick quickly (within about a sixth of a second) to break it: both fighters are pushed apart and nobody takes damage.
+### Fixed — Kairo's kicking leg fully extends
+- The Flying Side Kick, Low Kick and Rift Break legs now straighten fully (the knee stayed slightly bent, up to 37° at the top of Rift Break).
 ### Added — Kairo's One-Two string
 - **Light, Light, Kick**: when the jab connects, pressing Light again throws a hard cross (One-Two Cross), and Kick after it finishes with the Low Kick — the classic kickboxing 1-2-low kick, three hits.
 - A combo can hold at most three normal attacks before only specials can follow.

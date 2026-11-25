@@ -287,12 +287,15 @@ PALMS = {"in": (-1.0, 0.0, 0.0), "out": (1.0, 0.0, 0.0), "down": (0.0, 0.0, -1.0
          "forward": (0.0, -1.0, 0.0), "back": (0.0, 1.0, 0.0)}
 
 
-def _ik_dirs(a, target, l1, l2, hint):
+def _ik_dirs(a, target, l1, l2, hint, reach=0.995):
     """Two-bone IK in model space: directions of both bones from root `a` so
-    the end reaches `target` (as far as the limb goes), bending toward `hint`."""
+    the end reaches `target` (as far as the limb goes), bending toward `hint`.
+    `reach`: the most the limb opens, as a share of its length. 0.995 still
+    bends the joint ~11 degrees (2 acos 0.995); kicking legs use 0.9995 (~3.6
+    degrees, D-114: owner, "his leg isn't fully extended")."""
     d = np.asarray(target, float) - a
     closest = math.sqrt(l1 * l1 + l2 * l2 - 2 * l1 * l2 * math.cos(math.radians(32.0)))   # folds to 148 degrees at most
-    dist = float(np.clip(np.linalg.norm(d), closest, (l1 + l2) * 0.995))
+    dist = float(np.clip(np.linalg.norm(d), closest, (l1 + l2) * reach))
     dn = _norm(d)
     cos_a = np.clip((l1 * l1 + dist * dist - l2 * l2) / (2 * l1 * dist), -1, 1)
     h = np.asarray(hint, float)
@@ -637,7 +640,7 @@ def fit_stance(rig, P, st, lead, u=0.0):
             sag = np.array([0.0, leg_d[2], -leg_d[1]])
             hint = (flat + np.array([0.0, 0.0, 0.25])) * near_floor + sag * (1.0 - near_floor)
             d1, d2 = _ik_dirs(hip_j, np.array([x, -fw, z]), blen(sd + "UpperLeg", sd + "LowerLeg"),
-                              blen(sd + "LowerLeg", sd + "Foot"), hint)
+                              blen(sd + "LowerLeg", sd + "Foot"), hint, reach=0.9995)
             l_thigh, l_shin = slen(sd + "UpLeg", sd + "Leg"), slen(sd + "Leg", sd + "Foot")
             toe_keys = [k for k in (sd + "ToeBase", sd + "ToeBase_end") if k in P]
             toe_len = [slen(sd + "Foot", k) for k in toe_keys]
@@ -2764,7 +2767,7 @@ def kairo_keys(moves, base, g, S):
     # forward as the heel drops, and the kicking-side arm goes forward along
     # the leg instead of flinging out to the side
     a0, a1, T, hx, hz = win(moves["FORWARD_SPECIAL"])
-    top = (-0.03, 0.46, head_z + 0.06, 0.85)
+    top = (-0.03, 0.66, head_z + 0.16, 0.85)                # out of reach: the leg goes straight at the top (D-114; it bent 37 degrees)
     out["FORWARD_SPECIAL"] = dict(_recover=1.35, **{
         "lead_palm": "auto", "rear_palm": "auto",
         "chin": [(0, chin0), (a0 - 4, chin0 - 4), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
@@ -2777,7 +2780,8 @@ def kairo_keys(moves, base, g, S):
         "trunk": [(0, tr0), (5, lean(3)), (a0 - 4, lean(-24, 4), "out"), (a0 - 2, lean(-19, 3)), (a0, lean(-6)), (a1, lean(8)), (a1 + 3, lean(12)),
                   (a1 + 8, lean(3), "out"), (a1 + 12, tr0)],
         "lead_heel": [(0, 0.0), (a0 - 4, 0.012), (a0, 0.0), (a1 + 3, 0.0)],
-        "rear_foot_abs": [(0, FR + (0.0,)), (6, (FR[0] * 0.6, 0.10, 0.50, 0.4)), (a0 - 4, top, "out"), (a0 - 2, top),
+        "rear_foot_abs": [(0, FR + (0.0,)), (6, (FR[0] * 0.6, 0.10, 0.50, 0.4)), (a0 - 7, (-0.02, 0.30, head_z - 0.35, 0.6), "io"),
+                          (a0 - 4, top, "io"), (a0 - 2, top),
                           (a0, (0.0, hx - 0.06, hz + 0.20, 0.35), "in"), (a1, (0.0, hx - 0.08, hz - 0.22, 0.25), "lin"),
                           (a1 + 4, (FR[0] * 0.7, 0.30, FR[2] + 0.04, 0.0), "out"), (a1 + 9, FR + (0.0,))],
         "lead_hand_abs": [(0, L), (a0 - 4, chin), (a1 + 4, chin), (T - 4, L)],

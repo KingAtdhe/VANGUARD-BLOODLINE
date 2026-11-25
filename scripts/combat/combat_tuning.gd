@@ -27,6 +27,15 @@ extends Resource
 ## (D-113: keeps strings like Kairo's jab, cross, low kick at three normals).
 @export var max_normals_in_chain: int = 3
 
+@export_group("Throw escape")
+## D-114: a fighter grabbed by a throw that holds (Kairo's Knee Throw) breaks
+## it by pressing Light + Kick within this many ticks of the grab. Presses
+## made before the grab do not count.
+@export var throw_break_window: int = 10
+## Both fighters are pushed apart (metres each) and recover for this long.
+@export var throw_break_push: float = 0.45
+@export var throw_break_stun: int = 14
+
 @export_group("Origin meter")
 @export var meter_max: int = 100
 ## Defender gains this percent of damage taken as meter.
@@ -91,6 +100,8 @@ func validate() -> Array[String]:
 		p.append("input_buffer_ticks must be >= 0")
 	if cancel_grace_frames < 0:
 		p.append("cancel_grace_frames must be >= 0")
+	if throw_break_window < 1 or throw_break_stun < 1 or throw_break_push < 0.0:
+		p.append("throw escape values must be positive")
 	if max_normals_in_chain < 2:
 		p.append("max_normals_in_chain must be >= 2")
 	if max_same_move_in_chain < 1:

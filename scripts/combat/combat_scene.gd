@@ -394,8 +394,10 @@ func _present_new_events() -> void:
 					_fighter_views[ev.target].watch_landing(2.0, 1.5)
 				if not match_rules.training and ko_slowmo_scale < 1.0:
 					_slowmo_left = ko_slowmo_seconds
-			CombatEvent.Type.PROJECTILE_CLASH:
+			CombatEvent.Type.PROJECTILE_CLASH, CombatEvent.Type.THROW_BREAK:
 				_effects.spawn_for(ev)
+				if ev.type == CombatEvent.Type.THROW_BREAK:
+					_camera_rig.add_shake(0.01)
 			CombatEvent.Type.COUNTER:
 				# the caught attacker flashes; the follow-up brings its own hit
 				_fighter_views[ev.target].flash()

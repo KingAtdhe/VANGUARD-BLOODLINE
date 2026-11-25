@@ -79,6 +79,8 @@ func on_event(ev: CombatEvent, sim: CombatSimulation) -> void:
 			play(&"block")
 		CombatEvent.Type.COUNTER:
 			play(&"block", 1.35)
+		CombatEvent.Type.THROW_BREAK:
+			play(&"block", 0.85)
 		CombatEvent.Type.SURGE_START:
 			play(&"surge")
 		CombatEvent.Type.KNOCKDOWN:
