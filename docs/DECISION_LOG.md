@@ -2115,3 +2115,16 @@ behind `KAIRO_MOCAP_AIR=1`. Rift Break keeps the recorded axe kick (D-117)
 until the owner's axe-kick reference can be read (a share.google link was
 rate-limited twice). Checked: side and front strips, arena frames. 222
 tests pass. Not verified on a phone.
+
+## D-119 — 2026-11-25 — Flying Side Kick: other leg, leaning body
+
+Owner on D-118: "his upper body stays straight, that's wrong, also he is
+using the wrong leg". The rear (right) leg now kicks and the lead leg folds
+under him; the hips turn the right side to the target (pelvis −88..−92°
+from the stance), shoulders follow; the trunk leans back 20–24° and away
+(side 12–14°) with the chin dropped into the kick, so it curls instead of
+standing straight; the right arm reaches down along the kicking leg, the
+left fist is at the chest. Rift Break unchanged: the owner's axe-kick
+reference (a share.google link) is blocked to automated fetching
+(robots_disallowed), so a screenshot is needed. 222 tests pass. Not verified
+on a phone.

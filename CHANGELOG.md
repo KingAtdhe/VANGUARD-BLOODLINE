@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Flying Side Kick, second pass
+- Kicks with the other (right) leg, the left leg folded under him; the upper body leans back and away and curls into the kick instead of staying straight; the right arm reaches along the kicking leg, the left fist at the chest.
 ### Changed — Flying Side Kick like Ryu's
 - Upright body with the chest toward the camera, the kicking leg straight out and nearly level, the other leg folded under him, the front arm straight down along the kick and the back fist at the chest.
 ### Changed — Rift Break and Flying Side Kick now use real motion capture
