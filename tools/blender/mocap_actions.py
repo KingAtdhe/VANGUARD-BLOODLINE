@@ -3843,6 +3843,14 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 k_half = (0.02, hx + 0.08, hz + 0.13, -0.85)
                 k_out = (0.02, hx + 0.34, hz + 0.08, -0.95)                            # heel first, leg fully straight (D-099)
                 k_hold = (0.02, hx + 0.34, hz + 0.08, -0.95)
+                # D-118, to the owner's reference (Ryu's flying side kick): the
+                # kicking leg straight out, nearly level, a little below the hips,
+                # foot edge first; the trunk almost upright, chest toward the
+                # camera; the other leg folded tight under him; the front arm
+                # straight down along the kicking leg, the back fist at the chest
+                k_out = (0.02, hx + 0.36, hz + 0.30, -0.95)
+                k_hold = (0.02, hx + 0.36, hz + 0.30, -0.95)
+                k_half = (0.02, hx + 0.10, hz + 0.34, -0.85)
                 k_back = (0.02, hx * 0.95, hz + 0.10, -0.8)                            # first frames of the pull back
                 k_back2 = (hl[0] * 0.15, hx * 0.55, hz + 0.20, -0.6)
                 r_tuck = (hr[0] * 0.8, -0.28 * S_fit, hr[2] + 0.30 * S_fit, 0.5)       # rear leg trails behind and below, bent ~0.6 (D-099: tucked to 0.28 it crushed the knee and pinched the thigh)
@@ -3850,13 +3858,13 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # straight down under him like a kneeling man. Now it is tucked up
                 # under the hips, knee forward, foot under the seat (bent ~0.45,
                 # still clear of the D-099 pinch), and comes down for the landing
-                r_tuck = (hr[0] * 0.85, -0.19 * S_fit, hr[2] + 0.37 * S_fit, 0.45)
-                r_tuck2 = (hr[0] * 0.85, -0.17 * S_fit, hr[2] + 0.34 * S_fit, 0.45)
+                r_tuck = (hr[0] * 0.30, 0.06 * S_fit, hr[2] + 0.44 * S_fit, 0.45)        # folded under, foot below the kicking thigh
+                r_tuck2 = (hr[0] * 0.30, 0.04 * S_fit, hr[2] + 0.42 * S_fit, 0.45)
                 at = {"_name": "JUMP_ATTACK", "pelvis_h": ph0,
-                      "pelvis": [(0, pel0), (a0 - 3, pel0 + 22, "io"), (a0, pel0 + 56, "io"), (a0 + 5, pel0 + 60), (a1, pel0 + 50), (a1 + 3, pel0 + 30, "io"), (T, pel0 + 6, "io")],
-                      "shoulders": [(0, sh0), (a0 - 3, sh0 + 10, "io"), (a0 + 1, sh0 + 40, "io"), (a0 + 6, sh0 + 46), (a1, sh0 + 34), (a1 + 3, sh0 + 18, "io"), (T, sh0 + 4, "io")],
-                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 40, tr0[1]), "io"),
-                                (a0 + 5, (tr0[0] - 46, tr0[1])), (a1, (tr0[0] - 43, tr0[1])), (a1 + 4, (tr0[0] - 16, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
+                      "pelvis": [(0, pel0), (a0 - 3, pel0 + 20, "io"), (a0, pel0 + 50, "io"), (a0 + 5, pel0 + 52), (a1, pel0 + 46), (a1 + 3, pel0 + 28, "io"), (T, pel0 + 6, "io")],
+                      "shoulders": [(0, sh0), (a0 - 3, sh0 - 4, "io"), (a0 + 1, sh0 - 12, "io"), (a0 + 6, sh0 - 14), (a1, sh0 - 10), (a1 + 3, sh0 - 4, "io"), (T, sh0, "io")],
+                      "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 2, tr0[1]), "io"), (a0 + 1, (tr0[0] - 10, tr0[1]), "io"),
+                                (a0 + 5, (tr0[0] - 12, tr0[1])), (a1, (tr0[0] - 10, tr0[1])), (a1 + 4, (tr0[0] - 2, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
                       # D-112: the leg keeps driving through the hold (it froze)
                       "lead_foot_abs": [(0, k_tuck), (a0 - 3, k_chamber, "out"), (a0 - 1, k_half), (a0, k_out),
                                         (a0 + 4, (k_hold[0], k_hold[1] + 0.05, k_hold[2] + 0.02, k_hold[3])),
@@ -3870,14 +3878,14 @@ def build(rig_obj, moves, fid, height, clip_dir):
                       # D-116 (owner: robotic; bold, readable shapes): the arm on the
                       # kicking side reaches down along the leg, the other is thrown
                       # out behind him as a counterweight; both come home on landing
-                      "lead_hand": [(0, lh0), (a0 - 3, (lh0[0], lh0[1] - 0.10, lh0[2] - 0.02)), (a0, (lh0[0] + 0.04, lh0[1] + 0.02, lh0[2] - 0.30), "in"),
-                                    (a0 + 5, (lh0[0] + 0.05, lh0[1] + 0.06, lh0[2] - 0.34)), (a1, (lh0[0] + 0.04, lh0[1] + 0.02, lh0[2] - 0.28)),
-                                    (a1 + 3, (lh0[0], lh0[1] - 0.04, lh0[2] - 0.10), "io"), (T, lh0, "out")],
-                      "rear_hand": [(0, rh0), (a0 - 3, (rh0[0] - 0.04, rh0[1] - 0.06, rh0[2] + 0.04)), (a0, (rh0[0] - 0.14, -0.30, rh0[2] - 0.02), "in"),
-                                    (a0 + 6, (rh0[0] - 0.16, -0.36, rh0[2] + 0.02)), (a1, (rh0[0] - 0.12, -0.28, rh0[2] - 0.02)),
-                                    (a1 + 3, (rh0[0] - 0.06, rh0[1] - 0.10, rh0[2] + 0.02), "io"), (T, rh0, "out")],
-                      "lead_elbow": [(0, 0.2), (a0, 0.1), (a1, 0.12), (T, 0.2)],
-                      "rear_elbow": [(0, 0.1), (a0, 0.08), (a1, 0.1), (T, 0.1)]}
+                      "lead_hand": [(0, lh0), (a0 - 3, (lh0[0], lh0[1] - 0.06, lh0[2] - 0.04)), (a0, (0.06, 0.40, -0.58), "in"),
+                                    (a0 + 5, (0.06, 0.43, -0.60)), (a1, (0.06, 0.40, -0.56)),
+                                    (a1 + 3, (lh0[0], lh0[1] + 0.04, lh0[2] - 0.16), "io"), (T, lh0, "out")],
+                      "rear_hand": [(0, rh0), (a0 - 3, (rh0[0], rh0[1] - 0.04, rh0[2] - 0.04)), (a0, (0.02, 0.14, -0.32), "in"),
+                                    (a0 + 6, (0.02, 0.13, -0.33)), (a1, (0.02, 0.14, -0.31)),
+                                    (a1 + 3, (rh0[0], rh0[1] - 0.02, rh0[2] - 0.06), "io"), (T, rh0, "out")],
+                      "lead_elbow": [(0, 0.2), (a0, 0.04), (a1, 0.05), (T, 0.2)],
+                      "rear_elbow": [(0, 0.1), (a0, 0.75), (a1, 0.7), (T, 0.1)]}
             A[f"{F}_JUMP_ATTACK"] = keyed_frames(n_air, at, settle=0, air=True, blend_in=0)
             AIRBORNE[f"{F}_JUMP_ATTACK"] = (0, n_air)
     else:
@@ -3989,7 +3997,9 @@ def build(rig_obj, moves, fid, height, clip_dir):
             # hip height), mirrored onto his lead (left) leg, in the air: the
             # hips stay at jump height and the other leg is tucked under him.
             mv = moves.get("AIR")
-            if mv:
+            # D-118: the owner's reference (Ryu's flying side kick) is a clear
+            # pose, built keyed instead; KAIRO_MOCAP_AIR=1 keeps this version
+            if mv and os.environ.get("KAIRO_MOCAP_AIR"):
                 yoko = mirrored(clip("86_08"))
                 dk = (yoko.at(4318)["LeftFoot"] - yoko.at(4318)["Hips"])[:2]
                 air_hips = float(guard.hips[2])

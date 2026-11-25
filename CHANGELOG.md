@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Flying Side Kick like Ryu's
+- Upright body with the chest toward the camera, the kicking leg straight out and nearly level, the other leg folded under him, the front arm straight down along the kick and the back fist at the chest.
 ### Changed — Rift Break and Flying Side Kick now use real motion capture
 - Like Street Fighter, the two kicks are now built from recordings of real martial artists, fitted to Kairo: Rift Break is a recorded axe kick (the leg rises straight up in front to head height and chops down), still with the skip forward; the Flying Side Kick is a recorded side kick put in the air, the body and straight leg in one long line with the other leg tucked.
 ### Changed — bolder Rift Break and Flying Side Kick

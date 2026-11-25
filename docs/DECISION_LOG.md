@@ -2099,3 +2099,19 @@ The CMU captures here were scanned for kicks (`/root/work/tools/scan_kicks.py`,
 - Checked: frame strips side and front, knee angles, arena frames before/now.
   One-frame flag left: the flying kick's toe on its first active frame (the
   kick firing). 222 tests pass. Not verified on a phone.
+
+## D-118 — 2026-11-25 — Flying Side Kick to the owner's Ryu reference
+
+Owner on D-117: "no bro u got it wrong again", then sent official art of
+Ryu's flying side kick. The reference is a clear pose, not what the CMU side
+kick gave (body leaning far back, leg angled down): trunk almost upright
+with the chest turned toward the viewer; the kicking leg straight and nearly
+level, a little below the hips, foot edge first; the other leg folded tight
+under him; the front arm straight down along the kicking leg; the back fist
+at the chest, elbow up. Built keyed to that (trunk −10–12° instead of
+−40–46°, shoulders turned toward the camera, foot 0.30 m higher, tuck under
+the kicking thigh, arms as in the art). The D-117 recorded version stays
+behind `KAIRO_MOCAP_AIR=1`. Rift Break keeps the recorded axe kick (D-117)
+until the owner's axe-kick reference can be read (a share.google link was
+rate-limited twice). Checked: side and front strips, arena frames. 222
+tests pass. Not verified on a phone.
