@@ -2066,3 +2066,36 @@ thrown out); D-115's were careful and small. Same method, bold:
   re-import) confirmed it. The changes were just too small to see.
 - Checked: frame strips side and front, arena frames before/now, no new
   one-frame flags. 222 tests pass. Not verified on a phone.
+
+## D-117 — 2026-11-25 — Rift Break and Flying Side Kick from motion capture
+
+Owner on D-116: "nope still wrong, look at fighting games on web and learn
+how to do them properly". Research: Street Fighter V built its motions from
+motion capture with few exceptions (Capcom's SFV animation column), and SF6
+captures performers and then has animators adjust the data to the model
+(Capcom's Alex mocap video, 2026). Hand-posed IK kicks were the cause of the
+robotic look; more keyed passes would not reach that level.
+
+The CMU captures here were scanned for kicks (`/root/work/tools/scan_kicks.py`,
+`classify.py`: foot height, hip turn, trunk lean, path in the body frame):
+- **Rift Break** = CMU 144_05, the right-leg kick at frame 2498: the foot
+  rises straight up in front to head height and drops nearly vertically
+  (an axe kick); hit on the way down (frame 2516). Built with `strike()`,
+  timed to the move's frame data; the foot is pulled onto the hitbox only
+  from the frame before the hit (`guide_lead=1`, new) so the top of the kick
+  is kept. The move still carries him 1.4 m, so the standing foot follows the
+  D-115 skip (`stand(t)`, new: a foot path in model space applied after the
+  feet are planted; `hop(t)`, new: a lift after grounding), and the kicking
+  foot holds the floor while the travel starts.
+- **Flying Side Kick** = CMU 86_08, the right-leg side kick at frame 4318
+  (hips turned ~95°, trunk ~38° away, foot 1.06 m out at hip height),
+  mirrored onto his left leg (`mirrored()`, new), in the air (`air_h(t)`,
+  new: hips at jump height, not grounded), the whole body tipped 22°
+  forward so the straight leg points down at the target, the other leg
+  tucked (knee ~130°). The pull onto the hitbox is off (it folded the leg to
+  70–96° and curled him into a ball); the knee is 19–25° through the kick.
+  A first tuck pinned the knee at 150° (offsets divided by 1.8 twice).
+- `KAIRO_KEYED_KICKS=1` builds the D-116 keyed versions instead.
+- Checked: frame strips side and front, knee angles, arena frames before/now.
+  One-frame flag left: the flying kick's toe on its first active frame (the
+  kick firing). 222 tests pass. Not verified on a phone.

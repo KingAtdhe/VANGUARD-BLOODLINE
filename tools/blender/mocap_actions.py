@@ -2974,6 +2974,26 @@ def build(rig_obj, moves, fid, height, clip_dir):
     Pose.rig = rig
     F = fid.upper()
     clip = lambda name: Clip(os.path.join(clip_dir, name + ".bvh"), height)  # noqa: E731
+
+    def mirrored(c):
+        """The capture mirrored left for right (D-117: a right-leg recorded kick
+        thrown with Kairo's left leg). Joint names swap sides, X flips."""
+        import copy as _copy
+        import re as _re
+        m = _copy.copy(c)
+
+        def swap(k):
+            if "Left" in k:
+                return k.replace("Left", "Right")
+            if "Right" in k:
+                return k.replace("Right", "Left")
+            if _re.match(r"^L[A-Z]", k):
+                return "R" + k[1:]
+            if _re.match(r"^R[A-Z]", k):
+                return "L" + k[1:]
+            return k
+        m.P = {swap(k): v * np.array([-1.0, 1.0, 1.0]) for k, v in c.P.items()}
+        return m
     box = clip("13_17")          # boxer: guard, jab, cross, combos
     art = clip("144_13")         # martial artist: straight lead punches
     art_r = clip("144_20")       # martial artist: straight rear punches
@@ -3092,12 +3112,19 @@ def build(rig_obj, moves, fid, height, clip_dir):
 
     # ---- strikes retimed to frame data, limb guided onto the hitbox
     def strike(c, peak, side, limb, mv, pre=24, post=34, facing=None, reach_w=1.0, extra=None, blend_in=0,
-               aim=None, lift=None, foot_last=False):
+               aim=None, lift=None, foot_last=False, stand=None, hop=None, air_h=None, guide_lead=4):
         """foot_last: aim the kicking foot onto the hitbox once more after the
         feet are re-planted (as the fist is; the recorded karate kicks, D-095).
         aim: horizontal direction of the capture that must point at the
         opponent (kicks thrown sideways from the hips); lift(t): metres the
-        whole body is raised on frame t (jumps; those frames are not grounded)."""
+        whole body is raised on frame t (jumps; those frames are not grounded).
+        D-117 (recorded kicks on moves that travel or fly):
+        stand(t) -> (side, (x, fwd, height)) or None: that foot is put there
+        (model space, fwd = toward the opponent) after the feet are planted, so
+        a planted foot can hold still on the floor while the game carries the
+        fighter; hop(t): metres the body is raised on frame t after grounding,
+        keeping the planted-foot logic (a skip); air_h(t): the hips height on
+        an airborne frame (not grounded at all; the jump attacks)."""
         start, total = mv["startup"], mv["startup"] + mv["active"] - 1 + mv["recovery"]
         a0, a1 = mv["startup"] - 1, mv["startup"] + mv["active"] - 2
         mid = (a0 + a1) / 2
@@ -3140,7 +3167,10 @@ def build(rig_obj, moves, fid, height, clip_dir):
             # guide the striking limb onto the hitbox around the active frames
             w = 0.0
             if t <= mid:
-                w = ease(max(0.0, (t - (a0 - min(a0, 4))) / max(1.0, mid - (a0 - min(a0, 4)))))
+                # guide_lead: frames before the first active frame the limb starts
+                # being pulled onto the hitbox (an axe kick keeps its top: 1)
+                g0 = a0 - min(a0, guide_lead)
+                w = ease(max(0.0, (t - g0) / max(1.0, mid - g0)))
             else:
                 w = 1.0 - ease(min(1.0, (t - a1) / 7.0)) if t > a1 else 1.0
             w *= reach_w
@@ -3155,7 +3185,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 P = move_foot(P, side, np.array([cur[0], tgt_fwd + 0.08, tgt_h]), w)
             if extra:
                 P = extra(P, t, total)
-            if fitted and not lift:
+            if fitted and not lift and not air_h:
                 # over the stance centre, on the stance's own foot marks (plant_feet)
                 P = shift(P, list(P.keys()), np.array([0.0, guard_P["Hips"][1], 0.0]))
                 # a kick leans the trunk away from the leg to stay over the standing foot
@@ -3171,7 +3201,21 @@ def build(rig_obj, moves, fid, height, clip_dir):
                     P = reach_hand(rig, P, side, (None, -(hc[0] - 0.08), hc[1]), w,
                                    pelvis_z(rig, P, st, c.stand_hips))
                 P = eyes_on(P)
-            pose = pose_of(P, c)
+            if stand:
+                sp = stand(t)
+                if sp is not None:
+                    sd2, (sx, sf, sz) = sp
+                    P = move_foot(P, sd2, np.array([sx, -sf, sz]), 1.0)
+            if air_h:
+                P = shift(P, list(P.keys()), np.array([-P["Hips"][0], -P["Hips"][1] + guard_P["Hips"][1], 0.0]))
+                pose = pose_of(P, c, ground=False)
+                pose = Pose(pose.D, np.array([pose.hips[0], pose.hips[1], air_h(t)]))
+            else:
+                pose = pose_of(P, c)
+            if hop:
+                hu = hop(t)
+                if hu > 0.002:
+                    pose = Pose(pose.D, pose.hips + np.array([0, 0, hu]))
             up = lift(t) if lift else 0.0
             if up > 0.005:                    # grounded pose first, then raised
                 pose = Pose(pose.D, pose.hips + np.array([0, 0, up]))
@@ -3883,6 +3927,87 @@ def build(rig_obj, moves, fid, height, clip_dir):
         for mv_key, tracks in kairo_keys(moves, base_ps, dict(g_hand, feet=g_foot), S_fit).items():
             mv = moves[mv_key]
             A[F + mv["animation"][mv["animation"].find("_"):]] = keyed_move(mv, tracks)
+        if not os.environ.get("KAIRO_KEYED_KICKS"):
+            # D-117 (owner: "look at fighting games and learn how to do them
+            # properly"): Street Fighter V/6 build their moves from motion
+            # capture of real fighters and then adjust it. Rift Break is now a
+            # recorded axe kick (CMU 144_05: the right foot rises straight up in
+            # front to head height and drops nearly vertically, frame 2498 at
+            # the top; the hit is on the way down, ~2516), timed to the move's
+            # frame data, the foot guided onto the hitbox. The move carries him
+            # 1.4 m: a recording done on the spot would skate, so the standing
+            # foot follows a skip (planted while the travel starts, a hop,
+            # planted again as the body rides over it) and the kicking foot is
+            # held to the floor until it lifts.
+            mv = moves["FORWARD_SPECIAL"]
+            axe = clip("144_05")
+            m0, m1 = mv.get("move_start", 4) - 1, mv.get("move_end", 16) - 1
+            v = mv.get("move_distance", 1.4) / float(m1 - m0 + 1)
+
+            def travel(k):
+                return v * min(max(0, k - m0 + 1), m1 - m0 + 1)
+            FLk, FRk = tuple(g_foot["Left"]), tuple(g_foot["Right"])
+            land_k, f_end = m1 - 3, 0.06
+            w_land = f_end + travel(m1)
+            hop0, hop1 = m0 + 3, land_k - 1
+            lead_path = [(0, FLk), (m0 - 1, FLk)]
+            for k in range(m0, m0 + 3):
+                lead_path.append((k, (FLk[0], FLk[1] - travel(k), FLk[2])))
+            lead_path += [(hop0 + 2, (FLk[0], (FLk[1] - travel(hop0) + w_land - travel(land_k)) * 0.5, FLk[2]), "io"),
+                          (land_k, (FLk[0], w_land - travel(land_k), FLk[2]), "in")]
+            for k in range(land_k + 1, m1 + 1):
+                lead_path.append((k, (FLk[0], w_land - travel(k), FLk[2])))
+            a1r = mv["startup"] + mv["active"] - 2
+            lead_path += [(a1r + 6, (FLk[0], f_end, FLk[2])), (a1r + 12, FLk, "io")]
+            total_r = mv["startup"] + mv["active"] - 1 + mv["recovery"]
+
+            def stand(t):
+                return ("Left", tuple(curve(t, lead_path)))
+
+            def hop(t):
+                if hop0 < t < land_k:
+                    return 0.09 * math.sin(math.pi * (t - hop0) / float(land_k - hop0))
+                return 0.0
+
+            def rear_planted(P, t, T):
+                # the kicking foot holds its spot on the floor while the travel
+                # starts, then lets the recording lift it (weight 1 -> 0)
+                if m0 <= t <= m0 + 3:
+                    wgt = 1.0 - (t - m0) / 4.0
+                    tgt = P["RightFoot"].copy()
+                    tgt[1] = -(FRk[1] - travel(t))
+                    tgt[2] = min(tgt[2], FRk[2] + 0.02)
+                    P = move_foot(P, "Right", tgt, wgt)
+                return P
+            dk = (axe.at(2498)["RightFoot"] - axe.at(2498)["Hips"])[:2]
+            A[F + "_SPECIAL_RIFT_BREAK"] = strike(axe, 2516, "Right", "foot", mv, pre=86, post=62, blend_in=4,
+                                                  aim=dk / (np.linalg.norm(dk) + 1e-9), extra=rear_planted,
+                                                  stand=stand, hop=hop, foot_last=True, guide_lead=1)
+            # The Flying Side Kick from a recorded side kick (CMU 86_08, the
+            # right-leg yoko geri at frame 4318: hips turned ~95 degrees, trunk
+            # leaning ~38 degrees away, the foot driven 1.06 m straight out at
+            # hip height), mirrored onto his lead (left) leg, in the air: the
+            # hips stay at jump height and the other leg is tucked under him.
+            mv = moves.get("AIR")
+            if mv:
+                yoko = mirrored(clip("86_08"))
+                dk = (yoko.at(4318)["LeftFoot"] - yoko.at(4318)["Hips"])[:2]
+                air_hips = float(guard.hips[2])
+
+                a0j = mv["startup"] - 1
+
+                def tuck_other(P, t, T):
+                    # the standing side kick tipped forward as a whole so the
+                    # straight leg points down at the target (it was horizontal,
+                    # at hip height) and the trunk comes more upright
+                    tip = 22.0 * ease(min(1.0, max(0.0, (t + 1) / float(a0j + 1)))) * (1.0 - ease(min(1.0, max(0.0, (t - (T - 9)) / 9.0))))
+                    P = lean(P, -tip, keys=list(P.keys()))
+                    hp = P["Hips"]
+                    w = min(1.0, (t + 2) / 4.0) * (1.0 - max(0.0, (t - (T - 5)) / 5.0) * 0.6)
+                    return move_foot(P, "Right", hp + np.array([-0.10 * H, 0.24 * H, -0.50 * H]), w)
+                A[F + "_JUMP_ATTACK"] = strike(yoko, 4322, "Left", "foot", mv, pre=48, post=26, blend_in=2, reach_w=0.0,
+                                               aim=dk / (np.linalg.norm(dk) + 1e-9), extra=tuck_other,
+                                               air_h=lambda t: air_hips)
         if os.environ.get("KAIRO_RECORDED"):
             # Trial (D-095): two of his moves from recorded karate instead of
             # keys, to compare side by side. CMU 135 is a karateka: 135_09
