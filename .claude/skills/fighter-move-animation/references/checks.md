@@ -229,7 +229,7 @@ godot --headless --path . --script res://tests/run_tests.gd -- kairo   # only fi
 
 Wait for the full run to end before committing. Report the real count.
 
-## Known flags on Kairo at D-125 (the baseline)
+## Known flags on Kairo at D-126 (the baseline)
 
 So you can tell your own flags from the ones already there. Update this list
 when a build changes it.
@@ -238,7 +238,8 @@ Pops: Low Kick f9 right toe (the strike); Rift Break f9 both hands (the hop
 starting), f19 left lower leg; ultimate f18 and f37 right toe;
 jump f43 both toes (landing); Rising Uppercut f5 left toe.
 
-Motion report: Rift Break clean since D-125 (before it: FAST f7, f9, f10 and
+Motion report: Rift Break FAST f10 (right ankle 37 cm, the knee locking as
+the straight leg swings through; before D-125 it had FAST f7, f9, f10 and
 DWELL f11–18, the example of a leg that snaps up and waits); Leg Sweep FAST f3–4 (left wrist to the floor); Fireball FROZEN f20–24;
 Knee Throw FAST f17 (right ankle 38 cm); ultimate several FAST (its later
 hits are strikes the report does not know about); Flying Side Kick FOLD 0.28
@@ -251,10 +252,10 @@ Body angles at contact:
 | Low Kick (approved) | 4° | 93° | 76° | 15° | 29° / 30° |
 | Front Kick | **34°** | 43° | 21° | 21° | 20° / 0° |
 | Flying Side Kick | 4° | 86° | 39° | 46° | 13° / 11° |
-| Rift Break | 4° | 25° | 17° | 6° | 6° forward |
+| Rift Break | 4° (frames 10–30) | 25° | 17° | 6° | 6° forward |
 
 Stretched edges, worst frame: idle 8; Low Kick 12; Front Kick 10; Flying
-Side Kick 19; **Rift Break 41 (frame 17, the leg beside the head)**.
+Side Kick 19; **Rift Break 33 (frame 19, the leg beside the head)**.
 
 Pose checker (9 of 99 frames): Front Kick, Low Kick and ultimate with the
 centre of gravity outside the feet; counter hook and string cross with the
@@ -264,8 +265,10 @@ foot floating, and the **right hand inside the torso on f25**); surge foot.
 Foot slide walking forward: 0.5 cm mean per planted frame.
 
 The owner's reference pictures for the Low Kick, Flying Side Kick and Rift
-Break were sent in an earlier chat and are not in the repository. New ones
-go into `docs/images/references/`.
+Break (D-120) were sent in an earlier chat and are not in the repository.
+Rift Break's current target is her written sequence,
+`docs/images/references/kairo_rift_break_axe_kick.md`. New ones go into
+`docs/images/references/`.
 
 ## What no check sees
 

@@ -198,32 +198,37 @@ nearest keyed example (its numbers are below).
 
 ### Axe kick (Kairo: Rift Break, `FORWARD_SPECIAL` / `SPECIAL_RIFT_BREAK`)
 
-Status: keyed to the owner's taekwondo sequence (D-120…D-122); **not yet
-confirmed**. Her corrections so far: other leg (twice; settled as the leg
-nearer the camera), leg fully straight, slower and less abrupt.
+Status: keyed to the owner's **written sequence** (D-126,
+`docs/images/references/kairo_rift_break_axe_kick.md`); **not yet
+confirmed**. Her corrections on the way: other leg (twice; settled as the leg
+nearer the camera), leg fully straight, slower and less abrupt, and then the
+sequence itself, which rules out a knee-up chamber.
 
-- From the guard, the knee comes up high (her sequence shows a raised-knee
-  figure first), or in the swing version the straight leg rises directly.
-- The leg goes **up straight and close to vertical, foot above the head**,
-  slightly to one side of the target on the way up (a shallow crescent).
-- Body upright on the standing leg at the top, in her reference; compact
-  guard, both fists up. (An earlier version leaned back 29–32° with the arms
-  opened wide; the reference does not, and it was replaced.)
-- The leg comes **down straight like a pendulum**, heel first, through the
-  target; the chest comes slightly forward with the drop and the standing
-  knee gives. The strike is on the way down. "Then he strikes with foot
-  down."
-- Foot ends on the floor in front; step back into the stance.
-- The leg stays locked from the top to the strike (knee 4° measured). See
-  keying.md "Lock a limb straight" for the arc that does this.
-- Frames (D-125): knee up by frame 9, the leg unfolds upward close to the
-  body over frames 10–15 (knee 128° → 28°), locks at 16, top 16–18, down
-  19–21, strike 22. Until D-125 it snapped to vertical in one frame and
-  waited eight at the top: the keys were right and their frames were not
-  (see "Sharing out the frames"). The skin stretches most at the top (41
-  edges on frame 17; the idle has 8).
-- The move carries him 1.4 m, so the standing foot does a skip (plant, hop,
-  plant) to cover it; see keying.md "Travel".
+- Weight onto the supporting leg first (hips forward over the lead foot).
+- The kicking leg swings **straight up in front of the body with the knee
+  extended**. No chamber, no knee-up, nothing sideways. The foot passes low
+  under the hip on a soft knee for three frames (it has to clear the floor
+  under a sunk stance), then the leg is locked.
+- The rise is steady and takes about half the startup (ten frames at ~20 cm
+  a frame). The peak is vertical or nearly, foot above the head, beside his
+  own head, and it is one moment (two frames).
+- Trunk: a small lean back as the leg rises (7°), forward with the chop
+  (13°). Compact guard, both fists up. No spin and no twist beyond the
+  stance's.
+- The leg is **driven straight down like an axe, heel first**: foot flexed,
+  toes pulled back (`point` −0.6 … −0.9). The chop gathers speed over three
+  frames into the contact; the strike is on the way down.
+- It drives on down to the floor (no hold at hip height: `_hold` 1), lands
+  in front, and is drawn back into the stance.
+- The leg stays locked from frame 10 to the floor (knee 4° measured). See
+  keying.md "Lock a limb straight".
+- The move carries him 1.4 m, so the supporting foot does a skip (plant,
+  hop, plant); see keying.md "Travel". Her sequence has no step forward:
+  whether to keep the travel is her call (a balance change).
+- Earlier versions, replaced: a lean of 29–32° with wide arms (D-116); a
+  raised knee then the leg unfolding upward (D-120, D-125); a leg that
+  snapped to vertical in one frame and waited eight at the top (until
+  D-125). The skin stretches most at the peak (33 edges; the idle has 8).
 
 ### Flying side kick (Kairo: `JUMP_ATTACK`)
 

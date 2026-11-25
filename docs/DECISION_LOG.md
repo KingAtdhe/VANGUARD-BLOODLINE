@@ -2276,3 +2276,46 @@ fix, not a rework: the picture (D-120) and the leg (D-122) stand.
   `motion_report.py`, `body_angles.gd`, `stretch_check.py`. 222 tests pass.
   Video: before / now, real speed then half speed, checked frame by frame,
   not watched. Not verified on a phone.
+
+## D-126 — 2026-11-25 — Rift Break to the owner's written axe-kick sequence
+
+Owner sent an eight-step description of the axe kick she wants ("lift the
+kicking leg straight upward in front of the body, keeping the knee
+relatively extended ... Do NOT bend the leg into a ... chamber ... drive the
+leg forcefully straight downward, using the heel as the striking point ...
+retract the leg, lower it naturally and recover"). Saved in
+`docs/images/references/kairo_rift_break_axe_kick.md`; it replaces the
+taekwondo sequence of D-120 as the target. The kicking leg stays the one
+nearer the camera (D-122).
+
+- **What differed.** The move raised the knee first and unfolded the leg
+  upward (D-120, D-125); the foot was pointed; after the hit the leg waited
+  level at hip height for four frames before going down.
+- **Changes** (`kairo_keys`, `FORWARD_SPECIAL`):
+  - weight goes forward onto the supporting (lead) leg in the first frames;
+  - no chamber: the foot leaves the floor, passes low under the hip on a soft
+    knee (frames 6–9) and from frame 10 the leg is locked straight (knee 4°)
+    all the way up, over the peak, through the strike and down to the floor
+    (frame 30);
+  - the rise takes ten frames (10–19) at an even 20 cm a frame; the peak is
+    vertical, beside his head, foot at 1.58 m with the head at 1.38 m
+    (frames 19–20; it was tipped 8° past vertical);
+  - the chop gathers speed (frames 20–22) and lands heel first: the foot is
+    flexed, toes pulled back (`point` −0.6 … −0.9, was 0.7 pointed);
+  - the leg drives on down to the floor instead of holding (`_hold` 1, was
+    4), lands 0.4 m in front, and is drawn back into the stance;
+  - trunk leans back 7° as the leg rises and comes 13° forward with the
+    chop; hips and shoulders turn as before (no spin, 6° of twist).
+- **Not changed:** frame data (22 / 4 / 26), the hitbox, the active-frame
+  poses (heel inside the box on frames 22–25), the guard, and the skip
+  forward: the move still carries him 1.4 m and the supporting foot hops to
+  cover it. Her sequence has no step forward; removing the travel would be a
+  balance change (range), so it is offered to her rather than done.
+- **Checks.** `motion_report.py`: no new flags; one FAST left on frame 10
+  (37 cm, the knee locking as the leg swings through); the pops on frames 9
+  and 19 are the hop, as before. `body_angles.gd`: knee 4° on frames 10–30.
+  `stretch_check.py`: worst frame 33 edges (was 41), mean 9.5 (was 13.7).
+  Pose checker: no new line. Every frame looked at in the side view, the
+  peak and the active frames from the front; before and now side by side.
+  222 tests pass. Video: before / now, real speed then half speed, checked
+  frame by frame, not watched. Not verified on a phone.

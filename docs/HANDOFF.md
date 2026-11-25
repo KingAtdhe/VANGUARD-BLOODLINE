@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-125 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-126 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -33,8 +33,11 @@ change goes to the owner with a real-speed review video).
   `compare_reference.py`, `before_after_video.sh`). New tool
   `tools/godot/body_angles.gd` (hips, chest, lean, knees per frame). Owner
   pictures go into `docs/images/references/`.
-- D-125: Rift Break's leg now rises over seven frames instead of snapping to
-  vertical in one and waiting eight (keys of the rise only). Not yet
+- D-126: Rift Break re-keyed to the owner's written axe-kick sequence
+  (`docs/images/references/kairo_rift_break_axe_kick.md`): no chamber, a
+  straight leg swung up in front, vertical peak above the head, heel-first
+  chop driven to the floor. It replaces D-120/D-125's knee-up rise. The skip
+  forward (1.4 m of travel) is kept; removing it was offered to her. Not yet
   confirmed by the owner.
 - Found by the new checks, not yet changed: the Front Kick's knee is bent 34°
   at contact; the Flying Side Kick leans 13° back, not the 20–24° keyed; the

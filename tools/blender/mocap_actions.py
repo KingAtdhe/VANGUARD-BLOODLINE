@@ -2825,17 +2825,20 @@ def kairo_keys(moves, base, g, S):
     hip_z = head_z - 0.60
     arc_r = 1.25                                             # beyond the leg: the knee locks
 
-    def arc(deg, x=FR[0] * 0.6):
+    def arc(deg, x=FR[0] * 0.6, pt=0.7):
         a = math.radians(deg)
-        return (x, arc_r * math.cos(a), hip_z + arc_r * math.sin(a), 0.7)
+        return (x, arc_r * math.cos(a), hip_z + arc_r * math.sin(a), pt)
+
 
     def rise(deg, r, x=FR[0] * 0.6):                        # a point inside the leg's reach: the leg is still unfolding
         a = math.radians(deg)
         return (x, r * math.cos(a), hip_z + r * math.sin(a), 0.5)
-    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 2, hop1), **{
+    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 2, hop1), _hold=1,     # the heel drives on down to the floor: no hold at hip height
+                                  _lag=(("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0), ("trunk", 1.0),
+                                        ("shoulders", 1.5), ("hand", 1.0), ("elbow", 1.0), ("palm", 1.0), ("chin", 3.0), ("neck", 3.0)), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 4, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
-        "hips": [(0, (hips0, 0)), (m0 - 1, (hips0 - 0.02, 0)), (hop0, (hips0 + 0.02, 0)), (a0 - 4, (hips0 - 0.03, 0)),
+        "hips": [(0, (hips0, 0)), (m0, (hips0 + 0.045, 0)), (hop0 + 1, (hips0 + 0.03, 0)), (a0 - 4, (hips0 - 0.03, 0)),     # D-126: weight onto the supporting (lead) leg first
                  (a0, (hips0 + 0.03, 0)), (a1, (hips0 + 0.06, 0)), (a1 + 10, (hips0, 0), "out")],
         "pelvis_h": [(0, ph0), (m0 - 1, low(0.03), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 2, ph0 - 0.05, "out"),
                      (hop0 + 4, ph0 - 0.035, "out"), (hop1, ph0 - 0.065, "io"), (land_k, low(0.02), "in"), (a0 - 4, ph0 + 0.01),
@@ -2843,25 +2846,29 @@ def kairo_keys(moves, base, g, S):
                     + settle(T, a1 + 12, ph0, 0.02),
         "pelvis": [(0, pel0), (m0, pel(-6)), (hop0 + 2, pel(-16)), (a0 - 4, pel(-20)), (a1, pel(-20)), (a1 + 10, pel0, "out")],
         "shoulders": [(0, sh0), (m0, sho(2)), (hop0 + 2, sho(-8)), (a0 - 4, sho(-12)), (a1, sho(-14)), (a1 + 10, sh0, "out")],
-        "trunk": [(0, tr0), (m0 - 1, lean(3)), (hop0, lean(-2)), (a0 - 4, lean(-6), "out"), (a0 - 2, lean(-5)), (a0, lean(2)),
+        "trunk": [(0, tr0), (m0 - 1, lean(3)), (hop0, lean(-2)), (a0 - 4, lean(-9), "out"), (a0 - 2, lean(-7)), (a0, lean(2)),
                   (a1, lean(8)), (a1 + 3, lean(10)), (a1 + 9, lean(3), "out"), (a1 + 13, tr0)],
         "lead_heel": [(0, 0.0), (m0 + 1, 0.0), (hop0, 0.06), (land_k, 0.0), (a1 + 6, 0.0)],
         "lead_foot_abs": lead_abs,
         # guard -> knee raised high -> leg straight up past vertical -> swung
         # down straight, heel first, through the target -> down in front
+        # D-126, to the owner's written axe-kick sequence: the weight goes onto the
+        # supporting leg, then the kicking leg swings straight up in front of the body
+        # with the knee extended (no knee-up chamber: D-120's raised knee and D-125's
+        # unfolding rise are gone), near vertical above the head at the peak, and is
+        # driven straight down heel first (toes pulled back) through the target to the
+        # floor, then drawn back into the stance. The foot passes low under the hip on a
+        # soft knee (two plain keys), then every key is on arc(), beyond reach (locked).
         "rear_foot_abs": [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,)),
-                          (m0 + 1, (FR[0] * 0.9, FR[1] - travel(m0 + 1) * 0.4, FR[2] + 0.08, 0.3), "out"),
-                          # D-125: the rise takes its share of the startup. It used to go from the
-                          # knee-up to vertical in one frame (the target jumped from inside the
-                          # leg's reach to beyond it) and then wait eight frames at the top. Now the
-                          # knee comes up a frame later and the leg unfolds upward over eight frames
-                          # on a growing radius (rise()), locks just before the top, and the top is
-                          # one moment (a0 - 5 .. a0 - 4) before it swings down.
-                          (hop0 + 2, (FR[0] * 0.6, 0.22, 0.70, 0.3)),
-                          (hop0 + 4, rise(50, 0.46)), (hop0 + 6, rise(68, 0.62)), (hop0 + 8, rise(84, 0.71)),
-                          (a0 - 5, arc(93)), (a0 - 4, arc(98)),
-                          (a0 - 2, arc(62), "io"), (a0, arc(26), "in"), (a1, arc(-6), "lin"),
-                          (a1 + 5, (FR[0] * 0.7, 0.30, FR[2] + 0.04, 0.0), "out"), (a1 + 7, (FR[0] * 0.7, 0.30, FR[2], 0.0)),
+                          (m0 + 1, (FR[0] * 0.9, FR[1] + 0.05, FR[2] + 0.06, 0.2), "out"),
+                          (hop0 - 1, (FR[0] * 0.75, FR[1] + 0.20, FR[2] + 0.10, 0.1)), (hop0 + 1, (FR[0] * 0.6, 0.36, FR[2] + 0.15, -0.2)),
+                          (hop0 + 2, (FR[0] * 0.6, 0.60, FR[2] + 0.19, -0.3)), (hop0 + 3, arc(-16, pt=-0.4)),
+                          (hop0 + 5, arc(12, pt=-0.5)), (hop0 + 7, arc(40, x=FR[0] * 0.7, pt=-0.6)), (hop0 + 9, arc(64, x=FR[0] * 0.8, pt=-0.6)),
+                          (a0 - 4, arc(82, x=FR[0] * 0.9, pt=-0.6)),
+                          (a0 - 3, arc(90, x=FR[0] * 0.9, pt=-0.7)),                         # the peak: vertical, beside his head, one moment
+                          # the chop gathers speed: 13, 22, 29 degrees a frame
+                          (a0 - 2, arc(77, x=FR[0] * 0.85, pt=-0.8)), (a0 - 1, arc(55, x=FR[0] * 0.75, pt=-0.8)), (a0, arc(26, pt=-0.9), "in"), (a1, arc(-6, pt=-0.9), "lin"),
+                          (a1 + 2, arc(-34, pt=-0.6)), (a1 + 4, (FR[0] * 0.7, 0.38, FR[2] + 0.03, -0.2)), (a1 + 7, (FR[0] * 0.7, 0.34, FR[2], 0.0), "out"),
                           (a1 + 11, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 15, FR + (0.0,), "in")],
         # both fists stay up in a compact guard, as in the reference
         "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 4, (L[0] + 0.03, L[1] - 0.08, L[2] + 0.02)),

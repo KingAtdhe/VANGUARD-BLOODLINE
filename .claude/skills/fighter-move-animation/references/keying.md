@@ -283,7 +283,10 @@ hit (technique-form.md "Sharing out the frames"). Rift Break before D-125
 spent one frame rising and eight waiting: the keys were right, their frames
 were not. A target that jumps from inside the leg's reach to an arc beyond it
 locks the knee in a single frame; lead up to the arc with keys on a growing
-radius (`rise(deg, r)` in Rift Break).
+radius, or, for a leg meant to be straight all the way, with one or two plain
+keys near full reach just before the first `arc()` key (Rift Break, D-126).
+Never put a `#` comment in the middle of a key list line: it silently drops
+the keys after it on that line.
 
 ### Retiming an existing move
 

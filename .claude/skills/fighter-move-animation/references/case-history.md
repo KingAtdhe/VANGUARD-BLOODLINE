@@ -60,6 +60,8 @@ approval looked like · Process failures (ours).
 | "it needs to be with the other leg and the leg needs to be fully straight" | wrong leg; knee not locked through the swing | other leg; every target on an arc beyond the leg's length | D-121 |
 | "he needs to use the other leg, also the movement is too fast and unnatural" → "the leg nearer the camera" | leg named in screen terms; phases had too few frames | asked which leg; rear leg; startup 16 → 22, recovery 22 → 26 (balance change) | D-122 |
 
+| (an eight-step written axe-kick sequence) "lift the kicking leg straight upward ... keeping the knee relatively extended ... Do NOT ... chamber ... heel as the striking point ... retract the leg, lower it naturally" | no knee-up at all; straight leg up and down; heel first; no hanging leg after the hit. She will write the motion out when pictures have not got her what she wants: treat it as the reference and follow it step by step | chamber removed, leg locked from lift to floor, flexed foot, peak vertical, `_hold` 1 | D-126 |
+
 Faults found by the checks before she had to name them:
 
 | Found | Fix | Where |
@@ -73,7 +75,7 @@ Faults found by the checks before she had to name them:
 | Low Kick | 4 (D-108 … D-111), 2 after the picture | first two were guesses from words |
 | Front Kick | 2 (D-096, D-097) | each a named, measured fault |
 | Flying Side Kick | 8 entries so far (D-098, 099, 112, 115–119) | no picture until D-118; then misread (leg, trunk) |
-| Rift Break | 8 entries so far (D-112, 114–117, 120–122) | no picture until D-120; leg misread twice; timing |
+| Rift Break | 10 entries so far (D-112, 114–117, 120–122, 125, 126) | no picture until D-120; leg misread twice; timing; then her written sequence |
 
 The pattern: with a picture and a careful reading, one or two rounds. Without,
 any number.
