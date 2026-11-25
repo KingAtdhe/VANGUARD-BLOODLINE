@@ -2128,3 +2128,21 @@ left fist is at the chest. Rift Break unchanged: the owner's axe-kick
 reference (a share.google link) is blocked to automated fetching
 (robots_disallowed), so a screenshot is needed. 222 tests pass. Not verified
 on a phone.
+
+## D-120 — 2026-11-25 — Rift Break to the owner's axe-kick reference
+
+Owner sent a taekwondo axe-kick sequence (sparring stance; leg raising;
+axe kick up; upward position; downward forward attack) and "then he strikes
+with foot down". Rift Break is keyed again to it (the D-117 recording stays
+behind `KAIRO_MOCAP_RIFT=1`): from the guard the knee comes up high, the
+leg rises straight and almost vertical with the foot above the head
+(target out of reach so the leg locks), the body stays upright on a
+straight standing leg (trunk −6° at the top, not −32°), both fists stay in a
+compact guard (the D-116 wide arms are gone), then the leg comes down in
+front and the heel strikes through the hitbox with the chest coming
+slightly forward. The skip forward stays for the 1.4 m travel, kept low.
+Fixed on the way: a 51 cm and a 69 cm one-frame foot jump (keys too close:
+spread over the drop and the rise) and a 7–10 cm body jump entering and
+leaving the hop (airborne hips set from `pelvis_h` sat above the grounded
+height). Remaining flags: hands 7–8 cm on the hop's first frame. 222 tests
+pass. Not verified on a phone.

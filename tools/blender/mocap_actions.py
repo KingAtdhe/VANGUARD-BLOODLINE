@@ -2796,42 +2796,43 @@ def kairo_keys(moves, base, g, S):
         lead_abs.append((k, (lf_x, w_land - travel(k), lf_h, 0.0)))
     lead_abs += [(a1 + 5, (lf_x, f_end, lf_h, 0.0)), (a1 + 8, (lf_x, (f_end + lf_f) * 0.5, lf_h + 0.05, 0.2), "io"),
                  (a1 + 11, FL + (0.0,), "in")]
-    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 1, hop1), **{
+    # D-120, to the owner's reference (a taekwondo axe kick: fighting stance;
+    # the knee raised high; the leg straight and almost vertical, the foot
+    # above the head, the body upright on a straight standing leg, both fists
+    # kept up in a compact guard; then the leg comes down forward and the heel
+    # strikes downward). The skip forward of D-115 stays (the move travels
+    # 1.4 m), kept low.
+    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _air=(hop0 + 2, hop1), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 4, chin0 - 4), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
-        "hips": [(0, (hips0, 0)), (m0 - 1, (hips0 - 0.02, 0)), (hop0, (hips0 + 0.04, 0)), (a0 - 3, (hips0 + 0.02, 0)),
-                 (a0, (hips0 + 0.07, 0)), (a1, (hips0 + 0.09, 0)), (a1 + 10, (hips0, 0), "out")],
-        "pelvis_h": [(0, ph0), (m0 - 1, low(0.045), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 3, ph0 + 0.05, "out"),
-                     (hop1, ph0 + 0.02, "io"), (land_k, low(0.035), "in"), (a0 - 2, low(0.015)), (a0, low(0.03), "in"),
-                     (a1, low(0.11)), (a1 + 3, low(0.12)), (a1 + 8, low(0.05), "out")] + settle(T, a1 + 12, ph0, 0.02),
-        "pelvis": [(0, pel0), (m0, pel(-8)), (hop0 + 2, pel(-26)), (a0 - 4, pel(-36)), (a1, pel(-34)), (a1 + 10, pel0, "out")],
-        "shoulders": [(0, sh0), (m0, sho(4)), (hop0 + 2, sho(-14)), (a0 - 4, sho(-24)), (a1, sho(-26)), (a1 + 10, sh0, "out")],
-        "trunk": [(0, tr0), (m0 - 1, lean(6)), (hop0, lean(-6)), (a0 - 4, lean(-32, 5), "out"), (a0 - 2, lean(-27, 4)), (a0, lean(-4)),
-                  (a1, lean(16)), (a1 + 3, lean(22)), (a1 + 9, lean(4), "out"), (a1 + 13, tr0)],
+        "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 4, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
+        "hips": [(0, (hips0, 0)), (m0 - 1, (hips0 - 0.02, 0)), (hop0, (hips0 + 0.03, 0)), (a0 - 4, (hips0 - 0.02, 0)),
+                 (a0, (hips0 + 0.05, 0)), (a1, (hips0 + 0.08, 0)), (a1 + 10, (hips0, 0), "out")],
+        # (airborne frames place the hips from pelvis_h directly: these values sit
+        # ~7 cm under the grounded ones so the hop leaves and lands without a jump)
+        "pelvis_h": [(0, ph0), (m0 - 1, low(0.03), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 2, ph0 - 0.05, "out"),
+                     (hop0 + 3, ph0 - 0.035, "out"), (hop1, ph0 - 0.065, "io"), (land_k, low(0.02), "in"), (a0 - 4, ph0 + 0.01), (a0 - 2, ph0 + 0.01),
+                     (a0, low(0.02), "in"), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.03), "out")] + settle(T, a1 + 12, ph0, 0.02),
+        "pelvis": [(0, pel0), (m0, pel(-6)), (hop0 + 2, pel(-16)), (a0 - 4, pel(-20)), (a1, pel(-20)), (a1 + 10, pel0, "out")],
+        "shoulders": [(0, sh0), (m0, sho(2)), (hop0 + 2, sho(-8)), (a0 - 4, sho(-12)), (a1, sho(-14)), (a1 + 10, sh0, "out")],
+        "trunk": [(0, tr0), (m0 - 1, lean(3)), (hop0, lean(-2)), (a0 - 4, lean(-6), "out"), (a0 - 2, lean(-5)), (a0, lean(2)),
+                  (a1, lean(8)), (a1 + 3, lean(10)), (a1 + 9, lean(3), "out"), (a1 + 13, tr0)],
         "lead_heel": [(0, 0.0), (m0 + 1, 0.0), (hop0, 0.06), (land_k, 0.0), (a1 + 6, 0.0)],
         "lead_foot_abs": lead_abs,
-        # the kicking leg leaves the floor as the travel starts (it would slide),
-        # chambers, swings out to the side and up, over the top (a crescent)
+        # stance -> knee raised high (foot under the knee) -> leg straight up,
+        # foot above the head -> down forward, heel first, onto the target
         "rear_foot_abs": [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,)), (m0 + 1, (FR[0] * 0.9, FR[1] - travel(m0 + 1) * 0.4, FR[2] + 0.08, 0.3), "out"),
-                          (hop0 + 1, (FR[0] * 0.7, 0.12, 0.62, 0.4), "io"),
-                          (a0 - 6, (FR[0] - 0.20, 0.42, head_z - 0.12, 0.7), "io"),
-                          (a0 - 4, top, "io"), (a0 - 2, (top[0], top[1] - 0.02, top[2] - 0.02, top[3])),
-                          (a0, (0.0, hx - 0.06, hz + 0.20, 0.35), "in"), (a1, (0.0, hx - 0.08, hz - 0.22, 0.25), "lin"),
+                          (hop0, (FR[0] * 0.5, 0.16, 0.74, 0.3), "io"),
+                          (hop0 + 2, (FR[0] * 0.35, 0.26, head_z - 0.30, 0.5), "io"),
+                          (a0 - 5, (FR[0] * 0.2, 0.26, head_z + 0.50, 0.7), "io"), (a0 - 4, (FR[0] * 0.2, 0.30, head_z + 0.48, 0.7)),
+                          (a0 - 2, (FR[0] * 0.1, hx - 0.20, head_z + 0.12, 0.6), "io"),
+                          (a0, (0.0, hx - 0.06, hz + 0.20, 0.5), "in"), (a1, (0.0, hx - 0.08, hz - 0.22, 0.4), "lin"),
                           (a1 + 4, (FR[0] * 0.7, 0.30, FR[2] + 0.04, 0.0), "out"), (a1 + 6, (FR[0] * 0.7, 0.30, FR[2], 0.0)),
                           (a1 + 9, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 12, FR + (0.0,), "in")],
-        # arms counter the leg: the guard hand stays at the chin, the other arm
-        # swings up with the skip and reaches forward along the leg at the top
-        # D-116 (owner: robotic; bold, readable shapes): the arms open wide for
-        # balance as the leg rises (front hand forward and up, the other out
-        # and back), then both drive down with the heel and come back to guard
-        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.04, L[2] - 0.05)), (hop0 + 2, (0.18, 0.36, L[2] + 0.02), "out"),
-                          (a0 - 4, (0.22, 0.44, L[2] + 0.08), "io"), (a0, (0.14, 0.30, L[2] - 0.22), "in"),
-                          (a1 + 3, (0.12, 0.24, L[2] - 0.32)), (a1 + 9, chin, "io"), (T - 4, L)],
-        "lead_elbow": [(0, 0.2), (a0 - 4, 0.12), (a1 + 3, 0.3), (T - 4, 0.2)],
-        "rear_hand_abs": [(0, R), (m0 - 1, (R[0] + 0.02, R[1] - 0.06, R[2] - 0.06)), (hop0 + 2, (-0.30, -0.04, R[2] - 0.12), "out"),
-                          (a0 - 4, (-0.36, -0.14, R[2] - 0.16), "io"), (a0, (-0.20, 0.22, R[2] - 0.30), "in"),
-                          (a1 + 3, (-0.18, 0.20, R[2] - 0.34)), (a1 + 9, (R[0] - 0.04, R[1], R[2] - 0.06), "io"), (T - 4, R)],
-        "rear_elbow": [(0, 0.05), (a0 - 4, 0.06), (a1 + 3, 0.2), (T - 4, 0.05)],
+        # both fists stay up in a compact guard, as in the reference
+        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 4, (L[0] - 0.02, L[1] - 0.06, L[2] + 0.02)),
+                          (a0, (L[0] - 0.02, L[1] - 0.04, L[2] - 0.04), "in"), (a1 + 4, (L[0], L[1] - 0.04, L[2] - 0.04)), (T - 4, L)],
+        "rear_hand_abs": [(0, R), (m0 - 1, (R[0], R[1] - 0.02, R[2] - 0.02)), (a0 - 4, (R[0] + 0.03, R[1] + 0.02, R[2] - 0.04)),
+                          (a0, (R[0] + 0.03, R[1] + 0.04, R[2] - 0.08), "in"), (a1 + 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.06)), (T - 4, R)],
     })
 
     # Rift Guard (the counter stance): he sits back onto the rear leg and the
@@ -3944,7 +3945,10 @@ def build(rig_obj, moves, fid, height, clip_dir):
         for mv_key, tracks in kairo_keys(moves, base_ps, dict(g_hand, feet=g_foot), S_fit).items():
             mv = moves[mv_key]
             A[F + mv["animation"][mv["animation"].find("_"):]] = keyed_move(mv, tracks)
-        if not os.environ.get("KAIRO_KEYED_KICKS"):
+        if os.environ.get("KAIRO_MOCAP_RIFT"):
+            # D-120: Rift Break is keyed again, to the owner's axe-kick reference
+            # (a taekwondo axe kick sequence); this recorded version is kept
+            # behind KAIRO_MOCAP_RIFT=1
             # D-117 (owner: "look at fighting games and learn how to do them
             # properly"): Street Fighter V/6 build their moves from motion
             # capture of real fighters and then adjust it. Rift Break is now a

@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Rift Break follows the owner's axe kick reference
+- Knee up high, the leg rises straight with the foot above his head while his body stays upright with both fists in guard, then the heel comes down onto the opponent.
 ### Changed — Flying Side Kick, second pass
 - Kicks with the other (right) leg, the left leg folded under him; the upper body leans back and away and curls into the kick instead of staying straight; the right arm reaches along the kicking leg, the left fist at the chest.
 ### Changed — Flying Side Kick like Ryu's
