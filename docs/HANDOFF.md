@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-122 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-124 (2026-11-25; last animation change D-122). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -26,6 +26,18 @@ change goes to the owner with a real-speed review video).
   `face_shot.gd`, `foot_slide.gd`, `scene_video.gd`. After swapping a glb,
   delete `.godot/imported/kairo.glb-*` before `--import` (stale cache).
 - Next ideas offered: CPU throw escape, crouching jab, more strings.
+- **Move animation skill (D-124):** `.claude/skills/fighter-move-animation/`.
+  Use it for any change to how a move looks: it has the order of work, the
+  owner's phrase book, the checks with pass marks, a table of Kairo's moves,
+  and scripts (`build_fighter.sh`, `motion_report.py`, `frame_strip.py`,
+  `compare_reference.py`, `before_after_video.sh`). New tool
+  `tools/godot/body_angles.gd` (hips, chest, lean, knees per frame). Owner
+  pictures go into `docs/images/references/`.
+- Found by the new checks, not yet changed: Rift Break's leg snaps to
+  vertical in one frame and waits eight at the top; the Front Kick's knee is
+  bent 34° at contact; the Flying Side Kick leans 13° back, not the 20–24°
+  keyed. Offered to the owner as the next fixes.
+- D-123: Godot and game-design agent skills installed in `.claude/skills/`.
 
 ## Where things stand (2026-11-23, after D-095)
 

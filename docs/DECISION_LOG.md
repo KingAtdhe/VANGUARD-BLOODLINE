@@ -2198,3 +2198,51 @@ project's own test runner (no GUT/gdUnit, rule in conventions) and the
 decision log win where they differ. Reviewed before commit: their helper
 scripts (4 .gd checks, 1 .py project checker) do no network, shell or file
 deletion. No game code changed; tests not affected.
+
+## D-124 — 2026-11-25 — A project skill for move animation; body-angle tool
+
+Owner asked for a well-made skill that helps with kick and move animation
+(no public skill covers it; three candidates were read and none taught
+martial-arts form or this pipeline). Written as a project skill in
+`.claude/skills/fighter-move-animation/` so every Claude session on this
+repository loads it when a move's look is discussed or `mocap_actions.py` is
+touched.
+
+- **What it holds.** The order of work that the fifteen entries D-108 … D-122
+  showed was missing (decide fix or rework; get and read the owner's picture
+  in screen terms; write a pose brief; measure the move as it is; key boldly;
+  pass the gates; look at every frame beside the reference; report). The form
+  of each technique and how its startup frames should be shared out; the
+  keying channels, eases and recipes; every check with its command, pass mark
+  and blind spot; the owner's words with what each turned out to mean; a
+  table of Kairo's moves (input, data file, key slot, clip, frames).
+- **Scripts** (`scripts/`): `build_fighter.sh` (timing export, build with the
+  debug switches, install, clear the cached import, re-import, flags new
+  against the previous build), `motion_report.py` (frame table from the build
+  log; POP, FAST, DWELL, FOLD, FROZEN, CONTACT), `frame_strip.py` (every frame
+  in the game's side view with phases marked), `compare_reference.py` (the
+  owner's picture beside before and now, and both at phone size),
+  `before_after_video.sh` (side by side, real speed then half speed).
+- **New tool** `tools/godot/body_angles.gd`: knees, pelvis and chest turn,
+  twist, trunk lean, ankles and head per frame on the game model. Until now
+  only knees could be measured there; hips and lean were read off renders.
+  It sets frames by `seek()` on a paused player; `knee_angles.gd` lets
+  playback run and reads about half a frame late.
+- **Reference pictures** go into `docs/images/references/` from now on (the
+  three sent so far are not in the repository).
+- **How it was tested.** All commands in the skill were run on Kairo at
+  D-122 on a fresh machine. Three fresh sessions used the skill on test
+  requests (a vague complaint, a named fault, a reference picture); all three
+  took the intended decision, and their criticism was worked in. A fourth
+  fact-checked every name, command, number and D-reference against the
+  repository; its findings were corrected.
+- **Found while testing, not changed (no animation was edited in this
+  task):** Rift Break's kicking leg goes from a folded knee to vertical in one
+  frame (frame 10) and then waits at the top for eight frames (11–18) before
+  a four-frame drop, and its skin stretches most there (38 edges, idle 8).
+  The Front Kick's knee is bent 34° at contact (the log's "0.96 extended").
+  The Flying Side Kick's trunk leans 13° back on the game model, less than
+  the 20–24° keyed. The Leg Sweep puts the right hand inside the torso on
+  frame 25. Listed as the baseline in the skill's `references/checks.md`.
+- No game code, data or model changed (a rebuild of Kairo left the `.glb`
+  identical). Not verified on a phone: nothing to verify.
