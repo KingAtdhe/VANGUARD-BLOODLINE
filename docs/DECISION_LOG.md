@@ -2162,3 +2162,22 @@ standing leg) and a too-tight chamber (extension 0.28) that snapped open.
 `test_kairo_model` now expects the left foot as Rift Break's striking limb
 (the first push failed it: committed before the test run had finished).
 222 tests pass. Not verified on a phone.
+
+## D-122 — 2026-11-25 — Rift Break: the leg nearer the camera, slower
+
+Owner on D-121: "he needs to use the other leg, also the movement is too
+fast and unnatural"; asked which leg: "the leg nearer the camera". Measured
+in the real training scene (camera depth of the hips): his right (rear) leg
+is nearer the camera by ~0.11 m. The rear leg kicks again, locked straight
+on the D-121 arc (extension 1.00 on frames 10–30); the lead foot does the
+skip.
+
+**Balance change (owner request for slower, readable motion):** Rift Break
+startup 16 → 22, recovery 22 → 26, travel frames 4–16 → 4–22 (same 1.4 m);
+total 41 → 51, on block −11 → −15 (`docs/COMBAT_FRAME_DATA.md`). Every phase
+of the kick gets more frames. Consequence: Rift Break no longer links after
+the Low Kick (the 4-hit route L, L, K, Rift Break is gone; L, L, K, Origin
+Palm still gives 4 hits). Tests updated: the hitbox test expects the right
+foot; the AI legality check verifies cancels against the move data (the
+One-Two Cross may cancel into a special since D-113); the exhaustive combo
+search now includes neutral special. 222 tests pass. Not verified on a phone.

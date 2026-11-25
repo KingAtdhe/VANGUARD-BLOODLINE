@@ -245,10 +245,12 @@ func test_spec_route_light_light_kick_palm() -> Array[String]:
 
 
 func test_no_infinite_combo_with_specials_and_free_surge() -> Array[String]:
-	# Every route of 1..4 commands from {L, K, H, S, fwd+S}, mashed, mid-screen
-	# and cornered, with a full meter AND with Surge active (specials free).
+	# Every route of 1..4 commands from {L, K, H, S, back+S, fwd+S}, mashed,
+	# mid-screen and cornered, with a full meter AND with Surge active
+	# (specials free). D-122: neutral S (Origin Palm) added; the 4-hit route
+	# used to come through Rift Break, which no longer links at 22 frames.
 	var f: Array[String] = []
-	var cmds: Array = [[L, 0], [K, 0], [H, 0], [S, -1], [S, 1]]
+	var cmds: Array = [[L, 0], [K, 0], [H, 0], [S, 0], [S, -1], [S, 1]]
 	var routes: Array = [[]]
 	var all: Array = []
 	for _len: int in 4:

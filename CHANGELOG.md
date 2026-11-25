@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Rift Break: leg nearer the camera, slower
+- The axe kick uses the leg nearer the camera (his back leg), still fully straight, and the whole move is slower (22 frames before it hits instead of 16, longer recovery), so each phase can be seen. It no longer combos after the Low Kick.
 ### Changed — Rift Break with the front leg, fully straight
 - The axe kick is now thrown with the other (front) leg, and the leg stays completely straight from the top until it strikes down.
 ### Changed — Rift Break follows the owner's axe kick reference

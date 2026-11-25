@@ -208,8 +208,16 @@ func test_ai_actions_are_legal_player_actions() -> Array[String]:
 		f.append("replaying the AIs' inputs produced a different fight")
 	# Every attack an AI started was started from a legal state (the sim
 	# enforces this; check the log agrees: cancels only after contact).
+	# D-122: checked against the move data (the cancel lists and strings), not a
+	# fixed list: since D-113 the One-Two Cross may cancel into a special too.
+	var kdef: FighterDefinition = load("res://data/fighters/kairo.tres")
 	for line: String in res.log.split("\n"):
-		if line.contains("cancels") and not (line.contains("kairo_light_punch ->")):
+		if not line.contains("cancels"):
+			continue
+		var parts: PackedStringArray = line.split("cancels ")[1].split(" -> ")
+		var from: MoveData = kdef.move_for_id(StringName(parts[0].strip_edges()))
+		var to: MoveData = kdef.move_for_id(StringName(parts[1].strip_edges()))
+		if from == null or to == null or not (from.can_cancel_into(to) or to.string_after == from.id):
 			f.append("illegal cancel route in AI fight: %s" % line)
 	return f
 
