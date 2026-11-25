@@ -3,6 +3,30 @@
 Branch: `arena-severed-line`, last work: D-122 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
+## Latest (2026-11-25, D-107 … D-122) — read this first
+
+- Kairo fixes from the owner's in-game test (D-107): stance arm, face shear,
+  slower walk (1.8 m/s), jump/crouch, fire shader, fighter edge lights.
+  Walk legs calmer (D-108).
+- Low Kick approved by the owner after D-111 (Street Fighter low roundhouse
+  reference: hips turned over, lean back, kicking-side arm along the kick).
+- One-Two string L, L, K (D-113), max 3 normals per chain; throw escape
+  L+K for everyone (D-114; CPU does not use it yet).
+- Flying Side Kick: keyed to the owner's Ryu art, right leg, body leaning
+  and curled (D-118/119). Not yet confirmed by the owner.
+- Rift Break: keyed to the owner's taekwondo axe-kick sequence, the leg
+  nearer the camera (right/rear, measured), locked straight on an arc,
+  skip forward for the 1.4 m travel, slower: startup 22 / recovery 26
+  (D-120…D-122, a balance change). Not yet confirmed by the owner.
+- Lesson: ask the owner for a reference picture before reworking a move;
+  small careful changes do not show at game distance; share.google links
+  cannot be opened (ask for the image itself). Recorded-mocap versions of
+  both kicks stay behind KAIRO_MOCAP_RIFT=1 / KAIRO_MOCAP_AIR=1.
+- Tools: `tools/godot/knee_angles.gd` (knee bend per frame in Godot),
+  `face_shot.gd`, `foot_slide.gd`, `scene_video.gd`. After swapping a glb,
+  delete `.godot/imported/kairo.glb-*` before `--import` (stale cache).
+- Next ideas offered: CPU throw escape, crouching jab, more strings.
+
 ## Where things stand (2026-11-23, after D-095)
 
 1. **Crouch shake: found and fixed (D-095), not yet seen on a phone.** It
