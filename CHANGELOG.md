@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — bolder Rift Break and Flying Side Kick
+- **Flying Side Kick**: knee pulled up to the chest first, hips and shoulders turned well into the kick, one arm along the leg and the other thrown out behind for balance.
+- **Rift Break**: arms open wide as the leg rises, a deeper lean back at the top, and a hard chop: both arms drive down with the heel, the chest folds forward and the standing knee bends deep.
 ### Changed — Rift Break and Flying Side Kick reworked
 - **Rift Break** is now a skip axe kick: Kairo sinks, skips forward with a hop (he used to slide across the floor on one foot), swings the leg up in a crescent over the top, chops the heel down with the standing knee giving, and steps back into his stance.
 - **Flying Side Kick**: the trailing leg is tucked up under him (it hung down as if kneeling), and the kick keeps driving and then rides down with the jump instead of freezing in the air.

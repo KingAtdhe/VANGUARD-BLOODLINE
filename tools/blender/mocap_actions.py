@@ -2803,11 +2803,11 @@ def kairo_keys(moves, base, g, S):
                  (a0, (hips0 + 0.07, 0)), (a1, (hips0 + 0.09, 0)), (a1 + 10, (hips0, 0), "out")],
         "pelvis_h": [(0, ph0), (m0 - 1, low(0.045), "io"), (hop0, ph0 + 0.01, "out"), (hop0 + 3, ph0 + 0.05, "out"),
                      (hop1, ph0 + 0.02, "io"), (land_k, low(0.035), "in"), (a0 - 2, low(0.015)), (a0, low(0.03), "in"),
-                     (a1, low(0.07)), (a1 + 3, low(0.075))] + settle(T, a1 + 11, ph0, 0.02),
+                     (a1, low(0.11)), (a1 + 3, low(0.12)), (a1 + 8, low(0.05), "out")] + settle(T, a1 + 12, ph0, 0.02),
         "pelvis": [(0, pel0), (m0, pel(-8)), (hop0 + 2, pel(-26)), (a0 - 4, pel(-36)), (a1, pel(-34)), (a1 + 10, pel0, "out")],
         "shoulders": [(0, sh0), (m0, sho(4)), (hop0 + 2, sho(-14)), (a0 - 4, sho(-24)), (a1, sho(-26)), (a1 + 10, sh0, "out")],
-        "trunk": [(0, tr0), (m0 - 1, lean(5)), (hop0, lean(-4)), (a0 - 4, lean(-24, 4), "out"), (a0 - 2, lean(-19, 3)), (a0, lean(-6)),
-                  (a1, lean(8)), (a1 + 3, lean(12)), (a1 + 8, lean(3), "out"), (a1 + 12, tr0)],
+        "trunk": [(0, tr0), (m0 - 1, lean(6)), (hop0, lean(-6)), (a0 - 4, lean(-32, 5), "out"), (a0 - 2, lean(-27, 4)), (a0, lean(-4)),
+                  (a1, lean(16)), (a1 + 3, lean(22)), (a1 + 9, lean(4), "out"), (a1 + 13, tr0)],
         "lead_heel": [(0, 0.0), (m0 + 1, 0.0), (hop0, 0.06), (land_k, 0.0), (a1 + 6, 0.0)],
         "lead_foot_abs": lead_abs,
         # the kicking leg leaves the floor as the travel starts (it would slide),
@@ -2821,11 +2821,17 @@ def kairo_keys(moves, base, g, S):
                           (a1 + 9, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 12, FR + (0.0,), "in")],
         # arms counter the leg: the guard hand stays at the chin, the other arm
         # swings up with the skip and reaches forward along the leg at the top
-        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.04, L[2] - 0.03)), (a0 - 4, chin), (a1 + 4, chin), (T - 4, L)],
-        "rear_hand_abs": [(0, R), (m0 - 1, (R[0] + 0.02, R[1] - 0.06, R[2] - 0.06)), (hop0 + 2, (-0.16, 0.18, R[2] + 0.04), "out"),
-                          (a0 - 4, (-0.20, 0.30, R[2] - 0.06)), (a0, (-0.20, 0.32, R[2] - 0.20), "in"),
-                          (a1 + 3, (-0.18, 0.28, R[2] - 0.18)), (T - 4, R)],
-        "rear_elbow": [(0, 0.05), (a0 - 4, 0.12), (a1 + 3, 0.12), (T - 4, 0.05)],
+        # D-116 (owner: robotic; bold, readable shapes): the arms open wide for
+        # balance as the leg rises (front hand forward and up, the other out
+        # and back), then both drive down with the heel and come back to guard
+        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.04, L[2] - 0.05)), (hop0 + 2, (0.18, 0.36, L[2] + 0.02), "out"),
+                          (a0 - 4, (0.22, 0.44, L[2] + 0.08), "io"), (a0, (0.14, 0.30, L[2] - 0.22), "in"),
+                          (a1 + 3, (0.12, 0.24, L[2] - 0.32)), (a1 + 9, chin, "io"), (T - 4, L)],
+        "lead_elbow": [(0, 0.2), (a0 - 4, 0.12), (a1 + 3, 0.3), (T - 4, 0.2)],
+        "rear_hand_abs": [(0, R), (m0 - 1, (R[0] + 0.02, R[1] - 0.06, R[2] - 0.06)), (hop0 + 2, (-0.30, -0.04, R[2] - 0.12), "out"),
+                          (a0 - 4, (-0.36, -0.14, R[2] - 0.16), "io"), (a0, (-0.20, 0.22, R[2] - 0.30), "in"),
+                          (a1 + 3, (-0.18, 0.20, R[2] - 0.34)), (a1 + 9, (R[0] - 0.04, R[1], R[2] - 0.06), "io"), (T - 4, R)],
+        "rear_elbow": [(0, 0.05), (a0 - 4, 0.06), (a1 + 3, 0.2), (T - 4, 0.05)],
     })
 
     # Rift Guard (the counter stance): he sits back onto the rear leg and the
@@ -3789,7 +3795,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 lh0, rh0 = base_ps["lead_hand"], base_ps["rear_hand"]
                 T = n_air - 1
                 k_tuck = (hl[0], 0.02 * S_fit, hl[2] + tuck, 0.2)
-                k_chamber = (hl[0] * 0.3, 0.16 * S_fit, hl[2] + 0.50 * S_fit, -0.4)     # knee high, foot under it
+                k_chamber = (hl[0] * 0.3, 0.10 * S_fit, hl[2] + 0.60 * S_fit, -0.4)     # knee pulled up to the chest, foot under it (D-116: higher, reads at game distance)
                 k_half = (0.02, hx + 0.08, hz + 0.13, -0.85)
                 k_out = (0.02, hx + 0.34, hz + 0.08, -0.95)                            # heel first, leg fully straight (D-099)
                 k_hold = (0.02, hx + 0.34, hz + 0.08, -0.95)
@@ -3803,24 +3809,31 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 r_tuck = (hr[0] * 0.85, -0.19 * S_fit, hr[2] + 0.37 * S_fit, 0.45)
                 r_tuck2 = (hr[0] * 0.85, -0.17 * S_fit, hr[2] + 0.34 * S_fit, 0.45)
                 at = {"_name": "JUMP_ATTACK", "pelvis_h": ph0,
-                      "pelvis": [(0, pel0), (a0 - 3, pel0 + 16, "io"), (a0, pel0 + 34, "io"), (a0 + 5, pel0 + 38), (a1, pel0 + 30), (a1 + 3, pel0 + 22, "io"), (T, pel0 + 6, "io")],
-                      "shoulders": [(0, sh0), (a0 - 3, sh0 + 8, "io"), (a0 + 1, sh0 + 24, "io"), (a0 + 6, sh0 + 28), (a1, sh0 + 20), (a1 + 3, sh0 + 14, "io"), (T, sh0 + 4, "io")],
+                      "pelvis": [(0, pel0), (a0 - 3, pel0 + 22, "io"), (a0, pel0 + 56, "io"), (a0 + 5, pel0 + 60), (a1, pel0 + 50), (a1 + 3, pel0 + 30, "io"), (T, pel0 + 6, "io")],
+                      "shoulders": [(0, sh0), (a0 - 3, sh0 + 10, "io"), (a0 + 1, sh0 + 40, "io"), (a0 + 6, sh0 + 46), (a1, sh0 + 34), (a1 + 3, sh0 + 18, "io"), (T, sh0 + 4, "io")],
                       "trunk": [(0, (tr0[0] + 4, tr0[1])), (a0 - 3, (tr0[0] + 1, tr0[1]), "io"), (a0 + 1, (tr0[0] - 40, tr0[1]), "io"),
                                 (a0 + 5, (tr0[0] - 46, tr0[1])), (a1, (tr0[0] - 43, tr0[1])), (a1 + 4, (tr0[0] - 16, tr0[1]), "io"), (T, (tr0[0] + 3, tr0[1]), "io")],
                       # D-112: the leg keeps driving through the hold (it froze)
                       "lead_foot_abs": [(0, k_tuck), (a0 - 3, k_chamber, "out"), (a0 - 1, k_half), (a0, k_out),
                                         (a0 + 4, (k_hold[0], k_hold[1] + 0.05, k_hold[2] + 0.02, k_hold[3])),
                                         (a1 - 3, (k_hold[0], k_hold[1] + 0.01, k_hold[2] - 0.05, k_hold[3])),       # the kick rides down with the jump arc
-                                        (a1, (k_hold[0], k_hold[1] - 0.03, k_hold[2] - 0.09, k_hold[3])), (a1 + 1, k_back), (a1 + 2, k_back2), (a1 + 4, k_chamber),
+                                        (a1, (k_hold[0], k_hold[1] - 0.03, k_hold[2] - 0.09, k_hold[3])), (a1 + 2, k_back, "io"), (a1 + 4, k_chamber, "io"),
                                         (T, (hl[0], hl[1] * 0.6, hl[2] + tuck * 0.6, 0.2))],
                       "rear_foot_abs": [(0, (hr[0], hr[1] * 0.45, hr[2] + tuck, 0.5)), (a0 - 3, (hr[0] * 0.9, hr[1] * 0.3 - 0.08 * S_fit, hr[2] + tuck + 0.06 * S_fit, 0.45), "io"),
                                         (a0 + 1, r_tuck, "io"), (a0 + 6, r_tuck2), (a1, (r_tuck[0], r_tuck[1] - 0.04, r_tuck[2] - 0.08, 0.4)),
                                         (T, (hr[0], hr[1] * 0.6, hr[2] + tuck * 0.6, 0.3))],
                       # lead arm drops along the kicking leg as a shield, rear fist up at the chin
-                      "lead_hand": [(0, lh0), (a0, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] - 0.16), "in"), (a0 + 5, (lh0[0] + 0.03, lh0[1] - 0.02, lh0[2] - 0.20)),
-                                    (a1, (lh0[0] + 0.02, lh0[1] - 0.04, lh0[2] - 0.13)), (T, lh0, "out")],
-                      "rear_hand": [(0, rh0), (a0, (rh0[0] - 0.06, rh0[1] - 0.02, rh0[2] + 0.12), "in"), (a0 + 6, (rh0[0] - 0.08, rh0[1] + 0.02, rh0[2] + 0.14)),
-                                    (a1, (rh0[0] - 0.05, rh0[1] - 0.01, rh0[2] + 0.09)), (T, rh0, "out")]}
+                      # D-116 (owner: robotic; bold, readable shapes): the arm on the
+                      # kicking side reaches down along the leg, the other is thrown
+                      # out behind him as a counterweight; both come home on landing
+                      "lead_hand": [(0, lh0), (a0 - 3, (lh0[0], lh0[1] - 0.10, lh0[2] - 0.02)), (a0, (lh0[0] + 0.04, lh0[1] + 0.02, lh0[2] - 0.30), "in"),
+                                    (a0 + 5, (lh0[0] + 0.05, lh0[1] + 0.06, lh0[2] - 0.34)), (a1, (lh0[0] + 0.04, lh0[1] + 0.02, lh0[2] - 0.28)),
+                                    (a1 + 3, (lh0[0], lh0[1] - 0.04, lh0[2] - 0.10), "io"), (T, lh0, "out")],
+                      "rear_hand": [(0, rh0), (a0 - 3, (rh0[0] - 0.04, rh0[1] - 0.06, rh0[2] + 0.04)), (a0, (rh0[0] - 0.14, -0.30, rh0[2] - 0.02), "in"),
+                                    (a0 + 6, (rh0[0] - 0.16, -0.36, rh0[2] + 0.02)), (a1, (rh0[0] - 0.12, -0.28, rh0[2] - 0.02)),
+                                    (a1 + 3, (rh0[0] - 0.06, rh0[1] - 0.10, rh0[2] + 0.02), "io"), (T, rh0, "out")],
+                      "lead_elbow": [(0, 0.2), (a0, 0.1), (a1, 0.12), (T, 0.2)],
+                      "rear_elbow": [(0, 0.1), (a0, 0.08), (a1, 0.1), (T, 0.1)]}
             A[f"{F}_JUMP_ATTACK"] = keyed_frames(n_air, at, settle=0, air=True, blend_in=0)
             AIRBORNE[f"{F}_JUMP_ATTACK"] = (0, n_air)
     else:

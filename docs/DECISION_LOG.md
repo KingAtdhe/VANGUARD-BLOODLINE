@@ -2046,3 +2046,23 @@ robotic and unnatural". Checked against the owner's animation brief
   the arena camera; a before / now video for the owner. Remaining one-frame
   flag: Rift Break lead hand 10 cm at frame 8 (the hop starting). Not
   verified on a phone.
+
+## D-116 — 2026-11-25 — Bold shapes on Rift Break and Flying Side Kick
+
+Owner after D-115 ("do they look good?" — no: at game distance D-115 barely
+showed; "you did the other moves, why not now"). The Low Kick worked because
+its changes were large and aimed at a reference (36° lean, 74° hips, an arm
+thrown out); D-115's were careful and small. Same method, bold:
+- **Flying Side Kick**: knee chambered up to the chest; hips turn 56–60° and
+  shoulders 40–46° side-on into the kick (was 34/24); the kicking-side arm
+  reaches down along the leg and the other arm is thrown out behind as a
+  counterweight; the leg re-chambers on the way back (spaced over four frames:
+  the bolder turn made the pull-back snap 0.32–0.37 m in one frame twice).
+- **Rift Break**: lean back at the top 24 → 32°; the arms open wide as the
+  leg rises (front hand forward and up, the other out and back) and both
+  drive down with the heel; the chest folds to 16–22° forward and the
+  standing knee bends deep (pelvis 0.11–0.12 down) on the chop.
+- The D-115 before/after video was correct; an extra check (forced
+  re-import) confirmed it. The changes were just too small to see.
+- Checked: frame strips side and front, arena frames before/now, no new
+  one-frame flags. 222 tests pass. Not verified on a phone.
