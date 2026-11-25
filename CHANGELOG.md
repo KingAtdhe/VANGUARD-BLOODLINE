@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+### Changed — Rift Break and Flying Side Kick reworked
+- **Rift Break** is now a skip axe kick: Kairo sinks, skips forward with a hop (he used to slide across the floor on one foot), swings the leg up in a crescent over the top, chops the heel down with the standing knee giving, and steps back into his stance.
+- **Flying Side Kick**: the trailing leg is tucked up under him (it hung down as if kneeling), and the kick keeps driving and then rides down with the jump instead of freezing in the air.
 ### Added — Throw escape
 - When grabbed by a throw, press Light + Kick quickly (within about a sixth of a second) to break it: both fighters are pushed apart and nobody takes damage.
 ### Fixed — Kairo's kicking leg fully extends

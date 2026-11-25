@@ -2017,3 +2017,32 @@ effect, block sound, training-panel text). Throws without a hold cannot be
 broken this way. The CPU does not use the escape yet. Tests:
 `tests/integration/test_throw_escape.gd` (3). 222 pass. Not verified on a
 phone; the review video shows the kicks only (the video tool drives P1).
+
+## D-115 — 2026-11-25 — Rift Break as a skip axe kick; Flying Side Kick body
+
+Owner on D-114's kicks: "they look bad, need big improvement, they look
+robotic and unnatural". Checked against the owner's animation brief
+(movement from feet, hips and torso; no sliding, no frozen poses).
+
+- **Rift Break**: the game carries him 1.4 m forward (move frames 4-16) and
+  the animation stood him on a planted foot the whole time: he skated 1.4 m
+  while the leg went up and down like a lever. Now a skip axe kick:
+  a sink; the standing foot stays on the floor for the first three frames of
+  travel (it moves back in model space by exactly the game's travel per
+  frame, `travel()`), pushes off; a hop (animation frames 7-11 in the air:
+  new `_air` window in `keyed_frames`, hips placed from `pelvis_h` there);
+  it lands ahead and stays planted while the rest of the travel carries the
+  body over it; the kicking leg leaves the floor as the travel starts,
+  chambers, swings out and up over the top (a crescent) straight; the heel
+  drops with the chest chopping forward and the standing knee giving; he
+  steps back into stance. The move's travel data now comes from the timing
+  export (`move_distance`, `move_start`, `move_end`).
+- **Flying Side Kick**: the trailing leg hung down under him like a kneeling
+  man; it is now tucked under the hips, knee forward (extension ~0.40,
+  clear of D-099's knee pinch at ~0.30). Through the hold the kick drives
+  out, then rides down with the jump arc; hips, shoulders and both hands
+  keep moving instead of freezing.
+- Checked: frame strips side and front, every Rift Break frame from 4 to 19,
+  the arena camera; a before / now video for the owner. Remaining one-frame
+  flag: Rift Break lead hand 10 cm at frame 8 (the hop starting). Not
+  verified on a phone.
