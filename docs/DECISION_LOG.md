@@ -2159,4 +2159,6 @@ so the leg stays locked (knee 1–4° on frames 8–21 as Godot plays it,
 straight up to vertical (no horizontal front-kick pass). Fixed on the way: a
 13 cm head jump entering the hop (airborne `pelvis_h` lowered for the new
 standing leg) and a too-tight chamber (extension 0.28) that snapped open.
+`test_kairo_model` now expects the left foot as Rift Break's striking limb
+(the first push failed it: committed before the test run had finished).
 222 tests pass. Not verified on a phone.
