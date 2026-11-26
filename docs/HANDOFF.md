@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-127 (2026-11-25). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-128 (2026-11-26). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -38,7 +38,10 @@ change goes to the owner with a real-speed review video).
   straight leg swung up in front, vertical peak above the head, heel-first
   chop driven to the floor. It replaces D-120/D-125's knee-up rise.
 - D-127: the hop is replaced by one step in (her choice); travel 1.4 → 0.7 m,
-  frames 4–18 (a balance change). Not yet confirmed by the owner.
+  frames 4–18 (a balance change).
+- D-128: Rift Break stands tall at the peak, the body drives the chop, the
+  leg is drawn back and set down behind, then one step into the stance. Not
+  yet confirmed by the owner.
 - Found by the new checks, not yet changed: the Front Kick's knee is bent 34°
   at contact; the Flying Side Kick leans 13° back, not the 20–24° keyed; the
   Leg Sweep's right hand is inside the torso on frame 25. Offered to the

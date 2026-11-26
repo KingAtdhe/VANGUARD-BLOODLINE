@@ -229,7 +229,7 @@ godot --headless --path . --script res://tests/run_tests.gd -- kairo   # only fi
 
 Wait for the full run to end before committing. Report the real count.
 
-## Known flags on Kairo at D-127 (the baseline)
+## Known flags on Kairo at D-128 (the baseline)
 
 So you can tell your own flags from the ones already there. Update this list
 when a build changes it.
@@ -237,7 +237,7 @@ when a build changes it.
 Pops: Low Kick f9 right toe (the strike); ultimate f18 and f37 right toe;
 jump f43 both toes (landing); Rising Uppercut f5 left toe.
 
-Motion report: Rift Break FAST f11 (right ankle 30 cm, swinging through
+Motion report: Rift Break FAST f11 (right ankle 31 cm, swinging through
 under the hip; before D-125 it had FAST f7, f9, f10 and
 DWELL f11–18, the example of a leg that snaps up and waits); Leg Sweep FAST f3–4 (left wrist to the floor); Fireball FROZEN f20–24;
 Knee Throw FAST f17 (right ankle 38 cm); ultimate several FAST (its later
@@ -251,13 +251,13 @@ Body angles at contact:
 | Low Kick (approved) | 4° | 93° | 76° | 15° | 29° / 30° |
 | Front Kick | **34°** | 43° | 21° | 21° | 20° / 0° |
 | Flying Side Kick | 4° | 86° | 39° | 46° | 13° / 11° |
-| Rift Break | 4° (frames 13–30) | 25° | 17° | 6° | 6° forward |
+| Rift Break | 4° (frames 12–31) | 25° | 17° | 7° | 14° back at the peak, 5° forward at contact, 19° by frame 25 |
 
 Stretched edges, worst frame: idle 8; Low Kick 12; Front Kick 10; Flying
-Side Kick 19; **Rift Break 29 (frame 20, the leg beside the head)**.
+Side Kick 19; **Rift Break 26 (frame 20, the leg beside the head)**.
 
-Pose checker (9 of 99 frames): Front Kick, Low Kick and ultimate with the
-centre of gravity outside the feet; counter hook and string cross with the
+Pose checker (10 of 99 frames): Front Kick, Low Kick, Rift Break (f26) and
+ultimate with the centre of gravity outside the feet; counter hook and string cross with the
 spine twisted 51°; defeat wrist; Leg Sweep (right knee 43° off its foot, a
 foot floating, and the **right hand inside the torso on f25**); surge foot.
 

@@ -2793,8 +2793,17 @@ def kairo_keys(moves, base, g, S):
                 (step_k, (lf_x, w_land - travel(step_k), lf_h, 0.0), "in")]
     for k in range(step_k + 1, m1 + 1):                      # planted while the body rolls over it
         lead_abs.append((k, (lf_x, w_land - travel(k), lf_h, 0.0)))
-    lead_abs += [(a1 + 5, (lf_x, f_end, lf_h, 0.0)), (a1 + 8, (lf_x, (f_end + lf_f) * 0.5, lf_h + 0.05, 0.2), "io"),
-                 (a1 + 11, FL + (0.0,), "in")]
+    # D-128: up on the ball of the supporting foot at the peak, the heel drops with the
+    # chop. Recovery as the owner wrote it ("retract the leg, lower it naturally and
+    # recover"): the kicking leg is drawn back and set down behind him, never planted in
+    # front, and then the supporting foot takes ONE step forward into the stance. (It
+    # used to plant in front and swap both feet, which left them side by side.)
+    # Recovery keys must stay below about a1 + 16: `_recover` plays them slower, later
+    # ones are never reached.
+    lead_abs += [(a0 - 3, (lf_x, f_end, lf_h, 0.0)), (a0 - 2, (lf_x, f_end, lf_h + 0.035, 0.35)),
+                 (a0, (lf_x, f_end, lf_h, 0.0), "in"), (a1 + 10, (lf_x, f_end, lf_h, 0.0)),
+                 (a1 + 12, (lf_x, (f_end + lf_f) * 0.5 + 0.02, lf_h + 0.06, 0.2)), (a1 + 15, FL + (0.0,), "in")]
+    lh0, rh0 = base["lead_hand"], base["rear_hand"]          # the guard, placed from the head: it rides with the leaning trunk
     hip_z = head_z - 0.60
     arc_r = 1.25                                             # beyond the leg: the knee locks
 
@@ -2811,41 +2820,56 @@ def kairo_keys(moves, base, g, S):
         u = (k - m0 + 1) / float(step_k - m0 + 1)
         kick.append((k, (fr_x, fr_f - travel(k), fr_h + 0.05 * u, 0.5 * u)))
     back = fr_f - travel(step_k)
-    kick += [(step_k + 1, (fr_x * 0.9, back + 0.10, fr_h + 0.10, 0.4)),
-             (step_k + 3, (fr_x * 0.7, 0.08, fr_h + 0.10, 0.0)), (step_k + 4, (fr_x * 0.6, 0.38, fr_h + 0.15, -0.2)),
-             (step_k + 5, (fr_x * 0.6, 0.62, fr_h + 0.20, -0.3))]
+    # D-128: the hips come up as the leg swings through, so it passes under them long
+    # and low instead of folding (the knee bent 96 degrees here)
+    kick += [(step_k + 1, (fr_x * 0.9, back + 0.10, fr_h + 0.08, 0.4)),
+             (step_k + 3, (fr_x * 0.7, 0.05, fr_h + 0.05, 0.0)), (step_k + 4, (fr_x * 0.6, 0.36, fr_h + 0.10, -0.2)),
+             (step_k + 5, (fr_x * 0.6, 0.62, fr_h + 0.18, -0.3))]
     k0 = step_k + 6                                          # locked from here; the rise is even, about 17 degrees a frame
     for k in range(k0, a0 - 2):
         u = (k - k0) / float(a0 - 2 - k0)
-        kick.append((k, arc(-27 + 117 * u, x=FR[0] * (0.6 + 0.3 * u), pt=-0.4 - 0.2 * u)))
+        kick.append((k, arc(-27 + 107 * u, x=FR[0] * (0.6 + 0.3 * u), pt=-0.4 - 0.2 * u)))
     kick += [
-             (a0 - 2, arc(90, x=FR[0] * 0.9, pt=-0.7)),      # the peak: vertical, beside his head, one moment
-             (a0 - 1, arc(62, x=FR[0] * 0.75, pt=-0.8)), (a0, arc(26, pt=-0.9), "in"), (a1, arc(-6, pt=-0.9), "lin"),
-             (a1 + 2, arc(-34, pt=-0.6)), (a1 + 4, (FR[0] * 0.7, 0.38, FR[2] + 0.03, -0.2)),
-             (a1 + 7, (FR[0] * 0.7, 0.34, FR[2], 0.0), "out"),
-             (a1 + 11, (FR[0] * 0.85, 0.02, FR[2] + 0.06, 0.2), "io"), (a1 + 15, FR + (0.0,), "in")]
-    out["FORWARD_SPECIAL"] = dict(_recover=1.35, _hold=1,    # the heel drives on down to the floor: no hold at hip height
+             # the peak, one moment: 10 degrees short of vertical, with the trunk leaning
+             # back, so the leg stands in front of his face instead of across it (D-128)
+             (a0 - 2, arc(80, x=FR[0] * 0.9, pt=-0.7)),
+             (a0 - 1, arc(58, x=FR[0] * 0.75, pt=-0.8)), (a0, arc(26, pt=-0.9), "in"), (a1, arc(-6, pt=-0.9), "lin"),
+             (a1 + 2, arc(-30, pt=-0.6)),                     # the chop ends low in front, then the leg is drawn back
+             (a1 + 3, (FR[0] * 0.7, 0.75, FR[2] + 0.18, -0.4)),      # just inside reach: the knee lets go gently
+             (a1 + 4, (FR[0] * 0.7, 0.64, FR[2] + 0.18, -0.2)), (a1 + 5, (FR[0] * 0.75, 0.46, FR[2] + 0.17, 0.0)), (a1 + 8, (FR[0] * 0.85, 0.02, FR[2] + 0.10, 0.2)),
+             (a1 + 10, FR + (0.0,))]
+    out["FORWARD_SPECIAL"] = dict(_recover=1.5, _hold=1,    # the heel drives on down to the floor: no hold at hip height
                                   _lag=(("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0), ("trunk", 1.0),
                                         ("shoulders", 1.5), ("hand", 1.0), ("elbow", 1.0), ("palm", 1.0), ("chin", 3.0), ("neck", 3.0)), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 2, chin0 - 2), (a0, chin0 + 8, "in"), (a1 + 3, chin0 + 8), (T - 3, chin0)],
-        "hips": [(0, (hips0, 0)), (step_k, (hips0 + 0.03, 0)), (a0 - 2, (hips0 - 0.02, 0)),
-                 (a0, (hips0 + 0.03, 0)), (a1, (hips0 + 0.06, 0)), (a1 + 10, (hips0, 0), "out")],
-        # sinks into the step, stands up tall on the supporting leg at the peak, drops with the chop
-        "pelvis_h": [(0, ph0), (m0 - 1, low(0.015), "io"), (step_k, low(0.06)), (step_k + 4, low(0.04)),
-                     (a0 - 2, ph0 + 0.015), (a0, low(0.02), "in"), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.03), "out")]
-                    + settle(T, a1 + 12, ph0, 0.02),
-        "pelvis": [(0, pel0), (m0, pel(-4)), (step_k, pel(-10)), (a0 - 2, pel(-20)), (a1, pel(-20)), (a1 + 10, pel0, "out")],
-        "shoulders": [(0, sh0), (m0, sho(2)), (step_k, sho(-5)), (a0 - 2, sho(-12)), (a1, sho(-14)), (a1 + 10, sh0, "out")],
-        "trunk": [(0, tr0), (m0 - 1, lean(2)), (step_k, lean(5)), (a0 - 2, lean(-8), "out"), (a0 - 1, lean(-5)), (a0, lean(2)),
-                  (a1, lean(8)), (a1 + 3, lean(10)), (a1 + 9, lean(3), "out"), (a1 + 13, tr0)],
+        "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 2, chin0 + 2), (a1, chin0 + 10), (a1 + 3, chin0 + 10), (a1 + 12, chin0)],
+        "hips": [(0, (hips0, 0)), (step_k, (hips0 + 0.03, 0)), (a0 - 2, (hips0 - 0.02, 0)), (a0, (hips0 + 0.05, 0)),
+                 (a1, (hips0 + 0.07, 0)), (a1 + 5, (hips0 + 0.02, 0)), (a1 + 10, (hips0 - 0.10, 0)),      # back over the feet while they are close
+                 (a1 + 15, (hips0, 0), "out")],
+        # D-128 (the upper body was too quiet and he stayed sunk): he sinks into the step,
+        # rises as the leg swings through and stands tall on the supporting leg at the
+        # peak, then the whole body comes down with the chop: hips drop, chest drives
+        # forward, both fists pull down; the weight lands on the front foot
+        "pelvis_h": [(0, ph0), (m0 - 1, low(0.015), "io"), (step_k, low(0.05)), (step_k + 3, ph0 + 0.02),
+                     (a0 - 2, ph0 + 0.07), (a0 - 1, ph0 + 0.05), (a0, ph0 + 0.005), (a1, low(0.06)), (a1 + 3, low(0.065)), (a1 + 8, low(0.02)),
+                     (a1 + 10, low(0.03)), (a1 + 13, low(0.045)), (a1 + 16, ph0, "out")],
+        "pelvis": [(0, pel0), (m0, pel(-4)), (step_k, pel(-10)), (a0 - 2, pel(-18)), (a1, pel(-24)),
+                   (a1 + 11, pel0, "out")],
+        "shoulders": [(0, sh0), (m0, sho(2)), (step_k, sho(-5)), (a0 - 2, sho(-10)), (a1, sho(-18)),
+                      (a1 + 11, sh0, "out")],
+        "trunk": [(0, tr0), (m0 - 1, lean(2)), (step_k, lean(5)), (a0 - 2, lean(-14), "out"), (a0 - 1, lean(-8)), (a0, lean(1)),      # the body follows the heel: it finishes its drive on the active frames
+                  (a1, lean(13)), (a1 + 3, lean(14)), (a1 + 8, lean(5), "out"), (a1 + 13, tr0)],
         "lead_foot_abs": lead_abs,
         "rear_foot_abs": kick,
-        # both fists stay up in a compact guard
-        "lead_hand_abs": [(0, L), (m0 - 1, (L[0], L[1] - 0.03, L[2] - 0.02)), (a0 - 2, (L[0] + 0.03, L[1] - 0.08, L[2] + 0.02)),
-                          (a0, (L[0] + 0.02, L[1] - 0.05, L[2] - 0.04), "in"), (a1 + 4, (L[0], L[1] - 0.04, L[2] - 0.04)), (T - 4, L)],
-        "rear_hand_abs": [(0, R), (m0 - 1, (R[0], R[1] - 0.02, R[2] - 0.02)), (a0 - 2, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.02)),
-                          (a0, (R[0] + 0.03, R[1] + 0.04, R[2] - 0.06), "in"), (a1 + 4, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.05)), (T - 4, R)],
+        # the guard stays up and compact, but it lives: the kicking side's fist sinks a
+        # little as the leg rises, and both fists drive down with the heel
+        "lead_hand": [(0, lh0), (a0 - 2, (lh0[0], lh0[1] - 0.02, lh0[2])), (a0, (lh0[0], lh0[1] - 0.08, lh0[2] - 0.05)),
+                      (a1, (lh0[0], lh0[1] - 0.13, lh0[2] - 0.10)), (a1 + 4, (lh0[0], lh0[1] - 0.12, lh0[2] - 0.08)),
+                      (a1 + 11, (lh0[0], lh0[1] - 0.03, lh0[2] - 0.02), "out"), (a1 + 16, lh0)],
+        "lead_elbow": [(0, 0.2), (a0, 0.4), (a1 + 4, 0.4), (a1 + 12, 0.2)],
+        "rear_hand": [(0, rh0), (step_k + 5, (rh0[0], rh0[1] - 0.01, rh0[2] - 0.04)), (a0 - 2, (rh0[0], rh0[1] - 0.02, rh0[2] - 0.10)),
+                      (a0, (rh0[0], rh0[1], rh0[2] - 0.12)), (a1, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.15)),
+                      (a1 + 4, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.12)), (a1 + 11, (rh0[0], rh0[1], rh0[2] - 0.03), "out"), (a1 + 16, rh0)],
     })
 
     # Rift Guard (the counter stance): he sits back onto the rear leg and the

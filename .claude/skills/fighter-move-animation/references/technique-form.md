@@ -212,27 +212,38 @@ sequence itself, which rules out a knee-up chamber.
 - The rise is steady and takes about half the startup (ten frames at ~20 cm
   a frame). The peak is vertical or nearly, foot above the head, beside his
   own head, and it is one moment (two frames).
-- Trunk: a small lean back as the leg rises (7°), forward with the chop
-  (13°). Compact guard, both fists up. No spin and no twist beyond the
+- **He stands tall at the peak**: the hips rise as the leg swings through,
+  the supporting knee is nearly straight (about 30°) and he is up on the
+  ball of that foot; the heel comes down with the chop. Sunk on a bent
+  supporting leg, the kick looks weak (D-128).
+- **The body drives the chop**: trunk 14° back at the peak, 19° forward by
+  the end of the active frames, hips dropping, both fists pulling down with
+  the heel. The body arrives a frame or two after the heel, not with it.
+  Guard compact and placed from the head. No spin, no twist beyond the
   stance's.
 - The leg is **driven straight down like an axe, heel first**: foot flexed,
   toes pulled back (`point` −0.6 … −0.9). The chop gathers speed over three
   frames into the contact; the strike is on the way down.
-- It drives on down to the floor (no hold at hip height: `_hold` 1), lands
-  in front, and is drawn back into the stance.
+- **Then the leg is retracted**, as she wrote: the chop ends low in front,
+  the leg is drawn back under him and set down behind, and the supporting
+  foot takes one step forward into the stance. Do not plant the kicking
+  foot in front and swap the feet: that left them side by side (D-128).
+- The peak is about 10° short of vertical with the trunk leaning back, so
+  the near leg stands in front of his face rather than across it.
 - The leg stays locked from frame 10 to the floor (knee 4° measured). See
   keying.md "Lock a limb straight".
 - The move carries him 0.7 m with **one step in** (D-127, her choice over the
   hop or kicking on the spot): the lead foot steps and lands (frames 4–7)
   while the rear foot pushes, then the rear leg swings up from behind. The
   supporting foot is planted from its landing to the end. Frames: step 4–7,
-  swing through 8–12, locked rise 13–19, peak 20, chop 21–22, floor by 30.
+  swing through 8–11, locked rise 12–19, peak 20, chop 21–22, low in front
+  by 30, drawn back 33–41, step into the stance 42–48.
   See keying.md "Travel" for how far one step can go.
 - Earlier versions, replaced: a hop covering 1.4 m (D-115 … D-126); a lean
   of 29–32° with wide arms (D-116); a
   raised knee then the leg unfolding upward (D-120, D-125); a leg that
   snapped to vertical in one frame and waited eight at the top (until
-  D-125). The skin stretches most at the peak (29 edges; the idle has 8).
+  D-125). The skin stretches most at the peak (26 edges; the idle has 8).
 
 ### Flying side kick (Kairo: `JUMP_ATTACK`)
 

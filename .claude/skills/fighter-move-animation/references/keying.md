@@ -249,6 +249,20 @@ Guard hands: `lead_hand` / `rear_hand` (head-relative). Striking hands:
 `*_hand_abs`. The arm on the kicking side: reach it forward and down along
 the leg with a near-straight elbow, home again through the recovery.
 
+### The body follows the limb into the hit
+
+When the trunk, hips and hands all drive with a kick, key their arrival on
+the last active frame, not on the contact frame: everything landing on `a0`
+moved the head 24 cm and a hand 30 cm in one frame (D-128). The limb hits,
+the body finishes behind it.
+
+### Recovery keys and `_recover`
+
+`_recover` stretches key time after `a1`. With recovery `r` frames, keys
+later than about `a1 + 1 + (r - 1) / _recover` are never played (Rift Break:
+26 frames at 1.5 reaches `a1 + 17`). Keys written at `T - 3` in such a move
+do nothing; the last frames are the blend back to the stance.
+
 ### Weight catches itself
 
 ```python

@@ -64,6 +64,8 @@ approval looked like · Process failures (ours).
 
 | "Whats better" (the skip forward or kicking on the spot), then "Do it" | she wants a recommendation, not a list of options; give one, with the cost in a sentence | a step in instead of the hop; travel 1.4 → 0.7 m, named as a balance change | D-127 |
 
+| "Does it look right to u", then "Fix all you just said" | she wants the honest list of what is still weak, not reassurance; she will then ask for all of it. Say only what the frames show, and say that motion cannot be watched here | five faults named from the strip and `body_angles.gd`, all fixed | D-128 |
+
 Faults found by the checks before she had to name them:
 
 | Found | Fix | Where |
@@ -77,7 +79,7 @@ Faults found by the checks before she had to name them:
 | Low Kick | 4 (D-108 … D-111), 2 after the picture | first two were guesses from words |
 | Front Kick | 2 (D-096, D-097) | each a named, measured fault |
 | Flying Side Kick | 8 entries so far (D-098, 099, 112, 115–119) | no picture until D-118; then misread (leg, trunk) |
-| Rift Break | 11 entries so far (D-112, 114–117, 120–122, 125–127) | no picture until D-120; leg misread twice; timing; then her written sequence |
+| Rift Break | 12 entries so far (D-112, 114–117, 120–122, 125–128) | no picture until D-120; leg misread twice; timing; then her written sequence |
 
 The pattern: with a picture and a careful reading, one or two rounds. Without,
 any number.

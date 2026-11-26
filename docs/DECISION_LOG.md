@@ -2359,3 +2359,47 @@ foot) and said to do it.
   of the fighter who cancelled. Video:
   before / now, real speed then half speed, checked frame by frame, not
   watched. Not verified on a phone.
+
+## D-128 — 2026-11-26 — Rift Break: stands tall, the body drives the chop, the leg is drawn back
+
+Owner asked whether D-127 looked right; the honest answer listed five
+faults seen on the frames, and she said to fix them all. A fix: target
+(her written sequence), leg, frame data, hitbox and the step in are
+unchanged.
+
+1. **He stayed sunk at the peak** (supporting knee about 50°). The hips now
+   come up as the leg swings through and he stands tall at the peak on the
+   ball of the supporting foot: knee 27–34° on frames 12–19, head 6 cm
+   higher (1.46 m), heel down again with the chop.
+2. **The upper body was too quiet** (lean 7° back, 13° forward, hands still).
+   Trunk now leans back 14° at the peak and drives to 19° forward through
+   the active frames, hips dropping 13 cm from the peak; both fists pull
+   down with the heel and come back up. The guard is placed from the head
+   (`lead_hand` / `rear_hand`) so it rides with the lean; in model space it
+   would have been left behind. The body arrives after the heel (it finishes
+   on the active frames): driving both on the contact frame moved the head
+   24 cm and a hand 30 cm in one frame.
+3. **The recovery was cramped** (the kicking foot planted in front, then
+   both feet swapped and stood side by side for about ten frames). Now as
+   her text says ("retract the leg, lower it naturally and recover"): the
+   chop ends low in front, the leg is drawn back under him and set down
+   behind (frames 33–41), then the supporting foot takes one step forward
+   into the stance (42–48). The feet are close only while one passes the
+   other. `_recover` 1.5 so the recovery fills its frames.
+4. **The knee folded as the leg swung through** (96°): with the hips rising
+   it passes long and low, 77° at most, straight from frame 12.
+5. **The leg covered his face at the peak** for about four frames: the peak
+   is 10° short of vertical with the trunk leaning back, so the leg stands
+   in front of the face; it still crosses it on one frame (20).
+
+- **Checks.** `motion_report.py`: no flag that the move did not have before
+  (FAST f11, 31 cm, the swing through); a knee pop on the retract (frame 32)
+  was removed with two keys just inside the leg's reach. `body_angles.gd`:
+  kicking knee 4° on frames 12–31. `stretch_check.py`: worst 26 edges (was
+  29). Pose checker: one new line, centre of gravity 0.13 m outside the feet
+  on frame 26 (he is over the kick with the chest forward, as the Low Kick
+  and Front Kick already are). Heel in the hitbox on frames 22–25. Every
+  frame looked at in the side view; the peak, the active frames and the
+  recovery from the front. 222 tests pass. Video: before / now, real speed
+  then half speed, checked frame by frame, not watched. Not verified on a
+  phone.
