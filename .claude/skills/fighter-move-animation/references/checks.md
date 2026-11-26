@@ -259,37 +259,46 @@ godot --headless --path . --script res://tests/run_tests.gd -- kairo   # only fi
 
 Wait for the full run to end before committing. Report the real count.
 
-## Known flags on Kairo at D-129 (the baseline)
+## Known flags on Kairo at D-130 (the baseline)
 
 So you can tell your own flags from the ones already there. Update this list
 when a build changes it.
 
 Pops: Low Kick f9 right toe (the strike); ultimate f18 and f37 right toe;
-jump f43 both toes (landing); Rising Uppercut f5 left toe.
+jump f43 both toes (landing).
 
-Motion report: Rift Break clean since D-129 (D-128 had FAST f11, swinging through
-under the hip; before D-125 it had FAST f7, f9, f10 and
-DWELL f11–18, the example of a leg that snaps up and waits); Leg Sweep FAST f3–4 (left wrist to the floor); Fireball FROZEN f20–24;
-Knee Throw FAST f17 (right ankle 38 cm); ultimate several FAST (its later
-hits are strikes the report does not know about); Flying Side Kick FOLD 0.28
-(the kicking leg's chamber, f3); Knee Throw FOLD 0.31 (f15).
+Motion report: Rift Break clean since D-129; ultimate several FAST (its later
+hits are strikes the report does not know about, and the roundhouse leg has
+seven frames to come down from head height); Flying Side Kick FOLD 0.28 (the
+kicking leg's chamber, f3). Gone in D-130: Leg Sweep FAST f3–4, fireball
+FROZEN f20–24, Knee Throw FAST f17 and FOLD, uppercut toe pop.
+
+Still stretches (`python3 $S/still.py /root/work/build_kairo.log`: wrists,
+ankles and head all under 1.5 cm a frame for 4+ frames): jab 6–9 (its hold),
+Front Kick 10–13 (its hold), palm 18–22, fireball 15–18, uppercut 30–33 (home
+early), ultimate 42–45 (the finishing hold), and the crouch and the top of the
+jump. A new one inside a move is a pose held to a key that is never played
+(keying.md "Recovery keys and `_recover`").
+
+Leg report, right leg: knee never negative on any kick (before D-130 the
+ultimate's roundhouse read -128 deg and the Leg Sweep -17).
 
 Body angles at contact:
 
 | Move | Kicking knee | Pelvis from stance | Chest from stance | Twist | Lean back / side |
 |---|---|---|---|---|---|
 | Low Kick (approved) | 4° | 93° | 76° | 15° | 29° / 30° |
-| Front Kick | **34°** | 43° | 21° | 21° | 20° / 0° |
+| Front Kick | 4° (D-130; was 34°) | 43° | 21° | 21° | 20° / 0° |
 | Flying Side Kick | 4° | 86° | 39° | 46° | 13° / 11° |
 | Rift Break | 8° at contact, 10° at the peak (not locked) | 25° | 17° | 7° | 10° back at the peak, level at contact, 12° forward by frame 25 |
 
-Stretched edges, worst frame: idle 8; Low Kick 12; Front Kick 10; Flying
+Stretched edges, worst frame: idle 8; Low Kick 12; Front Kick 12; Leg Sweep 32; ultimate 35; Flying
 Side Kick 19; **Rift Break 32 (frame 16, the hip at full flexion with a bent knee)**.
 
 Pose checker (9 of 99 frames): Front Kick, Low Kick and ultimate with the
 centre of gravity outside the feet; counter hook and string cross with the
-spine twisted 51°; defeat wrist; Leg Sweep (right knee 43° off its foot, a
-foot floating, and the **right hand inside the torso on f25**); surge foot.
+spine twisted 51°; defeat wrist; Leg Sweep (right knee 54° off its foot);
+Knee Throw f17 (centre of gravity, the knee pose); surge foot.
 
 Foot slide walking forward: 0.5 cm mean per planted frame.
 

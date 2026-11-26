@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-129 (2026-11-26). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-130 (2026-11-26). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -41,6 +41,7 @@ change goes to the owner with a real-speed review video).
   frames 4–18 (a balance change).
 - D-128: Rift Break stands tall at the peak, the body drives the chop, the
   leg is drawn back and set down behind, then one step into the stance.
+- D-130: every Kairo move audited on the owner's request ("check all his skills"); recoveries of the uppercut, sweep, fireball, throw re-keyed, Front Kick and sweep legs locked, the knee hinge (`_hinge`, now a weight) on every raised kick. Low Kick, Rift Break and Flying Side Kick untouched and waiting for her verdict.
 - D-129: Rift Break re-keyed to the owner's full specification
   (`docs/images/references/kairo_rift_break_axe_kick_spec.md`): knee up,
   progressive extension, peak not locked, vertical strike, impact, recovery.

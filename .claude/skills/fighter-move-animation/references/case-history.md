@@ -68,12 +68,15 @@ approval looked like · Process failures (ours).
 
 | (a working rule) "inspect the rig ... verify their rotation axes. Do not guess bone orientations. Test ... with a small number of poses ... Preview ... from the side view ... Do not report ... complete until ... previewed and validated" | a standing rule for every animation, not only this move | `rig_inspect.gd`, `leg_check.gd`, `leg_report.py`; the validation found a thigh rolling half a turn when a bent leg is overhead | D-129 |
 | (a full specification: six phases, biomechanics, a list to avoid, thirteen checks) | the knee rises first and the leg extends progressively; not locked; impact pose with recoil. Her newest text replaces older ones where they differ: this reverses "do not chamber" from the day before | re-keyed by phase as direction plus extension; each of her thirteen checks answered with a number | D-129 |
+| "Check all his skills, look for maximum improvement in animation and motion, do not stop until everything is flawless, do trial and error" | go through the whole set yourself and fix what the checks show, round after round, without asking; approved and pending moves stay | every move audited; frozen recoveries, bent kicking legs and rolled thighs fixed | D-130 |
 
 Faults found by the checks before she had to name them:
 
 | Found | Fix | Where |
 |---|---|---|
 | The thigh bone rolled half a turn about its length when the bent leg was overhead: the mesh knee bent backwards though every joint position was right | `<key>_hinge` in `fit_stance` / `retarget` | D-129 |
+| Uppercut, Leg Sweep and fireball held a pose and popped home: recovery keys later than `_recover` plays | the way home keyed inside the reachable time | D-130 |
+| Origin Break's roundhouse and the Leg Sweep bent the mesh knee backwards (thigh roll, as in D-129) | `_hinge` on every raised kick, as a weight | D-130 |
 | Rift Break's leg snapped to vertical in one frame and waited eight at the top (likely what "too fast and unnatural" still meant) | the rise re-spaced over seven frames on a growing radius; no frame data change | D-125 |
 
 ## Rounds per move

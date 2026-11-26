@@ -2494,3 +2494,63 @@ balance change); the step in and its 0.7 m of travel are kept (her choice in
 D-127); skin stretch at the top is slightly higher than in D-128.
 
 Not verified on a phone. Video checked frame by frame, not watched.
+
+## D-130 — 2026-11-26 — Every Kairo move audited; six reworked recoveries and kicks, the knee hinge on all raised kicks
+
+**Owner:** "Check all his skills, look for maximum improvement in animation
+and motion, do not stop until everything is flawless, do trial and error."
+No picture: she asked for the whole set to be gone through, so each change
+below is a measured fault (a fix), not a new shape. The approved Low Kick,
+Rift Break (D-129) and the Flying Side Kick were left as they are.
+
+**How it was audited.** Every frame of every move in the side view
+(`frame_strip.py`), `motion_report.py`, `body_angles.gd`, `leg_report.py` on
+every kick, and a new count of stretches in which wrists, ankles and head all
+move under 1.5 cm a frame (`still.py`, kept in the skill's scripts).
+
+**What was found and changed** (`tools/blender/mocap_actions.py`; no frame
+data, hitbox or other gameplay value changed):
+
+| Move | Fault (measured) | Now |
+|---|---|---|
+| Rising Uppercut | the fist stood at the top for 18 frames (9–26) and snapped home in four: the recovery keys sat at `T - 4`, later than `_recover` ever plays | the fist rises through the active frames (under the chin on frame 5, top on frame 8), comes down in front of the face, he lands in a dip and rises; no still stretch before the last frames |
+| Front Kick | kicking knee 34° at the hit | 4°; ankle 0.75 m forward, 1.05 m high (hitbox centre 0.60, 1.05); pull-back spread (no FAST flag) |
+| Leg Sweep | knee 46° at the hit; the leg cut under his own body; rear hand up behind the head and inside the torso on frame 25; sat in the crouch then popped up; knee bending 17° the wrong way on frame 16 | leg locked (4°) swinging round the camera side; rear hand a guard at the face; rises over frames 20–25; knee never negative |
+| Fireball | cup at chest height in front (no wind-up to read); rear arm bent at release; frozen frames 20–24 | palms drawn down to the rear hip with the chest coiled, both arms long at release, recoil keyed; FROZEN flag gone |
+| Knee Throw | knee only to the waist; foot dropped 38 cm in one frame; twelve near-still frames at the end | knee to the chest with the trunk crunched over it and the hands pulled down; foot set down over six frames; a short push (not a second strike: D-103) and a staggered return |
+| Origin Break | roundhouse chamber bent the mesh knee backwards (-128° on frame 25); the finishing uppercut stood at chin height for seven frames | knee correct all the way (smallest bend 14°); the last blow goes on up past the head and keeps rising through the hold |
+| Heavy Punch / One-Two Cross | wind-up of 11 cm and 24°; the guard arm straightened for six frames; fist out for eleven frames | bigger load (fist back 19 cm, chest 34), guard sits back with him, `_recover` 1.9 → 1.5 |
+| Origin Palm, Counter Strike | long holds | palm drives on through the active frames; `_recover` 1.8/1.9 → 1.5 |
+| Rift Guard | stood dead still for twelve frames | the open hand circles across the centre line and the body breathes |
+
+**The rolling thigh was not only Rift Break's.** `leg_report.py` on the other
+kicks showed the same fault D-129 found: Origin Break's roundhouse (-128°) and
+the Leg Sweep (-17°). `<key>_hinge` is now on the Front Kick, Leg Sweep, Knee
+Throw and the ultimate's roundhouse, and it takes a weight (a track from 0 to
+1), so a leg handed over from the stance solver does not roll in one frame
+(`fit_stance`, `retarget`). Rift Break builds exactly as in D-129 (leg report
+unchanged, 15 of 15).
+
+**The lesson for keying** (in `keying.md`): a recovery key later than
+`a1 + 1 + (recovery - hold) / _recover` is never played. Keys at `T - 3` or
+`T - 4` in a move with `_recover` made three moves freeze and pop home.
+
+**Checked.** Still stretches inside moves: uppercut 9–16 and 18–26 gone,
+throw 18–22 gone, fireball 20–24 gone, Rift Guard 6–17 gone, palm 16–22 →
+18–22, ultimate 39–45 → 42–45 (the finishing hold, now creeping). Flags
+against D-129: none new; gone: uppercut toe pop, Leg Sweep hand in torso,
+Leg Sweep floating foot and both wrist FAST flags, Knee Throw FAST and FOLD,
+fireball FROZEN. Pose checker 9 of 99 as before (Leg Sweep's three faults
+became one; the Knee Throw's knee pose has its weight outside the feet, as
+the other kicks do). Skin stretch no worse on any move (sweep 35 → 32,
+uppercut 13 → 10, ultimate 33 → 35). Hitbox sheets from the side and front
+for the changed moves: striking limb in the box, no limb through the body.
+Tests: 222 passed, 0 failed (full run, on the final build).
+
+**Left as it is, and why.** Low Kick (approved). Rift Break and Flying Side
+Kick (waiting for her verdict). Jab (its five frames out were asked for in
+D-089). Walk, jump, crouch and the stance (no fault measured). The ultimate's
+leg still travels 36–42 cm a frame coming down from head height: it has seven
+frames before the next hit, set by the move's timing.
+
+Not verified on a phone. Video checked frame by frame, not watched.

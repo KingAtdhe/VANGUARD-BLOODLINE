@@ -263,6 +263,14 @@ later than about `a1 + 1 + (r - 1) / _recover` are never played (Rift Break:
 26 frames at 1.5 reaches `a1 + 17`). Keys written at `T - 3` in such a move
 do nothing; the last frames are the blend back to the stance.
 
+This froze three moves until D-130 (uppercut, Leg Sweep, fireball): the pose
+was held to a late key, the return was keyed at `T - 4`, and the body stood
+still and then popped home in the settle blend. Key the whole way home
+inside the reachable time (`a1 + 10 … a1 + 13` for most moves), body first,
+hands after. A move that sets `_hold` itself must also pass `_lag=LAG`
+(keyed_move only fills the default order when it sets the hold).
+`scripts/still.py <log>` lists stretches where nothing moves.
+
 ### Weight catches itself
 
 ```python
@@ -307,8 +315,14 @@ shortest way from its rest direction, which is undefined when the leg points
 opposite to rest: all joint positions stay right and the mesh knee bends
 backwards. `leg_report.py` shows it as a negative knee bend and a jump in the
 non-flexion rotation. It is opt-in (a move without the key builds exactly as
-before); only Rift Break uses it so far, and the ultimate's roundhouse and
-the Flying Side Kick have not been checked for the same roll.
+before). Since D-130 it is on Rift Break, the Front Kick, the Leg Sweep, the
+Knee Throw and the ultimate's roundhouse (which bent the mesh knee -128 deg
+without it). The value is a weight: key it as a track from 0 (the stance
+solver's roll) to 1 over three or four frames as the leg leaves the floor and
+back as it lands, so the thigh does not roll in one frame when a move hands
+the leg over (`[(0, 0.0), (4, 1.0), (a1 + 6, 1.0), (a1 + 10, 0.0)]`). The
+Flying Side Kick and the approved Low Kick do not use it (knee never
+negative there). Run `leg_report.py` on every new kick.
 
 `rear_toe` to 0 as the leg lifts takes the stance's turn-out off the knee, so
 it comes straight forward instead of out to the side.

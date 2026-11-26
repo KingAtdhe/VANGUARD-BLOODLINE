@@ -220,7 +220,7 @@ flags Kairo already carries, so you know what is yours):
 | Gate | Tool | Pass |
 |---|---|---|
 | No one-frame pops or snaps | `motion_report.py` (POP, FAST), flags diff | no new flag; the frame the strike lands is the only excuse |
-| No waiting limb, no frozen body | `motion_report.py` (DWELL, FROZEN), strip | none inside a move, unless the pose is the point (a counter stance) |
+| No waiting limb, no frozen body | `motion_report.py` (DWELL, FROZEN), `still.py`, strip | none inside a move, unless the pose is the point (a counter stance) |
 | Knee bends the right way, thigh does not roll, path in one plane, supporting foot still | `leg_report.py` | every mark OK, or the CHECK explained |
 | Limb as straight as the brief says | `body_angles.gd` knee column | ≤ 5° when "fully straight", on the frames the brief names (log `legext` 1.00 is not proof; 0.96 is already ~32°) |
 | Hips, chest, lean as the brief says | `body_angles.gd` | the brief's numbers, within what the eye would notice (~10°); twist under ~45° |
@@ -358,7 +358,8 @@ to the body" needs the hitbox at body height, not shin height.
 - `references/case-history.md` — the owner's words, what they meant, the fix.
 - `assets/pose-brief-template.md` — the brief to fill in at step 2.
 - `scripts/` — `build_fighter.sh`, `motion_report.py`, `frame_strip.py`,
-  `compare_reference.py`, `before_after_video.sh`, `leg_report.py`. Project
+  `compare_reference.py`, `before_after_video.sh`, `leg_report.py`, `still.py`
+  (stretches where nothing moves). Project
   tools added with this skill: `tools/godot/body_angles.gd`,
   `rig_inspect.gd`, `leg_check.gd`.
 
