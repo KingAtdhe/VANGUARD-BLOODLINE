@@ -621,7 +621,11 @@ def fit_stance(rig, P, st, lead, u=0.0):
     for sd, key, sx in ((lead, "lead", sgl), (rear, "rear", -sgl)):
         if key + "_foot_abs" in ps:
             # a foot in the air (a kick): the ankle at (x, forward, height) in
-            # model space, the foot pointed in line with the shin by `point` 0..1
+            # model space, the foot pointed in line with the shin by `point` 0..1.
+            # `<key>_reach` (D-129): the most this leg opens, as a share of its
+            # length (default 0.9995 = locked). With the target beyond reach it
+            # sets the knee bend by itself: 0.996 ~10 degrees, 0.985 ~20, 0.95 ~36,
+            # 0.6 ~106, so a kick can be keyed as a direction plus an extension.
             x, fw, z, point = ps[key + "_foot_abs"]
             # Knee and toes (D-092). The knee used to bend toward one fixed
             # direction: when the leg swung through that direction it flipped
@@ -640,12 +644,26 @@ def fit_stance(rig, P, st, lead, u=0.0):
             sag = np.array([0.0, leg_d[2], -leg_d[1]])
             hint = (flat + np.array([0.0, 0.0, 0.25])) * near_floor + sag * (1.0 - near_floor)
             d1, d2 = _ik_dirs(hip_j, np.array([x, -fw, z]), blen(sd + "UpperLeg", sd + "LowerLeg"),
-                              blen(sd + "LowerLeg", sd + "Foot"), hint, reach=0.9995)
+                              blen(sd + "LowerLeg", sd + "Foot"), hint, reach=float(ps.get(key + "_reach", 0.9995)))
             l_thigh, l_shin = slen(sd + "UpLeg", sd + "Leg"), slen(sd + "Leg", sd + "Foot")
             toe_keys = [k for k in (sd + "ToeBase", sd + "ToeBase_end") if k in P]
             toe_len = [slen(sd + "Foot", k) for k in toe_keys]
             P[sd + "Leg"] = P[sd + "UpLeg"] + d1 * l_thigh
             P[sd + "Foot"] = P[sd + "Leg"] + d2 * l_shin
+            if ps.get(key + "_hinge"):
+                # `<key>_hinge` (D-129): say which way the knee's hinge faces, so the
+                # thigh is not rolled by chance. The hinge is square to the plane of
+                # the bent leg; a straight leg takes the pelvis' own sideways axis.
+                # Without it the thigh is turned by the shortest way from its rest
+                # direction, and a leg raised overhead (the opposite of rest) rolled
+                # half a turn in one frame: the mesh knee then bent backwards.
+                hc = np.cross(d1, d2)
+                bend = float(np.linalg.norm(hc))
+                lat = _norm(P["LeftUpLeg"] - P["RightUpLeg"])
+                w = min(1.0, bend / 0.35)
+                hv = _norm((hc / bend if bend > 1e-5 else lat) * w + lat * (1.0 - w))
+                P[sd + "Hinge0"] = P[sd + "UpLeg"].copy()
+                P[sd + "Hinge"] = P[sd + "UpLeg"] + hv
             if point >= 0.0:
                 toe = _norm(d2 * point + (flat + np.array([0.0, 0.0, -0.15])) * (1.0 - point))
             else:
@@ -929,6 +947,15 @@ def retarget(rig, P, stand_hips, ground=True):
             F = _frame(side[s], P[b] - P[a])
             # the rest torso is upright; which way it faces is measured (Rig.side0)
             R0 = _frame(rig.side0[s], rig.dir[name])
+            D[name] = F @ R0.T
+        elif name.endswith("UpperLeg") and name[:-8] + "Hinge" in P:
+            # a kicking leg whose knee hinge was set (fit_stance, `_hinge`): the
+            # thigh points where it was solved AND its hinge axis faces where the
+            # bent leg says, so it never rolls about its own length (D-129)
+            sd = name[:-8]
+            a, b = LIMB[name]
+            F = _frame(P[sd + "Hinge"] - P[sd + "Hinge0"], P[b] - P[a])
+            R0 = _frame(np.array([1.0, 0.0, 0.0]), rig.dir[name])
             D[name] = F @ R0.T
         elif name.endswith("Foot") and name[:-4] + "Sole" in P:
             # a foot solved on the rig (solve_leg): the sole faces where it was
@@ -2800,8 +2827,8 @@ def kairo_keys(moves, base, g, S):
     # used to plant in front and swap both feet, which left them side by side.)
     # Recovery keys must stay below about a1 + 16: `_recover` plays them slower, later
     # ones are never reached.
-    lead_abs += [(a0 - 3, (lf_x, f_end, lf_h, 0.0)), (a0 - 2, (lf_x, f_end, lf_h + 0.035, 0.35)),
-                 (a0, (lf_x, f_end, lf_h, 0.0), "in"), (a1 + 10, (lf_x, f_end, lf_h, 0.0)),
+    lead_abs += [(a0 - 3, (lf_x, f_end, lf_h, 0.0)),        # D-129: flat on the floor throughout (it rose onto the ball in D-128)
+                 (a1 + 10, (lf_x, f_end, lf_h, 0.0)),
                  (a1 + 12, (lf_x, (f_end + lf_f) * 0.5 + 0.02, lf_h + 0.06, 0.2)), (a1 + 15, FL + (0.0,), "in")]
     lh0, rh0 = base["lead_hand"], base["rear_hand"]          # the guard, placed from the head: it rides with the leaning trunk
     hip_z = head_z - 0.60
@@ -2811,40 +2838,53 @@ def kairo_keys(moves, base, g, S):
         a = math.radians(deg)
         return (x, arc_r * math.cos(a), hip_z + arc_r * math.sin(a), pt)
 
-    # the kicking (rear) foot: pushes off the floor through the step (heel coming up),
-    # leaves it as the lead foot lands, passes low under the hip on a soft knee, and
-    # from there every key is on arc(): locked straight up to the peak, down through
-    # the target heel first (toes pulled back), on down to the floor, back to the stance
+    # D-129, to the owner's axe-kick specification (docs/images/references/
+    # kairo_rift_break_axe_kick_spec.md), which replaces the D-126 straight-leg swing:
+    #   prepare  the foot pushes off through the step and leaves the floor, the KNEE
+    #            comes forward and up, the leg bending (a chamber);
+    #   lift     the thigh keeps rising toward vertical while the knee extends
+    #            progressively; never a rigid straight-leg swing;
+    #   peak     near vertical above the head, knee mostly extended (about 10 degrees,
+    #            not locked), three frames that keep moving;
+    #   strike   down in the fore-aft plane, the knee flexing a little as it starts
+    #            and extending into the hit, speeding up;
+    #   impact   the heel slows through the active frames into a short impact pose and
+    #            rebounds a few degrees;
+    #   recover  the leg is drawn back with the knee bending and set down in the stance.
+    # The leg is keyed as a DIRECTION (arc(): a target beyond reach at that angle from
+    # the hip) plus an EXTENSION (`rear_reach`: how far the leg may open), so the knee
+    # bend is set directly: 0.56 ~112 degrees, 0.82 ~70, 0.95 ~36, 0.985 ~20, 0.996 ~10.
     kick = [(0, FR + (0.0,)), (m0 - 1, FR + (0.0,))]
     for k in range(m0, step_k + 1):
         u = (k - m0 + 1) / float(step_k - m0 + 1)
         kick.append((k, (fr_x, fr_f - travel(k), fr_h + 0.05 * u, 0.5 * u)))
     back = fr_f - travel(step_k)
-    # D-128: the hips come up as the leg swings through, so it passes under them long
-    # and low instead of folding (the knee bent 96 degrees here)
     kick += [(step_k + 1, (fr_x * 0.9, back + 0.10, fr_h + 0.08, 0.4)),
-             (step_k + 3, (fr_x * 0.7, 0.05, fr_h + 0.05, 0.0)), (step_k + 4, (fr_x * 0.6, 0.36, fr_h + 0.10, -0.2)),
-             (step_k + 5, (fr_x * 0.6, 0.62, fr_h + 0.18, -0.3))]
-    k0 = step_k + 6                                          # locked from here; the rise is even, about 17 degrees a frame
-    for k in range(k0, a0 - 2):
-        u = (k - k0) / float(a0 - 2 - k0)
-        kick.append((k, arc(-27 + 107 * u, x=FR[0] * (0.6 + 0.3 * u), pt=-0.4 - 0.2 * u)))
-    kick += [
-             # the peak, one moment: 10 degrees short of vertical, with the trunk leaning
-             # back, so the leg stands in front of his face instead of across it (D-128)
-             (a0 - 2, arc(80, x=FR[0] * 0.9, pt=-0.7)),
-             (a0 - 1, arc(58, x=FR[0] * 0.75, pt=-0.8)), (a0, arc(26, pt=-0.9), "in"), (a1, arc(-6, pt=-0.9), "lin"),
-             (a1 + 2, arc(-30, pt=-0.6)),                     # the chop ends low in front, then the leg is drawn back
-             (a1 + 3, (FR[0] * 0.7, 0.75, FR[2] + 0.18, -0.4)),      # just inside reach: the knee lets go gently
-             (a1 + 4, (FR[0] * 0.7, 0.64, FR[2] + 0.18, -0.2)), (a1 + 5, (FR[0] * 0.75, 0.46, FR[2] + 0.17, 0.0)), (a1 + 8, (FR[0] * 0.85, 0.02, FR[2] + 0.10, 0.2)),
-             (a1 + 10, FR + (0.0,))]
+             (step_k + 2, (fr_x * 0.75, back + 0.26, fr_h + 0.13, 0.3)),      # two plain keys carry the foot forward clear of the floor
+             (step_k + 3, (fr_x * 0.6, 0.10, fr_h + 0.21, 0.3)), (step_k + 4, arc(-54, pt=0.35)),
+             (step_k + 5, arc(-22, pt=0.1)), (step_k + 7, arc(22, pt=-0.6)), (step_k + 9, arc(54, x=FR[0] * 0.7, pt=-0.6)),
+             (step_k + 10, arc(70, x=FR[0] * 0.8, pt=-0.65)),
+             # peak: near vertical, then the heel is carried forward over the target while
+             # the leg is still high, so the strike itself goes down more than forward
+             (a0 - 4, arc(84, x=FR[0] * 0.9, pt=-0.65)), (a0 - 3, arc(80, x=FR[0] * 0.9, pt=-0.7)),
+             (a0 - 2, arc(72, x=FR[0] * 0.85, pt=-0.75)),
+             (a0 - 1, arc(54, x=FR[0] * 0.75, pt=-0.85)), (a0, arc(26, pt=-0.9)),
+             (a0 + 1, arc(11, pt=-0.9)), (a0 + 2, arc(1, pt=-0.9)), (a1, arc(-5, pt=-0.9)),
+             (a1 + 1, arc(-3, pt=-0.8)),                      # rebound off the hit
+             (a1 + 3, (FR[0] * 0.7, 0.72, FR[2] + 0.20, -0.4)),     # the leg comes down and back, the knee bending as it goes
+             (a1 + 4, (FR[0] * 0.7, 0.62, FR[2] + 0.18, -0.2)), (a1 + 5, (FR[0] * 0.75, 0.46, FR[2] + 0.17, 0.0)),
+             (a1 + 8, (FR[0] * 0.85, 0.02, FR[2] + 0.10, 0.2)), (a1 + 10, FR + (0.0,))]
+    kick_reach = [(0, 0.9995), (step_k + 3, 0.9995), (step_k + 4, 0.63),
+                  (step_k + 5, 0.56), (step_k + 7, 0.68), (step_k + 9, 0.84), (step_k + 10, 0.93), (a0 - 4, 0.98),
+                  (a0 - 3, 0.996), (a0 - 2, 0.996), (a0 - 1, 0.975), (a0, 0.997), (a1, 0.997), (a1 + 1, 0.992),
+                  (a1 + 2, 0.975), (a1 + 3, 0.94), (a1 + 6, 0.94), (a1 + 9, 0.9995)]
     out["FORWARD_SPECIAL"] = dict(_recover=1.5, _hold=1,    # the heel drives on down to the floor: no hold at hip height
                                   _lag=(("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0), ("trunk", 1.0),
                                         ("shoulders", 1.5), ("hand", 1.0), ("elbow", 1.0), ("palm", 1.0), ("chin", 3.0), ("neck", 3.0)), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "chin": [(0, chin0), (m0 - 1, chin0 + 3), (a0 - 2, chin0 + 2), (a1, chin0 + 10), (a1 + 3, chin0 + 10), (a1 + 12, chin0)],
-        "hips": [(0, (hips0, 0)), (step_k, (hips0 + 0.03, 0)), (a0 - 2, (hips0 - 0.02, 0)), (a0, (hips0 + 0.05, 0)),
-                 (a1, (hips0 + 0.07, 0)), (a1 + 5, (hips0 + 0.02, 0)), (a1 + 10, (hips0 - 0.10, 0)),      # back over the feet while they are close
+        "hips": [(0, (hips0, 0)), (step_k, (hips0 + 0.03, 0)), (a0 - 2, (hips0 - 0.02, 0)), (a0, (hips0 + 0.005, 0)),
+                 (a1, (hips0 + 0.035, 0)), (a1 + 5, (hips0 + 0.01, 0)), (a1 + 10, (hips0 - 0.10, 0)),      # back over the feet while they are close
                  (a1 + 15, (hips0, 0), "out")],
         # D-128 (the upper body was too quiet and he stayed sunk): he sinks into the step,
         # rises as the leg swings through and stands tall on the supporting leg at the
@@ -2857,18 +2897,23 @@ def kairo_keys(moves, base, g, S):
                    (a1 + 11, pel0, "out")],
         "shoulders": [(0, sh0), (m0, sho(2)), (step_k, sho(-5)), (a0 - 2, sho(-10)), (a1, sho(-18)),
                       (a1 + 11, sh0, "out")],
-        "trunk": [(0, tr0), (m0 - 1, lean(2)), (step_k, lean(5)), (a0 - 2, lean(-14), "out"), (a0 - 1, lean(-8)), (a0, lean(1)),      # the body follows the heel: it finishes its drive on the active frames
-                  (a1, lean(13)), (a1 + 3, lean(14)), (a1 + 8, lean(5), "out"), (a1 + 13, tr0)],
+        "trunk": [(0, tr0), (m0 - 1, lean(2)), (step_k, lean(5)), (a0 - 5, lean(-8)), (a0 - 3, lean(-11)), (a0 - 2, lean(-10)), (a0 - 1, lean(-6)), (a0, lean(-1)),      # the body follows the heel: it finishes its drive on the active frames
+                  (a1, lean(10)), (a1 + 1, lean(8)), (a1 + 3, lean(9)), (a1 + 8, lean(5), "out"), (a1 + 13, tr0)],
         "lead_foot_abs": lead_abs,
         "rear_foot_abs": kick,
+        "rear_reach": kick_reach,
+        "rear_hinge": 1.0,
+        # the stance's turn-out leaves the leg as it lifts: the knee comes straight forward, not out to the side
+        "rear_toe": [(0, base["rear_toe"]), (step_k, base["rear_toe"]), (step_k + 3, 0.0), (a1 + 8, 0.0), (a1 + 10, base["rear_toe"])],
         # the guard stays up and compact, but it lives: the kicking side's fist sinks a
         # little as the leg rises, and both fists drive down with the heel
-        "lead_hand": [(0, lh0), (a0 - 2, (lh0[0], lh0[1] - 0.02, lh0[2])), (a0, (lh0[0], lh0[1] - 0.08, lh0[2] - 0.05)),
-                      (a1, (lh0[0], lh0[1] - 0.13, lh0[2] - 0.10)), (a1 + 4, (lh0[0], lh0[1] - 0.12, lh0[2] - 0.08)),
+        "lead_hand": [(0, lh0), (step_k + 4, (lh0[0] + 0.02, lh0[1] + 0.03, lh0[2] - 0.05)), (a0 - 3, (lh0[0] + 0.04, lh0[1] - 0.01, lh0[2] - 0.01)),
+                      (a0 - 2, (lh0[0] + 0.03, lh0[1] - 0.03, lh0[2] + 0.01)), (a0, (lh0[0], lh0[1] - 0.08, lh0[2] - 0.05)),
+                      (a1, (lh0[0], lh0[1] - 0.13, lh0[2] - 0.10)), (a1 + 1, (lh0[0], lh0[1] - 0.12, lh0[2] - 0.07)), (a1 + 4, (lh0[0], lh0[1] - 0.12, lh0[2] - 0.08)),
                       (a1 + 11, (lh0[0], lh0[1] - 0.03, lh0[2] - 0.02), "out"), (a1 + 16, lh0)],
         "lead_elbow": [(0, 0.2), (a0, 0.4), (a1 + 4, 0.4), (a1 + 12, 0.2)],
         "rear_hand": [(0, rh0), (step_k + 5, (rh0[0], rh0[1] - 0.01, rh0[2] - 0.04)), (a0 - 2, (rh0[0], rh0[1] - 0.02, rh0[2] - 0.10)),
-                      (a0, (rh0[0], rh0[1], rh0[2] - 0.12)), (a1, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.15)),
+                      (a0, (rh0[0], rh0[1], rh0[2] - 0.12)), (a1, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.15)), (a1 + 1, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.12)),
                       (a1 + 4, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.12)), (a1 + 11, (rh0[0], rh0[1], rh0[2] - 0.03), "out"), (a1 + 16, rh0)],
     })
 

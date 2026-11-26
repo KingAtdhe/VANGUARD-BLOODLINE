@@ -62,7 +62,7 @@ table instead of searching.
 | Leg Sweep (down + K) | `kairo_leg_sweep` | `DOWN_KICK` | `KICK_SWEEP_01` | 8/3/20 | — |
 | Origin Palm (S) | `kairo_origin_palm` | `SPECIAL` | `SPECIAL_ORIGIN_PALM` | 14/5/24 | — |
 | Fireball (down + S) | `kairo_fireball` | `DOWN_SPECIAL` | `SPECIAL_FIREBALL` | 14/1/16 | — |
-| **Rift Break** axe kick (forward + S) | `kairo_rift_break` | `FORWARD_SPECIAL` | `SPECIAL_RIFT_BREAK` | 22/4/26, travels 0.7 m (one step in) | awaiting her OK (D-128; target: her written sequence) |
+| **Rift Break** axe kick (forward + S) | `kairo_rift_break` | `FORWARD_SPECIAL` | `SPECIAL_RIFT_BREAK` | 22/4/26, travels 0.7 m (one step in) | awaiting her OK (D-129; target: her specification) |
 | Rift Guard (back + S) / Counter Strike | `kairo_slip_counter` / `kairo_counter_hook` | counter stance / `FOLLOWUP` | `SPECIAL_SLIP_COUNTER` / `ATTACK_COUNTER_HOOK_01` | 4/13/14, 5/3/16 | — |
 | Knee Throw (L + K) | `kairo_knee_throw` | throw | `THROW_KNEE_01` | 5/2/26 | — |
 | **Flying Side Kick** (any attack in the air) | `kairo_jump_attack` | in `build()`, not `kairo_keys` | `JUMP_ATTACK` | 6/12/6 | awaiting her OK (D-119) |
@@ -106,7 +106,8 @@ round for her. The ask is one short message, for example:
 > share.google links.
 
 A written step-by-step description from her counts as the reference (Rift
-Break, D-126): save it beside the pictures and follow it step by step.
+Break, D-126 and D-129): save it beside the pictures and follow it step by
+step. Her latest text on a move replaces the earlier ones where they differ.
 
 If she answers with only a game or character name, say what you will base it
 on and build from `references/technique-form.md`, flagged as built without a
@@ -143,7 +144,19 @@ be under 5°").
 
 Put the brief (or the fix line) into the DECISION_LOG entry for the change.
 
-### 3. Measure what is there now
+### 3. Inspect the rig, then measure what is there now
+
+The owner's standing rule (D-129): inspect the rig and verify the rotation
+axes before animating, test the limb with a few poses, preview from the side,
+and do not report a move as complete until it has been previewed and
+validated. For a fighter you have not inspected in this session:
+
+```bash
+godot --headless --path . --script res://tools/godot/rig_inspect.gd -- kairo
+```
+
+It lists the pelvis, spine and leg bones, measures each one's flexion axis by
+turning it, and runs pose tests. Read it; do not assume an axis.
 
 Before touching a key, look at the move as it is and fill the brief's "now"
 column with numbers. This turns "make it better" into a list of differences,
@@ -193,6 +206,7 @@ Three rules decide whether the result is seen at all:
 bash $S/build_fighter.sh kairo          # under a minute to a few; writes /root/work/build_kairo.log
 python3 $S/motion_report.py /root/work/build_kairo.log KICK_LOW_01
 godot --headless --path . --script res://tools/godot/body_angles.gd -- kairo KICK_LOW_01
+python3 $S/leg_report.py kairo KICK_LOW_01 Right --plot /root/work/kick_path.png      # kicks: knee, path, feet, flow
 ```
 
 `build_fighter.sh` exports the move timings, builds with the debug switches
@@ -207,6 +221,7 @@ flags Kairo already carries, so you know what is yours):
 |---|---|---|
 | No one-frame pops or snaps | `motion_report.py` (POP, FAST), flags diff | no new flag; the frame the strike lands is the only excuse |
 | No waiting limb, no frozen body | `motion_report.py` (DWELL, FROZEN), strip | none inside a move, unless the pose is the point (a counter stance) |
+| Knee bends the right way, thigh does not roll, path in one plane, supporting foot still | `leg_report.py` | every mark OK, or the CHECK explained |
 | Limb as straight as the brief says | `body_angles.gd` knee column | ≤ 5° when "fully straight", on the frames the brief names (log `legext` 1.00 is not proof; 0.96 is already ~32°) |
 | Hips, chest, lean as the brief says | `body_angles.gd` | the brief's numbers, within what the eye would notice (~10°); twist under ~45° |
 | Strike lands in the hitbox | `move_shot.gd` (red box) | striking foot/fist inside the box on the active frames |
@@ -343,8 +358,9 @@ to the body" needs the hitbox at body height, not shin height.
 - `references/case-history.md` — the owner's words, what they meant, the fix.
 - `assets/pose-brief-template.md` — the brief to fill in at step 2.
 - `scripts/` — `build_fighter.sh`, `motion_report.py`, `frame_strip.py`,
-  `compare_reference.py`, `before_after_video.sh`. Project tool added with
-  this skill: `tools/godot/body_angles.gd`.
+  `compare_reference.py`, `before_after_video.sh`, `leg_report.py`. Project
+  tools added with this skill: `tools/godot/body_angles.gd`,
+  `rig_inspect.gd`, `leg_check.gd`.
 
 Keep this skill current: when the owner approves a move or corrects one, add
 the lesson to `case-history.md` (and to `technique-form.md` if it is about

@@ -130,6 +130,36 @@ run between samples: it reads about half a frame late, so on fast frames its
 numbers are far from these (Low Kick frame 8: 40° there, 94° here). Use
 `body_angles.gd`.
 
+### Rig inspection
+
+```bash
+godot --headless --path . --script res://tools/godot/rig_inspect.gd -- kairo
+```
+
+Bones with parents, rest positions and directions; an axis test (each bone
+turned 20° about each of its own axes, and where the joint below it went); the
+flexion axes that follow from it; pose tests. Kairo: 48 bones, no control or
+IK bones; Y runs along each bone (twist), X is flexion (hip −X = thigh
+forward, knee +X = heel back), Z is sideways; the rest pose is not symmetric
+(right leg 0.20 out, left 0.08), which is why bones are not animated by
+turning them about their axes here.
+
+### Leg report (kicks)
+
+```bash
+python3 $S/leg_report.py kairo SPECIAL_RIFT_BREAK Right --plot /root/work/rift_path.png
+```
+
+Runs `tools/godot/leg_check.gd` and marks, OK or CHECK: the knee never bends
+the wrong way and its non-flexion rotation never jumps (a rolled thigh); how
+high the foot goes against the head; how near vertical the leg gets; the
+foot's sideways spread; how steep the strike falls and whether it speeds up;
+toes pulled back at the contact; the supporting foot's movement on the floor
+in the world; no foot under the floor; the largest one-frame moves; first and
+last frame alike. `--plot` draws the hip, knee and ankle paths from the side
+and the front. The steepness and above-the-head marks are for a downward kick;
+read them as information for other kicks. Rift Break at D-129: 15 of 15.
+
 ### Hitbox sheet
 
 ```bash
@@ -229,7 +259,7 @@ godot --headless --path . --script res://tests/run_tests.gd -- kairo   # only fi
 
 Wait for the full run to end before committing. Report the real count.
 
-## Known flags on Kairo at D-128 (the baseline)
+## Known flags on Kairo at D-129 (the baseline)
 
 So you can tell your own flags from the ones already there. Update this list
 when a build changes it.
@@ -237,7 +267,7 @@ when a build changes it.
 Pops: Low Kick f9 right toe (the strike); ultimate f18 and f37 right toe;
 jump f43 both toes (landing); Rising Uppercut f5 left toe.
 
-Motion report: Rift Break FAST f11 (right ankle 31 cm, swinging through
+Motion report: Rift Break clean since D-129 (D-128 had FAST f11, swinging through
 under the hip; before D-125 it had FAST f7, f9, f10 and
 DWELL f11–18, the example of a leg that snaps up and waits); Leg Sweep FAST f3–4 (left wrist to the floor); Fireball FROZEN f20–24;
 Knee Throw FAST f17 (right ankle 38 cm); ultimate several FAST (its later
@@ -251,13 +281,13 @@ Body angles at contact:
 | Low Kick (approved) | 4° | 93° | 76° | 15° | 29° / 30° |
 | Front Kick | **34°** | 43° | 21° | 21° | 20° / 0° |
 | Flying Side Kick | 4° | 86° | 39° | 46° | 13° / 11° |
-| Rift Break | 4° (frames 12–31) | 25° | 17° | 7° | 14° back at the peak, 5° forward at contact, 19° by frame 25 |
+| Rift Break | 8° at contact, 10° at the peak (not locked) | 25° | 17° | 7° | 10° back at the peak, level at contact, 12° forward by frame 25 |
 
 Stretched edges, worst frame: idle 8; Low Kick 12; Front Kick 10; Flying
-Side Kick 19; **Rift Break 26 (frame 20, the leg beside the head)**.
+Side Kick 19; **Rift Break 32 (frame 16, the hip at full flexion with a bent knee)**.
 
-Pose checker (10 of 99 frames): Front Kick, Low Kick, Rift Break (f26) and
-ultimate with the centre of gravity outside the feet; counter hook and string cross with the
+Pose checker (9 of 99 frames): Front Kick, Low Kick and ultimate with the
+centre of gravity outside the feet; counter hook and string cross with the
 spine twisted 51°; defeat wrist; Leg Sweep (right knee 43° off its foot, a
 foot floating, and the **right hand inside the torso on f25**); surge foot.
 

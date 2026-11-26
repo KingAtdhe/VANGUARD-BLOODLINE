@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-128 (2026-11-26). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-129 (2026-11-26). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -40,8 +40,16 @@ change goes to the owner with a real-speed review video).
 - D-127: the hop is replaced by one step in (her choice); travel 1.4 → 0.7 m,
   frames 4–18 (a balance change).
 - D-128: Rift Break stands tall at the peak, the body drives the chop, the
-  leg is drawn back and set down behind, then one step into the stance. Not
-  yet confirmed by the owner.
+  leg is drawn back and set down behind, then one step into the stance.
+- D-129: Rift Break re-keyed to the owner's full specification
+  (`docs/images/references/kairo_rift_break_axe_kick_spec.md`): knee up,
+  progressive extension, peak not locked, vertical strike, impact, recovery.
+  Her standing rule since then: inspect the rig, test poses, preview from
+  the side and validate before reporting. Tools: `tools/godot/rig_inspect.gd`,
+  `tools/godot/leg_check.gd`, the skill's `leg_report.py`. New pose keys
+  `<key>_reach` (knee bend) and `<key>_hinge` (stops the thigh rolling when a
+  bent leg is overhead; only Rift Break uses it so far). Not yet confirmed by
+  the owner.
 - Found by the new checks, not yet changed: the Front Kick's knee is bent 34°
   at contact; the Flying Side Kick leans 13° back, not the 20–24° keyed; the
   Leg Sweep's right hand is inside the torso on frame 25. Offered to the

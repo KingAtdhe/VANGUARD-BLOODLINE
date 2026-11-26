@@ -2403,3 +2403,94 @@ unchanged.
   recovery from the front. 222 tests pass. Video: before / now, real speed
   then half speed, checked frame by frame, not watched. Not verified on a
   phone.
+
+## D-129 — 2026-11-26 — Rift Break to the owner's axe-kick specification; rig inspected, a rolling thigh found and fixed
+
+Owner sent a working rule ("inspect the rig ... verify their rotation axes.
+Do not guess bone orientations. Test the leg movement with a small number of
+poses ... Preview the animation from the side view ... Do not report the
+animation as complete until [it] has actually been previewed and validated")
+and then a full specification of the axe kick in six phases with
+biomechanical rules, a list of things to avoid and thirteen checks. Both are
+saved in `docs/images/references/kairo_rift_break_axe_kick_spec.md`; the
+specification replaces D-126's written sequence. The main difference: the
+knee rises first and the leg extends progressively ("NOT ... a straight-leg
+lifting animation", "knee mostly extended but not locked"); D-126 to D-128
+swung a locked leg.
+
+**Rig inspection** (new `tools/godot/rig_inspect.gd`). 48 bones, one deform
+skeleton, no control or IK bones (animation is baked per bone). Measured, not
+assumed: each leg and spine bone's Y axis runs along the bone (turning about
+it moves nothing below: twist), X is the flexion axis (hip: −X brings the
+thigh forward; knee: +X brings the heel back), Z is sideways. The rest pose
+is not symmetric (the right leg stands 0.20 out, the left 0.08), so a hip
+"flexed 90 degrees about its X axis" lands the ankle 17 cm to the side: the
+reason this pipeline solves joint positions in model space and derives the
+rotations, instead of turning bones about their axes.
+
+**Fault found by the validation** (new `tools/godot/leg_check.gd`). With the
+knee bent while the leg is overhead, the knee's rotation about its hinge read
+−69° and the part that is not flexion jumped by 84° in one frame: every joint
+position was right, but the thigh bone had rolled half a turn about its own
+length, so on the mesh the knee bent backwards. Cause: `retarget()` turns a
+limb by the shortest way from its rest direction, and a leg raised overhead
+points opposite to rest, where that shortest way is undefined. The straight
+leg of D-126–D-128 hid it (it showed only as stretched skin at the top).
+Fix: a pose key `<key>_hinge` makes `fit_stance` record which way the knee's
+hinge faces (square to the plane of the bent leg; the pelvis' sideways axis
+for a straight one) and `retarget()` builds the thigh from its direction AND
+that hinge. Opt-in: only Rift Break sets it; every other move's model data is
+unchanged. After: knee flexion positive on every frame, largest one-frame
+change of the non-flexion part 4.6°.
+
+**New pose key `<key>_reach`**: the most a kicking leg may open (default
+0.9995 = locked). With the foot target beyond reach it sets the knee bend
+directly (0.996 ≈ 10°, 0.975 ≈ 25°, 0.82 ≈ 70°, 0.56 ≈ 112°), so the kick is
+keyed as a direction and an extension.
+
+**The animation, by the specification's phases** (frames of 51; contact 22):
+- preparation 1–9: the step in (D-127) and weight onto the supporting leg;
+  the kicking foot pushes off and leaves the floor on frame 8;
+- knee up 10–12: the knee comes straight forward and up (bend 105–111°), not
+  out to the side (the stance's turn-out is taken off as the leg lifts);
+- lift and extension 13–18: the thigh keeps rising while the knee opens
+  progressively (104, 93, 80, 64, 42, 22°);
+- peak 18–20: near vertical (80° from the floor), foot at 1.64 m, 17 cm above
+  the head, knee 10° (not locked); it keeps moving, carrying the heel forward
+  over the target;
+- strike 20–22: the knee flexes to 25° as it starts and extends to 8° at the
+  hit; the foot speeds up (12, 26, 40 cm a frame), heel first, toes pulled
+  back 39°;
+- impact 22–26: the heel slows through the active frames into a short impact
+  pose and rebounds; chest and fists come down with it and recoil;
+- recovery 27–51: the leg comes down with the knee bending (to 80°), is set
+  down in the stance (frame 41), and the supporting foot steps up (42–48).
+Supporting foot flat on the floor throughout (it rose onto the ball in
+D-128). Lean back at the peak 10° (was 14°).
+
+**The thirteen checks**, measured on the game model
+(`.claude/skills/fighter-move-animation/scripts/leg_report.py`, 15 of 15
+marks) and looked at on every frame, side and front:
+1. lifts above the head: foot 1.64 m, head 1.47 m. 2. near vertical: 80°.
+3. foot over the target before the strike: carried to 0.23 m forward at
+1.61 m on frame 20 (the target is 0.8 m away, so "above" is as far as a
+near-vertical leg reaches). 4. descends mostly vertically: the strike goes
+0.92 m down and 0.59 m forward (57° below level); through the hit 0.45 m
+down, 0.12 m forward (75°). 5. heel strikes: toes pulled back 39° at the
+contact, heel inside the hitbox on frames 22–25. 6. reads as an axe kick:
+knee up, leg up, down. 7. supporting foot stable: planted on frames 7–41,
+0.3 cm of movement on the floor in the world. 8. balance: the pose checker's
+centre-of-gravity flag on frame 26 is gone (lean and hip drive reduced).
+9. joints: knee never below 8°, never backwards, no roll. 10. mesh: worst
+frame 32 stretched edges at frame 16 (D-128: 26; the idle: 8): the hip at
+full flexion with a bent knee; not distorted to the eye. 11. no snapping:
+largest one-frame ankle move 40 cm (the hit), head 8.5 cm; no pop flagged.
+12. returns to the stance: first and last frame within 0.8 cm.
+13. same rig, same clip name, same frame data; 222 tests pass.
+
+**Where it does not follow the specification** (told to the owner): the hit
+is at 43 % of the clip, not 70–75 % (the game's frame data; changing it is a
+balance change); the step in and its 0.7 m of travel are kept (her choice in
+D-127); skin stretch at the top is slightly higher than in D-128.
+
+Not verified on a phone. Video checked frame by frame, not watched.

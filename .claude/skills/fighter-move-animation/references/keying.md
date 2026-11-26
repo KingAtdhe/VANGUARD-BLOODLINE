@@ -284,6 +284,35 @@ pinched the thigh (D-099). Chambers at 0.34–0.38 are in the game without
 trouble. Stay above about 0.33 (`motion_report.py` prints FOLD below it) and
 check the frame with `stretch_check.py` and from the front.
 
+### A leg as direction plus extension (`_reach`), and the hinge (`_hinge`)
+
+`<key>_reach` (D-129) caps how far a `*_foot_abs` leg may open (default
+0.9995 = locked). Put the target beyond reach with `arc(angle)` and the leg
+points that way, bent by exactly what `_reach` allows:
+
+| `_reach` | 0.9995 | 0.996 | 0.985 | 0.975 | 0.95 | 0.82 | 0.62 | 0.56 |
+|---|---|---|---|---|---|---|---|---|
+| Knee bend | 4° | 10° | 20° | 25° | 36° | 70° | 103° | 112° |
+
+So a kick that chambers and then extends is two tracks: the angle rising and
+the reach opening (Rift Break: knee up at 0.56–0.63, opening to 0.996 at the
+peak, 0.975 as the strike starts, 0.997 at the hit). Use plain position keys
+(inside reach) near the floor and for the way back: a target beyond reach
+that points below the floor drives the foot into it.
+
+`<key>_hinge: 1.0` records which way the knee's hinge faces so the thigh
+cannot roll about its own length. Set it on any kick where the leg is bent
+while raised near or past vertical. Without it the thigh is turned by the
+shortest way from its rest direction, which is undefined when the leg points
+opposite to rest: all joint positions stay right and the mesh knee bends
+backwards. `leg_report.py` shows it as a negative knee bend and a jump in the
+non-flexion rotation. It is opt-in (a move without the key builds exactly as
+before); only Rift Break uses it so far, and the ultimate's roundhouse and
+the Flying Side Kick have not been checked for the same roll.
+
+`rear_toe` to 0 as the leg lifts takes the stance's turn-out off the knee, so
+it comes straight forward instead of out to the side.
+
 ### Extension is not straightness
 
 For a limb of two near-equal bones, bend ≈ 2·acos(extension):

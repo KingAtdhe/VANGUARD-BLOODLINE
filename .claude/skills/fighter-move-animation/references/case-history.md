@@ -66,10 +66,14 @@ approval looked like · Process failures (ours).
 
 | "Does it look right to u", then "Fix all you just said" | she wants the honest list of what is still weak, not reassurance; she will then ask for all of it. Say only what the frames show, and say that motion cannot be watched here | five faults named from the strip and `body_angles.gd`, all fixed | D-128 |
 
+| (a working rule) "inspect the rig ... verify their rotation axes. Do not guess bone orientations. Test ... with a small number of poses ... Preview ... from the side view ... Do not report ... complete until ... previewed and validated" | a standing rule for every animation, not only this move | `rig_inspect.gd`, `leg_check.gd`, `leg_report.py`; the validation found a thigh rolling half a turn when a bent leg is overhead | D-129 |
+| (a full specification: six phases, biomechanics, a list to avoid, thirteen checks) | the knee rises first and the leg extends progressively; not locked; impact pose with recoil. Her newest text replaces older ones where they differ: this reverses "do not chamber" from the day before | re-keyed by phase as direction plus extension; each of her thirteen checks answered with a number | D-129 |
+
 Faults found by the checks before she had to name them:
 
 | Found | Fix | Where |
 |---|---|---|
+| The thigh bone rolled half a turn about its length when the bent leg was overhead: the mesh knee bent backwards though every joint position was right | `<key>_hinge` in `fit_stance` / `retarget` | D-129 |
 | Rift Break's leg snapped to vertical in one frame and waited eight at the top (likely what "too fast and unnatural" still meant) | the rise re-spaced over seven frames on a growing radius; no frame data change | D-125 |
 
 ## Rounds per move
@@ -79,7 +83,7 @@ Faults found by the checks before she had to name them:
 | Low Kick | 4 (D-108 … D-111), 2 after the picture | first two were guesses from words |
 | Front Kick | 2 (D-096, D-097) | each a named, measured fault |
 | Flying Side Kick | 8 entries so far (D-098, 099, 112, 115–119) | no picture until D-118; then misread (leg, trunk) |
-| Rift Break | 12 entries so far (D-112, 114–117, 120–122, 125–128) | no picture until D-120; leg misread twice; timing; then her written sequence |
+| Rift Break | 13 entries so far (D-112, 114–117, 120–122, 125–129) | no picture until D-120; leg misread twice; timing; then her written sequence |
 
 The pattern: with a picture and a careful reading, one or two rounds. Without,
 any number.

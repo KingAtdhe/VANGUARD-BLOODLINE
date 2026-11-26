@@ -198,52 +198,52 @@ nearest keyed example (its numbers are below).
 
 ### Axe kick (Kairo: Rift Break, `FORWARD_SPECIAL` / `SPECIAL_RIFT_BREAK`)
 
-Status: keyed to the owner's **written sequence** (D-126,
-`docs/images/references/kairo_rift_break_axe_kick.md`); **not yet
-confirmed**. Her corrections on the way: other leg (twice; settled as the leg
-nearer the camera), leg fully straight, slower and less abrupt, and then the
-sequence itself, which rules out a knee-up chamber.
+Status: keyed to the owner's **specification** (D-129,
+`docs/images/references/kairo_rift_break_axe_kick_spec.md`); **not yet
+confirmed**. Twelve entries of history; what she has settled on the way: the
+leg nearer the camera; a step in, no hop; and, in the specification, the knee
+rising first with the leg extending progressively (her earlier text asked for
+a straight-leg lift; the specification replaces it and names "straight-leg
+lifting" as wrong).
 
-- Weight onto the supporting leg first (hips forward over the lead foot).
-- The kicking leg swings **straight up in front of the body with the knee
-  extended**. No chamber, no knee-up, nothing sideways. The foot passes low
-  under the hip on a soft knee for three frames (it has to clear the floor
-  under a sunk stance), then the leg is locked.
-- The rise is steady and takes about half the startup (ten frames at ~20 cm
-  a frame). The peak is vertical or nearly, foot above the head, beside his
-  own head, and it is one moment (two frames).
-- **He stands tall at the peak**: the hips rise as the leg swings through,
-  the supporting knee is nearly straight (about 30°) and he is up on the
-  ball of that foot; the heel comes down with the chop. Sunk on a bent
-  supporting leg, the kick looks weak (D-128).
-- **The body drives the chop**: trunk 14° back at the peak, 19° forward by
-  the end of the active frames, hips dropping, both fists pulling down with
-  the heel. The body arrives a frame or two after the heel, not with it.
-  Guard compact and placed from the head. No spin, no twist beyond the
-  stance's.
-- The leg is **driven straight down like an axe, heel first**: foot flexed,
-  toes pulled back (`point` −0.6 … −0.9). The chop gathers speed over three
-  frames into the contact; the strike is on the way down.
-- **Then the leg is retracted**, as she wrote: the chop ends low in front,
-  the leg is drawn back under him and set down behind, and the supporting
-  foot takes one step forward into the stance. Do not plant the kicking
-  foot in front and swap the feet: that left them side by side (D-128).
-- The peak is about 10° short of vertical with the trunk leaning back, so
-  the near leg stands in front of his face rather than across it.
-- The leg stays locked from frame 10 to the floor (knee 4° measured). See
-  keying.md "Lock a limb straight".
-- The move carries him 0.7 m with **one step in** (D-127, her choice over the
-  hop or kicking on the spot): the lead foot steps and lands (frames 4–7)
-  while the rear foot pushes, then the rear leg swings up from behind. The
-  supporting foot is planted from its landing to the end. Frames: step 4–7,
-  swing through 8–11, locked rise 12–19, peak 20, chop 21–22, low in front
-  by 30, drawn back 33–41, step into the stance 42–48.
-  See keying.md "Travel" for how far one step can go.
-- Earlier versions, replaced: a hop covering 1.4 m (D-115 … D-126); a lean
-  of 29–32° with wide arms (D-116); a
-  raised knee then the leg unfolding upward (D-120, D-125); a leg that
-  snapped to vertical in one frame and waited eight at the top (until
-  D-125). The skin stretches most at the peak (26 edges; the idle has 8).
+Her six phases, with the frames they have (51 in all, contact 22):
+
+- **Preparation** (1–9): weight onto the supporting leg with one step in; the
+  kicking foot pushes off and leaves the floor.
+- **Knee up** (10–12): the knee comes straight forward and up, bent about
+  110°, not out to the side.
+- **Lift and extension** (13–18): the thigh keeps rising toward vertical while
+  the knee opens steadily. Never a rigid leg, never bent all the way.
+- **Peak** (18–20): near vertical (80°), foot above the head, knee about 10°
+  (mostly extended, not locked). It does not freeze: the heel is carried
+  forward over the target, the body keeps adjusting.
+- **Strike** (20–22): down in one fore-aft plane, the knee flexing a little as
+  it starts (25°) and extending into the hit (8°), speeding up; heel first,
+  toes pulled back.
+- **Impact** (22–26): the heel slows through the active frames into a short
+  impact pose and rebounds a few degrees; chest and fists come down with it
+  and recoil. No long pause.
+- **Recovery** (27–51): the leg comes down with the knee bending, is set down
+  in the stance, the supporting foot steps up, he settles.
+
+Also from her text and from D-128: he stands tall on a nearly straight
+supporting leg with the foot **flat** on the floor; the lean back at the peak
+is small (10°); the arms stay in a compact guard but move (they sink, pull
+down with the heel and recoil); the supporting foot does not slide; nothing
+sideways, no spin.
+
+"Predominantly vertical" and "foot above the target": a near-vertical leg puts
+the foot over his own head, not over a target 0.8 m away. The peak therefore
+tips forward (the heel carried to about 0.25 m ahead while still at 1.6 m)
+before the strike, so the strike itself falls more than it travels (57° below
+level; 75° through the hit).
+
+The game hits at 43 % of the clip; her phases put the impact at 70–75 %. The
+phases keep their order inside the time before the hit; matching 70 % would
+be a slower move (a balance change).
+
+Keyed as a direction plus an extension with the hinge set: keying.md "A leg as
+direction plus extension".
 
 ### Flying side kick (Kairo: `JUMP_ATTACK`)
 
