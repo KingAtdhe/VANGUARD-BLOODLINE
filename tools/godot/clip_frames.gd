@@ -155,7 +155,7 @@ func _initialize() -> void:
 ## Lying clips reach back past the left edge of the frame; the camera moves
 ## back with them so the whole body stays in view (D-135).
 static func _frame_shift(suffix: String) -> float:
-	return -0.55 if suffix in ["KNOCKDOWN", "GETUP", "DEFEAT"] else 0.0
+	return -0.55 if suffix in ["KNOCKDOWN", "GETUP", "GETUP_KIPUP", "DEFEAT"] else 0.0
 
 
 ## Metres the game has moved the fighter (+ = toward the opponent) when frame

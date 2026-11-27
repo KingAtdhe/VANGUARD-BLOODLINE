@@ -3830,6 +3830,46 @@ def build(rig_obj, moves, fid, height, clip_dir):
         gu.append(p)
     A[f"{F}_GETUP"] = gu
 
+    if fid == "kairo":
+        # D-141 (owner's quality brief: "a launch into the air with a fall", "getup
+        # should have a roll or kip-up variant"). Launched (the game carries him on
+        # the arc; the clip poses the body): the blow snaps him back, he folds back
+        # over it with the legs swinging up in front, and stays laid out, limbs
+        # trailing, until he lands (the knockdown is then entered at its touch-down).
+        laid = Pose.blend(arch, lying, 0.45)
+        la = []
+        for t in range(48):
+            if t <= 4:
+                p = Pose.blend(guard, heavy, ease(t / 4))
+            elif t <= 11:
+                p = Pose.blend(heavy, arch, ease((t - 4) / 7, "out"))
+            elif t <= 22:
+                p = Pose.blend(arch, laid, ease((t - 11) / 11))
+            else:
+                flail = 0.06 * math.sin((t - 22) * 0.45) * math.exp(-(t - 22) / 18.0)
+                p = Pose.blend(laid, arch, max(0.0, flail))
+            la.append(p)
+        A[f"{F}_LAUNCHED"] = la
+        # Kip-up (every other wake-up): the knees come up to the chest, then he
+        # snaps up off his back onto his feet in one go and settles into the guard.
+        tuck = Pose.blend(lying, kneel, 0.32)
+        tuck.hips = lying.hips + np.array([0.0, -0.05 * H, 0.04 * H])
+        kp = []
+        for t in range(27):
+            if t <= 7:
+                p = Pose.blend(lying, tuck, ease(t / 7))
+                p.hips = lying.hips + (tuck.hips - lying.hips) * ease(t / 7)
+            elif t <= 15:
+                u_ = ease((t - 7) / 8, "out")
+                p = Pose.blend(tuck, crouch, u_)
+                arc = math.sin(math.pi * u_) * 0.10 * H        # off the floor in an arc
+                p.hips = tuck.hips + (crouch.hips - tuck.hips) * u_ + np.array([0.0, 0.0, arc])
+            else:
+                p = Pose.blend(crouch, guard, ease((t - 15) / 11))
+            kp.append(p)
+        A[f"{F}_GETUP_KIPUP"] = kp
+        AIRBORNE[f"{F}_GETUP_KIPUP"] = (9, 14)               # the snap up: off the floor, not grounded
+
     # defeat (40): stagger, drop to the knees, slump
     df = []
     for t in range(41):

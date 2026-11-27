@@ -57,6 +57,10 @@ extends Resource
 @export var anim_hit_low: StringName = &""
 @export var anim_knockdown: StringName = &""
 @export var anim_getup: StringName = &""
+## D-141: optional. Thrown into the air (LAUNCHED); empty = the heavy hit is
+## shown. A second get-up (a kip-up) used on every other wake-up.
+@export var anim_launched: StringName = &""
+@export var anim_getup_alt: StringName = &""
 @export var anim_victory: StringName = &""
 @export var anim_defeat: StringName = &""
 ## When set, every animation name above and in the moves is looked up with
@@ -115,7 +119,7 @@ func required_animations() -> Array[StringName]:
 			anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]:
 		out.append(resolve_anim(a))
 	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low, anim_dash_forward, anim_dash_back,
-			anim_crouch, anim_jump, anim_crouch_down, anim_crouch_up]:
+			anim_crouch, anim_jump, anim_crouch_down, anim_crouch_up, anim_launched, anim_getup_alt]:
 		if extra != &"":
 			out.append(resolve_anim(extra))
 	for m: MoveData in moves:

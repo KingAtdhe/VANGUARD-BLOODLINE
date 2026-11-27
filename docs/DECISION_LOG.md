@@ -2889,3 +2889,36 @@ first bounded batch; the rest is planned in HANDOFF (CLAUDE.md rule 5).
 
 Tests: 222 passed, 0 failed (full run on the final build). Not verified on a
 phone; video checked frame by frame, not watched.
+
+## D-141 — 2026-11-27 — Quality brief, batch 2: strike trails, ultimate push-in, a launch reaction, a kip-up get-up
+
+**Owner:** "Continue" (the batches planned in D-140).
+
+- **Strike trails** (`scripts/vfx/strike_trail.gd`, fed by `FighterView`):
+  a short fading ribbon behind any fist or foot that moves faster than
+  4 m/s while a strike comes out (from 4 frames before the first active frame
+  to 1 after the last). Nothing is added during hit-stop; the ribbon fades by
+  age (0.12 s). One ImmediateMesh of at most 16 vertices per limb, unshaded,
+  no shadow. Additive blending vanished against the bright arenas, so it is
+  mixed (warm white-orange, 75 % at the limb). Every fighter gets it.
+  Checked in the real training scene (movie writer): visible on the kick and
+  the cross; render cost not measured on a phone.
+- **Ultimate push-in:** on the ultimate's ATTACK_START the camera pushes in
+  between the two fighters (towards the attacker) through the wind-up; each
+  hit then keeps its own cinematic. Presentation only.
+- **Launch reaction** (`anim_launched`, Kairo): snapped back, folded back over
+  the blow, laid out with the limbs trailing while the game carries him on
+  the arc. A launched fighter now enters the knockdown at its touch-down
+  frame (25) instead of replaying the stagger from standing.
+- **Kip-up** (`anim_getup_alt`, Kairo): knees to the chest, a snap up off the
+  back onto the feet (the snap is kept off the floor), settle into the guard;
+  used on every other wake-up (presentation only, the wake-up timing is the
+  simulation's).
+- Review video: the launch and the kip-up are in it.
+
+Not done yet (next batches): swaying hair and sash (needs new bones in the
+owner's rig), crumple and wall bounce, the spinning kick (input not chosen),
+intro / taunt / new win and lose poses.
+
+Tests: 222 passed, 0 failed (full run on the final build). Not verified on a
+phone; videos checked frame by frame, not watched.

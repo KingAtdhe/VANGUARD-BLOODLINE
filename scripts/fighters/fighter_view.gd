@@ -45,6 +45,7 @@ var _fist_rest: Vector3
 ## fire_limbs) and on the body while burning (hit by a move tagged ignite).
 ## Made the first time they are needed.
 var _limb_fire: Dictionary = {}       # bone name -> fire source
+var _trails: Dictionary = {}          # bone name -> StrikeTrail (D-141)
 var _burn_fire: Array[Node3D] = []
 var _burn_left: float = 0.0
 ## Knockdown landing watch (D-102): after a knockdown or KO the hips are
@@ -262,6 +263,7 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 	_update_surge(current, delta)
 	_update_flash(delta)
 	_update_fire(current, delta)
+	_update_trails(current, delta if not frozen else 0.0, delta)
 	_update_landing(delta)
 
 
@@ -372,6 +374,37 @@ func _attach_fire(bone: String, size: float, amount: int, radius: float, offset:
 	src.position = offset
 	att.add_child(src)
 	return src
+
+
+# --- strike trails (D-141) ----------------------------------------------------
+
+## A fading ribbon behind whichever fist or foot moves fast while a strike
+## comes out: from a few frames before the first active frame to just after
+## the last. During hit-stop nothing is added (the trail fades by age).
+func _update_trails(s: FighterState, step: float, delta: float) -> void:
+	if skeleton == null:
+		return
+	var striking: bool = s.action == FighterState.Action.ATTACK and s.move != null \
+			and s.move_frame >= s.move.startup_frames - 4 \
+			and s.move_frame <= s.move.startup_frames + s.move.active_frames + 1
+	for bone: String in HAND_BONES + FOOT_BONES:
+		var trail: StrikeTrail = _trails.get(bone)
+		if trail == null:
+			if not striking:
+				continue
+			trail = StrikeTrail.new()
+			trail.name = "Trail_%s" % bone
+			if FOOT_BONES.has(bone):
+				trail.width = 0.22
+			add_child(trail)
+			_trails[bone] = trail
+		var idx: int = skeleton.find_bone(bone)
+		if idx < 0:
+			continue
+		var reach: float = 0.07 if HAND_BONES.has(bone) else 0.12        # the fist / the ball of the foot, past the joint
+		var t: Transform3D = skeleton.global_transform * skeleton.get_bone_global_pose(idx)
+		# in hit-stop (step 0) nothing is added and the trail fades by age
+		trail.feed(t * Vector3(0.0, reach, 0.0), delta, striking and step > 0.0)
 
 
 # --- knockdown landing (D-102) ------------------------------------------------

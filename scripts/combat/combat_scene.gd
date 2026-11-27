@@ -384,6 +384,15 @@ func _present_new_events() -> void:
 				if m != null and m.tags.has("ultimate"):
 					var mid: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5
 					_camera_rig.start_cinematic(mid, float(m.hitstop_frames) / CombatConstants.TICK_RATE)
+			CombatEvent.Type.ATTACK_START:
+				# D-141 (owner: "ultimate: wind-up pose and camera push-in"): the camera
+				# pushes in on the attacker through the wind-up, then the hits carry on
+				# with their own cinematic (below). Presentation only.
+				var um: MoveData = simulation.definitions[ev.actor].move_for_id(ev.move_id) if ev.actor in [0, 1] else null
+				if um != null and um.tags.has("ultimate"):
+					var ax: float = simulation.fighters[ev.actor].position_x
+					var ox: float = simulation.fighters[1 - ev.actor].position_x
+					_camera_rig.start_cinematic(lerpf(ax, ox, 0.3), float(um.startup_frames + 12) / CombatConstants.TICK_RATE)
 			CombatEvent.Type.BLOCK:
 				_effects.spawn_for(ev, _attack_dir(ev))
 				_camera_rig.add_shake(0.008)

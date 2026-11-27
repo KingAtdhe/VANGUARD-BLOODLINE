@@ -26,6 +26,8 @@ const BLEND_CROUCH: float = 0.15
 const CROUCH_LINGER: float = 0.1
 ## Initial hitstun at or above this uses the heavy hit reaction.
 const HEAVY_HITSTUN: int = 20
+## Frame of the knockdown clip on which the back reaches the floor (D-135/136).
+const KNOCKDOWN_LAND_FRAME: float = 25.0
 ## The jump clip is authored on these tick counts (take-off, air, landing);
 ## a fighter whose jump is timed differently has each part stretched to fit.
 const JUMP_CLIP_PREJUMP: int = 4
@@ -43,6 +45,7 @@ var _last_combo: int = 0
 var _override: StringName = &""
 var _zone_anim: StringName = &""
 var _crouch_linger: float = 0.0
+var _wakeups: int = 0
 
 
 func _init(anim_player: AnimationPlayer, definition: FighterDefinition) -> void:
@@ -96,11 +99,24 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 		FighterState.Action.LAUNCHED:
 			# Reeling in the air; each new hit restarts the reaction.
 			var air_hit: bool = _last_action != s.action or s.combo_hits != _last_combo
-			_show(def.anim_hit_heavy, BLEND_REACTION, 0.0 if air_hit else _entered_time(s, def.anim_hit_heavy, dt), false)
+			# D-141: the fighter's own launch reaction (thrown back, legs up) when it has one
+			var air_anim: StringName = def.anim_launched if _has(def.anim_launched) else def.anim_hit_heavy
+			_show(air_anim, BLEND_REACTION, 0.0 if air_hit else _entered_time(s, air_anim, dt), false)
 		FighterState.Action.KNOCKDOWN, FighterState.Action.KO:
-			_show(def.anim_knockdown, BLEND_REACTION, _entered_time(s, def.anim_knockdown, dt), false)
+			# D-141: coming down from a launch he is already falling: the knockdown
+			# clip is entered at its touch-down frame instead of replaying the stagger
+			# and the fall from standing (a pop from the air back to the guard)
+			var kd_t: float = _entered_time(s, def.anim_knockdown, dt)
+			if _last_action == FighterState.Action.LAUNCHED and kd_t == 0.0 and _has(def.anim_launched):
+				kd_t = KNOCKDOWN_LAND_FRAME / CombatConstants.TICK_RATE
+			_show(def.anim_knockdown, BLEND_ATTACK if _last_action == FighterState.Action.LAUNCHED else BLEND_REACTION, kd_t, false)
 		FighterState.Action.WAKEUP:
-			_show(def.anim_getup, BLEND_DEFAULT, _entered_time(s, def.anim_getup, dt), false)
+			# D-141: every other wake-up is the kip-up when the fighter has one
+			# (presentation only; the wake-up timing is the simulation's)
+			if _last_action != s.action:
+				_wakeups += 1
+			var up_anim: StringName = def.anim_getup_alt if (_wakeups % 2 == 0 and _has(def.anim_getup_alt)) else def.anim_getup
+			_show(up_anim, BLEND_DEFAULT, _entered_time(s, up_anim, dt), false)
 		FighterState.Action.DASH:
 			# Seeked from the simulation like an attack: frame N of the dash = tick N.
 			var dash_anim: StringName = def.anim_dash_forward if s.dash_forward else def.anim_dash_back
