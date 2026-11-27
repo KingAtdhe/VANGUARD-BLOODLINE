@@ -71,6 +71,7 @@ approval looked like · Process failures (ours).
 | "Check all his skills, look for maximum improvement in animation and motion, do not stop until everything is flawless, do trial and error" | go through the whole set yourself and fix what the checks show, round after round, without asking; approved and pending moves stay | every move audited; frozen recoveries, bent kicking legs and rolled thighs fixed | D-130 |
 | "These need to be fixed" + another AI's written critique of the video (foot sliding, weight, recoil, twinning, linear easing) | she will get second opinions on the video and pass them on; measure each claim first, fix the true ones, and tell her plainly which ones the numbers do not support | `weight_report.py`; stepping feet lift, dashes, recoil, crouch clips, landing, knockdown | D-131 |
 | "Fix all that u didn't fix and send me the video of all moves fixed again" | when a report lists things left undone, she wants them done, including the ones that need a balance change or touch an approved move; say plainly afterwards what changed in the game's numbers | both kicks over their foot (Front Kick hitbox 0.60 -> 0.78 m), jab trunk, axe-kick hands | D-132 |
+| a second outside critique (foot skid, root midway, crouch, arm punches, no recoil, rigid head, twinning, flat knockdown, floaty jump) | as before: measure each point; this time the worst fault (the ultimate's feet skating 1.3 m) was real and had been hidden by measuring in body space | step planner, punch hip drive, crouch heel roll, head lag, knockdown arc, jump hang (a feel change), review video with travel and hit freeze | D-133 |
 
 Faults found by the checks before she had to name them:
 
@@ -114,5 +115,8 @@ and in the arena camera.
   `build_fighter.sh` does it every time.
 - A share.google link was retried instead of asking for the image.
 - Changed timing without at first calling it a balance change.
+- Measured feet in body space on moves the game carries forward: the
+  ultimate's feet skated 1.3 m and every check said OK (D-133). Add the travel.
+- Filmed walks and dashes on the spot: planted feet then look like sliding.
 - Sent a video called "all moves" that left out five of them (the default
   list in `tools/review_video.py`); check the list against the move table.

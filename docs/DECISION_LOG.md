@@ -2624,3 +2624,38 @@ Tests: 222 passed, 0 failed (full run, on the final build).
 
 Not verified on a phone. Video checked frame by frame, not watched.
 
+## D-133 — 2026-11-27 — Second outside critique: feet on moves the game carries, punch torque, crouch heel roll, head lag, knockdown arc, jump hang time; the review video shows travel and hit freeze
+
+**Owner:** a second written critique of the D-132 video (another AI), nine
+points. Each was measured first (`weight_report.py`, now on the ball of the
+foot and with the game's travel added; the rig has no toe bone, so the ball is
+15 cm along the foot bone).
+
+| Critique | Measured | Verdict | Now |
+|---|---|---|---|
+| Feet skid on recoveries (heavy, ultimate) and walk/dash transitions | **ultimate: the game carries him 1.3 m while both feet stood on body-space marks: the back foot slid 86 cm.** Uppercut: 0.25 m, 28 cm. Jab, cross, counter, palm: the lead foot drifted home slowly (up to 3.4 cm a frame). Walk and dashes on the model: no slide, but the review video filmed them on the spot, which looks like sliding | true | a step planner in `keyed_frames` for moves with `move_distance` (`_travel`): each stance foot holds a spot on the floor, the foot furthest behind steps (5 frames, low arc), both at once on a very fast advance, a skip on the standing foot while the other leg kicks (`_body_hop`, kept in the air by `ground_actions`' new span list), feet step home before the blend into the stance, a keyed leg takes over from the plan over four frames. Ultimate back foot 86 -> 10 cm, front 17 -> 15 (worst frame 3.8); uppercut 28 -> 8. Returns after strikes are one quick step: heavy 0.7, palm 0.2, jab 2.3 |
+| Root midway between the feet | jab 0.42 -> 0.51 of the way onto the front foot; palm 0.52 | partly | jab 0.56, palm 0.59 (heavy, counter 0.56) |
+| Crouch lacks compression and heel roll | no heel movement; 5 % overshoot | true | down: lift, drop, 10 % past the crouch, back up into it; up: sinks 10 % first; heels rise 3.5 cm onto the balls as the weight moves and settle |
+| Arm-isolated 1-2 and heavy | pelvis 50 deg against the chest's 97 (twist 47; the pose checker flagged "spine twisted 51") | true | pelvis 69 deg, rear heel turns out (-14 deg) as the hip drives; spine-twist flags on the cross and counter strike gone; jab pelvis 15 -> 22 |
+| Missing recoil and hold | the `_impact` recoil and moving hold exist since D-131; the review video showed a whiff: the game freezes both fighters 5-12 frames on a hit (60 on the ultimate's first) | true of the video | `review_video.py` holds the contact frame for each move's hitstop (`--no-hitstop` for a whiff), labelled "hit freeze" |
+| Head moves rigidly with the chest on hits | true (one `k` for both) | true | the head lags the chest by 1.5 frames and whips forward past it on the way back (light, heavy, body hits) |
+| Twinning in block and stance | stance hands 7 cm apart in height (block 19 since D-131); both forearms upright | partly | stance: lead hand further out and lower, rear fist higher with the elbow out (15 cm apart, 25 forward); block: rear forearm across the body, lead upright. Every move starts from this stance, so the hands of every move moved with it (legs, head and leg extension of the Low Kick and Rift Break identical to D-132) |
+| Knockdown falls flat, no rotational arc | true | true | the blow drives the shoulders back and round first (back arched, chest turned away, arms thrown), the hips follow, the fall speeds up to the floor (u^1.7) |
+| Floaty jump: near-linear vertical speed, no hang time | the arc is a parabola (even gravity) | taste, and a gameplay change | **Feel change:** `jump_arc_power` (new profile field, default 2.0 = the old parabola) is 2.6 for Kairo: same height and air time, quicker take-off and fall, longer near the top. Landing sinks deeper (17 %) over two frames |
+
+**Review video.** Walks, dashes and moves with travel are filmed moving over
+the floor as the game moves him, the floor has a mark every half metre, and
+hits show the game's hit freeze.
+
+**Checked.** Flags against D-132: gone the two spine-twist lines; new a
+7 cm knee pop on the knockdown's frame 6 (the turn into the arch). The Low
+Kick and Rift Break: feet, head and leg extension identical to D-132; wrists
+moved with the new stance. Walk foot slide 0.56 / 0.60 cm (unchanged).
+Tests: 222 passed, 0 failed (full run, on the final build).
+
+**Left.** Ultimate front foot 3.8 cm in its last blend frame; the body hit's
+front boot turns 2.3 cm on its first frame; the counter strike's rear ball
+moves 2 cm as the heel turns out (the foot pivots about the ankle on this rig).
+
+Not verified on a phone. Video checked frame by frame, not watched.
+

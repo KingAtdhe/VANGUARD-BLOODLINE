@@ -33,6 +33,11 @@ extends Resource
 @export var jump_height: float = 1.1
 @export var jump_prejump_ticks: int = 3
 @export var jump_air_ticks: int = 38
+## Shape of the jump arc (D-133). 2.0 is a plain parabola (even gravity).
+## Higher keeps him near the top longer and makes the take-off and the fall
+## into the landing quicker ("hang time"); the peak and the ticks in the air
+## do not change.
+@export var jump_arc_power: float = 2.0
 @export var jump_landing_ticks: int = 4
 @export var jump_forward_distance: float = 2.3
 @export var jump_back_distance: float = 2.0
@@ -48,8 +53,14 @@ func jump_height_at(frame: int) -> float:
 	var k: int = frame - jump_prejump_ticks
 	if k <= 0 or k >= jump_air_ticks:
 		return 0.0
-	var u: float = float(k) / float(jump_air_ticks)
-	return 4.0 * jump_height * u * (1.0 - u)
+	return jump_height * arc_at(float(k) / float(jump_air_ticks))
+
+
+## Share of the jump height at [param u] (0..1) of the air time.
+func arc_at(u: float) -> float:
+	if u <= 0.0 or u >= 1.0:
+		return 0.0
+	return 1.0 - pow(absf(2.0 * u - 1.0), jump_arc_power)
 
 
 ## Horizontal distance covered on one air tick of a forward/back jump.
@@ -80,7 +91,7 @@ func validate() -> Array[String]:
 		problems.append("walk speeds must be positive")
 	if dash_forward_distance <= 0.0 or dash_back_distance <= 0.0 or dash_forward_ticks < 2 or dash_back_ticks < 2:
 		problems.append("invalid dash values")
-	if jump_height <= 0.0 or jump_prejump_ticks < 1 or jump_air_ticks < 4 or jump_landing_ticks < 1 \
+	if jump_arc_power < 1.0 or jump_height <= 0.0 or jump_prejump_ticks < 1 or jump_air_ticks < 4 or jump_landing_ticks < 1 \
 			or jump_forward_distance < 0.0 or jump_back_distance < 0.0:
 		problems.append("invalid jump values")
 	if pushbox_half_width <= 0.0:

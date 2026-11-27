@@ -41,6 +41,18 @@ func _initialize() -> void:
 	floor_mat.albedo_color = Color(0.22, 0.23, 0.26)
 	floor_mesh.material_override = floor_mat
 	root.add_child(floor_mesh)
+	# marks on the floor every half metre (D-133): without them a planted foot
+	# and a sliding one look the same
+	for i: int in range(-8, 9):
+		var mark := MeshInstance3D.new()
+		var bx := BoxMesh.new()
+		bx.size = Vector3(0.03, 0.004, 1.2)
+		mark.mesh = bx
+		var mm := StandardMaterial3D.new()
+		mm.albedo_color = Color(0.32, 0.33, 0.37)
+		mark.material_override = mm
+		mark.position = Vector3(i * 0.5, 0.002, 0.0)
+		root.add_child(mark)
 	var model: Node3D = def.model_scene.instantiate()
 	ModelUtil.prepare(model)
 	model.rotation.y = deg_to_rad(90.0)       # faces +X, like P1 in a match
@@ -67,7 +79,12 @@ func _initialize() -> void:
 		ap.pause()
 		var frames: int = int(round(ap.get_animation(anim).length * 60.0)) + 1
 		DirAccess.make_dir_recursive_absolute("%s/%s" % [out_dir, suffix])
+		# the ground the game covers on each frame (D-133): filmed on the spot, a
+		# walk or a dash looks like feet sliding over the floor
+		var travel: Array[float] = _travel(def, suffix, frames)
+		var x0: float = -travel[frames - 1] * 0.5
 		for i: int in frames:
+			model.position.x = x0 + travel[i]
 			ap.seek(i / 60.0, true)
 			# the game lifts a jumping fighter; the clip only poses the body
 			var lift: float = 0.0
@@ -86,6 +103,35 @@ func _initialize() -> void:
 			shot.save_png("%s/%s/%04d.png" % [out_dir, suffix, i + 1])
 		print("frames ", suffix, " ", frames)
 	quit()
+
+
+## Metres the game has moved the fighter (+ = toward the opponent) when frame
+## i (0-based) of a clip is shown.
+static func _travel(def: FighterDefinition, suffix: String, frames: int) -> Array[float]:
+	var out: Array[float] = []
+	var m: FighterMovementProfile = def.movement
+	var mv: MoveData = null
+	for x: MoveData in def.moves:
+		if x != null and String(x.animation).ends_with("_" + suffix):
+			mv = x
+	var acc: float = 0.0
+	for i: int in frames:
+		if suffix == "WALK_FORWARD":
+			acc = m.walk_forward_speed * i / 60.0
+		elif suffix == "WALK_BACKWARD":
+			acc = -m.walk_backward_speed * i / 60.0
+		elif suffix == "DASH_FORWARD" or suffix == "DASH_BACK":
+			var fw: bool = suffix == "DASH_FORWARD"
+			acc = 0.0
+			for k: int in range(1, mini(i + 1, m.dash_ticks(fw)) + 1):
+				acc += m.dash_step(fw, k) * (1.0 if fw else -1.0)
+		elif mv != null and mv.move_distance != 0.0:
+			acc = 0.0
+			for k: int in range(1, i + 2):
+				if mv.moves_on_frame(k):
+					acc += mv.move_step()
+		out.append(acc)
+	return out
 
 
 func _transition(ap: AnimationPlayer, model: Node3D, token: String, out_dir: String, size: int) -> void:
@@ -129,6 +175,4 @@ func _transition(ap: AnimationPlayer, model: Node3D, token: String, out_dir: Str
 
 
 static func _arc(m: FighterMovementProfile, u: float) -> float:
-	if u <= 0.0 or u >= 1.0:
-		return 0.0
-	return 4.0 * m.jump_height * u * (1.0 - u)
+	return m.jump_height * m.arc_at(u)

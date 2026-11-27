@@ -35,6 +35,36 @@ TITLES = {"IDLE_A": "Stance", "CROUCH_TRANSITION": "Crouch (down and up)", "ATTA
           "THROW_KNEE_01": "Light + kick (throw)", "SPECIAL_FIREBALL": "Down + special (fireball)", "JUMP_ATTACK": "Attack in the air"}
 
 
+def hit_freezes(fighter):
+    """{clip suffix: {frame (1-based): frames held}} from data/moves (D-133): on a
+    hit the game freezes both fighters for the move's hitstop; a whiff shows none.
+    The video shows each strike as it looks when it connects."""
+    import glob
+    import re
+    out = {}
+    tok = fighter.upper() + "_"
+    for path in glob.glob("data/moves/%s_*.tres" % fighter):
+        txt = open(path).read()
+        an = re.search(r'animation = &"([^"]+)"', txt)
+        if not an or not an.group(1).startswith(tok):
+            continue
+        def num(key, d=0):
+            m = re.search(r"^%s = (-?\d+)" % key, txt, re.M)
+            return int(m.group(1)) if m else d
+        st, ac, hs = num("startup_frames"), num("active_frames", 1), num("hitstop_frames")
+        if st <= 0 or hs <= 0:
+            continue
+        hits = {st: hs}
+        rh, rhs = num("rehit_interval"), num("rehit_hitstop_frames", hs)
+        if rh > 0:
+            f = st + rh
+            while f < st + ac:
+                hits[f] = rhs
+                f += rh
+        out[an.group(1)[len(tok):]] = hits
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("fighter")
@@ -42,10 +72,12 @@ def main():
     ap.add_argument("--clips", nargs="*")
     ap.add_argument("--size", type=int, default=560)
     ap.add_argument("--gap", type=int, default=24, help="stance frames between clips")
+    ap.add_argument("--no-hitstop", action="store_true", help="do not hold the contact frames (a whiff)")
     a = ap.parse_args()
     clips = a.clips or DEFAULT.get(a.fighter) or ["IDLE_A:3"]
     pairs = [(c.split(":")[0], int(c.split(":")[1]) if ":" in c else 1) for c in clips]
     names = sorted({n for n, _ in pairs} | {"IDLE_A"})
+    freezes = hit_freezes(a.fighter)
     work = tempfile.mkdtemp(prefix="review_")
     try:
         r = subprocess.run(["xvfb-run", "-a", "godot", "--path", ".", "--rendering-driver", "opengl3", "--script",
@@ -75,9 +107,12 @@ def main():
                 print("missing", name)
                 continue
             label = TITLES.get(name, name.replace("_", " ").title())
+            holds = {} if a.no_hitstop else freezes.get(name, {})
             for _ in range(reps):
-                for f in got[name]:
+                for i, f in enumerate(got[name]):
                     put(name, f, label)
+                    for _h in range(holds.get(i + 1, 0)):
+                        put(name, f, label + "  (hit freeze)")
             if name != "IDLE_A":
                 for f in got["IDLE_A"][:a.gap]:
                     put("IDLE_A", f, "")

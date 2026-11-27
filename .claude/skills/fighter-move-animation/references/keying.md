@@ -376,6 +376,18 @@ D-131 `keyed_frames` lifts that foot by itself while the mark moves
 along the ground (11.6 cm in one frame on the palm's lunge). Nothing to key;
 check it with `weight_report.py` (FEET line).
 
+### Moves the game carries: the step planner
+
+A move with `move_distance` gets `_travel` from `keyed_move` (Kairo). In
+`keyed_frames` each stance foot then keeps a spot on the floor: the floor mark
+you key is where the foot wants to be, and the planner steps it there when it
+falls behind (7 cm; 4 cm when the move is faster than 4 cm a frame, both feet
+at once; 12 cm and a longer skip when the other leg is kicking, with the whole
+body lifted, `_body_hop`, and the frames registered in `AIRBORNE` as a list of
+spans so the exporter does not ground them). Rear marks count backwards and
+marks are in the fighter's scale (`mark * S_fit` = metres). `PLAN_DEBUG=1`
+prints its decisions. Check with `weight_report.py` (FEET adds the travel).
+
 ### Dashes and anything else the game carries
 
 The dashes are keyed in `build()` (Kairo only), as `*_foot_abs` tracks with

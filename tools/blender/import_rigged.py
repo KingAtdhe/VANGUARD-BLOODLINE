@@ -181,7 +181,18 @@ def ground_actions(rig, body, actions, airborne=None):
             worst = max(worst, abs(dz[f]))
         if name.endswith("_IDLE_A"):
             idle_dz = dz[f0]
-        if airborne and name in airborne and airborne[name][0] <= f0 and airborne[name][1] >= f1:
+        spans = airborne.get(name) if airborne else None
+        if spans and isinstance(spans[0], (list, tuple)):
+            # several short hops inside a grounded move (D-133: a skip on the
+            # standing foot): each keeps its keyed height, the correction carried
+            # across it from the grounded frames on either side
+            for s0, s1 in spans:
+                a0 = max(f0 + 1, s0)
+                a1 = min(f1 - 1, s1)
+                for f in range(a0, a1 + 1):
+                    u = (f - (a0 - 1)) / float(a1 + 1 - (a0 - 1))
+                    dz[f] = dz[a0 - 1] * (1 - u) + dz[a1 + 1] * u
+        elif airborne and name in airborne and airborne[name][0] <= f0 and airborne[name][1] >= f1:
             # In the air from the first frame to the last (a jumping attack):
             # there is no grounded frame to measure, so the whole clip takes
             # the correction of the stance instead.

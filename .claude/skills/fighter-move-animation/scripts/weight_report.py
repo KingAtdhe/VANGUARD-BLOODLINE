@@ -148,16 +148,20 @@ def report(fighter, clip, csv_dir=None):
     print("  TWIN   %s hands at %s: height apart %.0f cm, forward apart %.0f cm, sideways apart %.0f cm"
           % ("OK   " if abs(m["lw_h"] - m["rw_h"]) >= 0.08 or abs(m["lw_f"] - m["rw_f"]) >= 0.12 else "CHECK",
              "the hit" if move else "the middle", abs(m["lw_h"] - m["rw_h"]) * 100, abs(m["lw_f"] - m["rw_f"]) * 100, abs(m["lw_x"] - m["rw_x"]) * 100))
-    for k, nm in (("la", "left"), ("ra", "right")):
-        low = min(r[k + "_h"] for r in R)
-        tot, cnt, worst = 0.0, 0, 0.0
+    # FEET: the point of the boot that is on the floor (the ball when the heel is up,
+    # the ankle when it is flat) must not move along the floor while it is down
+    for k, t_, nm in (("la", "lt", "left"), ("ra", "rt", "right")):
+        lo_t = min(r[t_ + "_h"] for r in R)
+        tot, cnt, worst, wf = 0.0, 0, 0.0, 0
         for i in range(1, n):
-            if R[i][k + "_h"] - low < 0.015 and R[i - 1][k + "_h"] - low < 0.015:
-                s = math.hypot(d(k + "_f", i), d(k + "_x", i)) * 100
-                tot, cnt, worst = tot + s, cnt + 1, max(worst, s)
+            if R[i][t_ + "_h"] - lo_t < 0.015 and R[i - 1][t_ + "_h"] - lo_t < 0.015:
+                s = abs(d(t_ + "_f", i) + d("trv", i)) * 100 if "trv" in R[i] else abs(d(t_ + "_f", i)) * 100
+                tot, cnt = tot + s, cnt + 1
+                if s > worst:
+                    worst, wf = s, i + 1
         if cnt:
-            print("  FEET   %s %s foot down on %d frames: drifts %.1f cm in all, %.1f cm at most in one frame (body space)"
-                  % ("OK   " if worst <= 1.5 else "CHECK", nm, cnt, tot, worst))
+            print("  FEET   %s %s ball of the foot on the floor on %d frames: slides %.1f cm in all, %.1f cm at most (f%d) (on the floor: the game's travel added)"
+                  % ("OK   " if worst <= 1.5 else "CHECK", nm, cnt, tot, worst, wf))
     print()
 
 

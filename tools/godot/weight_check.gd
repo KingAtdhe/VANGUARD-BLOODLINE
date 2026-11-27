@@ -11,8 +11,9 @@ extends SceneTree
 ##   lean_f lean_s                trunk from upright
 ##   head_f head_x head_h
 ##   la_f la_x la_h / ra_*        left / right ankle
-##   lt_h rt_h                    left / right toe height
+##   lt_h rt_h lt_f rt_f          left / right toe height and forward
 ##   lw_f lw_x lw_h / rw_*        left / right wrist
+##   trv                          metres the game has moved him (moves with move_distance)
 ## Read it with .claude/skills/fighter-move-animation/scripts/weight_report.py.
 
 
@@ -37,31 +38,38 @@ func _initialize() -> void:
 		return
 	var startup: int = 0
 	var active: int = 0
+	var mv: MoveData = null
 	for m: MoveData in def.moves:
 		if m.animation == anim:
 			startup = m.startup_frames
 			active = m.active_frames
+			mv = m
 	ap.play(anim)
 	ap.pause()
 	await process_frame
 	var n: int = int(round(ap.current_animation_length * 60.0))
 	print("#CLIP %s frames %d startup %d active %d" % [anim, n + 1, startup, active])
-	print("f,hips_f,hips_x,hips_h,pel,chest,lean_f,lean_s,head_f,head_x,head_h,la_f,la_x,la_h,ra_f,ra_x,ra_h,lt_h,rt_h,lw_f,lw_x,lw_h,rw_f,rw_x,rw_h")
+	print("f,hips_f,hips_x,hips_h,pel,chest,lean_f,lean_s,head_f,head_x,head_h,la_f,la_x,la_h,ra_f,ra_x,ra_h,lt_h,rt_h,lt_f,rt_f,lw_f,lw_x,lw_h,rw_f,rw_x,rw_h,trv")
 	var floor_y: float = 0.0
+	var trv: float = 0.0
 	for f: int in n + 1:
+		if mv != null and mv.moves_on_frame(f + 1):
+			trv += mv.move_step()               # metres the game has carried him when this frame shows
 		ap.seek(f / 60.0, true)
 		sk.force_update_all_bone_transforms()
 		var p: Dictionary = {}
-		for b: String in ["Hips", "Neck", "Head", "LeftUpperLeg", "RightUpperLeg", "LeftFoot", "RightFoot", "LeftToes", "RightToes",
+		for b: String in ["Hips", "Neck", "Head", "LeftUpperLeg", "RightUpperLeg", "LeftFoot", "RightFoot",
 				"LeftUpperArm", "RightUpperArm", "LeftHand", "RightHand"]:
 			var i: int = sk.find_bone(b)
-			if i < 0 and b.ends_with("Toes"):
-				i = sk.find_bone(b.replace("Toes", "Foot"))
 			if i < 0:
 				print("bone missing: " + b)
 				quit(2)
 				return
-			p[b] = (sk.global_transform * sk.get_bone_global_pose(i)).origin
+			var gt: Transform3D = sk.global_transform * sk.get_bone_global_pose(i)
+			p[b] = gt.origin
+			if b.ends_with("Foot"):
+				# no toe bone on this rig: the ball of the foot is 15 cm along the foot bone
+				p[b.replace("Foot", "Toes")] = gt * Vector3(0.0, 0.15, 0.0)
 		if f == 0:
 			floor_y = minf(p["LeftToes"].y, p["RightToes"].y)
 		var hip_line: Vector3 = p["LeftUpperLeg"] - p["RightUpperLeg"]
@@ -73,9 +81,9 @@ func _initialize() -> void:
 			p["Head"].z, p["Head"].x, p["Head"].y - floor_y,
 			p["LeftFoot"].z, p["LeftFoot"].x, p["LeftFoot"].y - floor_y,
 			p["RightFoot"].z, p["RightFoot"].x, p["RightFoot"].y - floor_y,
-			p["LeftToes"].y - floor_y, p["RightToes"].y - floor_y,
+			p["LeftToes"].y - floor_y, p["RightToes"].y - floor_y, p["LeftToes"].z, p["RightToes"].z,
 			p["LeftHand"].z, p["LeftHand"].x, p["LeftHand"].y - floor_y,
-			p["RightHand"].z, p["RightHand"].x, p["RightHand"].y - floor_y]
+			p["RightHand"].z, p["RightHand"].x, p["RightHand"].y - floor_y, trv]
 		var s: PackedStringArray = []
 		for v: Variant in row:
 			s.append(str(v) if v is int else "%.4f" % float(v))
