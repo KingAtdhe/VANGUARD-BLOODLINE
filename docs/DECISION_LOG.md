@@ -2759,3 +2759,36 @@ a crouching attack, or rename it; 8 block high looks like the stance.
 Checked: no new build flags (the kick's first version had a 57 cm one-frame
 foot snap and a toe pop: re-spaced); contact frames read in the side view;
 tests: 222 passed, 0 failed (full run on the final build). Not verified on a phone; video checked frame by frame, not watched.
+
+## D-137 — 2026-11-27 — Kairo: the stance really breathes, a visible uppercut wind-up, the Low Kick less leaned
+
+**Owner** (on the D-136 video): 1 "front kick (Kick, 13.4 s) hasn't changed:
+leans back about 35 deg, the foot only reaches knee height"; 2 the stance moves
+as before, a small bounce once a second, the back foot shifts; 3 the
+uppercut's arm is right but the body stays upright: a dip before, a lift through it.
+
+- **1:** "Kick" is the Low Kick (approved at D-111), not the front kick. Asked;
+  she chose "keep it low, less lean". Lean at contact 29 back / 30 side ->
+  11 / 14 (measured on the game model); the foot target moved out so the
+  leg still locks (kicking knee 4 deg); foot 0.36 m high, in its low hitbox.
+  It needs her OK again.
+- **2:** found the cause of "nothing changed": the stance's living channels
+  (chest, pelvis, trunk, chin, back) were only ever applied to the hands and
+  the hip height. The shaping pass read the fixed stance, so the chest and
+  pelvis turned 0 deg over the loop (measured), since D-090. Now shaped from
+  the living channels; every wave starts at zero so frame 0 is still the
+  stance the moves start from. The loop is 2 s (`STYLES loop=120`; the guard
+  pose is still the mean of the first second), the knee bounce is smaller and
+  twice a loop (`bob` 0.05 -> 0.02), the weight rocks forward and back and a
+  little side to side once a loop (`weight_shift` 0.035, `hips_x`), the hips
+  sink 3 cm with the breath. Measured over the loop: chest turns -3 .. +9 deg,
+  lean 0 .. 11, the two knees bend in turn (45-68 deg). The feet hold their
+  marks (ankles fixed in the solver; the walk also gets this life).
+- **3:** the dip had 3 frames and could not be seen. **Balance:** Rising
+  Uppercut startup 5 -> 7, invulnerable 1-7, travel frames 4-9 (the anti-air
+  is 2 frames slower). He sinks 22 % over four frames with the chest folding
+  forward, then drives up onto his toes (hips +14 %, heels 15 cm up), the
+  fist finishing above the head.
+
+Checked: no new build flags; contact frames in the side view; tests: 222 passed, 0 failed (full run on the final build).
+Not verified on a phone; video checked frame by frame, not watched.

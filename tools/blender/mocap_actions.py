@@ -50,7 +50,7 @@ STYLES = {
     # hand open and held out in front at chest height as a knife-hand guard,
     # the rear fist chambered palm-up at the ribs. He was an upright boxer
     # after Steve Fox before, too close to Drakon's boxing.
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.05, bob_beats=1, sway=0.02, life=3.0, weight_shift=0.025, walk_life=1.0, lead="Left",   # D-136: heel_bounce 0.02 removed (the rear foot read as sliding)
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.02, bob_beats=2, sway=0.02, life=3.0, weight_shift=0.035, loop=120, walk_life=1.0, lead="Left",   # D-136: heel_bounce 0.02 removed (the rear foot read as sliding)
                   # his guard: the open lead forearm upright in front of the face, the rear fist under the chin
                   # D-136 (owner: "block high looks too much like the stance, raise the guard more clearly"):
                   # lead forearm up in front of the forehead, rear fist at the temple
@@ -2692,12 +2692,14 @@ def kairo_keys(moves, base, g, S):
         "pelvis_h": [(0, ph0), (4, low(0.04)), (a0, low(0.055), "in"), (a1, low(0.055))] + settle(T, a1 + 9, ph0, 0.018),
         "pelvis": [(0, pel0), (4, pel(-14)), (a0, pel(-74), "in"), (a1, pel(-72)), (a1 + 4, pel(-40), "out"), (a1 + 10, pel0)],
         "shoulders": [(0, sh0), (4, sho(10)), (a0, sho(-58), "in"), (a1, sho(-56)), (a1 + 4, sho(-30), "out"), (a1 + 10, sh0)],
-        "trunk": [(0, tr0), (4, lean(-5, 6)), (a0, lean(-26, 24), "in"), (a1, lean(-25, 23)), (a1 + 4, lean(-11, 10), "out"), (a1 + 10, tr0)],
+        # D-137 (owner chose "keep it low, less lean": "he leans back about 35 deg"): the
+        # counter-lean is halved, about 15 deg back and 14 to the side; the rest is as approved
+        "trunk": [(0, tr0), (4, lean(-3, 4)), (a0, lean(-12, 11), "in"), (a1, lean(-12, 11)), (a1 + 4, lean(-5, 5), "out"), (a1 + 10, tr0)],
         "hips_x": [(0, 0.0), (4, 0.03), (a0, 0.06), (a1, 0.06), (a1 + 8, 0.0)],   # D-134: pelvis sideways over the standing foot
         "lead_heel": [(0, 0.0), (a0, 0.045, "in"), (a1, 0.045), (a1 + 6, 0.0)],
         "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] + 60, "in"), (a1, base["lead_toe"] + 60), (a1 + 8, base["lead_toe"])],
         "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.22, 0.02, 0.34, 0.6)), (a0 - 1, (-0.36, hx - 0.24, hz + 0.16, 1.0), "in"),
-                          (a0, (0.02, hx + 0.20, hz + 0.09, 1.0), "in"), (a1, (0.12, hx + 0.12, hz + 0.05, 1.0)),
+                          (a0, (0.02, hx + 0.34, hz + 0.07, 1.0), "in"), (a1, (0.12, hx + 0.26, hz + 0.04, 1.0)),   # D-137: further, so the leg still locks with the chest more upright
                           (a1 + 3, (-0.14, 0.05, 0.28, 0.6), "lin"), (a1 + 9, home + (0.0,))],
         # the kicking side's arm reaches forward and down along the kick, at
         # chest height (the owner's reference picture; D-110 threw it up and
@@ -2811,24 +2813,30 @@ def kairo_keys(moves, base, g, S):
     # plays. Now the way down is keyed inside the reachable time: the fist
     # carries on up a little, comes down in front of the face as the heels
     # drop, he lands in a dip leaning forward, and rises into the stance.
+    # D-137 (owner: "the arm is right now, but his body stays upright; a small
+    # dip in the knees before the punch and a lift up through it"): the dip had
+    # three frames and could not be seen. Startup 5 -> 7 (invulnerable 1-7, the
+    # travel moved to frames 4-9: a balance change, the anti-air is 2 frames
+    # slower): he sinks into his knees over four frames with the chest folding
+    # forward, then the legs drive him up onto his toes, higher than before.
     out["DOWN_LIGHT"] = dict(_recover=1.6, _hold=1, _lag=LAG, **{**head(a0, a1, T, -6.0), **{
         "chin": [(0, chin0), (a0, chin0 - 6, "in"), (a1 + 1, chin0 - 6), (a1 + 5, chin0 + 8), (a1 + 12, chin0)],
-        "hips": [(0, (hips0, 0)), (2, (hips0 - 0.02, 0), "io"), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.12, 0)),
+        "hips": [(0, (hips0, 0)), (4, (hips0 - 0.02, 0), "io"), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.12, 0)),
                  (a1 + 5, (hips0 + 0.05, 0)), (a1 + 12, (hips0, 0))],
-        "pelvis_h": [(0, ph0), (2, low(0.21), "io"), (a0, ph0 + 0.02, "out"), (a1 - 1, ph0 + 0.10), (a1 + 1, ph0 + 0.09),
+        "pelvis_h": [(0, ph0), (1, ph0 - 0.01), (4, low(0.22), "io"), (a0, ph0 + 0.03, "out"), (a1 - 1, ph0 + 0.14), (a1 + 1, ph0 + 0.125),
                      (a1 + 5, low(0.075)), (a1 + 10, ph0 + 0.008), (a1 + 13, ph0)],
-        "pelvis": [(0, pel0), (2, pel(16), "io"), (a0, pel(-44), "in"), (a1, pel(-48)), (a1 + 5, pel(-14)), (a1 + 10, pel(3)), (a1 + 13, pel0)],
-        "shoulders": [(0, sh0), (2, sho(24), "io"), (a0, sho(-70), "in"), (a1, sho(-76)), (a1 + 5, sho(-24)), (a1 + 10, sho(4)), (a1 + 13, sh0)],
-        "curl": [(0, 0.0), (2, 12.0, "io"), (a0, -8.0, "in"), (a1 - 1, -18.0), (a1 + 1, -16.0), (a1 + 5, 10.0), (a1 + 10, -1.0), (a1 + 13, 0.0)],   # D-134: crunched in the dip, the back arches up behind the fist
-        "trunk": [(0, tr0), (2, lean(12), "io"), (a0, lean(-6), "in"), (a1, lean(-12)), (a1 + 5, lean(9)), (a1 + 10, lean(-1)), (a1 + 13, tr0)],
-        "lead_heel": [(0, 0.0), (2, 0.0), (a0, 0.03, "in"), (a1 - 1, 0.08), (a1 + 1, 0.08), (a1 + 4, 0.0)],
-        "rear_heel": [(0, 0.012), (2, 0.0), (a0, 0.06, "in"), (a1 - 1, 0.12), (a1 + 1, 0.12), (a1 + 4, 0.02), (a1 + 9, 0.012)],
+        "pelvis": [(0, pel0), (4, pel(16), "io"), (a0, pel(-44), "in"), (a1, pel(-48)), (a1 + 5, pel(-14)), (a1 + 10, pel(3)), (a1 + 13, pel0)],
+        "shoulders": [(0, sh0), (4, sho(24), "io"), (a0, sho(-70), "in"), (a1, sho(-76)), (a1 + 5, sho(-24)), (a1 + 10, sho(4)), (a1 + 13, sh0)],
+        "curl": [(0, 0.0), (4, 12.0, "io"), (a0, -8.0, "in"), (a1 - 1, -18.0), (a1 + 1, -16.0), (a1 + 5, 10.0), (a1 + 10, -1.0), (a1 + 13, 0.0)],   # D-134: crunched in the dip, the back arches up behind the fist
+        "trunk": [(0, tr0), (4, lean(12), "io"), (a0, lean(-6), "in"), (a1, lean(-12)), (a1 + 5, lean(9)), (a1 + 10, lean(-1)), (a1 + 13, tr0)],
+        "lead_heel": [(0, 0.0), (4, 0.0), (a0, 0.04, "in"), (a1 - 1, 0.11), (a1 + 1, 0.11), (a1 + 4, 0.0)],
+        "rear_heel": [(0, 0.012), (4, 0.0), (a0, 0.07, "in"), (a1 - 1, 0.15), (a1 + 1, 0.15), (a1 + 4, 0.02), (a1 + 9, 0.012)],
         "rear_toe": [(0, base["rear_toe"]), (a0, 10.0, "in"), (a1, 8.0), (a1 + 10, base["rear_toe"])],
-        "rear_hand_abs": [(0, R), (2, u_low, "io"), (a0, u_hit, "in"), (a1 - 1, u_top),
+        "rear_hand_abs": [(0, R), (4, u_low, "io"), (a0, u_hit, "in"), (a1 - 1, u_top),
                           (a1 + 3, (-0.05, hx - 0.14, hz - 0.14)), (a1 + 7, (R[0], R[1] + 0.06, R[2] - 0.07)),
                           (a1 + 11, (R[0], R[1] - 0.01, R[2] + 0.02)), (a1 + 13, R)],
-        "rear_elbow": [(0, 0.05), (2, 0.2), (a0, 0.02), (a1 + 1, 0.02), (a1 + 5, 0.25), (a1 + 12, 0.05)],
-        "lead_hand_abs": [(0, L), (2, (L[0] - 0.02, L[1] - 0.06, L[2] - 0.08), "io"), (a0 + 2, hik, "io"), (a1 + 3, hik),
+        "rear_elbow": [(0, 0.05), (4, 0.2), (a0, 0.02), (a1 + 1, 0.02), (a1 + 5, 0.25), (a1 + 12, 0.05)],
+        "lead_hand_abs": [(0, L), (4, (L[0] - 0.02, L[1] - 0.06, L[2] - 0.08), "io"), (a0 + 2, hik, "io"), (a1 + 3, hik),
                           (a1 + 6, (0.24, 0.26, R[2] + 0.08)), (a1 + 9, (L[0] + 0.03, L[1], L[2] - 0.05)), (a1 + 12, L)],
     }})
 
@@ -3263,7 +3271,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     # of the captured bounce is kept. 1 s loop with a cross-fade.
     st = STYLES.get(fid, STYLES["kairo"])
     gclip = clip(st["clip"])
-    i0, n_idle = st["frame"], 60
+    i0, n_idle = st["frame"], int(st.get("loop", 60))     # D-137: a style may breathe over a longer loop (Kairo: 2 s)
     anchor_idle = gclip.at(i0)["Hips"][:2]
     def raw_idle_P(t):
         f = i0 + (t % n_idle) * 2
@@ -3292,7 +3300,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
             Q = raw_free(t - n_idle)
             P = {k: P[k] * (1 - w) + Q[k] * w for k in P}
         raw.append(P)
-    mean = {k: np.mean([r[k] for r in raw], 0) for k in raw[0]}
+    mean = {k: np.mean([r[k] for r in raw[:60]], 0) for k in raw[0]}     # D-137: the first second, as before the 2 s loop (the guard every move starts from stays put)
     def shape(P):
         return shape_stance(P, st, H)
     fitted = bool(st.get("pose", {}).get("fit"))
@@ -3304,7 +3312,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
         r = raw[int(t) % n_idle]
         amp = st.get("amp", 0.35)
         u = (int(t) % n_idle) / float(n_idle)
-        P = shape({k: mean[k] + (r[k] - mean[k]) * amp for k in r})
+        mix = {k: mean[k] + (r[k] - mean[k]) * amp for k in r}
+        P = shape(mix)
         if fitted:                                   # limbs solved on the fighter's own skeleton (D-075)
             life = st.get("life")
             if life:
@@ -3313,29 +3322,39 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 # periodic over the loop; the feet stay on their marks.
                 ps, ph = dict(st["pose"]), 2 * math.pi * u
                 a = float(life)
+                # D-137: every wave starts at zero on frame 0, so the first frame of the
+                # loop IS the stance the moves start from (no seam into an attack)
+                def sn(off, ph=ph):
+                    return math.sin(ph - off) - math.sin(-off)
                 lh, rh = ps["lead_hand"], ps["rear_hand"]
-                ps["lead_hand"] = (lh[0], lh[1] + 0.012 * a * math.sin(ph - 1.3), lh[2] + 0.016 * a * math.sin(ph - 1.0))
-                ps["rear_hand"] = (rh[0], rh[1] + 0.006 * a * math.sin(ph - 0.9), rh[2] + 0.009 * a * math.sin(ph - 0.7))
-                ps["shoulders"] = ps.get("shoulders", 0.0) + 2.2 * a * math.sin(ph - 0.5)
-                ps["pelvis"] = ps.get("pelvis", 0.0) + 0.8 * a * math.sin(ph)
+                ps["lead_hand"] = (lh[0], lh[1] + 0.012 * a * sn(1.3), lh[2] + 0.016 * a * sn(1.0))
+                ps["rear_hand"] = (rh[0], rh[1] + 0.006 * a * sn(0.9), rh[2] + 0.009 * a * sn(0.7))
+                ps["shoulders"] = ps.get("shoulders", 0.0) + 2.2 * a * sn(0.5)
+                ps["pelvis"] = ps.get("pelvis", 0.0) + 0.8 * a * sn(0.0)
                 tr = ps.get("trunk", (0.0, 0.0))
-                ps["trunk"] = (tr[0] + 1.3 * a * math.sin(ph - 0.3), tr[1] + 0.6 * a * math.sin(ph + 0.8))
-                ps["chin"] = ps.get("chin", 0.0) + 1.2 * a * math.sin(ph - 1.6)
+                ps["trunk"] = (tr[0] + 1.3 * a * sn(0.3), tr[1] + 0.6 * a * sn(-0.8))
+                ps["chin"] = ps.get("chin", 0.0) + 1.2 * a * sn(1.6)
                 if st.get("weight_shift"):
                     # D-136 (owner: "it barely moves ... add breathing and a weight shift"):
                     # the hips rock forward onto the lead foot and back once per loop, and
                     # rise and settle with the breath; the feet stay where they are
                     ws = float(st["weight_shift"])
                     hp = ps.get("hips", (0.0, 0.0))
-                    ps["hips"] = (hp[0] + ws * math.sin(ph), hp[1] + 0.35 * ws * math.sin(ph + 1.2))
-                    ps["pelvis_h"] = ps.get("pelvis_h", 0.93) + 0.45 * ws * math.cos(ph)
-                    ps["curl"] = ps.get("curl", 0.0) + 2.5 * math.sin(ph - 0.4)
+                    ps["hips"] = (hp[0] + ws * sn(0.0), hp[1])
+                    ps["hips_x"] = ps.get("hips_x", 0.0) + 0.4 * ws * sn(-1.2)      # and a little from side to side
+                    ps["pelvis_h"] = ps.get("pelvis_h", 0.93) + 0.45 * ws * (math.cos(ph) - 1.0)
+                    ps["curl"] = ps.get("curl", 0.0) + 2.5 * sn(0.4)
                 if st.get("heel_bounce"):
                     # D-100: up on the ball of the rear foot at the top of the bounce
                     # (the bob is highest at u = 0), heel down as he sinks
                     ps["rear_heel"] = ps.get("rear_heel", 0.0) + st["heel_bounce"] * 0.5 * (1 + math.cos(ph))
                 if mod is not None:
                     mod(ps, u)
+                # D-137: the chest, pelvis, trunk, chin and curl channels are applied
+                # by the shaping pass, which used to read the fixed stance: only the
+                # hands and the hips' height ever moved (measured: chest and pelvis
+                # turned 0 deg over the loop). Shape again from the living channels.
+                P = shape_stance(mix, dict(st, pose=ps), H)
                 return fit_stance(rig, P, dict(st, pose=ps), st["_lead"], u)
             return fit_stance(rig, P, st, st["_lead"], u)
         return idle_motion(P, st, H, u)
