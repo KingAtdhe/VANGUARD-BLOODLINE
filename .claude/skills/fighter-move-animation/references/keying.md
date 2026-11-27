@@ -157,6 +157,7 @@ dead at every pose: that was the first cause of "robotic" (D-090).
 | `_air=(first, last)` | a hop inside a grounded move: on those frames the hips are placed from `pelvis_h` instead of standing the lowest foot on the floor |
 | `_feet_abs=(first, last)` | `*_foot_abs` applies only on those frames |
 | `_spring` | follow-through springs on loose parts (on by default for strikes) |
+| `_impact` | (D-131, 1.0 by default on single strikes; 0 on the Low Kick and Rift Break) after the contact frame the hips, trunk and chin carry on for two frames, give back for three and settle (`IMPACT_WAVE`), while a `*_hand_abs` / `*_foot_abs` limb stays where it is keyed: the recoil. Scale it per move, or set 0 for a move whose recoil is keyed by hand |
 
 `keyed_frames(total, tracks, a1, settle=6, air=False, blend_in=2)` blends the
 first frames out of the stance and the last `settle` frames back into it.
@@ -366,6 +367,25 @@ pelvis `pel(-74)`, shoulders `sho(-58)`, trunk `lean(-26, 24)`, standing leg
 `low(0.055)`, toe pivot +60°, kicking-side hand 22 cm below the guard and
 36 cm forward. If your must-reads move by a few degrees or centimetres where
 the picture shows a different shape, it will not be seen.
+
+### A step is a foot off the floor
+
+A `lead_foot` / `rear_foot` track that changes moves the floor mark. Since
+D-131 `keyed_frames` lifts that foot by itself while the mark moves
+(`<key>_hop`, 1 cm plus 0.9 x its speed, at most 5 cm): before, the boot slid
+along the ground (11.6 cm in one frame on the palm's lunge). Nothing to key;
+check it with `weight_report.py` (FEET line).
+
+### Dashes and anything else the game carries
+
+The dashes are keyed in `build()` (Kairo only), as `*_foot_abs` tracks with
+`air=True`: a foot that is down holds its spot on the floor, so in body space
+it moves by exactly the distance covered so far (`cov(k)`, the same formula as
+`MovementProfile.dash_step`); both feet are off the ground while he moves
+fastest; each foot lands on the spot where it stands at the end. The flight
+frames must be in `AIRBORNE[...]`, or the exporter stands the lowest foot on
+the floor again. Change `dash_*_distance` or `dash_*_ticks` and the keys
+follow.
 
 ## The Flying Side Kick is keyed differently
 

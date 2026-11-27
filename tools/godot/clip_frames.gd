@@ -96,8 +96,22 @@ func _transition(ap: AnimationPlayer, model: Node3D, token: String, out_dir: Str
 	DirAccess.make_dir_recursive_absolute("%s/CROUCH_TRANSITION" % out_dir)
 	model.position.y = 0.0
 	ap.play(idle)
+	var down: StringName = StringName(token + "_CROUCH_DOWN")
+	var up: StringName = StringName(token + "_CROUCH_UP")
+	var keyed: bool = ap.has_animation(down) and ap.has_animation(up)
+	var down_n: int = int(round(ap.get_animation(down).length * 60.0)) if keyed else 0
+	var up_n: int = int(round(ap.get_animation(up).length * 60.0)) if keyed else 0
 	for i: int in 110:
-		if i == 20:
+		if keyed:                                  # as FighterAnimator plays it (D-131)
+			if i == 20:
+				ap.play(down, FighterAnimator.BLEND_ATTACK)
+			elif i == 20 + down_n:
+				ap.play(crouch, FighterAnimator.BLEND_ATTACK)
+			elif i == 70:
+				ap.play(up, FighterAnimator.BLEND_ATTACK)
+			elif i == 70 + up_n:
+				ap.play(idle, FighterAnimator.BLEND_ATTACK)
+		elif i == 20:
 			ap.play(crouch, FighterAnimator.BLEND_CROUCH)
 		elif i == 70:
 			ap.play(idle, FighterAnimator.BLEND_CROUCH)

@@ -359,9 +359,10 @@ to the body" needs the hitbox at body height, not shin height.
 - `assets/pose-brief-template.md` — the brief to fill in at step 2.
 - `scripts/` — `build_fighter.sh`, `motion_report.py`, `frame_strip.py`,
   `compare_reference.py`, `before_after_video.sh`, `leg_report.py`, `still.py`
-  (stretches where nothing moves). Project
+  (stretches where nothing moves), `weight_report.py` (weight, chain, recoil,
+  spacing, twinning, foot drift). Project
   tools added with this skill: `tools/godot/body_angles.gd`,
-  `rig_inspect.gd`, `leg_check.gd`.
+  `rig_inspect.gd`, `leg_check.gd`, `weight_check.gd`.
 
 Keep this skill current: when the owner approves a move or corrects one, add
 the lesson to `case-history.md` (and to `technique-form.md` if it is about

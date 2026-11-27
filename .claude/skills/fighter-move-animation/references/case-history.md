@@ -69,6 +69,7 @@ approval looked like · Process failures (ours).
 | (a working rule) "inspect the rig ... verify their rotation axes. Do not guess bone orientations. Test ... with a small number of poses ... Preview ... from the side view ... Do not report ... complete until ... previewed and validated" | a standing rule for every animation, not only this move | `rig_inspect.gd`, `leg_check.gd`, `leg_report.py`; the validation found a thigh rolling half a turn when a bent leg is overhead | D-129 |
 | (a full specification: six phases, biomechanics, a list to avoid, thirteen checks) | the knee rises first and the leg extends progressively; not locked; impact pose with recoil. Her newest text replaces older ones where they differ: this reverses "do not chamber" from the day before | re-keyed by phase as direction plus extension; each of her thirteen checks answered with a number | D-129 |
 | "Check all his skills, look for maximum improvement in animation and motion, do not stop until everything is flawless, do trial and error" | go through the whole set yourself and fix what the checks show, round after round, without asking; approved and pending moves stay | every move audited; frozen recoveries, bent kicking legs and rolled thighs fixed | D-130 |
+| "These need to be fixed" + another AI's written critique of the video (foot sliding, weight, recoil, twinning, linear easing) | she will get second opinions on the video and pass them on; measure each claim first, fix the true ones, and tell her plainly which ones the numbers do not support | `weight_report.py`; stepping feet lift, dashes, recoil, crouch clips, landing, knockdown | D-131 |
 
 Faults found by the checks before she had to name them:
 
@@ -112,3 +113,5 @@ and in the arena camera.
   `build_fighter.sh` does it every time.
 - A share.google link was retried instead of asking for the image.
 - Changed timing without at first calling it a balance change.
+- Sent a video called "all moves" that left out five of them (the default
+  list in `tools/review_video.py`); check the list against the move table.

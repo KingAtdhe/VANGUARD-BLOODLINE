@@ -160,6 +160,24 @@ last frame alike. `--plot` draws the hip, knee and ankle paths from the side
 and the front. The steepness and above-the-head marks are for a downward kick;
 read them as information for other kicks. Rift Break at D-129: 15 of 15.
 
+### Weight, chain, recoil, spacing
+
+```bash
+python3 $S/weight_report.py kairo ATTACK_HEAVY_01 DASH_FORWARD CROUCH_DOWN KNOCKDOWN
+```
+
+Runs `tools/godot/weight_check.gd` (a CSV of hips, chest, head, ankles and
+wrists per frame) and prints CHAIN (pelvis, chest and limb turn and the frame
+each is fastest: hips -> chest -> limb), WEIGHT (hips between the feet, or over
+the standing ankle on one leg), RECOIL (what the head does after the contact),
+SPACING (peak step against the mean for clips that are not moves: 1 = linear),
+TWIN (how alike the two hands sit) and FEET (drift of a foot while it is
+down, in body space). Use it to turn a critique in words ("weightless",
+"floaty", "linear") into a number before changing anything: in D-131 seven of
+twelve such claims were true and three were not. FEET is body space: a clip
+the game carries (dash, Rift Break, walk) needs the travel added
+(`foot_slide.gd` for walks; D-131's log entry for the dashes).
+
 ### Hitbox sheet
 
 ```bash

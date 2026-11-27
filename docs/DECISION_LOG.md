@@ -2554,3 +2554,51 @@ leg still travels 36–42 cm a frame coming down from head height: it has seven
 frames before the next hit, set by the move's timing.
 
 Not verified on a phone. Video checked frame by frame, not watched.
+
+## D-131 — 2026-11-27 — An outside critique measured claim by claim; sliding steps, dashes, recoil, crouch transition, landing, knockdown fixed
+
+**Owner:** "These need to be fixed", with a written critique of the D-130
+review video from another AI (nine points under weight and ground contact,
+kinetic chain, posing and spacing). Each point was first turned into a number
+(`tools/godot/weight_check.gd`, `scripts/weight_report.py`, new), then fixed
+where the number agreed. No frame data, hitbox, speed or distance changed.
+
+| Critique | Measured before | Verdict | Now |
+|---|---|---|---|
+| Feet slide in attacks and transitions | the stepping lead boot stayed on the floor while its mark moved: palm 34.7 cm (11.6 in one frame), fireball 24.8, heavy 19.1, jab 12.3, ultimate 36.1 | true | a stance foot whose mark moves is lifted (`<key>_hop`, set in `keyed_frames`): palm 3.9, fireball 3.0, heavy 5.5, jab 6.5, ultimate 13.1 |
+| Feet slide in dashes | dash feet were keyed around the body with no regard to the 1.4 m / 1.1 m the game carries him | true | both dashes re-keyed as a low leap: each foot holds its spot on the floor while it is down (world slide while down: forward 2.4 cm in all, back 4.3; the largest single step is the landing frame, 3.2 cm) |
+| Feet slide when hit | both boots went back and forth with the body: 12.1 cm | true | feet planted: 1.0 cm (light), 4.7 cm (heavy) |
+| Feet slide in the walk | 0.52 cm mean per planted frame against 3.0 cm of body travel; the tool's p90 of 2.6 cm is the foot rolling off, counted as planted below 7 cm | not supported | unchanged in slide (0.56) |
+| No weight transfer | kicks: hips 23 cm (Low Kick) and 36 cm (Front Kick) behind the standing ankle; walk: pelvis rode 1.4 cm toward the standing foot | true for the Front Kick and the walk | Front Kick 26 cm (hips forward 6 cm, trunk 23 deg back -> 12): the rest needs the hitbox moved forward, a balance change, not made; walk ride 2.4 cm, dip 2.8 %; Low Kick left (approved) |
+| Weak knockdown impact | the lying pose bobbed up and down as one stiff piece | true | back lands and stops, head, arms and legs are thrown up and drop (twice, smaller), the body slides its last 7 cm |
+| Isolated limb motion, stiff spine | fastest frame pelvis <= chest <= limb on 13 of 14 moves; pelvis and chest turn 50 / 97 deg on the cross, 53 / 85 uppercut, 93 / 76 Low Kick; trunk lean 12-34 deg | not supported by the numbers | unchanged |
+| No recoil or follow-through | "the head goes on 0.0 cm after the contact" on 8 of 14 moves: the body reached its pose on the contact frame and stood | true | `_impact` wave on every single strike: hips, trunk and chin carry on for two frames, give back for three, settle (head +3.4 to +5.2 cm, then back) while the fist or foot stays keyed; not on the Low Kick or Rift Break |
+| Twinning | counter stance hands 1 cm apart in height, crouch 2 cm; block 10 cm | true for counter stance and crouch | counter stance 15 cm (rear fist loaded at the ribs), crouch 15, block 19 |
+| Linear spacing: crouch | the game cross-faded stance and crouch at an even rate (nine equal steps) | true | keyed `CROUCH_DOWN` / `CROUCH_UP` clips (12 frames: anticipation, accelerating drop, overshoot, settle; hands and head two frames behind the hips), played by `FighterAnimator`; `FighterDefinition.anim_crouch_down/up` optional, other fighters keep the cross-fade |
+| Linear spacing: landing | dip and back up inside two of the four landing frames | true | he sinks through all four landing frames, the stance blend carries the rise |
+| Lines of action | no measurement | not judged | unchanged |
+
+**Game flow touched** (animation only): `fighter_animator.gd` (`_show_crouch`,
+the keyed way up, `is_showing_crouch()`), `fighter_definition.gd` (two optional
+clip names), `data/fighters/kairo.tres`. `test_crouch_lingers_through_an_input_flicker`
+now accepts the way down as a crouch pose and checks he is back in the stance
+0.4 s after release.
+
+**Review video.** `tools/review_video.py` did not include the uppercut, sweep,
+throw, fireball or the one-two: the D-130 video called "all moves" was missing
+five of them. They are in the list now.
+
+**Checked.** Approved Low Kick and Rift Break: per-frame build output
+identical to D-130. Flags against D-130: new are a toe pop on the knockdown's
+landing frame, and two pose-checker lines on the dashes (a foot off the floor
+and the weight outside the feet: he is in the air). Skin stretch no worse on
+any clip. Kairo's hitbox test passes with the Front Kick's foot at 0.81 m.
+Tests: 222 passed, 0 failed (full run, on the final build).
+
+**Not fixed, and why.** Front Kick and Low Kick still stand with the hips
+behind the standing foot (hitbox reach; approved move). Rift Break's hands sit
+level at the hit (2 cm apart): left until the owner has judged that move.
+"Lines of action" is a judgement no check here measures.
+
+Not verified on a phone. Video checked frame by frame, not watched.
+

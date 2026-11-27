@@ -249,21 +249,26 @@ func test_crouch_lingers_through_an_input_flicker() -> Array[String]:
 	var s := FighterState.new()
 	s.action = FighterState.Action.CROUCH
 	anim.update(s, 0.0, false, 0.016)
-	if anim.current != def.anim_crouch:
+	# D-131: going down is a keyed clip of its own before the loop
+	if not anim.is_showing_crouch():
 		f.append("crouch state shows %s" % anim.current)
 	for flicker: FighterState.Action in [FighterState.Action.IDLE, FighterState.Action.WALK]:
 		s.action = flicker
 		anim.update(s, 0.0, false, 0.016)
 		anim.update(s, 0.0, false, 0.016)
-		if anim.current != def.anim_crouch:
+		if not anim.is_showing_crouch():
 			f.append("two %s frames ended the crouch pose" % FighterState.Action.keys()[flicker])
 		s.action = FighterState.Action.CROUCH
 		anim.update(s, 0.0, false, 0.016)
 	s.action = FighterState.Action.IDLE
 	for _i: int in 12:
 		anim.update(s, 0.0, false, 0.016)
-	if anim.current != def.anim_idle:
+	if anim.is_showing_crouch():
 		f.append("still crouching 0.2 s after release (%s)" % anim.current)
+	for _i: int in 14:                                 # the keyed way up (D-131), then the stance
+		anim.update(s, 0.0, false, 0.016)
+	if anim.current != def.anim_idle:
+		f.append("not back in the stance 0.4 s after release (%s)" % anim.current)
 	# an attack out of a crouch is never delayed
 	s.action = FighterState.Action.CROUCH
 	anim.update(s, 0.0, false, 0.016)

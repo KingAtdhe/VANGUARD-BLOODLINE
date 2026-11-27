@@ -43,6 +43,11 @@ extends Resource
 ## Crouch pose and the whole jump (take-off, air, landing) — D-087. Empty =
 ## idle is shown (the jump still lifts the model).
 @export var anim_crouch: StringName = &""
+## Optional keyed ways into and out of the crouch (D-131). Without them the
+## animator cross-fades stance and crouch at an even rate, which reads as a
+## lift going down: no anticipation, no acceleration, no settle.
+@export var anim_crouch_down: StringName = &""
+@export var anim_crouch_up: StringName = &""
 @export var anim_jump: StringName = &""
 @export var anim_hit_light: StringName = &""
 @export var anim_hit_heavy: StringName = &""
@@ -110,7 +115,7 @@ func required_animations() -> Array[StringName]:
 			anim_hit_light, anim_hit_heavy, anim_knockdown, anim_getup, anim_victory, anim_defeat]:
 		out.append(resolve_anim(a))
 	for extra: StringName in [anim_block_low, anim_hit_body, anim_hit_low, anim_dash_forward, anim_dash_back,
-			anim_crouch, anim_jump]:
+			anim_crouch, anim_jump, anim_crouch_down, anim_crouch_up]:
 		if extra != &"":
 			out.append(resolve_anim(extra))
 	for m: MoveData in moves:

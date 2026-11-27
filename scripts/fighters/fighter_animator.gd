@@ -120,13 +120,13 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 		FighterState.Action.CROUCH:
 			_crouch_linger = CROUCH_LINGER
 			if _has(def.anim_crouch):
-				_show(def.anim_crouch, BLEND_CROUCH, _advance_if_same(def.anim_crouch, dt), true)
+				_show_crouch(dt)
 			else:
 				_show(def.anim_idle, BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
 		FighterState.Action.WALK, FighterState.Action.IDLE when _crouch_linger > 0.0 and _has(def.anim_crouch):
 			# just left the crouch: hold it a moment in case the input comes back
 			_crouch_linger -= delta
-			_show(def.anim_crouch, BLEND_CROUCH, _advance_if_same(def.anim_crouch, dt), true)
+			_show_crouch(dt)
 			_last_action = FighterState.Action.CROUCH
 			_last_combo = s.combo_hits
 			return
@@ -135,11 +135,50 @@ func update(s: FighterState, alpha: float, frozen: bool, delta: float) -> void:
 			_show(walk, BLEND_DEFAULT, _advance_if_same(walk, dt), true)
 		_:
 			var rise: bool = _last_action == FighterState.Action.CROUCH
-			_show(def.anim_idle, BLEND_CROUCH if rise else BLEND_DEFAULT, _advance_if_same(def.anim_idle, dt), true)
+			var rising: bool = false
+			if _has(def.anim_crouch_up) and (current == def.anim_crouch_up \
+					or (rise and (current == def.anim_crouch or current == def.anim_crouch_down))):
+				# standing up is keyed too: a push, an overshoot, a settle
+				var up_len: float = player.get_animation(def.resolve_anim(def.anim_crouch_up)).length
+				var up_t: float = _advance_if_same(def.anim_crouch_up, dt)
+				if current == def.anim_crouch_down and _has(def.anim_crouch_down):
+					var down_len: float = player.get_animation(def.resolve_anim(def.anim_crouch_down)).length
+					up_t = up_len * (1.0 - clampf(_time / maxf(down_len, 0.001), 0.0, 1.0))
+				if up_t < up_len:
+					_show(def.anim_crouch_up, BLEND_ATTACK, up_t, false)
+					rising = true
+			if not rising:
+				var from_up: bool = current == def.anim_crouch_up
+				_show(def.anim_idle, BLEND_ATTACK if from_up else (BLEND_CROUCH if rise else BLEND_DEFAULT),
+						_advance_if_same(def.anim_idle, dt), true)
 	if s.action != FighterState.Action.ATTACK:
 		_last_attack_key = ""
 	_last_action = s.action
 	_last_combo = s.combo_hits
+
+
+## The crouch: going down is its own keyed clip when the fighter has one
+## (anticipation, drop, settle; D-131), then the loop. Without it, the loop
+## is cross-faded in.
+func _show_crouch(dt: float) -> void:
+	if not _has(def.anim_crouch_down) or current == def.anim_crouch:
+		_show(def.anim_crouch, BLEND_CROUCH, _advance_if_same(def.anim_crouch, dt), true)
+		return
+	var down_len: float = player.get_animation(def.resolve_anim(def.anim_crouch_down)).length
+	var down_t: float = _advance_if_same(def.anim_crouch_down, dt)
+	if current == def.anim_crouch_up and _has(def.anim_crouch_up):
+		# pressed down again half way up: go back down from the matching height
+		var up_len: float = player.get_animation(def.resolve_anim(def.anim_crouch_up)).length
+		down_t = down_len * (1.0 - clampf(_time / maxf(up_len, 0.001), 0.0, 1.0))
+	if down_t < down_len:
+		_show(def.anim_crouch_down, BLEND_ATTACK, down_t, false)
+	else:
+		_show(def.anim_crouch, BLEND_ATTACK, 0.0, true)
+
+
+## True while a crouch pose is on screen (the loop or the way down).
+func is_showing_crouch() -> bool:
+	return current != &"" and (current == def.anim_crouch or current == def.anim_crouch_down)
 
 
 ## Time in the jump clip for the fighter's current jump tick.
