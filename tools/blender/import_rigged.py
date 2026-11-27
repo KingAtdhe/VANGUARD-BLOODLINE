@@ -502,6 +502,26 @@ def main():
             W[fix] = W[fix] * (1.0 - blend[fix])[:, None]
             W[fix, idx["Head"]] += tot * blend[fix]
             print(f"[rigged] head fix: {int(fix.sum())} vertices onto the head bone (mean neck weight before {neck_before:.2f})")
+        # Sole fix (D-139; owner: "the back foot still shifts a few pixels per
+        # cycle" in the stance): the soles carried shin weight, so as the knee
+        # bent with the breathing the bottom of the boot slid up to 0.8 cm on a
+        # planted foot (measured on the skinned mesh). Below the ankle joint the
+        # boot follows the foot (and toe) bones only; a short blend above it.
+        for sd in ("Left", "Right"):
+            fk_, sk_ = sd + "Foot", sd + "LowerLeg"
+            if fk_ not in idx or sk_ not in idx:
+                continue
+            aj = np.array(B[fk_][0], float)
+            near_f = np.linalg.norm(co_[:, :2] - aj[:2], axis=1) < 0.20
+            lowz = aj[2] * 0.85
+            wfoot = np.clip((lowz + 0.03 - co_[:, 2]) / 0.03, 0.0, 1.0)
+            sel_ = near_f & (wfoot > 0) & (W[:, idx[fk_]] + W[:, idx[sk_]] > 0.3)
+            leg_cols = [idx[nm] for nm in (sk_, sd + "UpperLeg") if nm in idx]
+            moved_ = W[np.ix_(sel_, leg_cols)].sum(1) * wfoot[sel_]
+            for c_ in leg_cols:
+                W[sel_, c_] *= (1.0 - wfoot[sel_])
+            W[sel_, idx[fk_]] += moved_
+            print(f"[rigged] sole fix {sd}: {int(sel_.sum())} vertices onto the foot")
         orphan = W.sum(1) <= 1e-6
         W[orphan, idx["Hips"]] = 1.0
         # top 4, drop dust, normalise

@@ -2830,3 +2830,34 @@ frame; "whatever is meant to update it may not be reaching the game file".
 Checked: no new build flags; every frame of the kick, counter stance and
 uppercut in the side view; tests: 222 passed, 0 failed (full run). Not verified on a phone; video
 checked frame by frame, not watched.
+
+## D-139 — 2026-11-27 — Kairo: ultimate recovery, uppercut top held, deeper breath, soles locked (weights), front kick weight back
+
+**Owner** (review list of "preview v4"): 1 counter stance snaps in, blend in
+and out; 2 ultimate pops into the next pose after the last strike: a 10-15
+frame recovery; 3 the breathing is too subtle, a slight knee bounce, lock both
+feet (the back foot shifts a few pixels per cycle); 4 hold the uppercut's top
+2-3 frames longer. Approved as they are: front kick, uppercut dip and rise,
+air-attack take-off, special, knockdown, rising front kick, block high.
+
+- 1: already in D-138 (eases in over about 7 frames, out over about 12,
+  measured); unchanged.
+- 2: the finishing uppercut is held 4 frames (was 8); the arm comes down in
+  front of him and the guard comes back up over about 14 frames.
+- 3: breath sink 0.9 x weight shift (was 0.7), the back bends 6 deg with it
+  (was 4), knee bounce 0.03 (was 0.02). **The foot shift was the skin:** the
+  boot soles carried shin weight, so as the knee bent with the breath the
+  bottom of the boot moved up to 0.76 cm on a planted foot (measured on the
+  skinned mesh in Blender). `import_rigged.py` now puts everything below
+  85 % of the ankle height near each foot on the foot bone (a 3 cm blend);
+  191-196 vertices per foot. Drift after: 0.00 cm. Weights only: no vertex
+  moved (the mesh rule holds). The other fighters get it at their next build.
+- 4: `_hold` 1 -> 4: the fist is above the head from frame 13 to 18.
+- Front kick: the pose checker found the centre of gravity 16 cm in front of
+  the standing foot during the hold; the hips sit 15 cm back now (was 8).
+- Every move's first and last frame compared with the stance on the model:
+  within 4 cm everywhere except the Rising Front Kick, which starts from the
+  crouch by design.
+
+Tests: 222 passed, 0 failed (full run on the final build). Not verified on a
+phone; video checked frame by frame, not watched.
