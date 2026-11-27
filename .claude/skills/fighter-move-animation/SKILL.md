@@ -56,7 +56,7 @@ table instead of searching.
 | Light Punch (L) | `kairo_light_punch` | `LIGHT` | `ATTACK_LIGHT_01` | 5/3/10 | — |
 | One-Two Cross (L, L) | `kairo_string_cross` | `string_cross` | `ATTACK_STRING_CROSS_01` | 8/3/17 | — |
 | Heavy Punch (H) | `kairo_heavy_punch` | `HEAVY` | `ATTACK_HEAVY_01` | 12/3/19 | — |
-| **Low Kick** (K) | `kairo_low_kick` | `KICK` | `KICK_LOW_01` | 9/4/15 | **approved** (the D-111 version) |
+| **Low Kick** (K) | `kairo_low_kick` | `KICK` | `KICK_LOW_01` | 9/4/15 | approved at D-111; D-132 moved hips and foot 16 cm forward (same shape): awaiting her OK again |
 | **Front Kick** (down + H) | `kairo_body_hook` | `DOWN_HEAVY` | `ATTACK_BODY_HOOK_01` | 9/3/15 | reworked D-096/097 |
 | Rising Uppercut (down + L) | `kairo_rising_uppercut` | `DOWN_LIGHT` | `ATTACK_RISING_UPPERCUT_01` | 5/5/24 | — |
 | Leg Sweep (down + K) | `kairo_leg_sweep` | `DOWN_KICK` | `KICK_SWEEP_01` | 8/3/20 | — |

@@ -2534,6 +2534,7 @@ def kairo_keys(moves, base, g, S):
         "pelvis_h": [(0, ph0), (a0, low(0.012), "in"), (a1, low(0.012))] + settle(T, a1 + 5, ph0, 0.008),
         "lead_foot": [(0, lf0), (a0, (lf0[0], lf0[1] + 0.06), "in"), (a1 + 2, (lf0[0], lf0[1] + 0.06)), (T - 3, lf0)],
         "rear_heel": [(0, 0.03), (a0, 0.06, "in"), (a1 + 5, 0.03)],
+        "trunk": [(0, tr0), (1, lean(-2)), (a0, lean(6), "in"), (a1, lean(6)), (a1 + 5, lean(-1), "out"), (T - 2, tr0)],   # D-132: the trunk did not lean at all on the jab
         "lead_hand_abs": [(0, L), (1, (L[0] + 0.02, L[1] - 0.12, L[2] - 0.02), "out"),   # the guard hand is already out: it snaps back to punch
                           (a0, (hit[0], hit[1] + 0.035, hit[2]), "in"),
                           (a0 + 1, hit), (a1, hit), (a1 + 4, (L[0], L[1] - 0.02, L[2] + 0.02), "out"), (T - 2, L)],
@@ -2588,13 +2589,13 @@ def kairo_keys(moves, base, g, S):
         "lead_palm": "auto", "rear_palm": "auto",
         "rear_hinge": [(0, 0.0), (4, 1.0), (a1 + 6, 1.0), (a1 + 10, 0.0)],   # D-130: the thigh keeps its knee hinge while the leg is up (see keying.md)
         "rear_toe": [(0, base["rear_toe"]), (5, 0.0), (a1 + 7, 0.0), (a1 + 10, base["rear_toe"])],
-        "hips": [(0, (hips0, 0)), (2, (hips0 + 0.03, 0), "io"), (5, (hips0 + 0.05, 0)), (a0, (hips0 - 0.01, 0), "in"),      # D-131: hips as far over the standing foot as the hitbox's reach allows
-                 (a1, (hips0 + 0.0, 0)), (a1 + 4, (hips0 + 0.04, 0), "out"), (T - 3, (hips0, 0))],
+        "hips": [(0, (hips0, 0)), (2, (hips0 + 0.03, 0), "io"), (5, (hips0 + 0.05, 0)), (a0, (hips0 + 0.13, 0), "in"),      # D-132: hips over the standing foot (the hitbox went 18 cm forward for it, a balance change)
+                 (a1, (hips0 + 0.14, 0)), (a1 + 4, (hips0 + 0.07, 0), "out"), (T - 3, (hips0, 0))],
         "pelvis_h": [(0, ph0), (2, ph0 - 0.02, "io"), (5, ph0 + 0.03, "out"), (a0, ph0 + 0.05, "in"), (a1, ph0 + 0.045),
                      (a1 + 4, ph0 + 0.03)] + settle(T, a1 + 9, ph0, 0.018),
         "pelvis": [(0, pel0), (2, pel(4)), (5, pel(-26)), (a0, pel(-38), "in"), (a1, pel(-37)), (a1 + 6, pel(-12), "out"), (T - 3, pel0)],
         "shoulders": [(0, sh0), (2, sho(6)), (5, sho(-10)), (a0, sho(-16), "in"), (a1, sho(-16)), (a1 + 6, sho(-4), "out"), (T - 3, sh0)],
-        "trunk": [(0, tr0), (2, lean(2.5)), (5, lean(-4)), (a0, lean(-13), "in"), (a1, lean(-12)), (a1 + 5, lean(-5), "out"), (T - 3, tr0)],
+        "trunk": [(0, tr0), (2, lean(2.5)), (5, lean(-5)), (a0, lean(-23), "in"), (a1, lean(-22)), (a1 + 5, lean(-8), "out"), (T - 3, tr0)],   # D-132: with the hips over the foot he can lean away from the leg again: one line from heel to head
         "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.065, "in"), (a1, 0.06), (a1 + 6, 0.01), (T - 4, 0.0)],
         "rear_foot_abs": [(0, FR + (0.0,)), (3, (FR[0] * 0.7, 0.10, 0.34, 0.0), "out"), (a0 - 3, chamber, "out"),
                           (a0 - 1, snap, "in"), (a0, out_far), (a0 + 1, out_hold), (a1, out_hold),
@@ -2639,22 +2640,22 @@ def kairo_keys(moves, base, g, S):
     out["KICK"] = dict(_recover=1.3, _impact=0.0,          # approved as it is (D-112): no added recoil
                         **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "hips": [(0, (hips0, 0)), (4, (hips0 + 0.04, 0)), (a0, (hips0 + 0.06, 0), "in"), (a1, (hips0 + 0.06, 0)), (a1 + 6, (hips0, 0), "out")],
+        "hips": [(0, (hips0, 0)), (4, (hips0 + 0.11, 0)), (a0, (hips0 + 0.22, 0), "in"), (a1, (hips0 + 0.22, 0)), (a1 + 6, (hips0, 0), "out")],   # D-132 (owner: "fix all that you didn't fix"): the hips were 23 cm behind the standing foot; everything else is the approved kick, carried 16 cm forward with them
         "pelvis_h": [(0, ph0), (4, low(0.04)), (a0, low(0.055), "in"), (a1, low(0.055))] + settle(T, a1 + 9, ph0, 0.018),
         "pelvis": [(0, pel0), (4, pel(-14)), (a0, pel(-74), "in"), (a1, pel(-72)), (a1 + 4, pel(-40), "out"), (a1 + 10, pel0)],
         "shoulders": [(0, sh0), (4, sho(10)), (a0, sho(-58), "in"), (a1, sho(-56)), (a1 + 4, sho(-30), "out"), (a1 + 10, sh0)],
         "trunk": [(0, tr0), (4, lean(-5, 6)), (a0, lean(-26, 24), "in"), (a1, lean(-25, 23)), (a1 + 4, lean(-11, 10), "out"), (a1 + 10, tr0)],
         "lead_heel": [(0, 0.0), (a0, 0.045, "in"), (a1, 0.045), (a1 + 6, 0.0)],
         "lead_toe": [(0, base["lead_toe"]), (a0, base["lead_toe"] + 60, "in"), (a1, base["lead_toe"] + 60), (a1 + 8, base["lead_toe"])],
-        "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.22, 0.02, 0.34, 0.6)), (a0 - 1, (-0.36, hx - 0.36, hz + 0.16, 1.0), "in"),
-                          (a0, (0.02, hx + 0.04, hz + 0.09, 1.0), "in"), (a1, (0.12, hx - 0.04, hz + 0.05, 1.0)),
+        "rear_foot_abs": [(0, home + (0.0,)), (4, (-0.22, 0.02, 0.34, 0.6)), (a0 - 1, (-0.36, hx - 0.24, hz + 0.16, 1.0), "in"),
+                          (a0, (0.02, hx + 0.20, hz + 0.09, 1.0), "in"), (a1, (0.12, hx + 0.12, hz + 0.05, 1.0)),
                           (a1 + 3, (-0.14, 0.05, 0.28, 0.6), "lin"), (a1 + 9, home + (0.0,))],
         # the kicking side's arm reaches forward and down along the kick, at
         # chest height (the owner's reference picture; D-110 threw it up and
         # back behind the head: "the hands swing totally wrong"), the other
         # hand stays up at the face
-        "rear_hand_abs": [(0, R), (4, (R[0] + 0.01, R[1] - 0.05, R[2] - 0.06)), (a0, (-0.24, 0.36, R[2] - 0.22), "in"),
-                          (a1, (-0.25, 0.34, R[2] - 0.24)), (a1 + 5, (-0.15, 0.26, R[2] - 0.10), "out"), (T - 3, R)],
+        "rear_hand_abs": [(0, R), (4, (R[0] + 0.01, R[1] - 0.05, R[2] - 0.06)), (a0, (-0.24, 0.52, R[2] - 0.22), "in"),
+                          (a1, (-0.25, 0.50, R[2] - 0.24)), (a1 + 5, (-0.15, 0.30, R[2] - 0.10), "out"), (T - 3, R)],
         "rear_elbow": [(0, 0.1), (a0, 0.08), (a1, 0.08), (a1 + 6, 0.1)],
         # the guard hand rides with the leaning chest (a fixed chin point in
         # model space was left behind by the lean and pulled the arm straight)
@@ -2980,8 +2981,8 @@ def kairo_keys(moves, base, g, S):
                       (a1 + 11, (lh0[0], lh0[1] - 0.03, lh0[2] - 0.02), "out"), (a1 + 16, lh0)],
         "lead_elbow": [(0, 0.2), (a0, 0.4), (a1 + 4, 0.4), (a1 + 12, 0.2)],
         "rear_hand": [(0, rh0), (step_k + 5, (rh0[0], rh0[1] - 0.01, rh0[2] - 0.04)), (a0 - 2, (rh0[0], rh0[1] - 0.02, rh0[2] - 0.10)),
-                      (a0, (rh0[0], rh0[1], rh0[2] - 0.12)), (a1, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.15)), (a1 + 1, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.12)),
-                      (a1 + 4, (rh0[0], rh0[1] + 0.02, rh0[2] - 0.12)), (a1 + 11, (rh0[0], rh0[1], rh0[2] - 0.03), "out"), (a1 + 16, rh0)],
+                      (a0, (rh0[0], rh0[1] + 0.04, rh0[2] - 0.24)), (a1, (rh0[0], rh0[1] + 0.06, rh0[2] - 0.28)), (a1 + 1, (rh0[0], rh0[1] + 0.05, rh0[2] - 0.24)),   # D-132: the kicking side's fist drops with the leg (the hands sat level, 2 cm apart)
+                      (a1 + 4, (rh0[0], rh0[1] + 0.04, rh0[2] - 0.22)), (a1 + 11, (rh0[0], rh0[1], rh0[2] - 0.03), "out"), (a1 + 16, rh0)],
     })
 
     # Rift Guard (the counter stance): he sits back onto the rear leg and the

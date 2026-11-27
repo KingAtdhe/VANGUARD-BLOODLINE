@@ -2602,3 +2602,25 @@ level at the hit (2 cm apart): left until the owner has judged that move.
 
 Not verified on a phone. Video checked frame by frame, not watched.
 
+## D-132 — 2026-11-27 — The rest of the critique: both kicks stand over their foot (Front Kick hitbox moved, a balance change), jab trunk, axe-kick hands
+
+**Owner:** "Fix all that you didn't fix and send me the video of all moves
+fixed again" (the three points D-131 left, and the two it found unsupported).
+
+| Left in D-131 | Now |
+|---|---|
+| Front Kick: hips 26 cm behind the standing ankle (36 before D-131) | 15 cm; trunk 25 deg back; kicking knee 4 deg; the pose checker no longer finds his weight outside his feet. **Balance change:** `kairo_body_hook.tres` `hitbox_center` 0.60 -> 0.78 m (the box covers 0.53-1.03 m instead of 0.35-0.85): the kick reaches 18 cm further and no longer covers the nearest 18 cm. Frames, damage and height unchanged |
+| Low Kick (approved): hips 23 cm behind the standing ankle | 6 cm. The hips and every key of the kicking foot and its arm moved 16 cm forward together; pelvis 93, chest 76, lean 29 back / 30 side, knee 4 deg at the hit are the approved kick's numbers, unchanged. The foot lands at 1.03 m (hitbox 0.45-1.15 m, not changed). Weight flag gone here too |
+| Lines of action: not measured | `weight_report.py` LINE: the bend at the hips between the driving (or kicking) foot and the head. Punches 10-25 deg (one line already). Front Kick 97 -> 86, Low Kick 42. A level front kick cannot be one straight line and stay on its foot; the axe kick is folded at the hit by design |
+| Rift Break: hands level at the hit (2 cm) | the kicking side's fist drops with the leg: 10 cm apart |
+| "Isolated limb, stiff spine" (numbers did not support it) | the one move without any trunk lean was the jab: now 7 deg forward into the hit |
+| "Feet slide in the walk" (numbers did not support it) | checked more strictly: on the frames a foot is flat on the floor it moves back 3.00 cm a frame (2.93-3.07) while the game moves him 3.00 forward; backward 2.50 against 2.50. Nothing to fix |
+
+Checked: flags against D-131: none new, two gone (weight outside the feet on
+both kicks). Low Kick leg report: knee 2 deg at the hit, supporting foot 0.0 cm
+on the floor. Skin stretch: Low Kick 12 -> 14, Front Kick 12 -> 9. Every frame
+of both kicks read in the side view.
+Tests: 222 passed, 0 failed (full run, on the final build).
+
+Not verified on a phone. Video checked frame by frame, not watched.
+

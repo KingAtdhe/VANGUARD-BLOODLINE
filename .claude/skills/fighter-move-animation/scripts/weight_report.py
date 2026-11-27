@@ -103,6 +103,25 @@ def report(fighter, clip, csv_dir=None):
             s0, s1 = share(0), share(a0)
             print("  WEIGHT %s hips between the feet: stance %.2f -> hit %.2f (0 = over the rear ankle, 1 = over the lead)"
                   % ("OK   " if abs(s1 - s0) >= 0.12 else "CHECK", s0, s1))
+        # line of action: the support (or the kicking foot), the hips and the head on one sweep
+        def bend(p_, q_, r_):
+            v1 = (q_[0] - p_[0], q_[1] - p_[1])
+            v2 = (r_[0] - q_[0], r_[1] - q_[1])
+            n1, n2 = math.hypot(*v1), math.hypot(*v2)
+            return math.degrees(math.acos(max(-1.0, min(1.0, (v1[0] * v2[0] + v1[1] * v2[1]) / max(1e-6, n1 * n2)))))
+        c = R[a0]
+        hp, hd = (c["hips_f"], c["hips_h"]), (c["head_f"], c["head_h"])
+        kick = [k for k in ("la", "ra") if R[a0][k + "_h"] - R[0][k + "_h"] > 0.12]
+        if len(kick) == 1:
+            ft = (c[kick[0] + "_f"], c[kick[0] + "_h"])
+            dev = bend(ft, hp, hd)
+            print("  LINE   %s kicking foot -> hips -> head bends %.0f deg at the hit (0 = one straight line through the body)"
+                  % ("OK   " if dev <= 35 else "CHECK", dev))
+        else:
+            ft = (c[rear + "_f"], c[rear + "_h"])
+            dev = bend(ft, hp, hd)
+            print("  LINE   %s rear foot -> hips -> head bends %.0f deg at the hit (0 = one straight line from the driving foot)"
+                  % ("OK   " if dev <= 25 else "CHECK", dev))
         # recoil
         end = min(n - 1, a1 + 8)
         if end > a0 + 1:

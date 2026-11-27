@@ -46,7 +46,7 @@ the implemented conventions and the current numbers. Updated: Milestone 6.
 | Heavy punch | 12 | 3 | 19 | 33 | 85 | 8 | 24 | 16 | **+3** | **−5** | 11 | 0.20 m | Mid | 1.30 m |
 | Kick (shared set: the other five fighters and bosses) | 9 | 4 | 15 | 27 | 60 | 4 | 20 | 15 | **+2** | **−3** | 8 | 0.40 m | Mid | 1.45 m |
 | Low Kick (Kairo, K) | 9 | 4 | 15 | 27 | 50 | 4 | 20 | 15 | **+2** | **−3** | 8 | 0.35 m | Low | 1.45 m |
-| Body Hook (Kairo, down + H) | 9 | 3 | 15 | 26 | 55 | 3 | 19 | 13 | **+2** | **−4** | 7 | 0.30 m | Mid | 1.15 m |
+| Front Kick (Kairo, down + H; data id `kairo_body_hook`) | 9 | 3 | 15 | 26 | 55 | 3 | 19 | 13 | **+2** | **−4** | 7 | 0.30 m | Mid | 1.33 m (D-132: hitbox centre 0.60 → 0.78 m so he stands over his foot; was 1.15 m) |
 | Slip Counter (Kairo, back + SP) | counter window frames 4–16 of 30 | | | 30 | 0 | | | | | | | | catches High, Mid | — |
 | Counter Hook (follow-up only) | 5 | 3 | 16 | 23 | 90 | 5 | 22 | 14 | **+4** | **−4** | 10 | 0.45 m | Mid | 1.18 m |
 

@@ -305,8 +305,8 @@ Body angles at contact:
 
 | Move | Kicking knee | Pelvis from stance | Chest from stance | Twist | Lean back / side |
 |---|---|---|---|---|---|
-| Low Kick (approved) | 4° | 93° | 76° | 15° | 29° / 30° |
-| Front Kick | 4° (D-130; was 34°) | 43° | 21° | 21° | 20° / 0° |
+| Low Kick (D-132: hips over the foot, shape as approved) | 4° | 93° | 76° | 15° | 29° / 30° |
+| Front Kick | 4° (D-130; was 34°) | 43° | 21° | 19° | 25° / 0°; hips 15 cm behind the standing ankle (D-132; Low Kick 6 cm) |
 | Flying Side Kick | 4° | 86° | 39° | 46° | 13° / 11° |
 | Rift Break | 8° at contact, 10° at the peak (not locked) | 25° | 17° | 7° | 10° back at the peak, level at contact, 12° forward by frame 25 |
 
