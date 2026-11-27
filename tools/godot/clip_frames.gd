@@ -37,7 +37,7 @@ func _initialize() -> void:
 	root.add_child(sun)
 	var floor_mesh := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(8, 4)
+	plane.size = Vector2(80, 4)                 # D-139: long enough for a whole video without position resets
 	floor_mesh.mesh = plane
 	var floor_mat := StandardMaterial3D.new()
 	floor_mat.albedo_color = Color(0.22, 0.23, 0.26)
@@ -45,7 +45,7 @@ func _initialize() -> void:
 	root.add_child(floor_mesh)
 	# marks on the floor every half metre (D-133): without them a planted foot
 	# and a sliding one look the same
-	for i: int in range(-12, 13):
+	for i: int in range(-80, 81):
 		var mark := MeshInstance3D.new()
 		var bx := BoxMesh.new()
 		bx.size = Vector3(0.03, 0.004, 0.22)       # short ticks: long lines fan out in perspective and read as slanted
@@ -68,13 +68,23 @@ func _initialize() -> void:
 	cam.look_at(Vector3(0.25, CAM_HEIGHT, 0.0), Vector3.UP)
 	await process_frame
 	var m: FighterMovementProfile = def.movement
+	# D-139: one continuous take. He keeps the ground he covered from one clip to
+	# the next and the camera eases after him (as the game's does), instead of
+	# both snapping back to the start at every clip: a reviewer read those
+	# resets as pops into the next move. Clips are rendered in the video's order.
+	var world_x: float = 0.0
+	var cam_x: float = 0.25
+	var first: bool = true
 	for entry: String in names:
 		# SUFFIX or SUFFIX:reps (D-134): a loop is rendered `reps` times in one go, so
 		# the ground it covers runs on instead of snapping back at every repeat
 		var suffix: String = entry.get_slice(":", 0)
 		var reps: int = maxi(1, int(entry.get_slice(":", 1))) if entry.contains(":") else 1
-		model.position = Vector3.ZERO
-		cam.position.x = 0.25 + _frame_shift(suffix)
+		model.position = Vector3(world_x, 0.0, 0.0)
+		if first:
+			cam_x = 0.25 + world_x + _frame_shift(suffix)
+			first = false
+		cam.position.x = cam_x
 		if suffix == "CROUCH_TRANSITION":
 			# stance -> crouch -> stance with the game's own blend time
 			await _transition(ap, model, fighter.to_upper(), out_dir, size)
@@ -103,7 +113,7 @@ func _initialize() -> void:
 			ap.play(jump_anim)
 			ap.pause()
 			for j: int in pre:
-				model.position = Vector3(0.0, _arc(m, float(j - FighterAnimator.JUMP_CLIP_PREJUMP) / FighterAnimator.JUMP_CLIP_AIR) if j >= FighterAnimator.JUMP_CLIP_PREJUMP else 0.0, 0.0)
+				model.position = Vector3(world_x, _arc(m, float(j - FighterAnimator.JUMP_CLIP_PREJUMP) / FighterAnimator.JUMP_CLIP_AIR) if j >= FighterAnimator.JUMP_CLIP_PREJUMP else 0.0, 0.0)
 				ap.seek(j / 60.0, true)
 				for _f: int in 2:
 					await process_frame
@@ -116,11 +126,11 @@ func _initialize() -> void:
 			ap.play(anim)
 			ap.pause()
 		for i: int in frames:
-			model.position.x = travel[i]
+			model.position.x = world_x + travel[i]
 			# D-135: the game's camera tracks the MIDPOINT of the two fighters, so
-			# it moves half as far as he does. Following him all the way made a
-			# walk look like walking on the spot and a dash like a twitch.
-			cam.position.x = 0.25 + travel[i] * CAM_FOLLOW + _frame_shift(suffix)
+			# it moves half as far as he does (here: it eases after him; D-139)
+			cam_x = lerpf(cam_x, 0.25 + world_x + travel[i] + _frame_shift(suffix), 0.06)   # eases after him: he moves on screen, nothing jumps
+			cam.position.x = cam_x
 			ap.seek((i % clip_n if reps > 1 else i) / 60.0, true)
 			# the game lifts a jumping fighter; the clip only poses the body
 			var lift: float = 0.0
@@ -138,6 +148,7 @@ func _initialize() -> void:
 			shot.resize(size, size, Image.INTERPOLATE_LANCZOS)
 			shot.save_png("%s/%s/%04d.png" % [out_dir, suffix, i + 1 + pre])
 		print("frames ", suffix, " ", frames + pre)
+		world_x += travel[frames - 1] if frames > 0 else 0.0
 	quit()
 
 

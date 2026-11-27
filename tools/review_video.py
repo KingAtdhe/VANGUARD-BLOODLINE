@@ -98,7 +98,14 @@ def main():
     clips = a.clips or DEFAULT.get(a.fighter) or ["IDLE_A:3"]
     pairs = [(c.split(":")[0], int(c.split(":")[1]) if ":" in c else 1) for c in clips]
     reps_of = {n: r for n, r in pairs}
-    names = sorted({n for n, _ in pairs} | {"IDLE_A"})
+    # D-139: rendered in the video's own order, so the take is continuous (clip_frames
+    # carries his position and the camera from one clip to the next)
+    names = []
+    for n, _ in pairs:
+        if n not in names:
+            names.append(n)
+    if "IDLE_A" not in names:
+        names.insert(0, "IDLE_A")
     render = ["%s:%d" % (n, reps_of[n]) if reps_of.get(n, 1) > 1 else n for n in names]
     freezes = hit_freezes(a.fighter)
     dmg = move_damage(a.fighter)

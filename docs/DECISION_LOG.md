@@ -2861,3 +2861,31 @@ air-attack take-off, special, knockdown, rising front kick, block high.
 
 Tests: 222 passed, 0 failed (full run on the final build). Not verified on a
 phone; video checked frame by frame, not watched.
+
+## D-140 — 2026-11-27 — "Push to top-mobile quality" brief, first batch: counter stance, stance on the balls of the feet, uppercut hop, a continuous review take
+
+**Owner:** a nine-part brief to bring Kairo to top mobile fighting-game
+quality (timing, follow-through, impact, reactions, personality, new spinning
+kick, character moments, ultimate, polish, deliverables). This entry is the
+first bounded batch; the rest is planned in HANDOFF (CLAUDE.md rule 5).
+
+- Counter stance "still snaps in one frame": measured on the D-139 video at
+  60 fps, it eases in over about 7 frames; the only one-frame jump in the
+  video was the preview resetting his position and the camera between clips.
+  Still: it now eases in over 8 frames (c0 + 4).
+- Review video: one continuous take. Clips are rendered in the video's order,
+  he keeps the ground he covered from clip to clip, and the camera eases
+  after him (no resets; the floor is 80 m long). Biggest frame-to-frame change
+  in the new video: the dash itself.
+- Stance: both heels come up at the top of each knee bounce and down as he
+  sinks (1.4 cm; the balls stay put, the soles are on the foot bone since D-139).
+- Uppercut: a small hop at the top: both feet leave the floor 2.5-4.7 cm
+  (lowest mesh point, measured) for about ten frames. Keyed `_air` windows now
+  register as airborne so the importer does not flatten them.
+- Already in the game (checked, unchanged): hit-stop on every hit (light 6,
+  heavy 11, ultimate last hit 30), camera shake, hit flash, hit sparks and fire
+  bursts, fire on fists/feet in the ultimate, fireball, head/body/low/heavy
+  reactions, knockdown and get-up, closed fists, holds at full extension.
+
+Tests: 222 passed, 0 failed (full run on the final build). Not verified on a
+phone; video checked frame by frame, not watched.

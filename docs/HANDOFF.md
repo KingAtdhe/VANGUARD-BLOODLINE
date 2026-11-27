@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-139 (2026-11-27). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-140 (2026-11-27). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -41,6 +41,7 @@ change goes to the owner with a real-speed review video).
   frames 4–18 (a balance change).
 - D-128: Rift Break stands tall at the peak, the body drives the chop, the
   leg is drawn back and set down behind, then one step into the stance.
+- D-140: first batch of the owner's "top-mobile quality" brief (counter stance 8-frame blend, heels bounce, uppercut hop, continuous review take). **Planned next, one batch at a time:** (2) spring bones for hair and sash (needs new bones in the owner's rig + weights; SpringBoneSimulator3D), (3) smear/trail on fast strikes, (4) more reactions: launch-and-fall, crumple, wall/ground bounce, kip-up, (5) spinning kick (needs an input: ask the owner), (6) intro, taunt, new win/lose poses, (7) ultimate wind-up and camera push-in. Stance energy and timing per the brief's targets are partly done.
 - D-139: ultimate recovery, uppercut top held, deeper breath, **sole weight fix in `import_rigged.py`** (boot soles on the foot bone: planted feet no longer shift with the knees), front kick weight over the standing foot. Owner approved: front kick, uppercut dip/rise, air take-off, special, knockdown, rising front kick, block high.
 - D-138: **Kick button = chest-high lead Front Kick (MID; balance)** — the owner's front-kick complaints were about the Kick button; his low is the Leg Sweep now (tests moved to it). Counter stance eases in; uppercut startup 9 (balance); deeper breath; air-attack preview with take-off.
 - D-137: the stance's chest/pelvis/trunk life was never applied (shaping read the fixed stance) — fixed, 2 s loop, weight shift; uppercut wind-up (**balance:** startup 5 -> 7, invuln 1-7); Low Kick lean halved (her choice: keep it low) — needs her OK again.
