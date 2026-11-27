@@ -2619,7 +2619,7 @@ def kairo_keys(moves, base, g, S):
     out["DOWN_HEAVY"] = dict(_recover=1.4, _blend_in=0, **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
         "rear_hinge": [(0, 0.0), (3, 1.0), (a1 + 6, 1.0), (a1 + 10, 0.0)],
-        "curl": [(0, 6.0), (3, 2.0), (a0 - 2, 6.0), (a0, 9.0, "in"), (a1, 8.0), (a1 + 5, 2.0), (T - 3, 0.0)],
+        "curl": [(0, 6.0), (3, 8.0), (a0 - 2, 12.0), (a0, -5.0, "in"), (a1, -4.0), (a1 + 5, 6.0), (T - 3, 0.0)],
         "hips_x": [(0, 0.0), (4, 0.04), (a0, 0.06), (a1, 0.06), (a1 + 7, 0.0)],
         "rear_toe": [(0, base["rear_toe"]), (5, 0.0), (a1 + 7, 0.0), (a1 + 10, base["rear_toe"])],
         "hips": [(0, (hips0 + 0.02, 0)), (3, (hips0 + 0.06, 0), "io"), (a0 - 2, (hips0 + 0.10, 0)), (a0, (hips0 + 0.12, 0), "in"),
@@ -2627,19 +2627,23 @@ def kairo_keys(moves, base, g, S):
         # up out of the crouch: the legs drive him up through the chamber, tall on the standing leg at the kick
         "pelvis_h": [(0, cr_h), (2, cr_h + 0.02, "io"), (5, ph0 - 0.06, "out"), (a0 - 1, ph0 + 0.02), (a0, ph0 + 0.04, "in"), (a1, ph0 + 0.035),
                      (a1 + 4, ph0 + 0.02)] + settle(T, a1 + 9, ph0, 0.018),
-        "pelvis": [(0, pel0), (3, pel(-8)), (a0 - 2, pel(-20)), (a0, pel(-30), "in"), (a1, pel(-30)), (a1 + 6, pel(-10), "out"), (T - 3, pel0)],
-        "shoulders": [(0, sh0), (3, sho(-2)), (a0, sho(-10), "in"), (a1, sho(-10)), (a1 + 6, sho(-3), "out"), (T - 3, sh0)],
+        # D-142 ("his upper body does not move with the kick"): the rear hip drives the
+        # kick and the chest counter-turns, opens and leans back about 14 deg; the
+        # kicking side's arm swings down and back past the hip, the lead fist stays up
+        "pelvis": [(0, pel0), (3, pel(-8)), (a0 - 2, pel(-22)), (a0, pel(-40), "in"), (a1, pel(-39)), (a1 + 6, pel(-12), "out"), (T - 3, pel0)],
+        "shoulders": [(0, sh0), (3, sho(-2)), (a0 - 2, sho(-6)), (a0, sho(-8), "in"), (a1, sho(-8)), (a1 + 6, sho(-2), "out"), (T - 3, sh0)],
         # the chest stays up: forward over the crouch, upright through the chamber, only a few degrees back at the kick
-        "trunk": [(0, cr_lean), (3, lean(4)), (a0 - 2, lean(0)), (a0, lean(-6), "in"), (a1, lean(-6)), (a1 + 5, lean(-2), "out"), (T - 3, tr0)],
+        "trunk": [(0, cr_lean), (3, lean(6)), (a0 - 2, lean(4)), (a0, lean(-12, 5), "in"), (a1, lean(-11, 5)), (a1 + 5, lean(3), "out"), (a1 + 8, lean(1)), (T - 3, tr0)],
         "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.05, "in"), (a1, 0.05), (a1 + 6, 0.01), (T - 4, 0.0)],
         "rear_foot_abs": [(0, FR + (0.0,)), (2, (FR[0] * 0.8, FR[1] * 0.6, 0.18, 0.1), "io"), (4, (FR[0] * 0.5, 0.12, 0.52, -0.1)), (a0 - 2, chamber, "out"),
                           (a0 - 1, snap, "in"), (a0, out_far), (a0 + 1, out_hold), (a1, out_hold),
                           (a1 + 1, (0.0, hx + 0.22, hz + 0.04, -0.8)), (a1 + 2, (0.0, hx - 0.15, hz - 0.12, -0.6)), (a1 + 4, recoil), (a1 + 6, (FR[0] * 0.8, FR[1] * 0.6, 0.32, -0.1)),
                           (a1 + 8, (FR[0] * 0.9, FR[1] * 0.85, 0.12, 0.0)), (a1 + 10, FR + (0.0,), "in")],
         # both hands stay a compact guard that rides with the chest (head-relative)
-        "lead_hand": [(0, (lh0[0], lh0[1] - 0.05, lh0[2] + 0.05)), (a0, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] + 0.06), "in"),
-                      (a1 + 4, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] + 0.06)), (T - 3, lh0)],
-        "rear_hand": [(0, rh0), (a0, (rh0[0] - 0.02, rh0[1] - 0.02, rh0[2] - 0.08), "in"), (a1 + 4, (rh0[0] - 0.02, rh0[1] - 0.02, rh0[2] - 0.08)), (T - 3, rh0)],
+        "lead_hand_abs": [(0, L), (a0, (L[0], L[1] - 0.10, L[2] + 0.04), "in"), (a1 + 4, (L[0], L[1] - 0.10, L[2] + 0.04)), (T - 3, L)],
+        "rear_hand_abs": [(0, R), (3, (R[0] - 0.02, R[1] - 0.04, R[2] - 0.12), "io"),
+                          (a0, (R[0] - 0.12, -0.14, head_z - 0.52), "in"), (a1, (R[0] - 0.12, -0.15, head_z - 0.53)),
+                          (a1 + 5, (R[0] - 0.06, R[1] - 0.08, R[2] - 0.14), "io"), (T - 3, R)],
         "lead_elbow": [(0, 0.25), (a0, 0.3), (T - 3, 0.25)],
     })
 
@@ -2707,17 +2711,76 @@ def kairo_keys(moves, base, g, S):
                  (a1 + 5, (hips0 - 0.06, 0)), (a1 + 9, (hips0, 0), "io")],
         "hips_x": [(0, 0.0), (4, -0.04), (a1 + 7, -0.04), (a1 + 11, 0.0)],
         "pelvis_h": [(0, ph0), (3, low(0.03), "io"), (a0 - 2, ph0 + 0.01), (a0, ph0 + 0.025, "in"), (a1, ph0 + 0.02)] + settle(T, a1 + 10, ph0, 0.015),
-        "pelvis": [(0, pel0), (4, pel(4)), (a0, pel(-10), "in"), (a1, pel(-10)), (a1 + 8, pel0)],
-        "shoulders": [(0, sh0), (4, sho(4)), (a0, sho(-4), "in"), (a1, sho(-4)), (a1 + 8, sh0)],
+        # D-142 (owner: "his upper body does not move with the kick, he looks like a
+        # mannequin"): the body now works with the leg. Chamber: the chest crunches
+        # forward over the rising knee. Kick: the lead hip drives into it, the chest
+        # opens and leans back into one line with the leg (about 14 deg, not the 30+
+        # she rejected on the old low kick), the kicking side's arm swings down and
+        # back past the hip to balance, the rear fist tucks at the chin. Recovery:
+        # the chest comes forward again as the leg folds back.
+        "pelvis": [(0, pel0), (4, pel(6)), (a0, pel(16), "in"), (a1, pel(15)), (a1 + 5, pel(6), "out"), (a1 + 9, pel0)],
+        "shoulders": [(0, sh0), (4, sho(8)), (a0, sho(-10), "in"), (a1, sho(-9)), (a1 + 5, sho(-2), "out"), (a1 + 9, sh0)],
         # chest upright: a touch forward as the knee comes up, a few degrees back at the kick
-        "trunk": [(0, tr0), (4, lean(3)), (a0 - 2, lean(1)), (a0, lean(-4), "in"), (a1, lean(-4)), (a1 + 6, lean(-1)), (a1 + 10, tr0)],
-        "curl": [(0, 0.0), (5, 5.0), (a0, 7.0, "in"), (a1, 7.0), (a1 + 8, 0.0)],
+        "trunk": [(0, tr0), (4, lean(5)), (a0 - 2, lean(4)), (a0, lean(-12, -5), "in"), (a1, lean(-11, -5)), (a1 + 4, lean(3)), (a1 + 7, lean(1)), (a1 + 10, tr0)],
+        "curl": [(0, 0.0), (4, 9.0), (a0 - 2, 12.0), (a0, -5.0, "in"), (a1, -4.0), (a1 + 4, 6.0), (a1 + 9, 0.0)],
         "rear_heel": [(0, 0.012), (3, 0.0), (a1 + 8, 0.0), (a1 + 11, 0.012)],
         # the guard stays up and rides with the chest; the kicking side's fist drops a little to balance
-        "lead_hand": [(0, lhk), (5, (lhk[0] + 0.03, lhk[1] - 0.04, lhk[2] - 0.05)), (a0, (lhk[0] + 0.05, lhk[1] - 0.06, lhk[2] - 0.10), "in"),
-                      (a1 + 4, (lhk[0] + 0.05, lhk[1] - 0.06, lhk[2] - 0.10)), (T - 3, lhk)],
-        "rear_hand": [(0, rhk), (a0, (rhk[0], rhk[1] + 0.02, rhk[2] - 0.02), "in"), (a1 + 4, (rhk[0], rhk[1] + 0.02, rhk[2] - 0.02)), (T - 3, rhk)],
+        "lead_hand_abs": [(0, L), (4, (L[0] + 0.03, L[1] - 0.06, L[2] - 0.12), "io"),
+                          (a0, (L[0] + 0.14, -0.10, head_z - 0.52), "in"), (a1, (L[0] + 0.14, -0.12, head_z - 0.53)),
+                          (a1 + 4, (L[0] + 0.08, L[1] - 0.10, L[2] - 0.14), "io"), (a1 + 9, L)],
+        "lead_elbow": [(0, 0.25), (a0, 0.15), (a1 + 6, 0.25)],
+        "rear_hand_abs": [(0, R), (5, (R[0] - 0.01, R[1] + 0.02, R[2] + 0.01), "io"), (a1 + 4, (R[0] - 0.01, R[1] + 0.03, R[2] + 0.01)), (a1 + 9, R)],
     })
+
+    # Spinning Back Kick (forward + heavy, D-142; owner's quality brief: "a new
+    # spinning kick with a real heel pivot and momentum"). He turns his back to
+    # the opponent by pivoting on the ball of the lead foot (the heel swings
+    # out), the shoulders and head leading the hips round, looks over his
+    # shoulder, chambers the rear knee tight, then drives the heel straight back
+    # into the opponent at chest height on a locked leg, his body leaning away
+    # from it in one line. He retracts the leg through the chamber and unwinds
+    # into the stance. Pelvis/shoulders are keyed as the turn from side-on.
+    if "FORWARD_HEAVY" in moves:
+        a0, a1, T, hx, hz = win(moves["FORWARD_HEAVY"])
+        def turn_to(deg, base_):
+            return base_ + (deg - base_)                   # absolute degrees (not scaled by X)
+        sp_back = 160.0                                    # back to the opponent (all but square)
+        sp_ch = (FR[0] * 0.2, 0.05, 0.62, -0.5)            # knee up, heel pulled to the seat
+        sp_far = (FR[0] * 0.1, hx + 0.55, hz + 0.45, -0.95)  # beyond reach toward the opponent: the leg locks, heel first, chest height
+        sp_hold = (FR[0] * 0.1, hx + 0.57, hz + 0.43, -0.95)
+        out["FORWARD_HEAVY"] = dict(_recover=1.25, _hold=3, _lag=LAG, _impact=0.5, **head(a0, a1, T, 4.0), **{
+            "lead_palm": "auto", "rear_palm": "auto",
+            "_feet_abs": (0, T - 1),
+            # the spin: shoulders first, hips a few frames behind, held while the leg is out
+            # the chest stops short of the hips (135 against 175) so the head can look
+            # back over the shoulder within a neck's reach (it was turned 130 deg)
+            "shoulders": [(0, sh0), (2, sh0 - 8.0, "io"), (7, 115.0, "in"), (a0 - 3, 132.0), (a1, 130.0), (a1 + 6, 105.0), (a1 + 12, sh0, "io")],
+            "pelvis": [(0, pel0), (3, pel0 - 4.0, "io"), (9, 150.0, "in"), (a0 - 2, sp_back), (a1, sp_back), (a1 + 7, 110.0), (a1 + 13, pel0, "io")],
+            # the lead foot turns on its ball (heel out), stays planted
+            "lead_toe": [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "in"), (a1 + 6, base["lead_toe"] + 150.0),
+                         (a1 + 13, base["lead_toe"], "io")],
+            "lead_heel": [(0, 0.0), (3, 0.04), (9, 0.05), (a0, 0.03), (a1 + 6, 0.03), (a1 + 13, 0.0)],
+            "hips": [(0, (hips0, 0)), (4, (hips0 + 0.06, 0)), (a0 - 2, (hips0 + 0.12, 0)), (a0, (hips0 + 0.16, 0), "in"), (a1, (hips0 + 0.16, 0)), (a1 + 8, (hips0 + 0.08, 0)), (a1 + 12, (hips0, 0), "io")],   # over the standing (lead) foot
+            "pelvis_h": [(0, ph0), (3, low(0.05), "io"), (9, low(0.03)), (a0, ph0 + 0.01, "in"), (a1, ph0 + 0.01)] + settle(T, a1 + 12, ph0, 0.015),
+            # leaning away from the kick (body frame: forward, since his back faces the opponent)
+            # the trunk channel is measured toward the opponent: negative = away from the kick
+            "trunk": [(0, tr0), (3, lean(4)), (9, lean(2)), (a0 - 2, lean(-5)), (a0 - 1, lean(-12)), (a0, lean(-20, 0)), (a1, lean(-19)), (a1 + 6, lean(-6)), (a1 + 12, tr0, "io")],
+            "curl": [(0, 0.0), (5, 6.0), (a0 - 2, 10.0), (a0, 2.0, "in"), (a1, 2.0), (a1 + 6, 6.0), (a1 + 12, 0.0)],
+            "rear_hinge": [(0, 0.0), (6, 1.0), (a1 + 8, 1.0), (a1 + 12, 0.0)],
+            "rear_toe": [(0, base["rear_toe"]), (6, 0.0), (a1 + 8, 0.0), (a1 + 12, base["rear_toe"])],
+            "rear_foot_abs": [(0, FR + (0.0,)), (5, FR + (0.0,)), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 4, sp_ch, "out"), (a0 - 3, sp_ch),
+                              (a0 - 2, (FR[0] * 0.16, 0.28, 0.84, -0.7), "in"), (a0 - 1, (FR[0] * 0.12, 0.56, 1.00, -0.85)), (a0, sp_far), (a0 + 1, sp_hold), (a1, sp_hold),
+                              (a1 + 2, (FR[0] * 0.2, hx - 0.10, hz - 0.05, -0.6)), (a1 + 3, (FR[0] * 0.2, 0.45, 0.85, -0.55)), (a1 + 5, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
+                              (a1 + 11, (FR[0] * 0.95, FR[1] * 0.95, FR[2] + 0.04, 0.0)), (a1 + 12, FR + (0.0,), "in")],
+            # guard tight to the body through the spin; the arms stay in
+            "lead_hand": [(0, base["lead_hand"]), (5, (base["lead_hand"][0], base["lead_hand"][1] - 0.10, base["lead_hand"][2] + 0.02)),
+                          (a1 + 6, (base["lead_hand"][0], base["lead_hand"][1] - 0.10, base["lead_hand"][2] + 0.02)), (a1 + 12, base["lead_hand"])],
+            # the rear fist leaves the chest as he turns (it sank into the armoured trunk
+            # with his back to the opponent) and is held out to his side for balance
+            "rear_hand_abs": [(0, R), (5, (R[0] - 0.08, R[1] - 0.04, R[2] - 0.02), "io"), (a0 - 3, (-0.30, -0.06, head_z - 0.18)),
+                              (a1 + 4, (-0.30, -0.06, head_z - 0.20)), (a1 + 12, R, "io")],
+            "rear_elbow": [(0, 0.3), (5, 0.5), (a1 + 6, 0.5), (a1 + 12, 0.3)],
+        })
 
     # Origin Palm: a long load onto the rear leg with the palm chambered at
     # the ribs and the guard hand still up, then a lunging open-hand thrust

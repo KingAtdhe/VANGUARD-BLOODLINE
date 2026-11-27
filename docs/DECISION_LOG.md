@@ -2922,3 +2922,35 @@ intro / taunt / new win and lose poses.
 
 Tests: 222 passed, 0 failed (full run on the final build). Not verified on a
 phone; videos checked frame by frame, not watched.
+
+## D-142 — 2026-11-28 — Kicks with the body behind them; Spinning Back Kick on forward + Heavy
+
+**Owner:** "Yeah do those" (the remaining batches, and forward + Heavy for the
+spinning kick, which was the option offered) and "his kicks are bad, he only
+throws a kick but his upper body does not move with it so he ends up looking
+like a mannequin".
+
+- **Front Kick (Kick) and Rising Front Kick (down + Heavy):** measured at
+  contact before: chest 3 deg forward / 2 deg forward (upright, as she asked in
+  D-136/D-138), arms static. Now the body works with the leg: the chest
+  crunches forward over the rising knee in the chamber, then the kicking hip
+  drives in, the chest opens and leans back 14 deg into one line with the leg
+  (she rejected 30+ on the old low kick), the kicking side's arm swings down
+  and back past the hip, the other fist tucks at the chin, and the chest comes
+  forward again as the leg folds. Twist between chest and hips 27-34 deg.
+- **Spinning Back Kick** (`kairo_spin_kick.tres`, **new input forward +
+  Heavy**, `CMD_FORWARD_HEAVY`; fighters without one get their Heavy; the CPU
+  presses Heavy without a direction so it does not spin by accident). 15/3/21,
+  80 damage, mid, hitbox (0.95, 1.2), no travel. He pivots on the ball of the
+  lead foot (heel out, the foot turns 150 deg), shoulders leading the hips,
+  hips to 160 deg (back to the opponent), the rear knee chambers tight, the
+  heel drives straight back at chest height on a locked leg (ankle 1.17 m),
+  body leaning away 21 deg, rear fist out to the side for balance, then the
+  leg folds back and he unwinds into the stance. Known: the neck is turned
+  98 deg at the hold (looking back over the shoulder; the pose checker's line
+  is 90); one 9 cm hand move on the strike frame.
+- Test: `test_forward_heavy_is_the_spinning_back_kick` (the command, the hit,
+  plain Heavy still the cross, Drakon's fallback).
+
+Tests: 223 passed, 0 failed (full run on the final build). Not verified on a
+phone; videos checked frame by frame, not watched.

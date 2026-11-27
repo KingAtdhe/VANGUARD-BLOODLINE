@@ -30,9 +30,10 @@ const S: int = FighterInputFrame.BUTTON_SPECIAL
 const U: int = FighterInputFrame.BUTTON_ULTIMATE
 const _BUTTON_FOR: Dictionary = {&"LIGHT": L, &"HEAVY": H, &"KICK": K,
 	&"SPECIAL": S, &"FORWARD_SPECIAL": S, &"ULTIMATE": U,
-	&"DOWN_LIGHT": L, &"DOWN_HEAVY": H, &"DOWN_KICK": K, &"DOWN_SPECIAL": S, &"BACK_SPECIAL": S, &"THROW": L | K}
+	&"DOWN_LIGHT": L, &"DOWN_HEAVY": H, &"DOWN_KICK": K, &"DOWN_SPECIAL": S, &"BACK_SPECIAL": S, &"THROW": L | K,
+	&"FORWARD_HEAVY": H}
 const _ALL_PATTERNS: Array[StringName] = [&"LIGHT", &"KICK", &"HEAVY", &"SPECIAL", &"FORWARD_SPECIAL",
-	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL", &"BACK_SPECIAL", &"THROW"]
+	&"DOWN_LIGHT", &"DOWN_HEAVY", &"DOWN_KICK", &"DOWN_SPECIAL", &"BACK_SPECIAL", &"THROW", &"FORWARD_HEAVY"]
 ## Extra distance at which a visible attack is treated as a threat.
 const THREAT_MARGIN: float = 0.35
 ## Start guarding an incoming projectile this many ticks before it arrives.
@@ -588,8 +589,10 @@ func _set_state(s: State, reason: String) -> void:
 func _tap(pattern: StringName, reason: String, move_x: int) -> FighterInputFrame:
 	var button: int = _BUTTON_FOR.get(pattern, L)
 	# Specials are direction-sensitive: forward = toward the opponent.
-	if pattern == &"FORWARD_SPECIAL":
+	if pattern == &"FORWARD_SPECIAL" or pattern == &"FORWARD_HEAVY":
 		move_x = _toward
+	elif pattern == &"HEAVY":
+		move_x = 0                  # D-142: forward + Heavy is a different move
 	elif pattern == &"BACK_SPECIAL":
 		move_x = -_toward
 	_tap_down = String(pattern).begins_with("DOWN_")

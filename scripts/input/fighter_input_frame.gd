@@ -27,6 +27,9 @@ const CMD_DOWN_HEAVY: int = 1024
 const CMD_DOWN_KICK: int = 2048
 ## Light + Kick pressed together (within CombatSimulation.THROW_WINDOW = 1 tick): a throw (D-103, D-105).
 const CMD_THROW: int = 4096
+## HEAVY pressed while holding toward the opponent (D-142: Kairo's Spinning
+## Back Kick). A fighter without a FORWARD_HEAVY move gets the plain Heavy.
+const CMD_FORWARD_HEAVY: int = 8192
 
 ## World-space horizontal direction: -1 = left, 0 = none, +1 = right.
 var move_x: int = 0

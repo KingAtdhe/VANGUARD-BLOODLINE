@@ -50,6 +50,7 @@ const _PATTERNS: Dictionary = {
 	FighterInputFrame.CMD_DOWN_HEAVY: &"DOWN_HEAVY",
 	FighterInputFrame.CMD_DOWN_KICK: &"DOWN_KICK",
 	FighterInputFrame.CMD_THROW: &"THROW",
+	FighterInputFrame.CMD_FORWARD_HEAVY: &"FORWARD_HEAVY",
 }
 ## Light and Kick pressed this many ticks apart or less count as together
 ## (the throw, D-103). A Light or Kick attack already started that recently
@@ -66,6 +67,7 @@ const _FALLBACK: Dictionary = {
 	FighterInputFrame.CMD_DOWN_HEAVY: FighterInputFrame.BUTTON_HEAVY,
 	FighterInputFrame.CMD_DOWN_KICK: FighterInputFrame.BUTTON_KICK,
 	FighterInputFrame.CMD_THROW: FighterInputFrame.BUTTON_LIGHT,
+	FighterInputFrame.CMD_FORWARD_HEAVY: FighterInputFrame.BUTTON_HEAVY,
 }
 const _DOWN_COMMANDS: Dictionary = {
 	FighterInputFrame.BUTTON_SPECIAL: FighterInputFrame.CMD_DOWN_SPECIAL,
@@ -565,7 +567,8 @@ func _take_air_press(f: FighterState) -> bool:
 		var code: int = f.buffer[k].x
 		if code == FighterInputFrame.BUTTON_LIGHT or code == FighterInputFrame.BUTTON_HEAVY \
 				or code == FighterInputFrame.BUTTON_KICK or code == FighterInputFrame.CMD_DOWN_LIGHT \
-				or code == FighterInputFrame.CMD_DOWN_HEAVY or code == FighterInputFrame.CMD_DOWN_KICK:
+				or code == FighterInputFrame.CMD_DOWN_HEAVY or code == FighterInputFrame.CMD_DOWN_KICK \
+				or code == FighterInputFrame.CMD_FORWARD_HEAVY:
 			f.buffer.remove_at(k)
 			return true
 	return false
@@ -588,6 +591,8 @@ func _register_presses(f: FighterState, input: FighterInputFrame) -> void:
 			elif button == FighterInputFrame.BUTTON_SPECIAL and move_x != 0:
 				code = FighterInputFrame.CMD_FORWARD_SPECIAL if move_x == f.facing \
 						else FighterInputFrame.CMD_BACK_SPECIAL
+			elif button == FighterInputFrame.BUTTON_HEAVY and move_x != 0 and move_x == f.facing:
+				code = FighterInputFrame.CMD_FORWARD_HEAVY      # D-142 (falls back to Heavy, see _FALLBACK)
 			f.buffer.append(Vector2i(code, 0))
 	if pressed & (FighterInputFrame.BUTTON_LIGHT | FighterInputFrame.BUTTON_KICK):
 		_merge_throw(f)

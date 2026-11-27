@@ -151,3 +151,7 @@ limit, pushback, and no move being plus enough to link into itself.
 
 - Kairo's Kick button: Front Kick (was Low Kick), MID, hitbox centre (0.85, 1.25), size (0.6, 0.4); frames unchanged (9/4/15).
 - Kairo's Rising Uppercut: startup 7 -> 9, invulnerable 1-9, travel frames 6-11.
+
+### D-142 (2026-11-28)
+
+- Kairo: Spinning Back Kick, forward + Heavy, 15/3/21, 80 dmg, mid, hitbox (0.95, 1.2) size (0.7, 0.45), hitstun 22, blockstun 16, no travel. New command CMD_FORWARD_HEAVY (other fighters: plain Heavy).

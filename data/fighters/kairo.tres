@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FighterDefinition" load_steps=20 format=3]
+[gd_resource type="Resource" script_class="FighterDefinition" load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/fighters/fighter_definition.gd" id="1_def"]
 [ext_resource type="Resource" path="res://data/fighters/kairo_movement.tres" id="2_move"]
@@ -19,6 +19,7 @@
 [ext_resource type="Resource" path="res://data/moves/kairo_leg_sweep.tres" id="16_sweep"]
 [ext_resource type="Resource" path="res://data/moves/kairo_knee_throw.tres" id="17_throw"]
 [ext_resource type="Resource" path="res://data/moves/kairo_string_cross.tres" id="18_cross"]
+[ext_resource type="Resource" path="res://data/moves/kairo_spin_kick.tres" id="19_spin"]
 
 [resource]
 script = ExtResource("1_def")
@@ -28,7 +29,7 @@ base_health = 1000
 movement = ExtResource("2_move")
 hurtbox_half_width = 0.3
 hurtbox_height = 1.8
-moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break"), ExtResource("11_hook"), ExtResource("12_slip"), ExtResource("13_chook"), ExtResource("14_fire"), ExtResource("15_upper"), ExtResource("16_sweep"), ExtResource("17_throw"), ExtResource("90_air"), ExtResource("18_cross")])
+moves = Array[Resource]([ExtResource("3_l"), ExtResource("4_h"), ExtResource("5_k"), ExtResource("6_palm"), ExtResource("7_rift"), ExtResource("8_surge"), ExtResource("9_break"), ExtResource("11_hook"), ExtResource("12_slip"), ExtResource("13_chook"), ExtResource("14_fire"), ExtResource("15_upper"), ExtResource("16_sweep"), ExtResource("17_throw"), ExtResource("90_air"), ExtResource("18_cross"), ExtResource("19_spin")])
 surge_duration_ticks = 300
 surge_damage_percent = 115
 surge_free_specials = true

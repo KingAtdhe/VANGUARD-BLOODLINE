@@ -137,3 +137,32 @@ func test_jab_cancels_into_body_hook() -> Array[String]:
 	if _events(sim, CombatEvent.Type.HIT, 0, &"kairo_body_hook") != 1:
 		f.append("the body hook did not combo after the jab")
 	return f
+
+
+## D-142: forward + Heavy is Kairo's Spinning Back Kick; a fighter without a
+## FORWARD_HEAVY move gets its plain Heavy, and Heavy without a direction stays
+## the cross.
+func test_forward_heavy_is_the_spinning_back_kick() -> Array[String]:
+	var f: Array[String] = []
+	var sim: CombatSimulation = _sim()
+	# P1 faces right (+1): forward = +1
+	sim.step([FighterInputFrame.with_buttons(H, 1), FighterInputFrame.neutral()])
+	_idle(sim, 60)
+	if _events(sim, CombatEvent.Type.ATTACK_START, 0, &"kairo_spin_kick") != 1:
+		f.append("forward + Heavy did not start the Spinning Back Kick")
+	if _events(sim, CombatEvent.Type.HIT, 0, &"kairo_spin_kick") != 1:
+		f.append("the Spinning Back Kick did not hit a standing opponent at close range")
+	var sim2: CombatSimulation = _sim()
+	sim2.step([FighterInputFrame.with_buttons(H), FighterInputFrame.neutral()])
+	_idle(sim2, 40)
+	if _events(sim2, CombatEvent.Type.ATTACK_START, 0, &"kairo_heavy_punch") != 1:
+		f.append("Heavy on its own is no longer the cross")
+	var sim3: CombatSimulation = CombatSimulation.new()
+	sim3.setup(load("res://data/arenas/greybox_arena.tres"), load("res://data/fighters/drakon.tres"),
+		load("res://data/fighters/kairo.tres"), load("res://data/rules/combat_tuning.tres"))
+	var drakon_heavy: MoveData = (load("res://data/fighters/drakon.tres") as FighterDefinition).move_for(&"HEAVY")
+	sim3.step([FighterInputFrame.with_buttons(H, 1), FighterInputFrame.neutral()])
+	_idle(sim3, 5)
+	if drakon_heavy != null and _events(sim3, CombatEvent.Type.ATTACK_START, 0, drakon_heavy.id) != 1:
+		f.append("forward + Heavy did not fall back to Drakon's Heavy")
+	return f
