@@ -72,7 +72,7 @@ What the brief's words are in channels:
 | hips turned over | `pelvis` far from the stance value, with the standing `*_toe` pivot |
 | leans back / forward | `trunk` first value (− back) |
 | leans away to the side | `trunk` second value (toward the lead side is +) |
-| curled, chin tucked | there is no curl channel: a back lean plus `chin` (and `neck`) down |
+| curled, chin tucked | `curl` + (D-134), with `chin` down |
 | on the ball of the foot | `*_heel` up |
 | sunk on the standing leg | `pelvis_h` lower |
 
@@ -88,6 +88,7 @@ Body:
 | `pelvis`, `shoulders` | turn in degrees (side-on amount) |
 | `trunk` | `(forward lean°, side lean°)` |
 | `chin`, `neck` | chin drop and neck turn in degrees |
+| `curl` | (D-134) the back bends in itself, degrees: + crunched forward, − arched back, shared between waist and chest. Without it the trunk is a straight rod that only leans |
 
 Legs on the floor:
 

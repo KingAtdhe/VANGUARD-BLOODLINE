@@ -43,15 +43,15 @@ func _initialize() -> void:
 	root.add_child(floor_mesh)
 	# marks on the floor every half metre (D-133): without them a planted foot
 	# and a sliding one look the same
-	for i: int in range(-8, 9):
+	for i: int in range(-12, 13):
 		var mark := MeshInstance3D.new()
 		var bx := BoxMesh.new()
-		bx.size = Vector3(0.03, 0.004, 1.2)
+		bx.size = Vector3(0.03, 0.004, 0.22)       # short ticks: long lines fan out in perspective and read as slanted
 		mark.mesh = bx
 		var mm := StandardMaterial3D.new()
 		mm.albedo_color = Color(0.32, 0.33, 0.37)
 		mark.material_override = mm
-		mark.position = Vector3(i * 0.5, 0.002, 0.0)
+		mark.position = Vector3(i * 0.5, 0.002, 0.42)
 		root.add_child(mark)
 	var model: Node3D = def.model_scene.instantiate()
 	ModelUtil.prepare(model)
@@ -66,7 +66,13 @@ func _initialize() -> void:
 	cam.look_at(Vector3(0.25, CAM_HEIGHT, 0.0), Vector3.UP)
 	await process_frame
 	var m: FighterMovementProfile = def.movement
-	for suffix: String in names:
+	for entry: String in names:
+		# SUFFIX or SUFFIX:reps (D-134): a loop is rendered `reps` times in one go, so
+		# the ground it covers runs on instead of snapping back at every repeat
+		var suffix: String = entry.get_slice(":", 0)
+		var reps: int = maxi(1, int(entry.get_slice(":", 1))) if entry.contains(":") else 1
+		model.position = Vector3.ZERO
+		cam.position.x = 0.25
 		if suffix == "CROUCH_TRANSITION":
 			# stance -> crouch -> stance with the game's own blend time
 			await _transition(ap, model, fighter.to_upper(), out_dir, size)
@@ -77,15 +83,18 @@ func _initialize() -> void:
 			continue
 		ap.play(anim)
 		ap.pause()
-		var frames: int = int(round(ap.get_animation(anim).length * 60.0)) + 1
+		var clip_n: int = int(round(ap.get_animation(anim).length * 60.0))
+		var frames: int = clip_n * reps + 1
 		DirAccess.make_dir_recursive_absolute("%s/%s" % [out_dir, suffix])
 		# the ground the game covers on each frame (D-133): filmed on the spot, a
-		# walk or a dash looks like feet sliding over the floor
+		# walk or a dash looks like feet sliding over the floor. The camera goes
+		# with him (D-134), as the game's does: the floor marks pass under a
+		# planted foot at exactly his speed.
 		var travel: Array[float] = _travel(def, suffix, frames)
-		var x0: float = -travel[frames - 1] * 0.5
 		for i: int in frames:
-			model.position.x = x0 + travel[i]
-			ap.seek(i / 60.0, true)
+			model.position.x = travel[i]
+			cam.position.x = 0.25 + travel[i]
+			ap.seek((i % clip_n if reps > 1 else i) / 60.0, true)
 			# the game lifts a jumping fighter; the clip only poses the body
 			var lift: float = 0.0
 			if suffix == "JUMP":

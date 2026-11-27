@@ -148,6 +148,12 @@ def report(fighter, clip, csv_dir=None):
     print("  TWIN   %s hands at %s: height apart %.0f cm, forward apart %.0f cm, sideways apart %.0f cm"
           % ("OK   " if abs(m["lw_h"] - m["rw_h"]) >= 0.08 or abs(m["lw_f"] - m["rw_f"]) >= 0.12 else "CHECK",
              "the hit" if move else "the middle", abs(m["lw_h"] - m["rw_h"]) * 100, abs(m["lw_f"] - m["rw_f"]) * 100, abs(m["lw_x"] - m["rw_x"]) * 100))
+    if "fore" in m:
+        print("  ARMS   %s forearms %.0f deg apart in the side view at %s (0 = parallel: twinning)"
+              % ("OK   " if abs(m["fore"]) >= 25 else "CHECK", abs(m["fore"]), "the hit" if move else "the middle"))
+        bb = [r["bend"] for r in R]
+        print("  SPINE  %s the back bends between %.0f and %.0f deg over the clip (a rod stays on one value)"
+              % ("OK   " if max(bb) - min(bb) >= 6 or not move else "CHECK", min(bb), max(bb)))
     # FEET: the point of the boot that is on the floor (the ball when the heel is up,
     # the ankle when it is flat) must not move along the floor while it is down
     for k, t_, nm in (("la", "lt", "left"), ("ra", "rt", "right")):

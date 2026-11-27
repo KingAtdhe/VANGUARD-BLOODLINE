@@ -12,6 +12,7 @@ by a moment of the stance.
 A clip is SUFFIX or SUFFIX:repeats (loops). Needs xvfb-run, godot, ffmpeg
 and Pillow. Run from the project root."""
 import argparse
+import math
 import os
 import shutil
 import subprocess
@@ -65,6 +66,20 @@ def hit_freezes(fighter):
     return out
 
 
+def move_damage(fighter):
+    import glob
+    import re
+    out = {}
+    tok = fighter.upper() + "_"
+    for path in glob.glob("data/moves/%s_*.tres" % fighter):
+        txt = open(path).read()
+        an = re.search(r'animation = &"([^"]+)"', txt)
+        dm = re.search(r"^damage = (\d+)", txt, re.M)
+        if an and dm and an.group(1).startswith(tok):
+            out[an.group(1)[len(tok):]] = int(dm.group(1))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("fighter")
@@ -76,12 +91,15 @@ def main():
     a = ap.parse_args()
     clips = a.clips or DEFAULT.get(a.fighter) or ["IDLE_A:3"]
     pairs = [(c.split(":")[0], int(c.split(":")[1]) if ":" in c else 1) for c in clips]
+    reps_of = {n: r for n, r in pairs}
     names = sorted({n for n, _ in pairs} | {"IDLE_A"})
+    render = ["%s:%d" % (n, reps_of[n]) if reps_of.get(n, 1) > 1 else n for n in names]
     freezes = hit_freezes(a.fighter)
+    dmg = move_damage(a.fighter)
     work = tempfile.mkdtemp(prefix="review_")
     try:
         r = subprocess.run(["xvfb-run", "-a", "godot", "--path", ".", "--rendering-driver", "opengl3", "--script",
-                            "res://tools/godot/clip_frames.gd", "--", a.fighter, work, ",".join(names), str(a.size)],
+                            "res://tools/godot/clip_frames.gd", "--", a.fighter, work, ",".join(render), str(a.size)],
                            capture_output=True, text=True)
         got = {n: sorted(os.listdir(os.path.join(work, n))) for n in names if os.path.isdir(os.path.join(work, n))}
         if "IDLE_A" not in got:
@@ -95,9 +113,24 @@ def main():
         n_out = 0
         crop = (a.size // 8, 0, a.size - a.size // 8, a.size)
 
-        def put(name, fname, label):
+        def card(label):
+            """a dark title card: an unmistakable cut, so the floor jumping between two clips is not read as a slide"""
             nonlocal n_out
-            im = Image.open(os.path.join(work, name, fname)).convert("RGB").crop(crop)
+            im = Image.new("RGB", (crop[2] - crop[0], crop[3] - crop[1]), (22, 23, 27))
+            d = ImageDraw.Draw(im)
+            w_ = d.textlength(label, font=font)
+            d.text(((im.width - w_) / 2, im.height / 2 - 14), label, fill=(235, 235, 235), font=font)
+            for _ in range(a.gap // 2):
+                n_out += 1
+                im.save(os.path.join(seq, "%05d.png" % n_out))
+
+        def put(name, fname, label, shake=0.0):
+            nonlocal n_out
+            im = Image.open(os.path.join(work, name, fname)).convert("RGB")
+            if shake:                                     # the game's camera shake on a hit (CameraRig.add_shake)
+                from PIL import ImageChops
+                im = ImageChops.offset(im, int(round(shake)), int(round(-shake * 0.6)))
+            im = im.crop(crop)
             ImageDraw.Draw(im).text((12, 10), label, fill=(255, 255, 255), font=font)
             n_out += 1
             im.save(os.path.join(seq, "%05d.png" % n_out))
@@ -108,14 +141,13 @@ def main():
                 continue
             label = TITLES.get(name, name.replace("_", " ").title())
             holds = {} if a.no_hitstop else freezes.get(name, {})
-            for _ in range(reps):
-                for i, f in enumerate(got[name]):
-                    put(name, f, label)
-                    for _h in range(holds.get(i + 1, 0)):
-                        put(name, f, label + "  (hit freeze)")
-            if name != "IDLE_A":
-                for f in got["IDLE_A"][:a.gap]:
-                    put("IDLE_A", f, "")
+            card(label)
+            for i, f in enumerate(got[name]):             # loops were rendered with their repeats (clip_frames)
+                put(name, f, label)
+                for h in range(holds.get(i + 1, 0)):
+                    # camera shake as in the game: 0.015 m + damage / 2500, dying away at 14 per second
+                    amp = (0.015 + dmg.get(name, 50) / 2500.0) * math.exp(-14.0 * h / 60.0) * (a.size / 3.2)
+                    put(name, f, label + "  (hit freeze)", amp * (1 if h % 2 == 0 else -1))
         w = (crop[2] - crop[0]) // 2 * 2
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-framerate", "60", "-i", os.path.join(seq, "%05d.png"),
                         "-vf", "crop=%d:%d:0:0" % (w, a.size // 2 * 2), "-pix_fmt", "yuv420p", "-c:v", "libx264",

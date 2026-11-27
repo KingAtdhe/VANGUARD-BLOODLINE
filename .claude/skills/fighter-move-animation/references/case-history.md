@@ -72,6 +72,7 @@ approval looked like · Process failures (ours).
 | "These need to be fixed" + another AI's written critique of the video (foot sliding, weight, recoil, twinning, linear easing) | she will get second opinions on the video and pass them on; measure each claim first, fix the true ones, and tell her plainly which ones the numbers do not support | `weight_report.py`; stepping feet lift, dashes, recoil, crouch clips, landing, knockdown | D-131 |
 | "Fix all that u didn't fix and send me the video of all moves fixed again" | when a report lists things left undone, she wants them done, including the ones that need a balance change or touch an approved move; say plainly afterwards what changed in the game's numbers | both kicks over their foot (Front Kick hitbox 0.60 -> 0.78 m), jab trunk, axe-kick hands | D-132 |
 | a second outside critique (foot skid, root midway, crouch, arm punches, no recoil, rigid head, twinning, flat knockdown, floaty jump) | as before: measure each point; this time the worst fault (the ultimate's feet skating 1.3 m) was real and had been hidden by measuring in body space | step planner, punch hip drive, crouch heel roll, head lag, knockdown arc, jump hang (a feel change), review video with travel and hit freeze | D-133 |
+| a third outside critique (slides against the floor marks, flat landings, pelvis not over the foot, rigid spine, twinning, arm punches, uniform freeze, snappy recoveries) | three of nine were the review video's own doing (loop repeats snapping back, cuts, no camera shake): a reviewer judges the video, so the video must show what the game shows | `curl` channel, `hips_x`, ball-first landings, stance forearms, hand drag; camera-follow video with title cards and hit shake | D-134 |
 
 Faults found by the checks before she had to name them:
 
@@ -118,5 +119,7 @@ and in the arena camera.
 - Measured feet in body space on moves the game carries forward: the
   ultimate's feet skated 1.3 m and every check said OK (D-133). Add the travel.
 - Filmed walks and dashes on the spot: planted feet then look like sliding.
+- Filmed loops by repeating the same frames (he snapped back 0.8 m each
+  repeat) and cut between clips without a break: both read as foot slides.
 - Sent a video called "all moves" that left out five of them (the default
   list in `tools/review_video.py`); check the list against the move table.

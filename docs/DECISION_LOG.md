@@ -2659,3 +2659,32 @@ moves 2 cm as the heel turns out (the foot pivots about the ankle on this rig).
 
 Not verified on a phone. Video checked frame by frame, not watched.
 
+## D-134 — 2026-11-27 — Third outside critique: the back bends (`curl`), pelvis over the standing foot sideways, ball-first landings, forearms apart, dragging hand returns; the review video stops inventing slides
+
+**Owner:** a third written critique (another AI) of the D-133 video, nine
+points. Measured first, as before (`weight_report.py` now also prints ARMS:
+the angle between the forearms in the side view, and SPINE: the bend of the
+back between waist and chest).
+
+| Critique | Measured | Verdict | Now |
+|---|---|---|---|
+| Lead foot slides against the floor marks in the walk, dash recovery, fireball | on the model the ball of a planted foot moves 0.5 cm a frame at most in both walks, 0.6 in the fireball, and holds its spot in the dashes. **The video did it:** every repeat of a walk loop snapped him 0.8 m back, the floor jumped under him at each cut, and the long floor lines fanned out in perspective | the animation: not supported; the video: true | `clip_frames.gd` renders loops with their repeats in one go, the camera goes with him (marks pass under a planted foot at his speed), short tick marks, a title card at every cut |
+| Boots land flat, no heel-to-toe roll | true for the jump landing and for stepping back | true | jump: toes reach down, the ball lands first, heels come down over the landing frames (two toe pops on f43 gone); walking back: ball first, heel rolls down. The rig has one bone per foot: the sole cannot flex at the toes |
+| Pelvis not over the standing leg sideways on high attacks; Rift Break unsustainable | hips 7 cm to the side of the standing ankle on every kick (forward: Rift Break +5 cm, fine) | true (sideways) | `hips_x` on the Front Kick, Low Kick, Rift Break and the ultimate's roundhouse: 0 to 1 cm |
+| Stiff thoracic spine, a rigid cylinder | the back was a straight rod by construction: 1-4 deg of bend over any clip | true | new pose channel `curl` (the back bends in itself, shared between waist and chest): fireball -12 coiled to +16 over the release (measured 1-13 deg), uppercut and the ultimate's last blow arch back 18-20, cross, counter, palm, jab and Front Kick close over the strike; the `_impact` wave carries a little |
+| Twinning in the stance and counter stance | stance forearms 18 deg apart in the side view; counter stance 54, block 58 | true for the stance | stance 60 deg: lead forearm reaches out nearly level, rear forearm stands up by the jaw |
+| 1-2 and counter strike pushed from the arms | pelvis 69 deg, chest 97, fastest frames pelvis -> chest -> fist; hips travel 12-13 cm | not supported after D-133 | the back now also closes over these punches (`curl`) |
+| Hit freeze is uniform, no shake | the game shakes the camera on every hit and vibrates the fighter who is hit (`FighterView`, `CameraRig`); the review video showed neither | true of the video | the video's freeze frames carry the game's camera shake (0.015 m + damage / 2500, decay 14 / s). The struck fighter is not in this video |
+| Recoveries snap home on near-linear paths | hands came home one frame behind the body on a straight line | partly | hands two frames behind (`_lag`), and they sink up to 4.5 cm under the straight path and rise into the guard (single strikes; not the Low Kick or Rift Break's hands) |
+
+Checked: flags against D-133: none new, two gone (jump landing toe pops).
+Walk on the floor: forward 0.5 cm worst frame, back 0.5. Every frame of the
+uppercut, fireball, heavy and landing read in the side view.
+Tests: 222 passed, 0 failed (full run, on the final build).
+
+Every move starts from the stance, so the new guard moved the hands of every
+move again; `hips_x` moved the Low Kick's and Rift Break's pelvis 6-7 cm
+toward the far side. Both still wait for the owner's verdict.
+
+Not verified on a phone. Video checked frame by frame, not watched.
+
