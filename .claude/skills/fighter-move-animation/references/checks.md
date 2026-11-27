@@ -283,7 +283,8 @@ So you can tell your own flags from the ones already there. Update this list
 when a build changes it.
 
 Pops: Low Kick f9 right toe (the strike); ultimate f18 and f37 right toe;
-jump f43 both toes (landing).
+jump f43 both toes (landing). Since D-135: cross (Heavy) f12 and f15 and
+One-Two f11 left hand (the guard hand carried by the chest turn).
 
 Motion report: Rift Break clean since D-129; ultimate several FAST (its later
 hits are strikes the report does not know about, and the roundhouse leg has

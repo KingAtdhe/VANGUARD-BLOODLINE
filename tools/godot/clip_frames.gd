@@ -12,6 +12,8 @@ extends SceneTree
 
 const CAM_DISTANCE: float = 5.9
 const CAM_HEIGHT: float = 1.5
+## Share of his travel the camera follows (the game frames both fighters).
+const CAM_FOLLOW: float = 0.5
 
 
 func _initialize() -> void:
@@ -72,7 +74,7 @@ func _initialize() -> void:
 		var suffix: String = entry.get_slice(":", 0)
 		var reps: int = maxi(1, int(entry.get_slice(":", 1))) if entry.contains(":") else 1
 		model.position = Vector3.ZERO
-		cam.position.x = 0.25
+		cam.position.x = 0.25 + _frame_shift(suffix)
 		if suffix == "CROUCH_TRANSITION":
 			# stance -> crouch -> stance with the game's own blend time
 			await _transition(ap, model, fighter.to_upper(), out_dir, size)
@@ -93,7 +95,10 @@ func _initialize() -> void:
 		var travel: Array[float] = _travel(def, suffix, frames)
 		for i: int in frames:
 			model.position.x = travel[i]
-			cam.position.x = 0.25 + travel[i]
+			# D-135: the game's camera tracks the MIDPOINT of the two fighters, so
+			# it moves half as far as he does. Following him all the way made a
+			# walk look like walking on the spot and a dash like a twitch.
+			cam.position.x = 0.25 + travel[i] * CAM_FOLLOW + _frame_shift(suffix)
 			ap.seek((i % clip_n if reps > 1 else i) / 60.0, true)
 			# the game lifts a jumping fighter; the clip only poses the body
 			var lift: float = 0.0
@@ -112,6 +117,12 @@ func _initialize() -> void:
 			shot.save_png("%s/%s/%04d.png" % [out_dir, suffix, i + 1])
 		print("frames ", suffix, " ", frames)
 	quit()
+
+
+## Lying clips reach back past the left edge of the frame; the camera moves
+## back with them so the whole body stays in view (D-135).
+static func _frame_shift(suffix: String) -> float:
+	return -0.55 if suffix in ["KNOCKDOWN", "GETUP", "DEFEAT"] else 0.0
 
 
 ## Metres the game has moved the fighter (+ = toward the opponent) when frame
@@ -150,6 +161,13 @@ func _transition(ap: AnimationPlayer, model: Node3D, token: String, out_dir: Str
 		ap.get_animation(n).loop_mode = Animation.LOOP_LINEAR
 	DirAccess.make_dir_recursive_absolute("%s/CROUCH_TRANSITION" % out_dir)
 	model.position.y = 0.0
+	# D-135: the player must only move when advance() says so. Left on its own
+	# process callback it also ran on the real (uneven) time between the
+	# rendered frames, so the stance and the crouch shook and the drop went
+	# by in a frame or two in the review video. The game seeks every frame
+	# from the simulation and never showed this.
+	var mode: int = ap.callback_mode_process
+	ap.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
 	ap.play(idle)
 	var down: StringName = StringName(token + "_CROUCH_DOWN")
 	var up: StringName = StringName(token + "_CROUCH_UP")
@@ -180,6 +198,7 @@ func _transition(ap: AnimationPlayer, model: Node3D, token: String, out_dir: Str
 		shot.resize(size, size, Image.INTERPOLATE_LANCZOS)
 		shot.save_png("%s/CROUCH_TRANSITION/%04d.png" % [out_dir, i + 1])
 	ap.pause()
+	ap.callback_mode_process = mode
 	print("frames CROUCH_TRANSITION 110")
 
 

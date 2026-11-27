@@ -2688,3 +2688,49 @@ toward the far side. Both still wait for the owner's verdict.
 
 Not verified on a phone. Video checked frame by frame, not watched.
 
+
+
+## D-135 — 2026-11-27 — Kairo: the 21-point review of the D-134 video (guard, punches that reach, hook, palm, uppercut, counter stance, throw, low block; crouch shake; timing of knockdown, get-up, dashes, ultimate freeze)
+
+**Owner:** "Check where we are and continue": the 21-point list written
+in the chat "Fighting animation vibration" from her phone recording of the
+D-134 review video.
+
+Measured first (`motion_report.py`, every frame in the side view, the
+review video's own code). Several points were the video, not the game:
+
+| # | Point | Found | Now |
+|---|---|---|---|
+| 1, 2 | Shaking after Dash Back; crouch snaps down and up | **the video**: `clip_frames.gd` let the AnimationPlayer run on its own clock during the crouch clip as well as stepping it, so the pose jittered with the uneven render time. The shaking span was exactly that clip. The game seeks every frame and never did this | manual process mode while stepping; head height now changes smoothly. The crouch drop and rise are also eased over 6 frames (the drop covered most of its distance in 2) |
+| 3 | Blocks snap into a still pose | the clips were most of the way up in 2 frames (ease out over 5) | raised over 6 frames (ease in-out), high and low |
+| 4 | Ultimate freezes ~0.75 s | the video gave the 60-tick freeze to the FIRST hit (the game gives it to the last); and 60 ticks is long | video fixed; `hitstop_frames` 60 → 30 (a feel change) |
+| 5 | Knockdown drops in ~2 frames, slides out of frame | fall frames 8-20 accelerating; camera fixed on the standing spot | fall over 16 frames; lying clips framed further back in the video |
+| 6 | Get-up pops (~0.25 s) | 20 ticks | wake-up 26 ticks, knockdown 39 (same 65 on the floor; 45+20 changed the AI difficulty test's outcome when the total grew); get-up clip 27 frames in overlapping stages |
+| 7 | Dashes are a twitch | the video's camera followed him all the way, so he never moved on screen; 13 ticks forward | the camera follows half his travel (the game frames the midpoint); dashes 17 / 21 ticks (balance) |
+| 8 | Hit Light barely reacts | amplitude 0.75 | 1.0 |
+| 9 | Stance lead arm hangs out straight | lead hand 50 cm out, 34 cm under the head | 36 cm out, 20 cm under, elbow bent: a real guard with room for the jab |
+| 10 | Jab looks like pulling back | arm 0.92 extended (46 deg bent) at the hit, fist 10 cm past the guard | target beyond reach: arm 0.99, fist 0.81 m out; longer step behind it |
+| 11 | Light-light, Heavy, Counter all one pose | the cross's arm 59 deg bent, chest turned 98 deg (back to camera), the lead hand rode up beside the head; the counter strike was a copy of the cross | cross locks out (0.99), chest stops near square (shoulders -62), lead hand at the chin; **Counter strike is now the lead hook its data is named for**: bent arm across, elbow up, hips turning in |
+| 12 | Walks on the spot | the video's camera, as 7 | as 7 |
+| 13 | Block Low is a dip | 17 % drop, hands at the chest | 25 % drop, lead forearm down across the lead knee, rear fist at the chin (Kairo only) |
+| 14 | Down + heavy is a standing kick | true: it is the Front Kick she asked to be extended (D-096) | **not changed: asked the owner** (keep, or move it and give down + heavy a crouching attack) |
+| 15 | Throw has no reach | grab 62 cm out at hz+24 | 74 cm, higher, trunk leaning in, arms long |
+| 16 | Special is a flex | rear hand raised over the head in the wind-up and left out | rear fist stays at the chin, pulls to the hip as the lead palm drives out on a locked arm; more side-on |
+| 17 | Counter stance = stance | 12 cm back, 8 % sink | 20 cm back, 14 % sink, leaning away, open hand well out at face height |
+| 18 | Fireball push never extends | push target inside reach | beyond reach (arms lock), wind-up drawn further back |
+| 19 | Uppercut is a raised arm | the fist aimed from the anti-air box (1.7 m): arm 0.99 straight overhead | aimed from his own head: arm bent (0.67-0.76) at the top; deeper dip |
+| 20 | Kick leans back | it is the approved Low Kick | unchanged |
+| 21 | No weight shift | — | longer steps and hip drive behind the jab and cross |
+
+Checked: build flags against D-134: none new except two lead-hand moves on
+the cross (13 cm at the strike frame and 11 cm as the chest unturns: the
+chest turn carries the guard hand; accepted); knockdown pops introduced by
+the new timing were fixed. Contact frames of every changed move read in the
+side view before and after. Tests: 222 passed, 0 failed (full run on the final build). Review video rendered
+with the fixed renderer.
+
+Other fighters: the knockdown/get-up timing is global; their clips are not
+rebuilt (their knockdown lies still from frame 20, their 21-frame get-up
+holds the guard for the last 5 ticks).
+
+Not verified on a phone. Video checked frame by frame, not watched.

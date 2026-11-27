@@ -58,10 +58,16 @@ def hit_freezes(fighter):
         hits = {st: hs}
         rh, rhs = num("rehit_interval"), num("rehit_hitstop_frames", hs)
         if rh > 0:
+            # D-135: as MoveData.hitstop_on(): every hit but the last uses the
+            # short rehit freeze, the last one the move's own (the video had
+            # them the other way round and held the ultimate's first jab)
+            frames = [st]
             f = st + rh
             while f < st + ac:
-                hits[f] = rhs
+                frames.append(f)
                 f += rh
+            hits = {f: rhs for f in frames[:-1]}
+            hits[frames[-1]] = hs
         out[an.group(1)[len(tok):]] = hits
     return out
 

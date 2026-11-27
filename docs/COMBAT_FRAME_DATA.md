@@ -96,7 +96,7 @@ limit, pushback, and no move being plus enough to link into itself.
 | Origin Palm | Special (neutral/back) | 14 | 5 | 24 | 42 | 105 | 15 | **+12** | −12 | 25 | Spec §4.4 values; links Heavy at close range; cancels into the ultimate |
 | Rift Break | toward + Special | 22 | 4 | 26 | 51 | 90 | 10 | KD | −15 | 0 | Travels 0.7 m (frames 4–18): one step in. D-127: was 1.4 m (frames 4–22), covered by a hop; knockdown. D-122: slower so the axe kick reads (was 16/4/22, −11) |
 | Origin Surge | Ultimate at full meter | 20 | — | 10 | 30 | — | — | — | — | 100 | No hitbox; then 5 s Surge |
-| Origin Break | Ultimate during Surge | 7 | 4 | 45 | 55 | 320 | 40 | KD | −28 | ≥ 30, spends all | Ends Surge; 60-tick hitstop (camera cinematic, skippable) |
+| Origin Break | Ultimate during Surge | 7 | 4 | 45 | 55 | 320 | 40 | KD | −28 | ≥ 30, spends all | Ends Surge; 30-tick hitstop on the last hit (camera cinematic, skippable; 60 until D-135) |
 
 - **Origin meter** 0–100: attacker gains per move (L 6/3, H 12/6, K 9/5,
   Rift 10/5 on hit/block); defender gains 20 % of damage taken, 3 per
@@ -127,3 +127,12 @@ limit, pushback, and no move being plus enough to link into itself.
   `counter_stun_frames` and the parrying fighter is neutral on the next
   tick after hitstop. Vexa's per-move table is in
   `docs/FIGHTER_COMBAT_DESIGN.md`.
+
+### D-135 timing changes (2026-11-27)
+
+- Kairo's Origin Break: the last hit's hitstop 60 → 30 ticks (a second-long
+  freeze read as the game stalling). Earlier hits keep 8.
+- Knockdown 45 → 39 ticks, wake-up 20 → 26 ticks (all fighters). The time on
+  the floor is unchanged (65 ticks); the get-up has 26 frames instead of 20.
+- Kairo's dashes: forward 13 → 17 ticks (1.4 m), back 17 → 21 ticks (1.1 m).
+  Slower to cover the same ground: dashes are 4 ticks easier to react to.

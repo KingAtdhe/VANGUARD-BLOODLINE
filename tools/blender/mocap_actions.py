@@ -72,8 +72,11 @@ STYLES = {
                             # rear fist higher and tighter with the elbow out, so the two forearms cross at an angle
                             # D-134: 18 deg between the forearms in the side view still read as parallel:
                             # the lead forearm now reaches out nearly level, the rear one stands up by the jaw
-                            lead_hand=(0.05, 0.50, -0.34), rear_hand=(0.10, 0.20, -0.07),
-                            lead_elbow=0.12, rear_elbow=0.3, lead_palm=(-0.5, -0.6, -0.6), rear_palm="auto")),
+                            # D-135 (critique of the D-134 video: "the front arm hangs straight out at chest
+                            # height, his guard is open and the jab has no room"): the lead fist comes in
+                            # and up to shoulder height, elbow bent, still angled against the upright rear forearm
+                            lead_hand=(0.05, 0.36, -0.20), rear_hand=(0.10, 0.20, -0.07),
+                            lead_elbow=0.25, rear_elbow=0.3, lead_palm=(-0.5, -0.6, -0.6), rear_palm="auto")),
     # Drakon, after Zangief: wide and square, knees out, chest forward, both
     # arms held open and high at the sides ready to grab.
     "drakon": dict(clip="14_02", frame=4530, amp=0.25, sway=0.035,
@@ -2545,19 +2548,19 @@ def kairo_keys(moves, base, g, S):
 
     # Jab: no wind-up to speak of; the lead shoulder and hip go in with the fist
     a0, a1, T, hx, hz = win(moves["LIGHT"])
-    hit = (0.02, hx + 0.08, hz)                            # arm all but locked out (0.85 of its length read as a bent-arm push)
+    hit = (0.02, hx + 0.30, hz)                            # D-135: beyond reach, so the arm locks (0.92 = 46 deg bent at the hit, it read as pulling back)
     out["LIGHT"] = dict(_recover=1.7, **head(a0, a1, T, 4.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "hips": [(0, (hips0, 0)), (1, (hips0 - 0.02, 0)), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.095, 0)),
+        "hips": [(0, (hips0, 0)), (1, (hips0 - 0.02, 0)), (a0, (hips0 + 0.13, 0), "in"), (a1, (hips0 + 0.125, 0)),
                  (a1 + 5, (hips0 - 0.012, 0), "out"), (T - 2, (hips0, 0))],
         "pelvis": [(0, pel0), (1, pel(-3)), (a0 - 1, pel(19), "in"), (a1, pel(19)), (a1 + 5, pel(-2), "out"), (T - 2, pel0)],   # D-133: more hip behind the jab
         "shoulders": [(0, sh0), (1, sho(-4)), (a0, sho(22), "in"), (a1, sho(20)), (a1 + 5, sho(-3), "out"), (T - 2, sh0)],
         "pelvis_h": [(0, ph0), (a0, low(0.012), "in"), (a1, low(0.012))] + settle(T, a1 + 5, ph0, 0.008),
-        "lead_foot": [(0, lf0), (a0, (lf0[0], lf0[1] + 0.06), "in"), (a1 + 2, (lf0[0], lf0[1] + 0.06)), (a1 + 5, lf0)],   # D-133: back as one quick step (a slow drift slid on the floor)
+        "lead_foot": [(0, lf0), (a0, (lf0[0], lf0[1] + 0.11), "in"), (a1 + 2, (lf0[0], lf0[1] + 0.11)), (a1 + 5, lf0)],   # D-135: a longer step behind the jab (weight); D-133: back as one quick step (a slow drift slid on the floor)
         "rear_heel": [(0, 0.03), (a0, 0.06, "in"), (a1 + 5, 0.03)],
         "curl": [(0, 0.0), (a0, 5.0, "in"), (a1, 5.0), (a1 + 5, -1.0, "out"), (T - 2, 0.0)],
         "trunk": [(0, tr0), (1, lean(-2)), (a0, lean(6), "in"), (a1, lean(6)), (a1 + 5, lean(-1), "out"), (T - 2, tr0)],   # D-132: the trunk did not lean at all on the jab
-        "lead_hand_abs": [(0, L), (1, (L[0] + 0.02, L[1] - 0.12, L[2] - 0.02), "out"),   # the guard hand is already out: it snaps back to punch
+        "lead_hand_abs": [(0, L), (1, (L[0] + 0.01, L[1] - 0.04, L[2] - 0.01), "out"),   # D-135: the guard is in now; only a small cock before it fires
                           (a0, (hit[0], hit[1] + 0.035, hit[2]), "in"),
                           (a0 + 1, hit), (a1, hit), (a1 + 4, (L[0], L[1] - 0.02, L[2] + 0.02), "out"), (T - 2, L)],
         "lead_elbow": [(0, 0.2), (a0, 0.05), (a1 + 4, 0.2)],
@@ -2565,17 +2568,18 @@ def kairo_keys(moves, base, g, S):
 
     # Cross: sit back and load, drive off the rear foot, hip then chest then fist
     a0, a1, T, hx, hz = win(moves["HEAVY"])
-    hit = (0.03, hx + 0.02, hz)
+    hit = (0.03, hx + 0.30, hz)                            # D-135: beyond reach, the arm locks (it was 59 deg bent at the hit)
     out["HEAVY"] = dict(_recover=1.5, **head(a0, a1, T, 9.0), **{
         "rear_palm": "auto",
-        "hips": [(0, (hips0, 0)), (7, (hips0 - 0.10, 0)), (a0, (hips0 + 0.12, 0), "in"), (a1, (hips0 + 0.105, 0)),
+        "hips": [(0, (hips0, 0)), (7, (hips0 - 0.10, 0)), (a0, (hips0 + 0.16, 0), "in"), (a1, (hips0 + 0.15, 0)),
                  (a1 + 8, (hips0 - 0.015, 0), "out"), (T - 3, (hips0, 0))],
         "pelvis_h": [(0, ph0), (7, low(0.05)), (a0, low(0.03)), (a1, low(0.03)), (a1 + 6, ph0 + 0.004, "out")] + settle(T, a1 + 11, ph0),
-        "pelvis": [(0, pel0), (6, pel(20)), (a0 - 2, pel(-56), "in"), (a1, pel(-58)), (a1 + 8, pel(4), "out"), (T - 3, pel0)],   # D-133: the hips drive the cross (pelvis 50 deg against the chest 97 read as an arm punch)
-        "shoulders": [(0, sh0), (7, sho(34)), (a0 - 1, sho(-72), "in"), (a0, sho(-80)), (a1, sho(-76)), (a1 + 8, sho(5), "out"), (T - 3, sh0)],
+        "pelvis": [(0, pel0), (6, pel(20)), (a0 - 2, pel(-50), "in"), (a1, pel(-52)), (a1 + 8, pel(4), "out"), (T - 3, pel0)],   # D-133: the hips drive the cross (pelvis 50 deg against the chest 97 read as an arm punch)
+        # D-135: the chest stopped at about square to the opponent (it turned 98 deg and showed the camera his back)
+        "shoulders": [(0, sh0), (7, sho(34)), (a0 - 1, sho(-56), "in"), (a0, sho(-62)), (a1, sho(-60)), (a1 + 8, sho(5), "out"), (T - 3, sh0)],
         "curl": [(0, 0.0), (7, -7.0), (a0, 10.0, "in"), (a1, 9.0), (a1 + 8, -2.0, "out"), (T - 3, 0.0)],   # D-134: the back arches as he loads and closes over the punch
         "trunk": [(0, tr0), (7, lean(-8)), (a0, lean(11), "in"), (a1, lean(10)), (a1 + 8, lean(-1.5), "out"), (T - 3, tr0)],
-        "lead_foot": [(0, lf0), (5, lf0), (a0 - 1, (lf0[0], lf0[1] + 0.09), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.09)), (a1 + 7, lf0)],
+        "lead_foot": [(0, lf0), (5, lf0), (a0 - 1, (lf0[0], lf0[1] + 0.14), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.14)), (a1 + 7, lf0)],
         "rear_heel": [(0, 0.03), (5, 0.015), (a0, 0.11, "in"), (a1, 0.11), (a1 + 8, 0.03)],
         "rear_toe": [(0, base["rear_toe"]), (5, base["rear_toe"]), (a0 - 1, -14.0, "in"), (a1, -14.0), (a1 + 8, base["rear_toe"])],   # D-133: the rear heel turns out as the hip drives (the toe was barely turned)
         "rear_hand_abs": [(0, R), (7, (R[0] - 0.10, R[1] - 0.19, R[2] - 0.07)),   # D-130: a wind-up that shows (the fist drew back 11 cm; the chest turned 24)
@@ -2583,8 +2587,8 @@ def kairo_keys(moves, base, g, S):
                           (a0, (hit[0], hit[1] + 0.04, hit[2]), "in"), (a0 + 1, hit), (a1, hit),
                           (a1 + 5, (R[0] + 0.03, R[1] + 0.06, R[2] - 0.02), "out"), (T - 3, R)],
         "lead_hand_abs": [(0, L), (7, (L[0], L[1] - 0.07, L[2] + 0.03)),      # D-130: the guard sits back with him (it stayed out and the arm straightened for six frames)
-                          (a0, hik, "in"), (a1 + 3, hik), (T - 3, L)],
-        "lead_palm": [(0, base["lead_palm"]), (7, base["lead_palm"]), (a0, (0.0, 0.0, 1.0), "in"), (a1 + 3, (0.0, 0.0, 1.0)), (T - 3, base["lead_palm"])],
+                          (a0 - 2, (chin[0], chin[1] + 0.03, chin[2] - 0.03), "io"), (a0, chin), (a1 + 3, chin), (T - 3, L)],     # D-135: to the chin (the hikite point rode up beside his head as the chest turned)
+        "lead_palm": "auto",
         "rear_elbow": [(0, 0.1), (a0, 0.06), (a1 + 5, 0.1)],
     })
 
@@ -2630,26 +2634,35 @@ def kairo_keys(moves, base, g, S):
                           (a1 + 3, (-0.27, 0.05, R[2] - 0.10)), (T - 3, R)],
     })
 
-    # Counter strike (the Rift Guard's answer): after the open-hand parry the
-    # chambered fist goes straight through the face, hips and shoulders behind it
+    # Counter strike (the Rift Guard's answer). D-135: it was a second copy of
+    # the cross (same pose as Heavy and the One-Two). Now the lead hook its data
+    # is named after (kairo_counter_hook): out of the parry the lead fist swings
+    # round on a flat arc, elbow up at shoulder height, the forearm level; the
+    # hips and chest turn in behind it from the lead side, the lead heel pivots
+    # out and the rear fist stays at the chin. The silhouette is a bent arm
+    # across the face, not a straight one.
     a0, a1, T, hx, hz = win(moves["FOLLOWUP"])
-    hit = (0.03, hx + 0.03, hz)
+    h_wide = (0.36, hx - 0.30, hz - 0.02)                  # the fist starts out wide on his lead side
+    h_hit = (0.04, hx - 0.06, hz + 0.01)                   # across the centre line, arm bent about 90
+    h_thru = (-0.06, hx - 0.10, hz)                        # carries on through a little
     out["FOLLOWUP"] = dict(_recover=1.5, **head(a0, a1, T, 8.0), **{
         "rear_palm": "auto", "lead_palm": "auto",
-        "hips": [(0, (hips0 - 0.05, 0)), (a0, (hips0 + 0.11, 0), "in"), (a1, (hips0 + 0.10, 0)), (a1 + 8, (hips0 - 0.01, 0), "out"), (T - 3, (hips0, 0))],
-        "pelvis_h": [(0, low(0.045)), (a0, low(0.035)), (a1, low(0.035)), (a1 + 6, ph0 + 0.004, "out")] + settle(T, a1 + 10, ph0),
-        "pelvis": [(0, pel(8)), (a0 - 1, pel(-56), "in"), (a1, pel(-58)), (a1 + 8, pel(4), "out"), (T - 3, pel0)],
-        "shoulders": [(0, sho(12)), (a0, sho(-78), "in"), (a1, sho(-74)), (a1 + 8, sho(5), "out"), (T - 3, sh0)],
-        "curl": [(0, -5.0), (a0, 10.0, "in"), (a1, 9.0), (a1 + 8, -2.0, "out"), (T - 3, 0.0)],
-        "trunk": [(0, lean(-3)), (a0, lean(9), "in"), (a1, lean(8)), (a1 + 8, lean(-1.5), "out"), (T - 3, tr0)],
-        "lead_foot": [(0, lf0), (a0 - 1, (lf0[0], lf0[1] + 0.07), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.07)), (a1 + 7, lf0)],
-        "rear_heel": [(0, 0.012), (a0, 0.11, "in"), (a1, 0.11), (a1 + 8, 0.012)],
-        "rear_toe": [(0, base["rear_toe"]), (a0, -14.0, "in"), (a1, -14.0), (a1 + 8, base["rear_toe"])],
-        "rear_hand_abs": [(0, (R[0] - 0.04, R[1] - 0.06, R[2])), (a0 - 2, (-0.08, R[1] + 0.08, R[2] + 0.10), "in"),
-                          (a0, (hit[0], hit[1] + 0.04, hit[2]), "in"), (a0 + 1, hit), (a1, hit),
-                          (a1 + 5, (R[0] + 0.03, R[1] + 0.06, R[2]), "out"), (T - 3, R)],
-        "rear_elbow": [(0, 0.1), (a0, 0.06), (a1 + 5, 0.1)],
-        "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (a0, hik, "in"), (a1 + 3, hik), (T - 3, L)],
+        "hips": [(0, (hips0 - 0.05, 0)), (a0 - 2, (hips0 + 0.02, 0)), (a0, (hips0 + 0.09, 0), "in"), (a1, (hips0 + 0.09, 0)),
+                 (a1 + 8, (hips0 - 0.01, 0), "out"), (T - 3, (hips0, 0))],
+        "pelvis_h": [(0, low(0.045)), (a0 - 2, low(0.06)), (a0, low(0.04)), (a1, low(0.04)), (a1 + 6, ph0 + 0.004, "out")] + settle(T, a1 + 10, ph0),
+        # load onto the lead side (more side-on), then turn in hard behind the hook
+        "pelvis": [(0, pel(8)), (a0 - 3, pel(16), "io"), (a0, pel(-26), "in"), (a1, pel(-30)), (a1 + 8, pel(2), "out"), (T - 3, pel0)],
+        "shoulders": [(0, sho(12)), (a0 - 3, sho(26), "io"), (a0, sho(-34), "in"), (a1, sho(-38)), (a1 + 8, sho(4), "out"), (T - 3, sh0)],
+        "curl": [(0, -3.0), (a0 - 3, -6.0), (a0, 9.0, "in"), (a1, 8.0), (a1 + 8, -1.0, "out"), (T - 3, 0.0)],
+        "trunk": [(0, lean(-3)), (a0 - 3, lean(-1, -6)), (a0, lean(7, 10), "in"), (a1, lean(7, 9)), (a1 + 8, lean(-1)), (T - 3, tr0)],
+        "lead_heel": [(0, 0.0), (a0 - 3, 0.0), (a0, 0.07, "in"), (a1, 0.07), (a1 + 6, 0.0)],
+        "lead_toe": [(0, base["lead_toe"]), (a0 - 3, base["lead_toe"]), (a0, base["lead_toe"] + 45, "in"), (a1, base["lead_toe"] + 45), (a1 + 8, base["lead_toe"])],
+        "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (a0 - 3, h_wide, "io"),
+                          (a0, (h_hit[0] + 0.06, h_hit[1], h_hit[2]), "in"), (a0 + 1, h_hit), (a1, h_thru),
+                          (a1 + 5, (L[0] + 0.05, L[1] - 0.02, L[2] + 0.02), "out"), (T - 3, L)],
+        "lead_elbow": [(0, 0.2), (a0 - 3, 0.7), (a0, 0.95), (a1, 0.9), (a1 + 6, 0.2)],     # elbow up and out: the hook's level forearm
+        "rear_hand_abs": [(0, (R[0] - 0.02, R[1] - 0.04, R[2])), (a0, (R[0] - 0.02, R[1] + 0.02, R[2] + 0.02), "in"),
+                          (a1 + 4, (R[0] - 0.02, R[1] + 0.02, R[2] + 0.02)), (T - 3, R)],
     })
 
     # Low kick: weight onto the lead leg, the rear shin whips round into theirs.
@@ -2694,7 +2707,14 @@ def kairo_keys(moves, base, g, S):
     # Origin Palm: a long load onto the rear leg with the palm chambered at
     # the ribs and the guard hand still up, then a lunging open-hand thrust
     a0, a1, T, hx, hz = win(moves["SPECIAL"])
-    hit = (0.0, hx - 0.08, hz)
+    # D-135 (critique: "a chest-out flex with the arms spread, it strikes in no
+    # direction"): the rear hand no longer goes up over the head in the wind-up
+    # and stays out at the hit. Now the rear fist stays at the chin, then pulls
+    # back to the hip (hikite) as the lead palm drives out on a locked arm, the
+    # lead shoulder leading (side-on, not square): one line from the rear foot
+    # through the shoulders to the palm.
+    hit = (0.0, hx + 0.25, hz)                             # beyond reach: the arm locks
+    hipz_p = head_z - 0.60
     out["SPECIAL"] = dict(_recover=1.5, **head(a0, a1, T, 6.0), **{
         "rear_palm": "auto",
         "lead_palm": [(0, base["lead_palm"]), (8, (0.0, 0.0, 1.0)), (a0 - 3, (0.0, -0.4, 1.0)), (a0, (0.0, -1.0, 0.3), "in"),
@@ -2702,9 +2722,9 @@ def kairo_keys(moves, base, g, S):
         "hips": [(0, (hips0, 0)), (8, (hips0 - 0.11, 0)), (a0, (hips0 + 0.22, 0), "in"), (a1, (hips0 + 0.26, 0)),   # D-133: weight onto the stepping foot
                  (a1 + 11, (hips0 - 0.015, 0), "out"), (T - 4, (hips0, 0))],
         "pelvis_h": [(0, ph0), (8, low(0.075)), (a0, low(0.06), "in"), (a1, low(0.06)), (a1 + 9, ph0 + 0.004, "out")] + settle(T, a1 + 15, ph0),
-        "pelvis": [(0, pel0), (8, pel(-18)), (a0 - 2, pel(26), "in"), (a1, pel(26)), (a1 + 11, pel(-3), "out"), (T - 4, pel0)],
-        "shoulders": [(0, sh0), (8, sho(-28)), (a0, sho(24), "in"), (a1, sho(23)), (a1 + 11, sho(-4), "out"), (T - 4, sh0)],
-        "curl": [(0, 0.0), (8, -8.0), (a0, 11.0, "in"), (a1, 12.0), (a1 + 11, -2.0, "out"), (T - 4, 0.0)],
+        "pelvis": [(0, pel0), (8, pel(-18)), (a0 - 2, pel(34), "in"), (a1, pel(34)), (a1 + 11, pel(-3), "out"), (T - 4, pel0)],
+        "shoulders": [(0, sh0), (8, sho(-28)), (a0, sho(36), "in"), (a1, sho(35)), (a1 + 11, sho(-4), "out"), (T - 4, sh0)],
+        "curl": [(0, 0.0), (8, -4.0), (a0, 8.0, "in"), (a1, 9.0), (a1 + 11, -2.0, "out"), (T - 4, 0.0)],
         "trunk": [(0, tr0), (8, lean(-5)), (a0, lean(10), "in"), (a1, lean(9)), (a1 + 11, lean(-1.5), "out"), (T - 4, tr0)],
         "lead_foot": [(0, lf0), (8, (lf0[0], lf0[1] - 0.04)), (a0 - 1, (lf0[0], lf0[1] + 0.23), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.23)), (a1 + 8, lf0)],
         "lead_heel": [(0, 0.0), (8, 0.035), (a0 - 1, 0.0, "in")],
@@ -2713,7 +2733,8 @@ def kairo_keys(moves, base, g, S):
                           (a0, (hit[0], hit[1] - 0.03, hit[2]), "in"), (a1, (hit[0], hit[1] + 0.05, hit[2] + 0.01)),   # D-130: the palm drives on through the five active frames (it stood still)
                           (a1 + 7, (L[0], L[1] + 0.06, L[2] - 0.05), "out"), (T - 4, L)],
         "lead_elbow": [(0, 0.15), (8, 0.35), (a0, 0.05), (a1 + 7, 0.15)],
-        "rear_hand_abs": [(0, R), (8, (-0.10, 0.24, R[2] + 0.20)), (a0, (R[0], R[1] - 0.04, R[2]), "in"), (a1 + 4, (R[0], R[1] - 0.04, R[2])), (T - 4, R)],
+        "rear_hand_abs": [(0, R), (8, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.03)), (a0, (-0.17, -0.06, hipz_p + 0.10), "in"),
+                          (a1 + 4, (-0.17, -0.06, hipz_p + 0.10)), (a1 + 12, (R[0], R[1] - 0.04, R[2] - 0.06), "out"), (T - 4, R)],
     })
 
     # Fireball (down + special, D-101): both open palms are drawn back to the
@@ -2728,10 +2749,10 @@ def kairo_keys(moves, base, g, S):
     # drive out long, and the recoil starts two frames after the release:
     # hands ride up and back, weight rocks to the rear leg, then the stance.
     hipz = head_z - 0.62
-    cup_l = (-0.10, -0.12, hipz + 0.10)                    # lead palm over the rear hip
-    cup_r = (-0.20, -0.16, hipz + 0.00)                    # rear palm under it
-    push_l = (0.03, hx - 0.05, hz + 0.03)
-    push_r = (-0.05, hx - 0.10, hz - 0.07)
+    cup_l = (-0.14, -0.20, hipz + 0.10)                    # lead palm over the rear hip (D-135: further back, the wind-up must read)
+    cup_r = (-0.24, -0.24, hipz + 0.00)                    # rear palm under it
+    push_l = (0.03, hx + 0.20, hz + 0.03)                  # D-135: beyond reach, both arms lock out (the push never straightened)
+    push_r = (-0.05, hx + 0.15, hz - 0.07)
     rec_l = (L[0], L[1] + 0.10, L[2] + 0.03)
     rec_r = (R[0], R[1] + 0.12, R[2] + 0.02)
     out["DOWN_SPECIAL"] = dict(_recover=1.6, **head(a0, a1, T, 5.0), **{
@@ -2752,8 +2773,8 @@ def kairo_keys(moves, base, g, S):
                           (a1 + 1, (push_l[0], push_l[1] - 0.02, push_l[2] + 0.02)), (a1 + 6, rec_l), (a1 + 11, L)],
         "rear_hand_abs": [(0, R), (a0 - 4, cup_r, "io"), (a0, (push_r[0], push_r[1] + 0.04, push_r[2]), "in"), (a0 + 1, push_r),
                           (a1 + 1, (push_r[0], push_r[1] - 0.02, push_r[2] + 0.02)), (a1 + 6, rec_r), (a1 + 11, R)],
-        "lead_elbow": [(0, 0.2), (a0 - 4, 0.3), (a0, 0.08), (a1 + 1, 0.08), (a1 + 9, 0.2)],
-        "rear_elbow": [(0, 0.05), (a0 - 4, 0.25), (a0, 0.1), (a1 + 1, 0.1), (a1 + 9, 0.05)],
+        "lead_elbow": [(0, 0.2), (a0 - 4, 0.3), (a0, 0.04), (a1 + 1, 0.04), (a1 + 9, 0.2)],
+        "rear_elbow": [(0, 0.05), (a0 - 4, 0.25), (a0, 0.04), (a1 + 1, 0.04), (a1 + 9, 0.05)],
     })
 
     # D-103: the three moves that filled the gaps in his kit (owner: "yes" to
@@ -2763,8 +2784,12 @@ def kairo_keys(moves, base, g, S):
     # past his head, the body turning behind it; a slow landing (punishable).
     a0, a1, T, hx, hz = win(moves["DOWN_LIGHT"])
     u_low = (-0.16, 0.04, R[2] - 0.24)
-    u_hit = (0.02, hx - 0.10, hz - 0.14)                   # D-130: under the chin on the first active frame; the fist then rises through the active frames instead of standing at the top
-    u_top = (0.0, hx - 0.18, hz + 0.20)
+    u_hit = (0.02, 0.24, head_z - 0.24)                   # D-135: from the head, not the box; D-130: under the chin on the first active frame; the fist then rises through the active frames instead of standing at the top
+    # D-135 (critique: "the arm swings straight up past his head with no knee
+    # drive"): the fist stops at the top of his own head with the arm bent
+    # about 90 (an uppercut, not a raised arm); the dip into the knees is
+    # deeper so the legs visibly drive it
+    u_top = (0.02, 0.30, head_z + 0.05)                   # measured from his own head (the anti-air box is high: hz put the fist overhead)
     # D-130 (owner: "check all his skills ... maximum improvement"): the fist
     # stood in the air for 18 frames (frames 9-26) and snapped home in the last
     # four, because the recovery keys sat at T - 4, later than `_recover` ever
@@ -2775,7 +2800,7 @@ def kairo_keys(moves, base, g, S):
         "chin": [(0, chin0), (a0, chin0 - 6, "in"), (a1 + 1, chin0 - 6), (a1 + 5, chin0 + 8), (a1 + 12, chin0)],
         "hips": [(0, (hips0, 0)), (2, (hips0 - 0.02, 0), "io"), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.12, 0)),
                  (a1 + 5, (hips0 + 0.05, 0)), (a1 + 12, (hips0, 0))],
-        "pelvis_h": [(0, ph0), (2, low(0.12), "io"), (a0, ph0 + 0.01, "out"), (a1 - 1, ph0 + 0.075), (a1 + 1, ph0 + 0.065),
+        "pelvis_h": [(0, ph0), (2, low(0.17), "io"), (a0, ph0 + 0.01, "out"), (a1 - 1, ph0 + 0.075), (a1 + 1, ph0 + 0.065),
                      (a1 + 5, low(0.075)), (a1 + 10, ph0 + 0.008), (a1 + 13, ph0)],
         "pelvis": [(0, pel0), (2, pel(16), "io"), (a0, pel(-44), "in"), (a1, pel(-48)), (a1 + 5, pel(-14)), (a1 + 10, pel(3)), (a1 + 13, pel0)],
         "shoulders": [(0, sh0), (2, sho(24), "io"), (a0, sho(-70), "in"), (a1, sho(-76)), (a1 + 5, sho(-24)), (a1 + 10, sho(4)), (a1 + 13, sh0)],
@@ -2836,8 +2861,10 @@ def kairo_keys(moves, base, g, S):
     # D-104 (owner: "it does not look like he is grabbing"): the hands reach
     # round the back of the opponent's neck (the game draws the opponent in
     # to 0.58 m and tips them forward), then pull the head down onto the knee.
-    grab_l = (0.11, 0.62, hz + 0.24)
-    grab_r = (-0.07, 0.60, hz + 0.22)
+    # D-135 (critique: "no reach or grab, hands still in stance"): both arms go
+    # out long and high to the back of the neck, the trunk leaning in after them
+    grab_l = (0.12, 0.74, hz + 0.30)
+    grab_r = (-0.08, 0.72, hz + 0.28)
     # D-130: the knee came up only to the waist, the head was not pulled down
     # onto it, the foot dropped 38 cm in one frame, the "push" was a pose next
     # to the guard, and the last twelve frames stood still. Now: the hands
@@ -2866,7 +2893,7 @@ def kairo_keys(moves, base, g, S):
                    (sh + 12, pel0)],
         "shoulders": [(0, sh0), (a0, sho(-30), "in"), (kn, sho(-40)), (sh - 2, sho(-16)), (sh, sho(-36)), (sh + 3, sho(-32)), (sh + 9, sho(5)),
                       (sh + 12, sh0)],
-        "trunk": [(0, tr0), (a0, lean(8), "in"), (kn, lean(24), "in"), (kn + 2, lean(22)), (sh - 2, lean(4)), (sh, lean(10)), (sh + 3, lean(8)), (sh + 9, lean(-2)),
+        "trunk": [(0, tr0), (a0, lean(16), "in"), (kn, lean(24), "in"), (kn + 2, lean(22)), (sh - 2, lean(4)), (sh, lean(10)), (sh + 3, lean(8)), (sh + 9, lean(-2)),
                   (sh + 12, tr0)],
         "lead_heel": [(0, 0.0), (kn - 2, 0.0), (kn, 0.06, "in"), (kn + 2, 0.05), (kn + 6, 0.0)],
         "rear_heel": [(0, 0.012), (a0, 0.04), (sh, 0.09, "in"), (sh + 3, 0.09), (sh + 8, 0.012)],
@@ -2880,8 +2907,8 @@ def kairo_keys(moves, base, g, S):
                           (sh - 2, (0.12, 0.36, hz + 0.02)), (sh, shove_l), (sh + 3, (shove_l[0], shove_l[1] - 0.04, shove_l[2] + 0.02)), (sh + 8, (L[0], L[1] + 0.05, L[2] - 0.04)), (sh + 12, L)],
         "rear_hand_abs": [(0, R), (a0, grab_r, "in"), (a1 + 1, grab_r), (kn - 1, (pull_r[0], pull_r[1] + 0.04, pull_r[2] + 0.10)), (kn, pull_r), (kn + 2, pull_r),
                           (sh - 2, (-0.10, 0.32, hz - 0.02)), (sh, shove_r), (sh + 3, (shove_r[0], shove_r[1] - 0.04, shove_r[2] + 0.02)), (sh + 8, (R[0], R[1] + 0.06, R[2] - 0.04)), (sh + 12, R)],
-        "lead_elbow": [(0, 0.2), (a0, 0.3), (kn, 0.45), (sh, 0.08), (sh + 3, 0.08), (sh + 10, 0.2)],
-        "rear_elbow": [(0, 0.05), (a0, 0.3), (kn, 0.45), (sh, 0.08), (sh + 3, 0.08), (sh + 10, 0.05)],
+        "lead_elbow": [(0, 0.2), (a0, 0.5), (kn, 0.45), (sh, 0.08), (sh + 3, 0.08), (sh + 10, 0.2)],
+        "rear_elbow": [(0, 0.05), (a0, 0.5), (kn, 0.45), (sh, 0.08), (sh + 3, 0.08), (sh + 10, 0.05)],
     }})
 
     # Rift Break: an axe kick with one step in (history and the current design below).
@@ -3030,16 +3057,18 @@ def kairo_keys(moves, base, g, S):
     out["BACK_SPECIAL"] = {
         "rear_palm": "auto",
         "lead_palm": [(0, base["lead_palm"]), (c0, (-0.9, -0.4, 0.0), "out"), (c1, (-0.9, -0.4, 0.0)), (T - 3, base["lead_palm"])],
-        "hips": [(0, (hips0, 0)), (c0, (hips0 - 0.12, 0), "out"), (c1, (hips0 - 0.115, 0)), (T - 3, (hips0, 0))],
-        "pelvis_h": [(0, ph0), (c0, low(0.085), "out"), (cm, low(0.065)), (c1, low(0.09))] + settle(T, T - 6, ph0),
-        "trunk": [(0, tr0), (c0, lean(-6, 7), "out"), (cm, lean(-9, 3)), (c1, lean(-5, 8)), (T - 3, tr0)],
-        "pelvis": [(0, pel0), (c0, pel(10), "out"), (c1, pel(10)), (T - 3, pel0)],
-        "shoulders": [(0, sh0), (c0, sho(16), "out"), (cm, sho(8)), (c1, sho(18)), (T - 3, sh0)],
+        # D-135 (critique: "looks almost the same as the stance"): twice as far back and
+        # down, chest turned away, the open hand held well out in front at face height
+        "hips": [(0, (hips0, 0)), (c0, (hips0 - 0.20, 0), "out"), (c1, (hips0 - 0.19, 0)), (T - 3, (hips0, 0))],
+        "pelvis_h": [(0, ph0), (c0, low(0.14), "out"), (cm, low(0.12)), (c1, low(0.145))] + settle(T, T - 6, ph0),
+        "trunk": [(0, tr0), (c0, lean(-12, 8), "out"), (cm, lean(-15, 4)), (c1, lean(-11, 9)), (T - 3, tr0)],
+        "pelvis": [(0, pel0), (c0, pel(18), "out"), (c1, pel(18)), (T - 3, pel0)],
+        "shoulders": [(0, sh0), (c0, sho(30), "out"), (cm, sho(22)), (c1, sho(32)), (T - 3, sh0)],
         "chin": [(0, chin0), (c0, chin0 + 8, "out"), (c1, chin0 + 8), (T - 3, chin0)],
         "lead_heel": [(0, 0.0), (c0, 0.05, "out"), (c1, 0.05), (T - 3, 0.0)],
-        "lead_hand": [(0, lh0), (2, (lh0[0] + 0.10, lh0[1] - 0.06, lh0[2] + 0.02)), (c0, (-0.04, 0.34, -0.14), "out"),
-                      (cm, (0.07, 0.37, -0.08)), (c1, (-0.05, 0.32, -0.17)), (T - 3, lh0)],
-        "lead_elbow": [(0, 0.2), (c0, 0.45), (c1, 0.45), (T - 3, 0.2)],
+        "lead_hand": [(0, lh0), (2, (lh0[0] + 0.10, lh0[1] - 0.06, lh0[2] + 0.02)), (c0, (-0.02, 0.48, -0.06), "out"),
+                      (cm, (0.08, 0.50, 0.0)), (c1, (-0.03, 0.46, -0.08)), (T - 3, lh0)],
+        "lead_elbow": [(0, 0.2), (c0, 0.3), (c1, 0.3), (T - 3, 0.2)],
         # D-131: both hands sat on one level in front of the face (1 cm apart in height); the rear fist is now drawn down to the ribs, loaded
         "rear_hand": [(0, base["rear_hand"]), (c0, (base["rear_hand"][0] - 0.02, base["rear_hand"][1] - 0.07, base["rear_hand"][2] - 0.20), "out"),
                       (c1, (base["rear_hand"][0] - 0.02, base["rear_hand"][1] - 0.06, base["rear_hand"][2] - 0.22)), (T - 3, base["rear_hand"])],
@@ -3521,7 +3550,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
     head = guard_P["Head"]
     blk = []
     for t in range(13):
-        w = ease(min(1, t / 5), "out")
+        w = ease(min(1, t / 6))                           # D-135: raised over six frames (it was most of the way up in two: a snap)
         P = guard_P
         if fitted:
             # forearms in front of the face, measured from the fighter's own head (D-076)
@@ -3546,18 +3575,25 @@ def build(rig_obj, moves, fid, height, clip_dir):
     # lead thigh, chin tucked behind the lead shoulder
     blk_low = []
     for t in range(13):
-        w = ease(min(1, t / 5), "out")
+        w = ease(min(1, t / 6))
         feet = {sd: guard_P[sd + "Foot"].copy() for sd in ("Left", "Right")}
+        drop_b = 0.25 if fid == "kairo" else 0.17           # D-135: Kairo's was a slight dip; now a real low guard
         P = shift(guard_P, UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"],
-                  np.array([0, 0, -0.17 * H * w]))
+                  np.array([0, 0, -drop_b * H * w]))
         for sd in ("Left", "Right"):
             P = move_foot(P, sd, feet[sd])      # feet stay planted, knees bend
         chest = P["Spine2"] if "Spine2" in P else P["Head"] - np.array([0, 0, 0.28 * H])
-        P = move_hand(P, "Left", chest + np.array([0.06 * H, -0.22 * H, -0.16 * H]), w, pole_out=0.25)
-        P = move_hand(P, "Right", chest + np.array([-0.07 * H, -0.2 * H, 0.0]), w, pole_out=0.25)
+        if fid == "kairo":
+            # lead forearm swept down across the front of the lead knee (a gedan
+            # barai), rear fist tight at the chin
+            P = move_hand(P, "Left", P["Hips"] + np.array([0.10 * H, -0.30 * H, -0.06 * H]), w, pole_out=0.35)
+            P = move_hand(P, "Right", P["Head"] + np.array([-0.05 * H, -0.13 * H, -0.09 * H]), w, pole_out=0.3)
+        else:
+            P = move_hand(P, "Left", chest + np.array([0.06 * H, -0.22 * H, -0.16 * H]), w, pole_out=0.25)
+            P = move_hand(P, "Right", chest + np.array([-0.07 * H, -0.2 * H, 0.0]), w, pole_out=0.25)
         P = lean(P, -8 * w)
         if fitted:                                        # knees bend over the stance's own foot marks
-            P = step_feet(rig, P, st, st["_lead"], drop=0.15 * S_fit * w)
+            P = step_feet(rig, P, st, st["_lead"], drop=(0.22 if fid == "kairo" else 0.15) * S_fit * w)
         blk_low.append(pose_of(P, box))
     A[f"{F}_BLOCK_LOW"] = blk_low
 
@@ -3588,7 +3624,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 P = move_hand(P, side, P[side + "Hand"] + np.array([0.05 * sg * H, 0.12 * H, -0.12 * H]) * amp, k * 0.8)
             out.append(pose_of(P, box))
         return out
-    A[f"{F}_HIT_LIGHT"] = hit(15, 0.75, 6)
+    A[f"{F}_HIT_LIGHT"] = hit(15, 1.0, 9)                  # D-135: a light hit barely moved him (0.75)
     A[f"{F}_HIT_HEAVY"] = hit(25, 1.4, -14)
 
     # ---- hit to the body: folds forward over the blow, hips driven back,
@@ -3665,47 +3701,52 @@ def build(rig_obj, moves, fid, height, clip_dir):
         arch_P = move_hand(arch_P, sd, arch_P[sd + "Arm"] + np.array([0.30 * sg * H, 0.10 * H, 0.06 * H]), 0.85, pole_out=0.5)
     arch = pose_of(arch_P, box)
     kd = []
-    for t in range(46):
+    # D-135: knockdown_ticks 45 -> 39 and wakeup_ticks 20 -> 26, the same 65
+    # ticks on the floor in all (the get-up popped up in a third of a second);
+    # the fall takes 16 frames instead of 12
+    for t in range(40):
         if t <= 4:
             p = Pose.blend(guard, heavy, ease(t / 4))
-        elif fid == "kairo" and t <= 8:
-            p = Pose.blend(heavy, arch, ease((t - 4) / 4, "out"))
-            p.hips = p.hips + np.array([0, 0.06 * H * (t - 4) / 4, -0.03 * H * ((t - 4) / 4) ** 2])
-        elif fid == "kairo" and t <= 20:
-            u_ = (t - 8) / 12.0
-            p = Pose.blend(arch, lying, u_ ** 1.7)          # the fall speeds up all the way to the floor
+        elif fid == "kairo" and t <= 9:
+            p = Pose.blend(heavy, arch, ease((t - 4) / 5))
+            p.hips = p.hips + np.array([0, 0.06 * H * (t - 4) / 5, -0.03 * H * ((t - 4) / 5) ** 2])
+        elif fid == "kairo" and t <= 25:
+            u_ = (t - 9) / 16.0
+            p = Pose.blend(arch, lying, u_ ** 1.5)          # the fall speeds up all the way to the floor
             p.hips = p.hips + np.array([0, 0.06 * H * (1.0 - u_), -0.03 * H * (1.0 - u_)])
-        elif t <= 20:
-            p = Pose.blend(heavy, lying, ease((t - 4) / 16, "in"))
+        elif t <= 25:
+            p = Pose.blend(heavy, lying, ease((t - 4) / 21, "in"))
         else:
             # D-131: the whole lying pose used to bob up and down as one stiff
             # piece. Now the back hits first and stops; the head, arms and legs
             # are thrown up by the impact a few frames later (part of the way to
             # sitting up) and drop again, once more much smaller, while the body
             # slides the last few centimetres and comes to rest.
-            dt_ = t - 20
+            dt_ = t - 25
             flop = math.exp(-dt_ / 4.5) * max(0.0, math.sin(math.pi * dt_ / 7.0)) * 0.26 \
                 + math.exp(-dt_ / 6.0) * max(0.0, math.sin(math.pi * (dt_ - 9) / 6.0)) * 0.10
+            flop *= min(1.0, dt_ / 3.0)                    # D-135: the legs flew up 18 cm in the first frame on the floor
             p = Pose.blend(lying, sitting, flop) if flop > 1e-4 else Pose(lying.D, lying.hips.copy())
             b = math.exp(-dt_ / 2.5) * abs(math.sin(dt_ / 2.2)) * 0.022 * H
             p.hips = np.array([lying.hips[0], lying.hips[1], lying.hips[2] + b])
             br = 0.006 * H * math.sin(t * 0.25) * min(1.0, dt_ / 12.0)          # breathing, once he lies still
             p.hips = p.hips + np.array([0, 0, br])
         if t > 4:                                          # still sliding as he lands: the last 7 cm are covered on the ground
-            p.hips = p.hips - np.array([0, 0.045 * H * math.exp(-max(0.0, t - 16) / 3.5), 0])
+            p.hips = p.hips - np.array([0, 0.045 * H * math.exp(-max(0.0, t - 21) / 3.5), 0])
         kd.append(p)
     A[f"{F}_KNOCKDOWN"] = kd
 
-    # get-up (20): lying -> sit up -> crouch -> guard, quick and powerful
+    # get-up (26, D-135; was 20 and read as a pop): lying -> sit up -> crouch
+    # -> guard, each stage overlapping the next so he never stops on the way
     crouch = Pose.blend(kneel, guard, 0.45)
     gu = []
-    for t in range(21):
-        if t <= 7:
-            p = Pose.blend(lying, sitting, ease(t / 7, "out"))
-        elif t <= 13:
-            p = Pose.blend(sitting, crouch, ease((t - 7) / 6))
+    for t in range(27):
+        if t <= 9:
+            p = Pose.blend(lying, sitting, ease(t / 9))
+        elif t <= 17:
+            p = Pose.blend(sitting, crouch, ease((t - 9) / 8))
         else:
-            p = Pose.blend(crouch, guard, ease((t - 13) / 7, "out"))
+            p = Pose.blend(crouch, guard, ease((t - 17) / 9, "out"))
         gu.append(p)
     A[f"{F}_GETUP"] = gu
 
@@ -4195,9 +4236,9 @@ def build(rig_obj, moves, fid, height, clip_dir):
                         return tuple(float(x) for x in v) if np.ndim(v) else float(v)
                     late = 2 if ("hand" in k or k in ("chin", "neck")) else 0      # arms and head follow the hips
                     if k == "pelvis_h" and not rev:          # D-133: down: a lift, the drop speeds up, he sinks 10 % past the crouch and comes back up into it
-                        tk[k] = [(0, mix(0.0)), (2, mix(-0.05), "io"), (7, mix(1.10), "in"), (10, mix(0.98)), (n_tr - 1, mix(1.0), "io")]
+                        tk[k] = [(0, mix(0.0)), (2, mix(-0.05), "io"), (8, mix(1.08), "io"), (10, mix(0.98)), (n_tr - 1, mix(1.0), "io")]   # D-135: eased over 6 frames (the accelerating drop covered most of it in 2)
                     elif k == "pelvis_h":                   # up: he sinks first (compression), drives up, rises a touch past the stance, settles
-                        tk[k] = [(0, mix(0.0)), (3, mix(-0.10), "io"), (8, mix(1.04), "out"), (n_tr - 1, mix(1.0), "io")]
+                        tk[k] = [(0, mix(0.0)), (3, mix(-0.10), "io"), (9, mix(1.04), "io"), (n_tr - 1, mix(1.0), "io")]
                     elif k == "trunk":
                         tk[k] = [(0, mix(0.0)), (2, mix(-0.04), "io"), (8, mix(1.06)), (n_tr - 1, mix(1.0), "io")]
                     elif k in ("lead_heel", "rear_heel"):

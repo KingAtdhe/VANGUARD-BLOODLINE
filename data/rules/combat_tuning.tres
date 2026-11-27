@@ -16,5 +16,5 @@ combo_scaling_floor_percent = 40
 meter_max = 100
 meter_on_damage_taken_percent = 20
 meter_on_block_taken = 3
-knockdown_ticks = 45
-wakeup_ticks = 20
+knockdown_ticks = 39
+wakeup_ticks = 26
