@@ -147,6 +147,8 @@ def main():
                 continue
             label = TITLES.get(name, name.replace("_", " ").title())
             holds = {} if a.no_hitstop else freezes.get(name, {})
+            if name == "JUMP_ATTACK":                     # D-138: 18 frames of take-off are rendered in front of it
+                holds = {k + 18: v for k, v in holds.items()}
             card(label)
             for i, f in enumerate(got[name]):             # loops were rendered with their repeats (clip_frames)
                 put(name, f, label)

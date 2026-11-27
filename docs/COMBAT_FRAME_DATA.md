@@ -146,3 +146,8 @@ limit, pushback, and no move being plus enough to link into itself.
 ### D-137 (2026-11-27)
 
 - Kairo's Rising Uppercut: startup 5 -> 7, invulnerable frames 1-7 (was 1-5), travel frames 4-9.
+
+### D-138 (2026-11-27)
+
+- Kairo's Kick button: Front Kick (was Low Kick), MID, hitbox centre (0.85, 1.25), size (0.6, 0.4); frames unchanged (9/4/15).
+- Kairo's Rising Uppercut: startup 7 -> 9, invulnerable 1-9, travel frames 6-11.

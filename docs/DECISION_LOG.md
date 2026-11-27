@@ -2792,3 +2792,41 @@ uppercut's arm is right but the body stays upright: a dip before, a lift through
 
 Checked: no new build flags; contact frames in the side view; tests: 222 passed, 0 failed (full run on the final build).
 Not verified on a phone; video checked frame by frame, not watched.
+
+## D-138 — 2026-11-27 — Kairo: the Kick button becomes a chest-high Front Kick; counter stance eases in; a bigger uppercut wind-up; deeper breath; air-attack preview take-off
+
+**Owner** (on the D-137 continuous video): "Front kick (13.4 s): still
+unchanged. He leans far back, the foot only reaches knee height, the whole
+kick is over in a third of a second. Keep his chest upright, lift the knee
+first, kick at chest height, and hold the extended kick" (third time); the
+counter stance snaps in in one frame; the uppercut's body still does not dip
+and rise; the breath could be bigger; the air attack leaves the floor in one
+frame; "whatever is meant to update it may not be reaching the game file".
+
+- The clip at 13.4 s was the Kick button's Low Kick each time (D-111 low
+  roundhouse; its lean was halved in D-137 and did reach the game). Her
+  description is a front kick on that button, so **the Kick button is now a
+  lead-leg Front Kick** (`kairo_low_kick.tres` keeps its id): knee up to the
+  chest first (frames 4-7), out on a locked leg at chest height (ankle 1.19 m
+  on the game model, head 1.42), held from frame 9 to 17 (`_hold` 5), chest
+  3 deg from upright, weight over the rear foot; the knee folds back and the
+  foot is set down on its mark. **Balance:** hit level LOW -> MID, hitbox
+  (0.8, 0.35) -> (0.85, 1.25), size (0.7, 0.4) -> (0.6, 0.4). His low is the
+  Leg Sweep (down + Kick). Tests that encoded "Kairo's kick is low" now use
+  the sweep (low block stops it, beats the Slip Counter, a jump clears it,
+  beats Arc Guard, caught by Returning Wave); the hit-zone test uses Vexa's
+  Cut Kick for legs. The strings (L, L, K) still combo.
+  Lesson for the keying: `_feet_abs` counts output frames, not key time; with
+  a `_hold` the set-down happens later, so the window must run to the end.
+- Counter stance: every channel eases in over six frames (to c0 + 2).
+- Uppercut: **balance** startup 7 -> 9, invulnerable 1-9, travel 6-11; a 30 %
+  sink with the chest 20 deg forward over six frames, then up onto the toes
+  (hips +18 %).
+- Stance: the breath sinks the hips 0.7 x weight shift (was 0.45), the back
+  bends 4 deg with it (was 2.5).
+- Review video: the air attack is shown with the 18 frames of take-off and
+  jump in front of it (it was rendered from mid-air).
+
+Checked: no new build flags; every frame of the kick, counter stance and
+uppercut in the side view; tests: 222 passed, 0 failed (full run). Not verified on a phone; video
+checked frame by frame, not watched.

@@ -81,19 +81,20 @@ func test_forward_and_back_jumps_cover_their_distance() -> Array[String]:
 
 func test_jump_goes_over_a_low_kick_and_cannot_block() -> Array[String]:
 	var f: Array[String] = []
-	# P2 low kicks (active on frame 9); P1 jumps on the same tick.
+	# P2 sweeps (down + Kick, active on frame 8; D-138: the Kick button is a mid
+	# Front Kick now); P1 jumps on the same tick.
 	var sim: CombatSimulation = _sim(1.2)
-	sim.step([_in(0, 0, 1), _in(K)])
+	sim.step([_in(0, 0, 1), _in(K, 0, -1)])
 	for _t: int in 30:
 		sim.step([_in(), _in()])
 	if _hits(sim, 1) != 0:
 		f.append("the low kick hit a jumping fighter")
 	# Same, but P1 stands: the kick lands.
 	var sim2: CombatSimulation = _sim(1.2)
-	sim2.step([_in(), _in(K)])
+	sim2.step([_in(), _in(K, 0, -1)])
 	for _t: int in 30:
 		sim2.step([_in(), _in()])
-	if _hits(sim2, 1, &"kairo_low_kick") != 1:
+	if _hits(sim2, 1, &"kairo_leg_sweep") != 1:
 		f.append("setup: the low kick should hit a standing fighter")
 	# Holding block in the air does nothing: an air-to-air kick hits.
 	var sim3: CombatSimulation = _sim(1.0)

@@ -93,6 +93,28 @@ func _initialize() -> void:
 		# with him (D-134), as the game's does: the floor marks pass under a
 		# planted foot at exactly his speed.
 		var travel: Array[float] = _travel(def, suffix, frames)
+		# D-138: the air attack is pressed 14 frames into a jump; shown on its own it
+		# went from the floor to high in the air in one frame. The take-off and the
+		# first part of the jump are rendered in front of it, as the game plays them.
+		var pre: int = 0
+		var jump_anim: StringName = StringName("%s_JUMP" % fighter.to_upper())
+		if suffix == "JUMP_ATTACK" and ap.has_animation(jump_anim):
+			pre = FighterAnimator.JUMP_CLIP_PREJUMP + 14
+			ap.play(jump_anim)
+			ap.pause()
+			for j: int in pre:
+				model.position = Vector3(0.0, _arc(m, float(j - FighterAnimator.JUMP_CLIP_PREJUMP) / FighterAnimator.JUMP_CLIP_AIR) if j >= FighterAnimator.JUMP_CLIP_PREJUMP else 0.0, 0.0)
+				ap.seek(j / 60.0, true)
+				for _f: int in 2:
+					await process_frame
+				await RenderingServer.frame_post_draw
+				var pshot: Image = root.get_texture().get_image()
+				var pside: int = mini(pshot.get_width(), pshot.get_height())
+				pshot = pshot.get_region(Rect2i((pshot.get_width() - pside) / 2, (pshot.get_height() - pside) / 2, pside, pside))
+				pshot.resize(size, size, Image.INTERPOLATE_LANCZOS)
+				pshot.save_png("%s/%s/%04d.png" % [out_dir, suffix, j + 1])
+			ap.play(anim)
+			ap.pause()
 		for i: int in frames:
 			model.position.x = travel[i]
 			# D-135: the game's camera tracks the MIDPOINT of the two fighters, so
@@ -114,8 +136,8 @@ func _initialize() -> void:
 			var side: int = mini(shot.get_width(), shot.get_height())
 			shot = shot.get_region(Rect2i((shot.get_width() - side) / 2, (shot.get_height() - side) / 2, side, side))
 			shot.resize(size, size, Image.INTERPOLATE_LANCZOS)
-			shot.save_png("%s/%s/%04d.png" % [out_dir, suffix, i + 1])
-		print("frames ", suffix, " ", frames)
+			shot.save_png("%s/%s/%04d.png" % [out_dir, suffix, i + 1 + pre])
+		print("frames ", suffix, " ", frames + pre)
 	quit()
 
 

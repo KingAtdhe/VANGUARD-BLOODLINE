@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_move")
 id = &"kairo_low_kick"
-display_name = "Low Kick"
+display_name = "Front Kick"
 input_pattern = &"KICK"
 animation = &"KAIRO_KICK_LOW_01"
 startup_frames = 9
@@ -17,9 +17,9 @@ hitstop_frames = 8
 damage = 50
 chip_damage = 4
 pushback = 0.35
-hit_level = 2
-hitbox_center = Vector2(0.8, 0.35)
-hitbox_size = Vector2(0.7, 0.4)
+hit_level = 1
+hitbox_center = Vector2(0.85, 1.25)
+hitbox_size = Vector2(0.6, 0.4)
 tags = PackedStringArray("normal", "kick")
 cancel_tags = PackedStringArray("light", "special")
 meter_gain_on_hit = 9

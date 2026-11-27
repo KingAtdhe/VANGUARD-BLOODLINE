@@ -56,9 +56,9 @@ table instead of searching.
 | Light Punch (L) | `kairo_light_punch` | `LIGHT` | `ATTACK_LIGHT_01` | 5/3/10 | — |
 | One-Two Cross (L, L) | `kairo_string_cross` | `string_cross` | `ATTACK_STRING_CROSS_01` | 8/3/17 | — |
 | Heavy Punch (H) | `kairo_heavy_punch` | `HEAVY` | `ATTACK_HEAVY_01` | 12/3/19 | — |
-| **Low Kick** (K) | `kairo_low_kick` | `KICK` | `KICK_LOW_01` | 9/4/15 | approved at D-111; D-132 moved hips and foot 16 cm forward (same shape): awaiting her OK again |
-| **Front Kick** (down + H) | `kairo_body_hook` | `DOWN_HEAVY` | `ATTACK_BODY_HOOK_01` | 9/3/15 | reworked D-096/097 |
-| Rising Uppercut (down + L) | `kairo_rising_uppercut` | `DOWN_LIGHT` | `ATTACK_RISING_UPPERCUT_01` | 5/5/24 | — |
+| **Front Kick** (K; was the Low Kick until D-138) | `kairo_low_kick` (id kept) | `KICK` | `KICK_LOW_01` | 9/4/15 | D-138: lead-leg chest-high front kick, MID, held 9 frames; awaiting her OK |
+| **Rising Front Kick** (down + H) | `kairo_body_hook` | `DOWN_HEAVY` | `ATTACK_BODY_HOOK_01` | 9/3/15 | D-136: starts from the crouch, chest height |
+| Rising Uppercut (down + L) | `kairo_rising_uppercut` | `DOWN_LIGHT` | `ATTACK_RISING_UPPERCUT_01` | 9/5/24 (D-138) | — |
 | Leg Sweep (down + K) | `kairo_leg_sweep` | `DOWN_KICK` | `KICK_SWEEP_01` | 8/3/20 | — |
 | Origin Palm (S) | `kairo_origin_palm` | `SPECIAL` | `SPECIAL_ORIGIN_PALM` | 14/5/24 | — |
 | Fireball (down + S) | `kairo_fireball` | `DOWN_SPECIAL` | `SPECIAL_FIREBALL` | 14/1/16 | — |

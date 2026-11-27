@@ -367,10 +367,11 @@ func test_arc_guard_parries_mid_and_high_and_frees_vexa_at_once() -> Array[Strin
 func test_lows_throws_and_late_hits_beat_arc_guard() -> Array[String]:
 	var f: Array[String] = []
 	# [attacker, button, direction for P2, move id]
-	for c: Array in [["kairo", K, 0, &"kairo_low_kick"], ["drakon", S, 0, &"drakon_anvil_slam"]]:
+	# [attacker, button, direction for P2, move id, up/down]; Kairo's low is the sweep (D-138)
+	for c: Array in [["kairo", K, 0, &"kairo_leg_sweep", -1], ["drakon", S, 0, &"drakon_anvil_slam", 0]]:
 		var move: MoveData = _def(c[0]).move_for_id(c[3])
 		var sim: CombatSimulation = _sim("vexa", c[0], 0.9)
-		sim.step([_n(), FighterInputFrame.with_buttons(c[1], c[2])])
+		sim.step([_n(), FighterInputFrame.with_buttons(c[1], c[2], c[4])])
 		_idle(sim, move.startup_frames - 6)
 		sim.step([_press(S, -1), _n()])
 		_idle(sim, 40)

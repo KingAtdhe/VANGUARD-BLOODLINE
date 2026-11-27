@@ -175,7 +175,7 @@ func test_chain_punch_blocked_is_three_blocks_and_a_single_hit_move_still_hits_o
 func test_returning_wave_catches_strikes_turns_the_attacker_and_hits_from_behind() -> Array[String]:
 	var f: Array[String] = []
 	# [attacker, button, down, move id]: a mid, a low and an overhead
-	for c: Array in [["kairo", L, false, &"kairo_light_punch"], ["kairo", K, false, &"kairo_low_kick"],
+	for c: Array in [["kairo", L, false, &"kairo_light_punch"], ["kairo", K, true, &"kairo_leg_sweep"],
 			["nox", H, true, &"nox_drop_heel"]]:
 		var move: MoveData = _def(c[0]).move_for_id(c[3])
 		var sim: CombatSimulation = _sim("ryuen", c[0], 0.9)

@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-137 (2026-11-27). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-138 (2026-11-27). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -41,6 +41,7 @@ change goes to the owner with a real-speed review video).
   frames 4–18 (a balance change).
 - D-128: Rift Break stands tall at the peak, the body drives the chop, the
   leg is drawn back and set down behind, then one step into the stance.
+- D-138: **Kick button = chest-high lead Front Kick (MID; balance)** — the owner's front-kick complaints were about the Kick button; his low is the Leg Sweep now (tests moved to it). Counter stance eases in; uppercut startup 9 (balance); deeper breath; air-attack preview with take-off.
 - D-137: the stance's chest/pelvis/trunk life was never applied (shaping read the fixed stance) — fixed, 2 s loop, weight shift; uppercut wind-up (**balance:** startup 5 -> 7, invuln 1-7); Low Kick lean halved (her choice: keep it low) — needs her OK again.
 - D-136: owner's eight points: uppercut finishes above the head, **Rising Front Kick** (down + heavy now starts from the crouch, chest height; hitbox 1.25 m: balance), palm's rear arm tucked, knees buckle in the knockdown, living stance (weight shift, no heel bounce), landing absorb (`jump_landing_ticks` 6: feel), clear high block.
 - D-135: the 21-point review of the D-134 video. Video renderer fixes (crouch shake was the renderer's clock; camera follows half the travel; hit freeze on the last hit). Kairo: real guard, jab and cross lock out, Counter strike is a lead hook, palm with hikite, bent-arm uppercut, deeper counter stance and low block, longer throw reach, eased blocks and crouch. **Feel/balance:** ultimate last-hit freeze 60 -> 30, knockdown 39 / wake-up 26 (same total), Kairo dashes 17 / 21 ticks. Open question to the owner: down + heavy is still the standing Front Kick (keep it, or move it and add a crouching attack).

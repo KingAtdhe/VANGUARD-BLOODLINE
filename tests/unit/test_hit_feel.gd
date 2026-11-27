@@ -160,7 +160,8 @@ func test_hit_zone_follows_where_the_move_lands() -> Array[String]:
 	var f: Array[String] = []
 	# [attacker, pattern button, down, expected zone]
 	for c: Array in [["kairo", L, false, FighterState.HitZone.HEAD], ["kairo", H, true, FighterState.HitZone.BODY],
-			["kairo", K, false, FighterState.HitZone.LEGS], ["vexa", H, false, FighterState.HitZone.BODY]]:
+			["kairo", K, false, FighterState.HitZone.BODY], ["vexa", K, false, FighterState.HitZone.LEGS],
+			["vexa", H, false, FighterState.HitZone.BODY]]:   # D-138: Kairo's Kick is a chest-high front kick now; Vexa's Cut Kick is the low
 		var sim: CombatSimulation = _sim(c[0], "drakon")
 		sim.step([FighterInputFrame.with_buttons(c[1], 0, -1 if c[2] else 0), _n()])
 		var zone: int = -1

@@ -43,21 +43,26 @@ func test_move_set_is_valid_and_complete() -> Array[String]:
 	for pattern: StringName in [&"LIGHT", &"HEAVY", &"KICK", &"DOWN_HEAVY", &"SPECIAL", &"FORWARD_SPECIAL", &"BACK_SPECIAL", &"AIR"]:
 		if def.move_for(pattern) == null:
 			f.append("no move for %s" % pattern)
-	if def.move_for(&"KICK") != null and def.move_for(&"KICK").hit_level != MoveData.HitLevel.LOW:
-		f.append("Kairo's kick is not LOW")
+	# D-138 (owner): the Kick button is a chest-high Front Kick (mid); his low is the Leg Sweep
+	if def.move_for(&"KICK") != null and def.move_for(&"KICK").hit_level != MoveData.HitLevel.MID:
+		f.append("Kairo's kick is not MID")
+	if def.move_for(&"DOWN_KICK") == null or def.move_for(&"DOWN_KICK").hit_level != MoveData.HitLevel.LOW:
+		f.append("Kairo's down + kick is not LOW")
 	var slip: MoveData = def.move_for(&"BACK_SPECIAL")
 	if slip != null and (not slip.is_counter() or slip.counter_followup == null):
 		f.append("Slip Counter has no counter window or follow-up")
 	return f
 
 
-func test_low_kick_hits_a_standing_block_and_is_stopped_by_a_low_block() -> Array[String]:
+## D-138: the Kick button became a chest-high Front Kick (owner); his low is
+## the Leg Sweep (down + Kick), which carries the low-attack rules now.
+func test_leg_sweep_hits_a_standing_block_and_is_stopped_by_a_low_block() -> Array[String]:
 	var f: Array[String] = []
 	for low: bool in [false, true]:
 		var sim: CombatSimulation = _sim()
 		var guard: FighterInputFrame = FighterInputFrame.with_buttons(B, 0, -1 if low else 0)
 		sim.step([FighterInputFrame.neutral(), guard])
-		sim.step([FighterInputFrame.with_buttons(K), guard])
+		sim.step([FighterInputFrame.with_buttons(K, 0, -1), guard])
 		for _i: int in 40:
 			sim.step([FighterInputFrame.neutral(), guard])
 		var hits: int = _events(sim, CombatEvent.Type.HIT, 0)
@@ -88,15 +93,15 @@ func test_slip_counter_catches_a_punch_and_answers_with_the_hook() -> Array[Stri
 	return f
 
 
-func test_low_kick_beats_slip_counter() -> Array[String]:
+func test_leg_sweep_beats_slip_counter() -> Array[String]:
 	var f: Array[String] = []
 	var sim: CombatSimulation = _sim()
-	sim.step([FighterInputFrame.with_buttons(K), FighterInputFrame.with_buttons(S, 1)])
+	sim.step([FighterInputFrame.with_buttons(K, 0, -1), FighterInputFrame.with_buttons(S, 1)])
 	_idle(sim, 60)
 	if _events(sim, CombatEvent.Type.COUNTER, 1) != 0:
 		f.append("Slip Counter caught a LOW attack")
-	if _events(sim, CombatEvent.Type.HIT, 0, &"kairo_low_kick") != 1:
-		f.append("the low kick did not hit the slipping fighter")
+	if _events(sim, CombatEvent.Type.HIT, 0, &"kairo_leg_sweep") != 1:
+		f.append("the leg sweep did not hit the slipping fighter")
 	return f
 
 
