@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_move")
 id = &"kairo_body_hook"
-display_name = "Front Kick"
+display_name = "Rising Front Kick"
 input_pattern = &"DOWN_HEAVY"
 animation = &"KAIRO_ATTACK_BODY_HOOK_01"
 startup_frames = 9
@@ -18,8 +18,8 @@ damage = 55
 chip_damage = 3
 pushback = 0.3
 hit_level = 1
-hitbox_center = Vector2(0.78, 1.05)
-hitbox_size = Vector2(0.5, 0.35)
+hitbox_center = Vector2(0.8, 1.25)
+hitbox_size = Vector2(0.5, 0.4)
 tags = PackedStringArray("normal", "hook")
 cancel_tags = PackedStringArray("heavy", "special")
 meter_gain_on_hit = 8

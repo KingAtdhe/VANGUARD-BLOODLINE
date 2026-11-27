@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-135 (2026-11-27). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-136 (2026-11-27). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -41,6 +41,7 @@ change goes to the owner with a real-speed review video).
   frames 4–18 (a balance change).
 - D-128: Rift Break stands tall at the peak, the body drives the chop, the
   leg is drawn back and set down behind, then one step into the stance.
+- D-136: owner's eight points: uppercut finishes above the head, **Rising Front Kick** (down + heavy now starts from the crouch, chest height; hitbox 1.25 m: balance), palm's rear arm tucked, knees buckle in the knockdown, living stance (weight shift, no heel bounce), landing absorb (`jump_landing_ticks` 6: feel), clear high block.
 - D-135: the 21-point review of the D-134 video. Video renderer fixes (crouch shake was the renderer's clock; camera follows half the travel; hit freeze on the last hit). Kairo: real guard, jab and cross lock out, Counter strike is a lead hook, palm with hikite, bent-arm uppercut, deeper counter stance and low block, longer throw reach, eased blocks and crouch. **Feel/balance:** ultimate last-hit freeze 60 -> 30, knockdown 39 / wake-up 26 (same total), Kairo dashes 17 / 21 ticks. Open question to the owner: down + heavy is still the standing Front Kick (keep it, or move it and add a crouching attack).
 - D-134: `curl` pose channel (the back bends), `hips_x` over the standing foot on kicks, ball-first landings, stance forearms 60 deg apart, sagging hand returns. Review video: camera follows, loops run on, title cards, camera shake on hits (the earlier video invented foot slides at loop repeats and cuts).
 - D-133: step planner for moves the game carries (ultimate, uppercut), punch hip drive, crouch heel roll, head lag on hits, knockdown arc, new guard hands; **feel change**: `jump_arc_power` 2.6 for Kairo (hang time). Review video shows travel, floor marks and hit freeze.

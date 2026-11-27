@@ -164,7 +164,7 @@ func test_crouch_ducks_a_jab_but_not_a_front_kick() -> Array[String]:
 		sim.step([_in(), _in(0, 0, -1)])
 	if _hits(sim, 0) != 0:
 		f.append("the jab hit a crouching fighter")
-	# down + heavy (front kick to the body, hitbox 0.875..1.225) still connects.
+	# down + heavy (rising front kick to the chest, hitbox 1.05..1.45, D-136) still connects.
 	var sim2: CombatSimulation = _sim(0.9)
 	sim2.step([_in(), _in(0, 0, -1)])
 	sim2.step([_in(FighterInputFrame.BUTTON_HEAVY, 0, -1), _in(0, 0, -1)])

@@ -29,7 +29,7 @@ DEFAULT = {
               "ATTACK_COUNTER_HOOK_01", "ULTIMATE_ORIGIN_BREAK", "HIT_LIGHT", "HIT_BODY", "KNOCKDOWN", "GETUP"],
 }
 TITLES = {"IDLE_A": "Stance", "CROUCH_TRANSITION": "Crouch (down and up)", "ATTACK_LIGHT_01": "Light", "ATTACK_HEAVY_01": "Heavy", "KICK_LOW_01": "Kick",
-          "ATTACK_BODY_HOOK_01": "Down + heavy", "SPECIAL_ORIGIN_PALM": "Special", "SPECIAL_RIFT_BREAK": "Forward + special",
+          "ATTACK_BODY_HOOK_01": "Down + heavy (rising front kick)", "SPECIAL_ORIGIN_PALM": "Special", "SPECIAL_RIFT_BREAK": "Forward + special",
           "SPECIAL_SLIP_COUNTER": "Back + special (counter stance)", "ATTACK_COUNTER_HOOK_01": "Counter strike",
           "ULTIMATE_ORIGIN_BREAK": "Ultimate", "ATTACK_STRING_CROSS_01": "Light, light (one-two)",
           "ATTACK_RISING_UPPERCUT_01": "Down + light (uppercut)", "KICK_SWEEP_01": "Down + kick (sweep)",

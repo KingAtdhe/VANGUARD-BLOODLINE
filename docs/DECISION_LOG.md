@@ -2734,3 +2734,28 @@ rebuilt (their knockdown lies still from frame 20, their 21-frame get-up
 holds the guard for the last 5 ticks).
 
 Not verified on a phone. Video checked frame by frame, not watched.
+
+## D-136 — 2026-11-27 — Kairo: eight points from the owner (uppercut, Rising Front Kick, palm arm, knee-buckle knockdown, living stance, landing absorb, block high)
+
+**Owner** (after D-135; she dropped the flame and fireball points because the
+preview has no effects): 1 the uppercut never rises above the chin; 2 the
+front kick leans back too far and reaches knee height: chest upright, chamber
+the knee, chest height; 3 the special's back arm flies out like a wing; 4 the
+knockdown falls like a plank, the knees should buckle first; 5 the stance
+barely moves and the back foot slides: breathing, a weight shift, feet locked;
+6 he lands from a jump on straight legs; 7 down + heavy is a standing kick:
+a crouching attack, or rename it; 8 block high looks like the stance.
+
+| # | Measured / found | Now |
+|---|---|---|
+| 1 | D-135 had stopped the fist at the head on purpose (my critique called the old straight arm "a raised arm") | dip 21 % (was 17), the legs drive him 10 cm up onto his toes, the fist finishes 34 cm above the head bone, in front of it, elbow bent |
+| 2, 7 | trunk 23 deg back, hitbox 0.875-1.225 m | one move answers both: the **Rising Front Kick** starts from the crouch the down input puts him in (no blend from the stance), drives up through a high knee chamber, locks out at chest height (ankle 1.30 m at contact, knee 0 deg), chest 6 deg back. **Balance:** hitbox centre 1.05 -> 1.25 m, height 0.35 -> 0.40 (1.05-1.45 m: it still hits a crouching opponent, whose hurtbox top is 1.12 m); renamed in the data and the video |
+| 3 | rear wrist 22 cm BEHIND him at shoulder height: the hip chamber with the chest turned side-on pulled the arm out backwards | the rear fist stays a tight guard under the jaw; chest less side-on (shoulders +26 at the hit) |
+| 4 | the fall went straight from the snap-back to tipping over | snap back, then the knees give way (hips drop 30 % over planted feet, frames 5-11), then he tips back from that low point and falls |
+| 5 | on the game model the feet move 0.04 cm a frame at most; the rear heel bounced 2 cm every loop, which reads as the foot moving | heel bounce removed; hips rock 2.5 cm forward and back and rise and settle with the breath, the back bends a little with it; more upper-body life (3.0) |
+| 6 | the hips were at standing height on the touch-down frame | the hips are already coming down as the feet touch and sink 24 % (was 17) over the landing. **Feel:** Kairo's `jump_landing_ticks` 4 -> 6 so the absorb is seen (2 frames more landing recovery) |
+| 8 | guard a few cm above the stance's | lead forearm in front of the forehead, rear fist at the temple, tucked forward behind it |
+
+Checked: no new build flags (the kick's first version had a 57 cm one-frame
+foot snap and a toe pop: re-spaced); contact frames read in the side view;
+tests: 222 passed, 0 failed (full run on the final build). Not verified on a phone; video checked frame by frame, not watched.

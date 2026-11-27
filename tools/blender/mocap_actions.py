@@ -50,9 +50,11 @@ STYLES = {
     # hand open and held out in front at chest height as a knife-hand guard,
     # the rear fist chambered palm-up at the ribs. He was an upright boxer
     # after Steve Fox before, too close to Drakon's boxing.
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.05, bob_beats=1, sway=0.02, life=2.6, heel_bounce=0.02, walk_life=1.0, lead="Left",
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.05, bob_beats=1, sway=0.02, life=3.0, weight_shift=0.025, walk_life=1.0, lead="Left",   # D-136: heel_bounce 0.02 removed (the rear foot read as sliding)
                   # his guard: the open lead forearm upright in front of the face, the rear fist under the chin
-                  block={"Left": (0.03, 0.27, -0.09), "Right": (0.08, 0.17, -0.19)},
+                  # D-136 (owner: "block high looks too much like the stance, raise the guard more clearly"):
+                  # lead forearm up in front of the forehead, rear fist at the temple
+                  block={"Left": (0.04, 0.215, -0.005), "Right": (0.07, 0.165, -0.025)},
                   # crouch: sat on the rear heel with the back fairly upright and the guard pulled in
                   # D-107 (owner: "while crouching he kinda gets squished"): 0.47 sat him
                   # almost on his heels and the thighs crushed into the calves. A
@@ -2592,46 +2594,53 @@ def kairo_keys(moves, base, g, S):
         "rear_elbow": [(0, 0.1), (a0, 0.06), (a1 + 5, 0.1)],
     })
 
-    # Front kick (down + heavy; the old body hook's frame data). D-096, from
-    # the owner's look at the side-by-side video ("extend his leg more"): the
-    # ankle used to stop at the middle of the hitbox with the hips pushed 10
-    # cm forward, so the leg arrived half bent. Now: a small dip onto the lead
-    # foot, the rear knee driven up high into the chamber, the foot snaps out
-    # to the far part of the box (the leg nearly straight, toes pointed), the
-    # trunk leans back to balance it and the standing heel lifts; then the
-    # foot comes back fast through the same chamber and is set down.
+    # Rising Front Kick (down + heavy). History: D-096/097 a standing front kick
+    # to the belly (owner: "extend his leg more", "ball of the foot"); D-130 the
+    # leg locked; D-132 hips over the foot. D-136, owner: "he leans back too far
+    # and the kick only reaches knee height. Keep the chest upright, chamber the
+    # knee, and kick at chest height" and "down + heavy is a standing kick, it
+    # should be a crouching attack (or be renamed)". Now it starts from the
+    # crouch the down input puts him in: he drives up out of it as the rear
+    # knee comes up high to the chest (the chamber), the foot snaps out on a
+    # locked leg at chest height off the ball of the foot, the chest stays
+    # upright (a few degrees back, not 23), then the knee recoils through the
+    # chamber and the foot is set down in the stance. The hitbox moved up to
+    # the chest (kairo_body_hook.tres, 1.05 -> 1.25 m: a balance change) and the
+    # move is renamed Rising Front Kick.
     a0, a1, T, hx, hz = win(moves["DOWN_HEAVY"])
-    # Feet (D-097, owner: "straight like a ballerina, not a kick"): the toes
-    # are pulled back from the chamber on and the kick lands on the ball of
-    # the foot (point < 0 = ankle flexed, see the *_foot_abs solver).
-    chamber = (FR[0] * 0.35, 0.22, 0.70, -0.3)             # knee at the chest, foot tucked under it, toes up
-    # D-130: the knee was 34 deg bent at the hit. The target is now beyond the
-    # leg's reach (it locks, as on the other kicks) and the hips sit back a
-    # little so the straight leg's foot stays inside the hitbox.
-    out_far = (0.0, hx + 0.60, hz + 0.26, -0.95)
-    out_hold = (0.0, hx + 0.60, hz + 0.23, -0.95)
-    snap = (0.0, hx - 0.04, hz - 0.07, -0.7)                 # half way out: the shin swings up and forward
-    recoil = (FR[0] * 0.3, 0.26, 0.66, -0.4)
-    out["DOWN_HEAVY"] = dict(_recover=1.4, **head(a0, a1, T, 3.0), **{
+    cr_h = ph0 - 0.33                                      # the crouch's pelvis height (STYLES crouch_pose drop)
+    cr_lean = lean(13.0 / X)                               # the crouch's forward lean
+    chamber = (FR[0] * 0.30, 0.26, 0.86, -0.35)            # knee up at the chest, foot tucked under it, toes pulled back
+    out_far = (0.0, hx + 0.62, hz + 0.26, -0.95)           # beyond reach along the line of the kick: the leg locks at chest height
+    out_hold = (0.0, hx + 0.64, hz + 0.24, -0.95)
+    snap = (0.0, hx - 0.25, hz - 0.17, -0.7)               # half way out: the shin swings up and forward
+    recoil = (FR[0] * 0.3, 0.28, 0.82, -0.4)
+    lh0, rh0 = base["lead_hand"], base["rear_hand"]
+    out["DOWN_HEAVY"] = dict(_recover=1.4, _blend_in=0, **head(a0, a1, T, 3.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "rear_hinge": [(0, 0.0), (4, 1.0), (a1 + 6, 1.0), (a1 + 10, 0.0)],   # D-130: the thigh keeps its knee hinge while the leg is up (see keying.md)
-        "curl": [(0, 0.0), (5, 4.0), (a0, 12.0, "in"), (a1, 11.0), (a1 + 5, 2.0), (T - 3, 0.0)],   # D-134: chest crunched toward the leg while the trunk leans away
-        "hips_x": [(0, 0.0), (5, 0.04), (a0, 0.06), (a1, 0.06), (a1 + 7, 0.0)],   # D-134: the pelvis rides sideways over the standing foot
+        "rear_hinge": [(0, 0.0), (3, 1.0), (a1 + 6, 1.0), (a1 + 10, 0.0)],
+        "curl": [(0, 6.0), (3, 2.0), (a0 - 2, 6.0), (a0, 9.0, "in"), (a1, 8.0), (a1 + 5, 2.0), (T - 3, 0.0)],
+        "hips_x": [(0, 0.0), (4, 0.04), (a0, 0.06), (a1, 0.06), (a1 + 7, 0.0)],
         "rear_toe": [(0, base["rear_toe"]), (5, 0.0), (a1 + 7, 0.0), (a1 + 10, base["rear_toe"])],
-        "hips": [(0, (hips0, 0)), (2, (hips0 + 0.03, 0), "io"), (5, (hips0 + 0.05, 0)), (a0, (hips0 + 0.13, 0), "in"),      # D-132: hips over the standing foot (the hitbox went 18 cm forward for it, a balance change)
-                 (a1, (hips0 + 0.14, 0)), (a1 + 4, (hips0 + 0.07, 0), "out"), (T - 3, (hips0, 0))],
-        "pelvis_h": [(0, ph0), (2, ph0 - 0.02, "io"), (5, ph0 + 0.03, "out"), (a0, ph0 + 0.05, "in"), (a1, ph0 + 0.045),
-                     (a1 + 4, ph0 + 0.03)] + settle(T, a1 + 9, ph0, 0.018),
-        "pelvis": [(0, pel0), (2, pel(4)), (5, pel(-26)), (a0, pel(-38), "in"), (a1, pel(-37)), (a1 + 6, pel(-12), "out"), (T - 3, pel0)],
-        "shoulders": [(0, sh0), (2, sho(6)), (5, sho(-10)), (a0, sho(-16), "in"), (a1, sho(-16)), (a1 + 6, sho(-4), "out"), (T - 3, sh0)],
-        "trunk": [(0, tr0), (2, lean(2.5)), (5, lean(-5)), (a0, lean(-23), "in"), (a1, lean(-22)), (a1 + 5, lean(-8), "out"), (T - 3, tr0)],   # D-132: with the hips over the foot he can lean away from the leg again: one line from heel to head
-        "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.065, "in"), (a1, 0.06), (a1 + 6, 0.01), (T - 4, 0.0)],
-        "rear_foot_abs": [(0, FR + (0.0,)), (3, (FR[0] * 0.7, 0.10, 0.34, 0.0), "out"), (a0 - 3, chamber, "out"),
+        "hips": [(0, (hips0 + 0.02, 0)), (3, (hips0 + 0.06, 0), "io"), (a0 - 2, (hips0 + 0.10, 0)), (a0, (hips0 + 0.12, 0), "in"),
+                 (a1, (hips0 + 0.13, 0)), (a1 + 4, (hips0 + 0.07, 0), "out"), (T - 3, (hips0, 0))],
+        # up out of the crouch: the legs drive him up through the chamber, tall on the standing leg at the kick
+        "pelvis_h": [(0, cr_h), (2, cr_h + 0.02, "io"), (5, ph0 - 0.06, "out"), (a0 - 1, ph0 + 0.02), (a0, ph0 + 0.04, "in"), (a1, ph0 + 0.035),
+                     (a1 + 4, ph0 + 0.02)] + settle(T, a1 + 9, ph0, 0.018),
+        "pelvis": [(0, pel0), (3, pel(-8)), (a0 - 2, pel(-20)), (a0, pel(-30), "in"), (a1, pel(-30)), (a1 + 6, pel(-10), "out"), (T - 3, pel0)],
+        "shoulders": [(0, sh0), (3, sho(-2)), (a0, sho(-10), "in"), (a1, sho(-10)), (a1 + 6, sho(-3), "out"), (T - 3, sh0)],
+        # the chest stays up: forward over the crouch, upright through the chamber, only a few degrees back at the kick
+        "trunk": [(0, cr_lean), (3, lean(4)), (a0 - 2, lean(0)), (a0, lean(-6), "in"), (a1, lean(-6)), (a1 + 5, lean(-2), "out"), (T - 3, tr0)],
+        "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.05, "in"), (a1, 0.05), (a1 + 6, 0.01), (T - 4, 0.0)],
+        "rear_foot_abs": [(0, FR + (0.0,)), (2, (FR[0] * 0.8, FR[1] * 0.6, 0.18, 0.1), "io"), (4, (FR[0] * 0.5, 0.12, 0.52, -0.1)), (a0 - 2, chamber, "out"),
                           (a0 - 1, snap, "in"), (a0, out_far), (a0 + 1, out_hold), (a1, out_hold),
-                          (a1 + 1, (0.0, hx + 0.12, hz - 0.03, -0.8)), (a1 + 3, recoil), (a1 + 6, (FR[0] * 0.8, FR[1] * 0.6, 0.30, -0.1)), (a1 + 8, (FR[0] * 0.9, FR[1] * 0.85, 0.12, 0.0)), (a1 + 10, FR + (0.0,), "in")],
-        "lead_hand_abs": [(0, L), (4, (L[0], L[1] - 0.04, L[2] + 0.03)), (a0, chin, "in"), (a1 + 4, chin), (T - 3, L)],
-        "rear_hand_abs": [(0, R), (4, (R[0] - 0.06, R[1] - 0.02, R[2] - 0.03)), (a0, (-0.28, 0.07, R[2] - 0.12), "in"),
-                          (a1 + 3, (-0.27, 0.05, R[2] - 0.10)), (T - 3, R)],
+                          (a1 + 1, (0.0, hx + 0.22, hz + 0.04, -0.8)), (a1 + 2, (0.0, hx - 0.15, hz - 0.12, -0.6)), (a1 + 4, recoil), (a1 + 6, (FR[0] * 0.8, FR[1] * 0.6, 0.32, -0.1)),
+                          (a1 + 8, (FR[0] * 0.9, FR[1] * 0.85, 0.12, 0.0)), (a1 + 10, FR + (0.0,), "in")],
+        # both hands stay a compact guard that rides with the chest (head-relative)
+        "lead_hand": [(0, (lh0[0], lh0[1] - 0.05, lh0[2] + 0.05)), (a0, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] + 0.06), "in"),
+                      (a1 + 4, (lh0[0] + 0.02, lh0[1] - 0.06, lh0[2] + 0.06)), (T - 3, lh0)],
+        "rear_hand": [(0, rh0), (a0, (rh0[0] - 0.02, rh0[1] - 0.02, rh0[2] - 0.08), "in"), (a1 + 4, (rh0[0] - 0.02, rh0[1] - 0.02, rh0[2] - 0.08)), (T - 3, rh0)],
+        "lead_elbow": [(0, 0.25), (a0, 0.3), (T - 3, 0.25)],
     })
 
     # Counter strike (the Rift Guard's answer). D-135: it was a second copy of
@@ -2723,7 +2732,7 @@ def kairo_keys(moves, base, g, S):
                  (a1 + 11, (hips0 - 0.015, 0), "out"), (T - 4, (hips0, 0))],
         "pelvis_h": [(0, ph0), (8, low(0.075)), (a0, low(0.06), "in"), (a1, low(0.06)), (a1 + 9, ph0 + 0.004, "out")] + settle(T, a1 + 15, ph0),
         "pelvis": [(0, pel0), (8, pel(-18)), (a0 - 2, pel(34), "in"), (a1, pel(34)), (a1 + 11, pel(-3), "out"), (T - 4, pel0)],
-        "shoulders": [(0, sh0), (8, sho(-28)), (a0, sho(36), "in"), (a1, sho(35)), (a1 + 11, sho(-4), "out"), (T - 4, sh0)],
+        "shoulders": [(0, sh0), (8, sho(-28)), (a0, sho(26), "in"), (a1, sho(25)), (a1 + 11, sho(-4), "out"), (T - 4, sh0)],
         "curl": [(0, 0.0), (8, -4.0), (a0, 8.0, "in"), (a1, 9.0), (a1 + 11, -2.0, "out"), (T - 4, 0.0)],
         "trunk": [(0, tr0), (8, lean(-5)), (a0, lean(10), "in"), (a1, lean(9)), (a1 + 11, lean(-1.5), "out"), (T - 4, tr0)],
         "lead_foot": [(0, lf0), (8, (lf0[0], lf0[1] - 0.04)), (a0 - 1, (lf0[0], lf0[1] + 0.23), "in"), (a1 + 4, (lf0[0], lf0[1] + 0.23)), (a1 + 8, lf0)],
@@ -2733,8 +2742,11 @@ def kairo_keys(moves, base, g, S):
                           (a0, (hit[0], hit[1] - 0.03, hit[2]), "in"), (a1, (hit[0], hit[1] + 0.05, hit[2] + 0.01)),   # D-130: the palm drives on through the five active frames (it stood still)
                           (a1 + 7, (L[0], L[1] + 0.06, L[2] - 0.05), "out"), (T - 4, L)],
         "lead_elbow": [(0, 0.15), (8, 0.35), (a0, 0.05), (a1 + 7, 0.15)],
-        "rear_hand_abs": [(0, R), (8, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.03)), (a0, (-0.17, -0.06, hipz_p + 0.10), "in"),
-                          (a1 + 4, (-0.17, -0.06, hipz_p + 0.10)), (a1 + 12, (R[0], R[1] - 0.04, R[2] - 0.06), "out"), (T - 4, R)],
+        # D-136 (owner: "the back arm flies out sideways like a wing, keep it tucked in"):
+        # the fist comes back to his own ribs, elbow in against the side
+        "rear_hand_abs": [(0, R), (8, (R[0] + 0.02, R[1] + 0.02, R[2] - 0.03)), (a0, (R[0] - 0.01, R[1] - 0.03, R[2] - 0.08), "in"),
+                          (a1 + 4, (R[0] - 0.01, R[1] - 0.03, R[2] - 0.08)), (T - 4, R)],   # stays a tight guard under the jaw (a hip chamber put the shoulder far back: the arm stuck out behind)
+        "rear_elbow": [(0, 0.1), (8, 0.05), (a0, 0.0), (a1 + 4, 0.0), (T - 4, 0.1)],
     })
 
     # Fireball (down + special, D-101): both open palms are drawn back to the
@@ -2789,7 +2801,10 @@ def kairo_keys(moves, base, g, S):
     # drive"): the fist stops at the top of his own head with the arm bent
     # about 90 (an uppercut, not a raised arm); the dip into the knees is
     # deeper so the legs visibly drive it
-    u_top = (0.02, 0.30, head_z + 0.05)                   # measured from his own head (the anti-air box is high: hz put the fist overhead)
+    # D-136 (owner: "the fist never rises above the chin; a hip drop, a push up
+    # from the legs, and the fist finishing above the head"): the top is above
+    # his head, still in front of it with the elbow bent, not a straight arm
+    u_top = (0.02, 0.22, head_z + 0.34)
     # D-130 (owner: "check all his skills ... maximum improvement"): the fist
     # stood in the air for 18 frames (frames 9-26) and snapped home in the last
     # four, because the recovery keys sat at T - 4, later than `_recover` ever
@@ -2800,7 +2815,7 @@ def kairo_keys(moves, base, g, S):
         "chin": [(0, chin0), (a0, chin0 - 6, "in"), (a1 + 1, chin0 - 6), (a1 + 5, chin0 + 8), (a1 + 12, chin0)],
         "hips": [(0, (hips0, 0)), (2, (hips0 - 0.02, 0), "io"), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.12, 0)),
                  (a1 + 5, (hips0 + 0.05, 0)), (a1 + 12, (hips0, 0))],
-        "pelvis_h": [(0, ph0), (2, low(0.17), "io"), (a0, ph0 + 0.01, "out"), (a1 - 1, ph0 + 0.075), (a1 + 1, ph0 + 0.065),
+        "pelvis_h": [(0, ph0), (2, low(0.21), "io"), (a0, ph0 + 0.02, "out"), (a1 - 1, ph0 + 0.10), (a1 + 1, ph0 + 0.09),
                      (a1 + 5, low(0.075)), (a1 + 10, ph0 + 0.008), (a1 + 13, ph0)],
         "pelvis": [(0, pel0), (2, pel(16), "io"), (a0, pel(-44), "in"), (a1, pel(-48)), (a1 + 5, pel(-14)), (a1 + 10, pel(3)), (a1 + 13, pel0)],
         "shoulders": [(0, sh0), (2, sho(24), "io"), (a0, sho(-70), "in"), (a1, sho(-76)), (a1 + 5, sho(-24)), (a1 + 10, sho(4)), (a1 + 13, sh0)],
@@ -3306,6 +3321,15 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 tr = ps.get("trunk", (0.0, 0.0))
                 ps["trunk"] = (tr[0] + 1.3 * a * math.sin(ph - 0.3), tr[1] + 0.6 * a * math.sin(ph + 0.8))
                 ps["chin"] = ps.get("chin", 0.0) + 1.2 * a * math.sin(ph - 1.6)
+                if st.get("weight_shift"):
+                    # D-136 (owner: "it barely moves ... add breathing and a weight shift"):
+                    # the hips rock forward onto the lead foot and back once per loop, and
+                    # rise and settle with the breath; the feet stay where they are
+                    ws = float(st["weight_shift"])
+                    hp = ps.get("hips", (0.0, 0.0))
+                    ps["hips"] = (hp[0] + ws * math.sin(ph), hp[1] + 0.35 * ws * math.sin(ph + 1.2))
+                    ps["pelvis_h"] = ps.get("pelvis_h", 0.93) + 0.45 * ws * math.cos(ph)
+                    ps["curl"] = ps.get("curl", 0.0) + 2.5 * math.sin(ph - 0.4)
                 if st.get("heel_bounce"):
                     # D-100: up on the ball of the rear foot at the top of the bounce
                     # (the bob is highest at u = 0), heel down as he sinks
@@ -3554,7 +3578,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
         P = guard_P
         if fitted:
             # forearms in front of the face, measured from the fighter's own head (D-076)
-            P = lean(P, -6 * w)
+            P = lean(P, (-10 if fid == "kairo" else -6) * w)       # D-136: Kairo tucks in behind the raised guard
             for side, sg in (("Left", 1), ("Right", -1)):
                 bx, bf, bu = st.get("block", {}).get(side, (0.085, 0.19, -0.02))
                 if fid == "kairo":                         # D-131: the forearms sat almost level; the lead one is now higher and further out
@@ -3700,6 +3724,18 @@ def build(rig_obj, moves, fid, height, clip_dir):
     for sd, sg in (("Left", 1), ("Right", -1)):
         arch_P = move_hand(arch_P, sd, arch_P[sd + "Arm"] + np.array([0.30 * sg * H, 0.10 * H, 0.06 * H]), 0.85, pole_out=0.5)
     arch = pose_of(arch_P, box)
+    # D-136 (owner: "he falls like a stiff plank; the knees should buckle first"):
+    # the legs give way under him (hips drop over the planted feet, knees out
+    # front), and he tips back from that lower point
+    LEGS_UP = UPPER + ["Hips", "LHipJoint", "RHipJoint", "LeftUpLeg", "RightUpLeg"]
+    def sunk(P0, depth, back=0.0):
+        feet_ = {sd: P0[sd + "Foot"].copy() for sd in ("Left", "Right")}
+        Pq = shift(P0, [k for k in LEGS_UP if k in P0], np.array([0, back * H, -depth * H]))
+        for sd in ("Left", "Right"):
+            Pq = move_foot(Pq, sd, feet_[sd], knee_out=0.15)
+        return Pq
+    buckle = pose_of(lean(sunk(guard_P, 0.30, 0.03), 8), box) if fid == "kairo" else None
+    arch_low = pose_of(sunk(arch_P, 0.30, 0.06), box) if fid == "kairo" else None
     kd = []
     # D-135: knockdown_ticks 45 -> 39 and wakeup_ticks 20 -> 26, the same 65
     # ticks on the floor in all (the get-up popped up in a third of a second);
@@ -3707,13 +3743,13 @@ def build(rig_obj, moves, fid, height, clip_dir):
     for t in range(40):
         if t <= 4:
             p = Pose.blend(guard, heavy, ease(t / 4))
-        elif fid == "kairo" and t <= 9:
-            p = Pose.blend(heavy, arch, ease((t - 4) / 5))
-            p.hips = p.hips + np.array([0, 0.06 * H * (t - 4) / 5, -0.03 * H * ((t - 4) / 5) ** 2])
+        elif fid == "kairo" and t <= 10:                   # the knees give way
+            p = Pose.blend(heavy, buckle, ease((t - 4) / 6))
+        elif fid == "kairo" and t <= 14:                   # tipping back from the low point
+            p = Pose.blend(buckle, arch_low, ease((t - 10) / 4, "in"))
         elif fid == "kairo" and t <= 25:
-            u_ = (t - 9) / 16.0
-            p = Pose.blend(arch, lying, u_ ** 1.5)          # the fall speeds up all the way to the floor
-            p.hips = p.hips + np.array([0, 0.06 * H * (1.0 - u_), -0.03 * H * (1.0 - u_)])
+            u_ = (t - 14) / 11.0
+            p = Pose.blend(arch_low, lying, u_ ** 1.5)      # the fall speeds up all the way to the floor
         elif t <= 25:
             p = Pose.blend(heavy, lying, ease((t - 4) / 21, "in"))
         else:
@@ -4176,7 +4212,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
                 tr.setdefault("_lag", (("foot", 0.0), ("heel", 0.0), ("toe", 0.0), ("hips", 0.0), ("pelvis", 0.0),
                                        ("trunk", 1.0), ("curl", 1.5), ("shoulders", 1.5), ("hand", 2.0), ("elbow", 2.0), ("palm", 2.0),
                                        ("chin", 3.0), ("neck", 3.0), ("head", 3.0)))     # D-134: hands two frames behind the body (was one): drag
-            return keyed_frames(total, tr, mv["startup"] + mv["active"] - 2, settle)
+            # a move that starts from another pose (the crouch: D-136) must not be blended from the stance
+            return keyed_frames(total, tr, mv["startup"] + mv["active"] - 2, settle, blend_in=tr.pop("_blend_in", 2))
 
     # ---- crouch, jump and jumping attack (D-087). One frame per tick; the
     # game lifts the fighter along the jump arc, so the clips only pose the
@@ -4256,8 +4293,11 @@ def build(rig_obj, moves, fid, height, clip_dir):
         jd = STYLES[fid].get("jump", {})
         tuck = jd.get("tuck", 0.30) * S_fit
         jt = {"_name": "JUMP", "_feet_abs": (t_off, t_down - 1),
-              "pelvis_h": [(0, ph0), (t_off - 1, ph0 - 0.16, "out"), (t_off + 3, ph0 + 0.02, "out"), (t_down - 1, ph0 - 0.01),
-                           (t_down + 2, ph0 - 0.17, "out"), (n_jump - 1, ph0 - 0.13)],      # D-131: he lands and sinks through all four landing frames (it dipped and stood up again in two)
+              # D-136 (owner: "he lands with straight legs; add a knee bend to absorb it"): the hips
+              # are already coming down as the feet touch (they touched at standing height), and the
+              # sink goes deeper over the landing frames
+              "pelvis_h": [(0, ph0), (t_off - 1, ph0 - 0.16, "out"), (t_off + 3, ph0 + 0.02, "out"), (t_down - 3, ph0 - 0.01),
+                           (t_down - 1, ph0 - 0.07, "in"), (t_down + 2, ph0 - 0.24, "out"), (n_jump - 1, ph0 - 0.17)],      # D-131: he lands and sinks through all four landing frames (it dipped and stood up again in two)
               "trunk": [(0, tr0), (t_off - 1, (tr0[0] + 16, tr0[1]), "out"), (t_off + 3, (tr0[0] - 4, tr0[1])),
                         (t_off + 12, (tr0[0] + 10, tr0[1]), "io"), (t_off + 26, (tr0[0] + 9, tr0[1])), (t_down - 2, (tr0[0] + 3, tr0[1])),
                         (t_down + 2, (tr0[0] + 14, tr0[1]), "out"), (n_jump - 1, (tr0[0] + 11, tr0[1]))],

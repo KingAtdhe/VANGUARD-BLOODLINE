@@ -136,3 +136,9 @@ limit, pushback, and no move being plus enough to link into itself.
   the floor is unchanged (65 ticks); the get-up has 26 frames instead of 20.
 - Kairo's dashes: forward 13 → 17 ticks (1.4 m), back 17 → 21 ticks (1.1 m).
   Slower to cover the same ground: dashes are 4 ticks easier to react to.
+
+### D-136 (2026-11-27)
+
+- Kairo's down + heavy is the Rising Front Kick: hitbox centre 1.05 -> 1.25 m,
+  height 0.35 -> 0.40 (covers 1.05-1.45 m; still hits crouchers). Frames unchanged.
+- Kairo's jump landing 4 -> 6 ticks.
