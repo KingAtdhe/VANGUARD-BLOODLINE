@@ -1,6 +1,6 @@
 # Handoff — continue from here in a new session
 
-Branch: `arena-severed-line`, last work: D-142 (2026-11-28). Read `CLAUDE.md` first (it now has a standing rule: every animation
+Branch: `arena-severed-line`, last work: D-143 (2026-11-28). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
 ## Latest (2026-11-25, D-107 … D-122) — read this first
@@ -41,6 +41,7 @@ change goes to the owner with a real-speed review video).
   frames 4–18 (a balance change).
 - D-128: Rift Break stands tall at the peak, the body drives the chop, the
   leg is drawn back and set down behind, then one step into the stance.
+- D-143: outside critique of D-142 measured: spin kick drives off one foot and unwinds slowly, uppercut travel moved into its hop (balance: frames 12-17), stance sways more than it bobs, throw hands meet, launch whiplash + trailing legs, kip-up load and landing squat. Not changed: approved jumping kick; front kick / Rift Break balance (measured fine).
 - D-142: front kicks with the upper body working (lean back 14, arm swing); **Spinning Back Kick on forward + Heavy** (new `CMD_FORWARD_HEAVY`, falls back to Heavy). Still to do from the quality brief: crumple / wall bounce, intro / taunt / win / lose, hair and sash bones.
 - D-141: strike trails (all fighters), ultimate wind-up push-in, Kairo launch reaction + kip-up (every other wake-up; definition fields `anim_launched`, `anim_getup_alt`). Next: hair/sash spring bones, crumple/wall bounce, spinning kick (owner to choose input), intro/taunt/win/lose.
 - D-140: first batch of the owner's "top-mobile quality" brief (counter stance 8-frame blend, heels bounce, uppercut hop, continuous review take). **Planned next, one batch at a time:** (2) spring bones for hair and sash (needs new bones in the owner's rig + weights; SpringBoneSimulator3D), (3) smear/trail on fast strikes, (4) more reactions: launch-and-fall, crumple, wall/ground bounce, kip-up, (5) spinning kick (needs an input: ask the owner), (6) intro, taunt, new win/lose poses, (7) ultimate wind-up and camera push-in. Stance energy and timing per the brief's targets are partly done.

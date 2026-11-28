@@ -2954,3 +2954,25 @@ like a mannequin".
 
 Tests: 223 passed, 0 failed (full run on the final build). Not verified on a
 phone; videos checked frame by frame, not watched.
+
+## D-143 — 2026-11-28 — An outside critique of the D-142 videos, point by point
+
+**Owner:** pasted a written critique (another AI, from her phone recordings
+of the D-142 videos). Measured first, as before.
+
+| Point | Measured | Verdict | Now |
+|---|---|---|---|
+| Spinning back kick turns on both feet "like a turntable" | both feet on the floor until frame 6 while the hips began to turn | true | weight onto the lead foot first (`hips_x` +6 cm by frame 3), the rear foot drives off on its ball (heel up frames 2-4) and is off the floor by frame 5; the turn is the lead foot's pivot |
+| Spine snaps coming out of the spin | hips and chest unwound in 6 frames | true | unwind over 14 frames, slowing into the stance; the leg's retract spread over 7 frames |
+| Air attack torso rigid | — | the owner approved the jumping kick as it is (D-139) | unchanged |
+| Uppercut and counter strike feet skate | uppercut: the game carried him 0.25 m on frames 6-11 while both feet were on the floor (4-5 cm a frame of slide). Counter strike: no travel, feet still on the model | true / not supported | **balance:** the uppercut's travel moved to frames 12-17, inside the hop (feet off the floor); same distance. Counter strike unchanged |
+| Front kick and Forward + special: standing leg straight, pelvis not over the foot | standing knee 55 deg (front kick) and 52 deg (Rift Break) at contact; the pose checker finds the centre of gravity over the standing foot on both | not supported | unchanged |
+| Stance a uniform vertical bob | knees alternate 45-73 deg, chest turns -3..+9 deg (measured on D-140+) | partly: the vertical bounce still dominated | bounce halved (`bob` 0.015), side-to-side weight shift 3.5 cm (was 1.4) |
+| Throw has no readable grip point | the two hands were 20 cm apart at the grab | true | both hands meet on one spot behind the neck (6 cm apart) |
+| Launched: rigid block, no whiplash or trailing legs | the pose went straight from the snap to an arch | true | the body folds round the blow first, then snaps back with the head thrown further back a few frames behind the chest, then lies out with knees bent and legs trailing |
+| Kip-up: no compression | tuck straight into the snap | true | knees to chest, a rock back onto the shoulders, the snap, a deep landing squat, then up |
+
+Checked: no new build flags; strips of the spin, launch, kip-up; world foot
+motion of the uppercut (no planted frame moves). Tests: 223 passed, 0 failed
+(full run on the final build). Not verified on a phone; video checked frame
+by frame, not watched.

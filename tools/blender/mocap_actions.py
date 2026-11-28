@@ -50,7 +50,7 @@ STYLES = {
     # hand open and held out in front at chest height as a knife-hand guard,
     # the rear fist chambered palm-up at the ribs. He was an upright boxer
     # after Steve Fox before, too close to Drakon's boxing.
-    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.03, bob_beats=2, sway=0.02, life=3.0, weight_shift=0.035, loop=120, walk_life=1.0, lead="Left",   # D-136: heel_bounce 0.02 removed (the rear foot read as sliding)
+    "kairo": dict(clip="13_17", frame=840, facing=900, amp=0.45, bob=0.015, bob_beats=2, sway=0.02, life=3.0, weight_shift=0.035, loop=120, walk_life=1.0, lead="Left",   # D-136: heel_bounce 0.02 removed (the rear foot read as sliding)
                   # his guard: the open lead forearm upright in front of the face, the rear fist under the chin
                   # D-136 (owner: "block high looks too much like the stance, raise the guard more clearly"):
                   # lead forearm up in front of the forehead, rear fist at the temple
@@ -2754,11 +2754,19 @@ def kairo_keys(moves, base, g, S):
             # the spin: shoulders first, hips a few frames behind, held while the leg is out
             # the chest stops short of the hips (135 against 175) so the head can look
             # back over the shoulder within a neck's reach (it was turned 130 deg)
-            "shoulders": [(0, sh0), (2, sh0 - 8.0, "io"), (7, 115.0, "in"), (a0 - 3, 132.0), (a1, 130.0), (a1 + 6, 105.0), (a1 + 12, sh0, "io")],
-            "pelvis": [(0, pel0), (3, pel0 - 4.0, "io"), (9, 150.0, "in"), (a0 - 2, sp_back), (a1, sp_back), (a1 + 7, 110.0), (a1 + 13, pel0, "io")],
+            # D-143 (critique: "the spine snaps on the way out, no deceleration"): the
+            # unwind is spread over 14 frames and slows into the stance ("out")
+            "shoulders": [(0, sh0), (2, sh0 - 8.0, "io"), (7, 115.0, "in"), (a0 - 3, 132.0), (a1, 130.0), (a1 + 5, 118.0), (a1 + 10, 78.0), (a1 + 14, sh0, "out")],
+            "pelvis": [(0, pel0), (3, pel0 - 4.0, "io"), (9, 150.0, "in"), (a0 - 2, sp_back), (a1, sp_back), (a1 + 5, 145.0), (a1 + 10, 92.0), (a1 + 14, pel0, "out")],
+            # D-143 (critique: "it rotates evenly on both feet, as on a turntable"): the
+            # weight goes onto the lead foot first and the rear foot drives off the
+            # floor on its ball (heel up, then gone by frame 5), so the turn is one
+            # foot's pivot
+            "hips_x": [(0, 0.0), (3, 0.06, "io"), (a1 + 6, 0.06), (a1 + 13, 0.0)],
+            "rear_heel": [(0, base.get("rear_heel", 0.012)), (2, 0.07, "io"), (4, 0.09), (a1 + 11, 0.05), (a1 + 14, base.get("rear_heel", 0.012))],
             # the lead foot turns on its ball (heel out), stays planted
-            "lead_toe": [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "in"), (a1 + 6, base["lead_toe"] + 150.0),
-                         (a1 + 13, base["lead_toe"], "io")],
+            "lead_toe": [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "in"), (a1 + 5, base["lead_toe"] + 145.0),
+                         (a1 + 14, base["lead_toe"], "out")],
             "lead_heel": [(0, 0.0), (3, 0.04), (9, 0.05), (a0, 0.03), (a1 + 6, 0.03), (a1 + 13, 0.0)],
             "hips": [(0, (hips0, 0)), (4, (hips0 + 0.06, 0)), (a0 - 2, (hips0 + 0.12, 0)), (a0, (hips0 + 0.16, 0), "in"), (a1, (hips0 + 0.16, 0)), (a1 + 8, (hips0 + 0.08, 0)), (a1 + 12, (hips0, 0), "io")],   # over the standing (lead) foot
             "pelvis_h": [(0, ph0), (3, low(0.05), "io"), (9, low(0.03)), (a0, ph0 + 0.01, "in"), (a1, ph0 + 0.01)] + settle(T, a1 + 12, ph0, 0.015),
@@ -2768,9 +2776,9 @@ def kairo_keys(moves, base, g, S):
             "curl": [(0, 0.0), (5, 6.0), (a0 - 2, 10.0), (a0, 2.0, "in"), (a1, 2.0), (a1 + 6, 6.0), (a1 + 12, 0.0)],
             "rear_hinge": [(0, 0.0), (6, 1.0), (a1 + 8, 1.0), (a1 + 12, 0.0)],
             "rear_toe": [(0, base["rear_toe"]), (6, 0.0), (a1 + 8, 0.0), (a1 + 12, base["rear_toe"])],
-            "rear_foot_abs": [(0, FR + (0.0,)), (5, FR + (0.0,)), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 4, sp_ch, "out"), (a0 - 3, sp_ch),
+            "rear_foot_abs": [(0, FR + (0.0,)), (3, FR + (0.0,)), (5, (FR[0] * 0.9, FR[1] * 0.85, FR[2] + 0.08, 0.4), "in"), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 4, sp_ch, "out"), (a0 - 3, sp_ch),
                               (a0 - 2, (FR[0] * 0.16, 0.28, 0.84, -0.7), "in"), (a0 - 1, (FR[0] * 0.12, 0.56, 1.00, -0.85)), (a0, sp_far), (a0 + 1, sp_hold), (a1, sp_hold),
-                              (a1 + 2, (FR[0] * 0.2, hx - 0.10, hz - 0.05, -0.6)), (a1 + 3, (FR[0] * 0.2, 0.45, 0.85, -0.55)), (a1 + 5, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
+                              (a1 + 2, (FR[0] * 0.15, hx + 0.20, hz + 0.20, -0.8)), (a1 + 4, (FR[0] * 0.2, hx - 0.15, hz - 0.02, -0.6)), (a1 + 6, (FR[0] * 0.2, 0.30, 0.80, -0.55)), (a1 + 7, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
                               (a1 + 11, (FR[0] * 0.95, FR[1] * 0.95, FR[2] + 0.04, 0.0)), (a1 + 12, FR + (0.0,), "in")],
             # guard tight to the body through the spin; the arms stay in
             "lead_hand": [(0, base["lead_hand"]), (5, (base["lead_hand"][0], base["lead_hand"][1] - 0.10, base["lead_hand"][2] + 0.02)),
@@ -2962,8 +2970,10 @@ def kairo_keys(moves, base, g, S):
     # to 0.58 m and tips them forward), then pull the head down onto the knee.
     # D-135 (critique: "no reach or grab, hands still in stance"): both arms go
     # out long and high to the back of the neck, the trunk leaning in after them
-    grab_l = (0.12, 0.74, hz + 0.30)
-    grab_r = (-0.08, 0.72, hz + 0.28)
+    # D-143 (critique: "no clear hand placement or hold point"): both hands meet
+    # on one spot, the back of the neck, 6 cm apart (they were 20 cm apart)
+    grab_l = (0.04, 0.74, hz + 0.30)
+    grab_r = (-0.02, 0.72, hz + 0.29)
     # D-130: the knee came up only to the waist, the head was not pulled down
     # onto it, the foot dropped 38 cm in one frame, the "push" was a pose next
     # to the guard, and the last twelve frames stood still. Now: the hands
@@ -3424,7 +3434,7 @@ def build(rig_obj, moves, fid, height, clip_dir):
                     ws = float(st["weight_shift"])
                     hp = ps.get("hips", (0.0, 0.0))
                     ps["hips"] = (hp[0] + ws * sn(0.0), hp[1])
-                    ps["hips_x"] = ps.get("hips_x", 0.0) + 0.4 * ws * sn(-1.2)      # and a little from side to side
+                    ps["hips_x"] = ps.get("hips_x", 0.0) + 1.0 * ws * sn(-1.2)      # and from side to side (D-143: 3.5 cm, was 1.4; the knee bob is halved)
                     ps["pelvis_h"] = ps.get("pelvis_h", 0.93) + 0.9 * ws * (math.cos(ph) - 1.0)      # D-138/139: a deeper breath (0.45, 0.7)
                     ps["curl"] = ps.get("curl", 0.0) + 6.0 * sn(0.4)      # D-139: the chest rises and falls more (was 4)
                     # D-139 (owner: "bounce on the balls of his feet"): both heels come up
@@ -3899,39 +3909,66 @@ def build(rig_obj, moves, fid, height, clip_dir):
         # the arc; the clip poses the body): the blow snaps him back, he folds back
         # over it with the legs swinging up in front, and stays laid out, limbs
         # trailing, until he lands (the knockdown is then entered at its touch-down).
-        laid = Pose.blend(arch, lying, 0.45)
+        # D-143 (critique: "the torso leans back in a rigid block, no neck whiplash,
+        # no trailing legs, no core compression"): the body first folds round the
+        # blow (core compressed, head forward), then snaps back with the head
+        # thrown further back a few frames behind the chest (whiplash), and lies
+        # out on the arc with the knees bent and the legs trailing.
+        comp = pose_of(lean(lean(guard_P, -10), -12, about="Neck1", keys=["Head", "Head_end"]), box)
+        whip = pose_of(lean(arch_P, 26, about="Neck1", keys=["Head", "Head_end"]), box)
+        trail = Pose.blend(Pose.blend(arch, lying, 0.45), sitting, 0.35)
         la = []
         for t in range(48):
-            if t <= 4:
-                p = Pose.blend(guard, heavy, ease(t / 4))
-            elif t <= 11:
-                p = Pose.blend(heavy, arch, ease((t - 4) / 7, "out"))
-            elif t <= 22:
-                p = Pose.blend(arch, laid, ease((t - 11) / 11))
+            if t <= 3:
+                p = Pose.blend(guard, comp, ease(t / 3, "out"))
+            elif t <= 8:
+                p = Pose.blend(comp, whip, ease((t - 3) / 5, "out"))
+            elif t <= 14:
+                p = Pose.blend(whip, arch, ease((t - 8) / 6))         # the head comes back up out of the whip
+            elif t <= 24:
+                p = Pose.blend(arch, trail, ease((t - 14) / 10))
             else:
-                flail = 0.06 * math.sin((t - 22) * 0.45) * math.exp(-(t - 22) / 18.0)
-                p = Pose.blend(laid, arch, max(0.0, flail))
+                flail = 0.08 * math.sin((t - 24) * 0.4) * math.exp(-(t - 24) / 16.0)
+                p = Pose.blend(trail, arch, max(0.0, flail))
             la.append(p)
         A[f"{F}_LAUNCHED"] = la
         # Kip-up (every other wake-up): the knees come up to the chest, then he
         # snaps up off his back onto his feet in one go and settles into the guard.
+        # D-143 (critique: "no compression or anticipation, he pops up"): knees to
+        # the chest, a rock back onto the shoulders (the load), the snap up, a deep
+        # landing squat that absorbs it, then up into the guard.
         tuck = Pose.blend(lying, kneel, 0.32)
         tuck.hips = lying.hips + np.array([0.0, -0.05 * H, 0.04 * H])
+        rock = Pose.blend(lying, kneel, 0.42)
+        rock.hips = lying.hips + np.array([0.0, 0.05 * H, 0.02 * H])
+        squat = Pose.blend(kneel, guard, 0.25)
+        squat.hips = crouch.hips + np.array([0.0, 0.0, -0.07 * H])
         kp = []
         for t in range(27):
-            if t <= 7:
-                p = Pose.blend(lying, tuck, ease(t / 7))
-                p.hips = lying.hips + (tuck.hips - lying.hips) * ease(t / 7)
+            if t <= 5:
+                p = Pose.blend(lying, tuck, ease(t / 5))
+                p.hips = lying.hips + (tuck.hips - lying.hips) * ease(t / 5)
+            elif t <= 9:
+                u_ = ease((t - 5) / 4)
+                p = Pose.blend(tuck, rock, u_)
+                p.hips = tuck.hips + (rock.hips - tuck.hips) * u_
             elif t <= 15:
-                u_ = ease((t - 7) / 8, "out")
-                p = Pose.blend(tuck, crouch, u_)
-                arc = math.sin(math.pi * u_) * 0.10 * H        # off the floor in an arc
-                p.hips = tuck.hips + (crouch.hips - tuck.hips) * u_ + np.array([0.0, 0.0, arc])
+                u_ = ease((t - 9) / 6)
+                p = Pose.blend(rock, squat, u_)
+                arc = math.sin(math.pi * u_) * 0.12 * H        # off the floor in an arc
+                p.hips = rock.hips + (squat.hips - rock.hips) * u_ + np.array([0.0, 0.0, arc])
+            elif t <= 19:
+                u_ = ease((t - 15) / 4)
+                p = Pose.blend(squat, crouch, u_ * 0.4)        # the landing is absorbed low, then he starts up
+                p.hips = squat.hips + (crouch.hips - squat.hips) * u_ * 0.4
             else:
-                p = Pose.blend(crouch, guard, ease((t - 15) / 11))
+                u_ = ease((t - 19) / 7, "out")
+                start = Pose.blend(squat, crouch, 0.4)
+                start.hips = squat.hips + (crouch.hips - squat.hips) * 0.4
+                p = Pose.blend(start, guard, u_)
             kp.append(p)
         A[f"{F}_GETUP_KIPUP"] = kp
-        AIRBORNE[f"{F}_GETUP_KIPUP"] = (9, 14)               # the snap up: off the floor, not grounded
+        AIRBORNE[f"{F}_GETUP_KIPUP"] = (10, 14)               # the snap up: off the floor, not grounded
 
     # defeat (40): stagger, drop to the knees, slump
     df = []
