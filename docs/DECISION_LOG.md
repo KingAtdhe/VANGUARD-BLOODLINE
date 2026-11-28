@@ -3130,3 +3130,31 @@ for a Traceback in the build output and the .glb timestamp after every build.
 
 Checked: tests 223/223 (finished, exit 0); pivot-foot trace; frame strip;
 before/after video, checked frame by frame, not watched. Not verified on a phone.
+
+## D-148 — 2026-11-28 — Counter Strike redone as parry + counter; spinning back kick's upper body turns with it
+
+**Owner:** "Redo these two: that is not a counter attack; also for the spin
+kick his lower body rotates but his upper body stays the same." (Built from
+the owner's words, no reference picture.)
+
+**Counter Strike** (`kairo_counter_hook`, same frame data 5/3/16 and hitbox):
+it was a hook thrown from the guard, with nothing showing an attack had been
+caught. Now, frames 1–3: the lead forearm sweeps UP and forward over his head
+(the parry; a sideways parry is invisible in the game's side view) as he ducks
+~13 cm and slips his head forward and off line; frames 4–5: from under the
+attack he drives up through his legs, hips and chest turn in, and the rear
+fist rises as a short uppercut to the chin (elbow ~70 deg); the parry hand
+stays up over the caught arm through the hit, then both come home. Distinct
+from the cross (straight) and the Rising Uppercut (lead hand, leaves the floor).
+
+**Spinning back kick:** measured, the chest turned 95 deg while the pelvis turned 121
+and stopped at 133 — from the side camera that looks like the stance
+(both show the chest three-quarters to the camera). Now the shoulders lead:
+a wind-up the other way (−15), then they whip round ahead of the hips (twist
++44 at frame 8) and reach 175–178 (a turn of 140 deg); the pelvis follows to
+172; the lead arm swings out with the turn and comes back for the kick.
+
+Checked: tests 223/223 (finished, exit 0); body_angles (spin) and
+motion_report (counter: no pops, both elbows bent at the hit); frame strips in
+the game's side view; before/after video checked frame by frame, not watched.
+Not verified on a phone.

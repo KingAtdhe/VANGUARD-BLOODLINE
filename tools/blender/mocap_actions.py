@@ -2674,32 +2674,46 @@ def kairo_keys(moves, base, g, S):
     # out and the rear fist stays at the chin. The silhouette is a bent arm
     # across the face, not a straight one.
     a0, a1, T, hx, hz = win(moves["FOLLOWUP"])
-    # D-145 (measured: the fist jumped 38 cm in one frame into the wind-up, the arm
-    # was straight at the hit (16 deg bent, a swing, not a hook) and stayed locked
-    # and still for 8 frames). Now the wind-up is spread over two frames, the fist
-    # lands 18 cm nearer (inside reach: the elbow stays bent ~90, the forearm level),
-    # it carries on through the line and is pulled home without the long hold.
-    h_wide = (0.32, hx - 0.38, hz - 0.03)                  # the fist starts out wide on his lead side
-    h_hit = (0.03, hx - 0.18, hz + 0.01)                   # across the centre line, arm bent about 90
-    h_thru = (-0.05, hx - 0.30, hz - 0.01)                 # carries on through the line (kept inside reach: the arm stays bent)
+    # D-147 rebuild (owner: "that is not a counter attack"). The hook read as a
+    # plain punch thrown from the guard: nothing showed that an attack had been
+    # caught. Now it is a parry and a counter in one beat:
+    #   f0-2  PARRY + SLIP: the lead hand sweeps out and forward, palm out,
+    #         knocking the incoming strike past his head, while he drops 9 cm
+    #         and slips his head forward and off the line (side lean);
+    #   f3-4  COUNTER: from under the attack he drives up through the legs, the
+    #         hips and chest turn in and the rear fist rises as a short
+    #         uppercut up the middle to the chin, elbow under the fist;
+    #   the parrying hand stays out over the attacker's arm through the hit
+    #   (it is still controlling it), then both hands come home.
+    # The rear uppercut is distinct from the cross (straight) and the rising
+    # uppercut (lead hand, both feet leave the floor). Same frame data.
+    # (a parry out to the side is invisible in the game's side view: it goes UP and
+    # forward, the forearm deflecting the blow over his head)
+    lh_out = (0.14, L[1] + 0.17, head_z + 0.12)            # the parry: up and forward, above his head
+    lh_ctl = (0.13, L[1] + 0.06, head_z + 0.08)            # held up over the caught arm, elbow bent, through the counter
+    up_hit = (0.0, hx - 0.27, hz + 0.12)                   # the uppercut: fist up at chin height, forearm vertical, inside reach
     out["FOLLOWUP"] = dict(_recover=1.35, _hold=1, _lag=LAG, **head(a0, a1, T, 8.0), **{
-        "rear_palm": "auto", "lead_palm": "auto",
-        "hips": [(0, (hips0 - 0.05, 0)), (a0 - 2, (hips0 + 0.02, 0)), (a0, (hips0 + 0.09, 0), "in"), (a1, (hips0 + 0.09, 0)),
+        "rear_palm": "auto", "lead_palm": "out",
+        "hips": [(0, (hips0 - 0.05, 0)), (2, (hips0 + 0.03, 0), "out"), (a0, (hips0 + 0.10, 0), "in"), (a1, (hips0 + 0.10, 0)),
                  (a1 + 8, (hips0 - 0.01, 0), "out"), (T - 3, (hips0, 0))],
-        "pelvis_h": [(0, low(0.045)), (a0 - 2, low(0.06)), (a0, low(0.04)), (a1, low(0.04)), (a1 + 6, ph0 + 0.004, "out")] + settle(T, a1 + 10, ph0),
-        # load onto the lead side (more side-on), then turn in hard behind the hook
-        "pelvis": [(0, pel(8)), (a0 - 3, pel(16), "io"), (a0, pel(-26), "in"), (a1, pel(-30)), (a1 + 8, pel(2), "out"), (T - 3, pel0)],
-        "shoulders": [(0, sho(12)), (a0 - 3, sho(26), "io"), (a0, sho(-34), "in"), (a1, sho(-38)), (a1 + 8, sho(4), "out"), (T - 3, sh0)],
-        "curl": [(0, -3.0), (a0 - 3, -6.0), (a0, 9.0, "in"), (a1, 8.0), (a1 + 8, -1.0, "out"), (T - 3, 0.0)],
-        "trunk": [(0, lean(-3)), (a0 - 3, lean(-1, -6)), (a0, lean(7, 10), "in"), (a1, lean(7, 9)), (a1 + 8, lean(-1)), (T - 3, tr0)],
-        "lead_heel": [(0, 0.0), (a0 - 3, 0.0), (a0, 0.07, "in"), (a1, 0.07), (a1 + 6, 0.0)],
-        "lead_toe": [(0, base["lead_toe"]), (a0 - 3, base["lead_toe"]), (a0, base["lead_toe"] + 45, "in"), (a1, base["lead_toe"] + 45), (a1 + 8, base["lead_toe"])],
-        "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (a0 - 3, (0.22, L[1] - 0.10, L[2] - 0.01), "io"), (a0 - 2, h_wide, "out"),
-                          (a0, (h_hit[0] + 0.07, h_hit[1] + 0.02, h_hit[2]), "in"), (a0 + 1, h_hit), (a1, h_thru),
-                          (a1 + 2, (L[0] + 0.02, L[1] + 0.05, L[2] + 0.02), "out"), (a1 + 5, (L[0], L[1] - 0.03, L[2] + 0.02)), (T - 3, L)],
-        "lead_elbow": [(0, 0.2), (a0 - 2, 0.7), (a0, 0.95), (a1, 0.95), (a1 + 3, 0.3), (T - 3, 0.2)],     # elbow up and out: the hook's level forearm
-        "rear_hand_abs": [(0, (R[0] - 0.02, R[1] - 0.04, R[2])), (a0, (R[0] - 0.02, R[1] + 0.02, R[2] + 0.02), "in"),
-                          (a1 + 4, (R[0] - 0.02, R[1] + 0.02, R[2] + 0.02)), (T - 3, R)],
+        # down under the attack, then up through it
+        "pelvis_h": [(0, low(0.045)), (2, low(0.13), "out"), (a0, low(0.0), "in"), (a1, ph0 + 0.01)] + settle(T, a1 + 9, ph0, 0.015),
+        "pelvis": [(0, pel(8)), (2, pel(15), "out"), (a0, pel(-30), "in"), (a1, pel(-33)), (a1 + 8, pel(2), "out"), (T - 3, pel0)],
+        "shoulders": [(0, sho(12)), (2, sho(24), "out"), (a0, sho(-36), "in"), (a0 + 1, sho(-34)), (a1, sho(-33)), (a1 + 8, sho(5), "out"), (T - 3, sh0)],
+        "curl": [(0, -3.0), (2, 10.0, "out"), (a0, 4.0, "in"), (a1, 3.0), (a1 + 8, -1.0, "out"), (T - 3, 0.0)],
+        # the slip: forward and to the side, head off the line; up and back through the hit
+        "trunk": [(0, lean(-3)), (2, lean(12, 9), "out"), (a0, lean(2, -3), "in"), (a1, lean(1, -2)), (a1 + 8, lean(-1)), (T - 3, tr0)],
+        "rear_heel": [(0, 0.03), (1, 0.02), (a0, 0.10, "io"), (a1, 0.10), (a1 + 8, 0.03)],
+        "rear_toe": [(0, base["rear_toe"]), (1, base["rear_toe"]), (a0, -10.0, "io"), (a1, -10.0), (a1 + 8, base["rear_toe"])],
+        "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (1, (0.14, L[1] + 0.05, L[2] + 0.04), "out"), (2, lh_out, "out"),
+                          (a0, lh_ctl), (a1, (lh_ctl[0] - 0.01, lh_ctl[1] - 0.01, lh_ctl[2] - 0.01)),
+                          (a1 + 3, (L[0] + 0.06, L[1] + 0.02, L[2] + 0.02), "io"), (a1 + 7, L), (T - 3, L)],
+        "lead_elbow": [(0, 0.2), (2, 0.7), (a1, 0.7), (a1 + 5, 0.2)],
+        "rear_hand_abs": [(0, R), (2, (R[0] + 0.02, R[1] - 0.02, R[2] - 0.32), "out"),           # loaded low by the dip
+                          (a0 - 1, (0.02, R[1] + 0.10, hz - 0.30), "in"), (a0, (up_hit[0], up_hit[1], up_hit[2] - 0.03), "in"), (a0 + 1, up_hit),
+                          (a1, (up_hit[0], up_hit[1] - 0.01, up_hit[2] + 0.02)),
+                          (a1 + 2, (R[0], R[1] + 0.04, R[2] + 0.10), "out"), (a1 + 5, (R[0], R[1] - 0.02, R[2] + 0.01)), (T - 3, R)],
+        "rear_elbow": [(0, 0.1), (2, 0.0), (a1, 0.0), (a1 + 5, 0.1)],
     })
 
     # Front Kick (Kick). D-138, owner, three times about the Kick button ("leans
@@ -2798,8 +2812,17 @@ def kairo_keys(moves, base, g, S):
             # back over the shoulder within a neck's reach (it was turned 130 deg)
             # D-143 (critique: "the spine snaps on the way out, no deceleration"): the
             # unwind is spread over 14 frames and slows into the stance ("out")
-            "shoulders": [(0, sh0), (2, sh0 - 8.0, "io"), (7, 115.0, "in"), (a0 - 3, 132.0), (a1, 130.0), (a1 + 5, 118.0), (a1 + 10, 78.0), (a1 + 14, sh0, "out")],
-            "pelvis": [(0, pel0), (3, pel0 - 4.0, "io"), (9, 150.0, "in"), (a0 - 2, sp_back), (a1, sp_back), (a1 + 5, 145.0), (a1 + 10, 92.0), (a1 + 14, pel0, "out")],
+            # D-147 (owner: "his lower body rotates but his upper body stays the same").
+            # Measured: the chest turned 95 deg against the pelvis's 121 and stopped at 133,
+            # which from the side camera looks the same as the stance (both show the chest
+            # three-quarters to the camera). Now the shoulders and head LEAD the spin and go
+            # all the way round: a wind-up the other way, then they whip to 175 by frame 9
+            # (ahead of the hips), the hips follow to 172; at the kick his back is to the
+            # opponent and the camera sees his chest in profile. The arms swing out with the
+            # turn (below) so the rotation reads.
+            "shoulders": [(0, sh0), (3, sh0 - 14.0, "io"), (6, 95.0, "in"), (9, 172.0, "out"), (a0 - 3, 178.0), (a0, 172.0), (a1, 170.0),
+                          (a1 + 5, 160.0), (a1 + 10, 95.0), (a1 + 14, sh0, "out")],
+            "pelvis": [(0, pel0), (3, pel0 - 6.0, "io"), (8, 118.0, "in"), (10, 165.0, "out"), (a0 - 2, 172.0), (a1, 172.0), (a1 + 5, 155.0), (a1 + 10, 95.0), (a1 + 14, pel0, "out")],
             # D-143 (critique: "it rotates evenly on both feet, as on a turntable"): the
             # weight goes onto the lead foot first and the rear foot drives off the
             # floor on its ball (heel up, then gone by frame 5), so the turn is one
@@ -2831,7 +2854,11 @@ def kairo_keys(moves, base, g, S):
                               (a1 + 2, (FR[0] * 0.15, hx + 0.20, hz + 0.20, -0.8)), (a1 + 4, (FR[0] * 0.2, hx - 0.15, hz - 0.02, -0.6)), (a1 + 6, (FR[0] * 0.2, 0.30, 0.80, -0.55)), (a1 + 7, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
                               (a1 + 11, (FR[0] * 0.95, FR[1] * 0.95, FR[2] + 0.04, 0.0)), (a1 + 12, FR + (0.0,), "in")],
             # guard tight to the body through the spin; the arms stay in
+            # D-147: the lead arm swings out with the whip of the turn (it was tucked and still,
+            # so nothing above the hips showed the spin), then comes back to the guard for the kick
             "lead_hand": [(0, base["lead_hand"]), (5, (base["lead_hand"][0], base["lead_hand"][1] - 0.10, base["lead_hand"][2] + 0.02)),
+                          (8, (base["lead_hand"][0] + 0.16, base["lead_hand"][1] - 0.16, base["lead_hand"][2] - 0.06), "out"),
+                          (a0 - 2, (base["lead_hand"][0], base["lead_hand"][1] - 0.10, base["lead_hand"][2] + 0.02), "io"),
                           (a1 + 6, (base["lead_hand"][0], base["lead_hand"][1] - 0.10, base["lead_hand"][2] + 0.02)), (a1 + 12, base["lead_hand"])],
             # the rear fist leaves the chest as he turns (it sank into the armoured trunk
             # with his back to the opponent) and is held out to his side for balance
