@@ -2622,7 +2622,8 @@ def kairo_keys(moves, base, g, S):
         "curl": [(0, 6.0), (3, 8.0), (a0 - 2, 12.0), (a0, -5.0, "in"), (a1, -4.0), (a1 + 5, 6.0), (T - 3, 0.0)],
         "hips_x": [(0, 0.0), (4, 0.04), (a0, 0.06), (a1, 0.06), (a1 + 7, 0.0)],
         "rear_toe": [(0, base["rear_toe"]), (5, 0.0), (a1 + 7, 0.0), (a1 + 10, base["rear_toe"])],
-        "hips": [(0, (hips0 + 0.02, 0)), (3, (hips0 + 0.06, 0), "io"), (a0 - 2, (hips0 + 0.10, 0)), (a0, (hips0 + 0.12, 0), "in"),
+        # D-144 (audit: the hips were 16 cm behind the standing ankle at the hit)
+        "hips": [(0, (hips0 + 0.02, 0)), (3, (hips0 + 0.10, 0), "io"), (a0 - 2, (hips0 + 0.20, 0)), (a0, (hips0 + 0.24, 0), "out"),
                  (a1, (hips0 + 0.13, 0)), (a1 + 4, (hips0 + 0.07, 0), "out"), (T - 3, (hips0, 0))],
         # up out of the crouch: the legs drive him up through the chamber, tall on the standing leg at the kick
         "pelvis_h": [(0, cr_h), (2, cr_h + 0.02, "io"), (5, ph0 - 0.06, "out"), (a0 - 1, ph0 + 0.02), (a0, ph0 + 0.04, "in"), (a1, ph0 + 0.035),
@@ -2630,10 +2631,11 @@ def kairo_keys(moves, base, g, S):
         # D-142 ("his upper body does not move with the kick"): the rear hip drives the
         # kick and the chest counter-turns, opens and leans back about 14 deg; the
         # kicking side's arm swings down and back past the hip, the lead fist stays up
-        "pelvis": [(0, pel0), (3, pel(-8)), (a0 - 2, pel(-22)), (a0, pel(-40), "in"), (a1, pel(-39)), (a1 + 6, pel(-12), "out"), (T - 3, pel0)],
-        "shoulders": [(0, sh0), (3, sho(-2)), (a0 - 2, sho(-6)), (a0, sho(-8), "in"), (a1, sho(-8)), (a1 + 6, sho(-2), "out"), (T - 3, sh0)],
+        "pelvis": [(0, pel0), (3, pel(-8)), (a0 - 3, pel(-14)), (a0 - 1, pel(-36), "out"), (a0, pel(-40)), (a1, pel(-39)), (a1 + 6, pel(-12), "io"), (T - 3, pel0)],
+        "shoulders": [(0, sh0), (3, sho(-2)), (a0 - 2, sho(-4)), (a0, sho(-10), "out"), (a1, sho(-9)), (a1 + 6, sho(-2), "io"), (T - 3, sh0)],
         # the chest stays up: forward over the crouch, upright through the chamber, only a few degrees back at the kick
-        "trunk": [(0, cr_lean), (3, lean(6)), (a0 - 2, lean(4)), (a0, lean(-12, 5), "in"), (a1, lean(-11, 5)), (a1 + 5, lean(3), "out"), (a1 + 8, lean(1)), (T - 3, tr0)],
+        "trunk": [(0, cr_lean), (3, lean(6)), (a0 - 2, lean(4)), (a0 - 1, lean(-8, 3), "out"), (a0, lean(-13, 5)), (a1, lean(-13, 5)), (a1 + 2, lean(-15, 5)),
+                  (a1 + 5, lean(3), "io"), (a1 + 8, lean(1)), (T - 3, tr0)],
         "lead_heel": [(0, 0.0), (4, 0.02), (a0, 0.05, "in"), (a1, 0.05), (a1 + 6, 0.01), (T - 4, 0.0)],
         "rear_foot_abs": [(0, FR + (0.0,)), (2, (FR[0] * 0.8, FR[1] * 0.6, 0.18, 0.1), "io"), (4, (FR[0] * 0.5, 0.12, 0.52, -0.1)), (a0 - 2, chamber, "out"),
                           (a0 - 1, snap, "in"), (a0, out_far), (a0 + 1, out_hold), (a1, out_hold),
@@ -2707,7 +2709,9 @@ def kairo_keys(moves, base, g, S):
                           (a1 + 1, (FL[0] * 0.4, hx - 0.05, hz - 0.08, -0.7)), (a1 + 3, rec_l), (a1 + 5, (FL[0] * 0.85, 0.22, 0.42, -0.1)),
                           (a1 + 7, (FL[0], FL[1] + 0.02, FL[2] + 0.06, 0.0)), (a1 + 8, FL + (0.0,), "in")],   # recovery keys fit the frames _recover can reach
         # weight back over the rear foot, the pelvis riding over it
-        "hips": [(0, (hips0, 0)), (4, (hips0 - 0.10, 0), "io"), (a0, (hips0 - 0.15, 0), "in"), (a1, (hips0 - 0.15, 0)),    # over the standing (rear) foot (D-139: -0.08 left the weight 16 cm in front of it)
+        # D-144 (audit): the hips sit back over the standing foot through the chamber and
+        # THRUST forward into the kick a frame before the foot arrives (they moved back)
+        "hips": [(0, (hips0, 0)), (4, (hips0 - 0.12, 0), "io"), (a0 - 2, (hips0 - 0.14, 0)), (a0 - 1, (hips0 - 0.12, 0), "out"), (a0, (hips0 - 0.115, 0)), (a1, (hips0 - 0.12, 0)),
                  (a1 + 5, (hips0 - 0.06, 0)), (a1 + 9, (hips0, 0), "io")],
         "hips_x": [(0, 0.0), (4, -0.04), (a1 + 7, -0.04), (a1 + 11, 0.0)],
         "pelvis_h": [(0, ph0), (3, low(0.03), "io"), (a0 - 2, ph0 + 0.01), (a0, ph0 + 0.025, "in"), (a1, ph0 + 0.02)] + settle(T, a1 + 10, ph0, 0.015),
@@ -2718,10 +2722,16 @@ def kairo_keys(moves, base, g, S):
         # she rejected on the old low kick), the kicking side's arm swings down and
         # back past the hip to balance, the rear fist tucks at the chin. Recovery:
         # the chest comes forward again as the leg folds back.
-        "pelvis": [(0, pel0), (4, pel(6)), (a0, pel(16), "in"), (a1, pel(15)), (a1 + 5, pel(6), "out"), (a1 + 9, pel0)],
-        "shoulders": [(0, sh0), (4, sho(8)), (a0, sho(-10), "in"), (a1, sho(-9)), (a1 + 5, sho(-2), "out"), (a1 + 9, sh0)],
+        # D-144 (audit: the hip and chest turned fastest ON the contact frame, after the
+        # foot: the leg led the body). Now the hip drives first (fastest a0-2..a0-1),
+        # the chest answers a frame later, the foot arrives last.
+        "pelvis": [(0, pel0), (4, pel(4)), (a0 - 3, pel(2)), (a0 - 1, pel(18), "out"), (a0, pel(20)), (a1, pel(19)), (a1 + 5, pel(6), "io"), (a1 + 9, pel0)],
+        "shoulders": [(0, sh0), (4, sho(8)), (a0 - 2, sho(6)), (a0, sho(-12), "out"), (a1, sho(-11)), (a1 + 5, sho(-2), "io"), (a1 + 9, sh0)],
         # chest upright: a touch forward as the knee comes up, a few degrees back at the kick
-        "trunk": [(0, tr0), (4, lean(5)), (a0 - 2, lean(4)), (a0, lean(-12, -5), "in"), (a1, lean(-11, -5)), (a1 + 4, lean(3)), (a1 + 7, lean(1)), (a1 + 10, tr0)],
+        # leaning away from the chest-high leg 16 deg; after the hold the body gives back a
+        # little further (the rebound of the contact), then comes forward to the stance
+        "trunk": [(0, tr0), (4, lean(5)), (a0 - 2, lean(4)), (a0 - 1, lean(-8, -3), "out"), (a0, lean(-13, -5)), (a1, lean(-13, -5)), (a1 + 2, lean(-15, -5)),
+                  (a1 + 5, lean(2), "io"), (a1 + 8, lean(1)), (a1 + 10, tr0)],
         "curl": [(0, 0.0), (4, 9.0), (a0 - 2, 12.0), (a0, -5.0, "in"), (a1, -4.0), (a1 + 4, 6.0), (a1 + 9, 0.0)],
         "rear_heel": [(0, 0.012), (3, 0.0), (a1 + 8, 0.0), (a1 + 11, 0.012)],
         # the guard stays up and rides with the chest; the kicking side's fist drops a little to balance
@@ -2748,6 +2758,16 @@ def kairo_keys(moves, base, g, S):
         sp_ch = (FR[0] * 0.2, 0.05, 0.62, -0.5)            # knee up, heel pulled to the seat
         sp_far = (FR[0] * 0.1, hx + 0.55, hz + 0.45, -0.95)  # beyond reach toward the opponent: the leg locks, heel first, chest height
         sp_hold = (FR[0] * 0.1, hx + 0.57, hz + 0.43, -0.95)
+        spin_toe = [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "in"), (a1 + 5, base["lead_toe"] + 145.0),
+                    (a1 + 14, base["lead_toe"], "out")]
+        ball_d = 0.13                                       # ankle to the ball of the foot, in stance-mark units
+
+        def ball_kept(yaw):
+            y0 = math.radians(base["lead_toe"])
+            y1 = math.radians(yaw)
+            return (lf0[0] + ball_d * (math.sin(y0) - math.sin(y1)), lf0[1] + ball_d * (math.cos(y0) - math.cos(y1)))
+        # sample the toe track every frame and key the matching mark, so both follow one curve
+        spin_mark = [(k, ball_kept(curve(k, spin_toe))) for k in range(0, a1 + 15)]
         out["FORWARD_HEAVY"] = dict(_recover=1.25, _hold=3, _lag=LAG, _impact=0.5, **head(a0, a1, T, 4.0), **{
             "lead_palm": "auto", "rear_palm": "auto",
             "_feet_abs": (0, T - 1),
@@ -2765,10 +2785,13 @@ def kairo_keys(moves, base, g, S):
             "hips_x": [(0, 0.0), (3, 0.06, "io"), (a1 + 6, 0.06), (a1 + 13, 0.0)],
             "rear_heel": [(0, base.get("rear_heel", 0.012)), (2, 0.07, "io"), (4, 0.09), (a1 + 11, 0.05), (a1 + 14, base.get("rear_heel", 0.012))],
             # the lead foot turns on its ball (heel out), stays planted
-            "lead_toe": [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "in"), (a1 + 5, base["lead_toe"] + 145.0),
-                         (a1 + 14, base["lead_toe"], "out")],
+            "lead_toe": spin_toe,
+            # D-144 (audit: the lead foot slid 41 cm while it pivoted): the solver turns the
+            # foot about the ankle, so the ball swung round on an arc. The ankle mark now
+            # moves against the turn so the ball of the foot stays on its spot.
+            "lead_foot": spin_mark,
             "lead_heel": [(0, 0.0), (3, 0.04), (9, 0.05), (a0, 0.03), (a1 + 6, 0.03), (a1 + 13, 0.0)],
-            "hips": [(0, (hips0, 0)), (4, (hips0 + 0.06, 0)), (a0 - 2, (hips0 + 0.12, 0)), (a0, (hips0 + 0.16, 0), "in"), (a1, (hips0 + 0.16, 0)), (a1 + 8, (hips0 + 0.08, 0)), (a1 + 12, (hips0, 0), "io")],   # over the standing (lead) foot
+            "hips": [(0, (hips0, 0)), (4, (hips0 + 0.10, 0)), (9, (hips0 + 0.22, 0)), (a0 - 2, (hips0 + 0.36, 0)), (a0, (hips0 + 0.50, 0), "in"), (a1, (hips0 + 0.50, 0)), (a1 + 8, (hips0 + 0.26, 0)), (a1 + 13, (hips0, 0), "io")],   # over the standing (lead) foot, whose ankle the pivot carries 26 cm forward (D-144)
             "pelvis_h": [(0, ph0), (3, low(0.05), "io"), (9, low(0.03)), (a0, ph0 + 0.01, "in"), (a1, ph0 + 0.01)] + settle(T, a1 + 12, ph0, 0.015),
             # leaning away from the kick (body frame: forward, since his back faces the opponent)
             # the trunk channel is measured toward the opponent: negative = away from the kick
@@ -2776,7 +2799,7 @@ def kairo_keys(moves, base, g, S):
             "curl": [(0, 0.0), (5, 6.0), (a0 - 2, 10.0), (a0, 2.0, "in"), (a1, 2.0), (a1 + 6, 6.0), (a1 + 12, 0.0)],
             "rear_hinge": [(0, 0.0), (6, 1.0), (a1 + 8, 1.0), (a1 + 12, 0.0)],
             "rear_toe": [(0, base["rear_toe"]), (6, 0.0), (a1 + 8, 0.0), (a1 + 12, base["rear_toe"])],
-            "rear_foot_abs": [(0, FR + (0.0,)), (3, FR + (0.0,)), (5, (FR[0] * 0.9, FR[1] * 0.85, FR[2] + 0.08, 0.4), "in"), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 4, sp_ch, "out"), (a0 - 3, sp_ch),
+            "rear_foot_abs": [(0, FR + (0.0,)), (3, FR + (0.0,)), (5, (FR[0] * 0.9, FR[1] * 0.85, FR[2] + 0.08, 0.4), "in"), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 4, (FR[0] * 0.35, 0.10, 0.50, -0.3)), (a0 - 3, sp_ch, "out"),
                               (a0 - 2, (FR[0] * 0.16, 0.28, 0.84, -0.7), "in"), (a0 - 1, (FR[0] * 0.12, 0.56, 1.00, -0.85)), (a0, sp_far), (a0 + 1, sp_hold), (a1, sp_hold),
                               (a1 + 2, (FR[0] * 0.15, hx + 0.20, hz + 0.20, -0.8)), (a1 + 4, (FR[0] * 0.2, hx - 0.15, hz - 0.02, -0.6)), (a1 + 6, (FR[0] * 0.2, 0.30, 0.80, -0.55)), (a1 + 7, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
                               (a1 + 11, (FR[0] * 0.95, FR[1] * 0.95, FR[2] + 0.04, 0.0)), (a1 + 12, FR + (0.0,), "in")],

@@ -2976,3 +2976,48 @@ Checked: no new build flags; strips of the spin, launch, kip-up; world foot
 motion of the uppercut (no planted frame moves). Tests: 223 passed, 0 failed
 (full run on the final build). Not verified on a phone; video checked frame
 by frame, not watched.
+
+## D-144 — 2026-11-28 — "Fighting animation quality rebuild" brief: audit of every attack, then the kicks' mechanics
+
+**Owner:** a brief to audit first, explain the failures, rebuild the
+mechanics (anticipation, hip-led acceleration, contact, follow-through,
+recovery), test in gameplay and report.
+
+**Audit** (`weight_report.py` on all 12 keyed attacks, every frame on the game
+model; `/root/work/audit.txt` on the build machine):
+- Punches and specials pass the mechanics checks: hips turn first, chest next,
+  fist last on the cross, one-two, uppercut, fireball; weight moves 0.42 ->
+  0.56-0.63 toward the lead foot at the hit; body recoil after contact
+  20-32 cm; feet hold within 2 cm (cross: 6 cm over 14 frames).
+- **The kicks failed the chain:** on the Front Kick and Rising Front Kick the
+  hip and chest turned fastest ON the contact frame, after or with the foot:
+  the leg led and the body followed (the owner's "mannequin"). Rising Front
+  Kick: hips 16 cm behind the standing ankle. Spinning Back Kick: hips 12 cm
+  behind the standing ankle, and the pivot foot slid 41.5 cm (the solver turns
+  a foot about its ankle, so the ball swung round on an arc).
+- Smaller: the back is a near-rod (1-7 deg) on the jab, counter, kicks; forearms
+  near-parallel on the jab (6 deg), spin kick (11).
+
+**Changed:**
+- Front Kick and Rising Front Kick: the hip drives first (fastest 2 frames
+  before contact), the chest answers a frame later, the foot arrives last;
+  the hips thrust into the kick from over the standing foot; the trunk leans
+  away 16 deg and gives back a little more after the hold before coming
+  forward. Measured: chain OK on both (pelvis f7, chest f8, foot f8-9), weight
+  over the standing ankle (+9 / -4 cm).
+- Spinning Back Kick: the standing foot's mark moves against the turn so the
+  ball stays put (slide 41.5 -> 11 cm over 33 frames, 1.8 cm at most); hips
+  over the standing ankle (-1 cm); chamber spread over two more frames. The
+  chest leads the hips here on purpose (a spin is led by the head and
+  shoulders).
+
+**Tested in gameplay** (training scene, movie writer, P1 scripted inputs vs
+the standing dummy): Kick, down + Heavy, forward + Heavy and Light + Kick all
+start the intended move and hit; the uppercut whiffs a standing opponent (an
+anti-air, as designed). Tests: 223 passed, 0 failed.
+
+**Still to do:** the kicks' "line" from kicking foot through hips to head stays
+bent ~104 deg (a straight line needs a 40+ deg lean the owner rejected);
+spinal flex on the jab, counter and kicks; the jab's parallel forearms;
+crumple / wall bounce; intro / taunt / win / lose; hair and sash bones.
+Not verified on a phone; videos checked frame by frame, not watched.
