@@ -2674,10 +2674,15 @@ def kairo_keys(moves, base, g, S):
     # out and the rear fist stays at the chin. The silhouette is a bent arm
     # across the face, not a straight one.
     a0, a1, T, hx, hz = win(moves["FOLLOWUP"])
-    h_wide = (0.36, hx - 0.30, hz - 0.02)                  # the fist starts out wide on his lead side
-    h_hit = (0.04, hx - 0.06, hz + 0.01)                   # across the centre line, arm bent about 90
-    h_thru = (-0.06, hx - 0.10, hz)                        # carries on through a little
-    out["FOLLOWUP"] = dict(_recover=1.5, **head(a0, a1, T, 8.0), **{
+    # D-145 (measured: the fist jumped 38 cm in one frame into the wind-up, the arm
+    # was straight at the hit (16 deg bent, a swing, not a hook) and stayed locked
+    # and still for 8 frames). Now the wind-up is spread over two frames, the fist
+    # lands 18 cm nearer (inside reach: the elbow stays bent ~90, the forearm level),
+    # it carries on through the line and is pulled home without the long hold.
+    h_wide = (0.32, hx - 0.38, hz - 0.03)                  # the fist starts out wide on his lead side
+    h_hit = (0.03, hx - 0.18, hz + 0.01)                   # across the centre line, arm bent about 90
+    h_thru = (-0.05, hx - 0.30, hz - 0.01)                 # carries on through the line (kept inside reach: the arm stays bent)
+    out["FOLLOWUP"] = dict(_recover=1.35, _hold=1, _lag=LAG, **head(a0, a1, T, 8.0), **{
         "rear_palm": "auto", "lead_palm": "auto",
         "hips": [(0, (hips0 - 0.05, 0)), (a0 - 2, (hips0 + 0.02, 0)), (a0, (hips0 + 0.09, 0), "in"), (a1, (hips0 + 0.09, 0)),
                  (a1 + 8, (hips0 - 0.01, 0), "out"), (T - 3, (hips0, 0))],
@@ -2689,10 +2694,10 @@ def kairo_keys(moves, base, g, S):
         "trunk": [(0, lean(-3)), (a0 - 3, lean(-1, -6)), (a0, lean(7, 10), "in"), (a1, lean(7, 9)), (a1 + 8, lean(-1)), (T - 3, tr0)],
         "lead_heel": [(0, 0.0), (a0 - 3, 0.0), (a0, 0.07, "in"), (a1, 0.07), (a1 + 6, 0.0)],
         "lead_toe": [(0, base["lead_toe"]), (a0 - 3, base["lead_toe"]), (a0, base["lead_toe"] + 45, "in"), (a1, base["lead_toe"] + 45), (a1 + 8, base["lead_toe"])],
-        "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (a0 - 3, h_wide, "io"),
-                          (a0, (h_hit[0] + 0.06, h_hit[1], h_hit[2]), "in"), (a0 + 1, h_hit), (a1, h_thru),
-                          (a1 + 5, (L[0] + 0.05, L[1] - 0.02, L[2] + 0.02), "out"), (T - 3, L)],
-        "lead_elbow": [(0, 0.2), (a0 - 3, 0.7), (a0, 0.95), (a1, 0.9), (a1 + 6, 0.2)],     # elbow up and out: the hook's level forearm
+        "lead_hand_abs": [(0, (L[0] - 0.06, L[1] - 0.08, L[2] + 0.06)), (a0 - 3, (0.22, L[1] - 0.10, L[2] - 0.01), "io"), (a0 - 2, h_wide, "out"),
+                          (a0, (h_hit[0] + 0.07, h_hit[1] + 0.02, h_hit[2]), "in"), (a0 + 1, h_hit), (a1, h_thru),
+                          (a1 + 2, (L[0] + 0.02, L[1] + 0.05, L[2] + 0.02), "out"), (a1 + 5, (L[0], L[1] - 0.03, L[2] + 0.02)), (T - 3, L)],
+        "lead_elbow": [(0, 0.2), (a0 - 2, 0.7), (a0, 0.95), (a1, 0.95), (a1 + 3, 0.3), (T - 3, 0.2)],     # elbow up and out: the hook's level forearm
         "rear_hand_abs": [(0, (R[0] - 0.02, R[1] - 0.04, R[2])), (a0, (R[0] - 0.02, R[1] + 0.02, R[2] + 0.02), "in"),
                           (a1 + 4, (R[0] - 0.02, R[1] + 0.02, R[2] + 0.02)), (T - 3, R)],
     })

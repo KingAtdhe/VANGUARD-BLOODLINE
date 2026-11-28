@@ -3083,3 +3083,31 @@ not watched. Not verified on a phone.
 one-two/counter hook/uppercut chains, kicks' spine flex and silhouettes,
 specials/throw/ultimate choreography, walk-start foot drag in the walk clip,
 crumple / wall bounce, intro/taunt/win/lose, hair and sash bones.
+
+## D-146 — 2026-11-28 — Counter hook rebuilt; foot lock steps when the leg cannot reach
+
+**Owner:** "Continue" (the D-145 rebuild).
+
+**Counter strike (lead hook)**, measured first: the fist jumped 38 cm in one
+frame into the wind-up, the arm was straight at the hit (~16 deg bent: a swing,
+not a hook) and then stayed locked and nearly still for 8 frames. Now the
+wind-up is spread over two frames (24, 17 cm), the fist lands 18 cm nearer,
+inside reach, so the elbow stays bent (~54 deg at contact, it no longer locks
+out on the follow-through), it carries through the centre line and goes home
+without the long hold (`_hold=1`, `_recover` 1.5 -> 1.35, hands one frame
+behind the hips). Frame strip in the side view checked: the hook reads as a
+bent arm across the face; the wind-up is mostly hidden in this view.
+
+**Foot lock:** a locked foot that the leg can no longer reach (the body walked
+past it) used to be stretched to full length and dragged 4–5 cm a frame for 5
+frames at every walk start. It now releases as a catch-up step, and the step
+lifts at once (sqrt-sine arc, 6 cm) so the catch-up travels in the air.
+Gameplay audit: 50 -> 29 slide frames; the walk start is down to one frame.
+What is left: the single touchdown frame of each walk step (the foot arriving
+with forward speed), the spin kick's pivot foot (7–8 cm: the keyed pivot moves
+the ball of the foot — a keyframe fix), the ultimate's travel steps, and the sweep
+(the sweeping leg is the strike).
+
+**Checked:** tests 223/223 (finished, exit 0); build flags unchanged (no new
+flags); motion report; before/after video, checked frame by frame, not
+watched. Not verified on a phone.

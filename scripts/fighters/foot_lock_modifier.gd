@@ -26,7 +26,7 @@ const LIFT_Y: float = 0.042          # and released above this (hysteresis): a k
 ## so the body re-plants it the way a fighter would, instead of dragging it
 ## along the floor (a slide) or letting it snap (19 cm in one frame, audit).
 const MAX_OFFSET: float = 0.08
-const STEP_LIFT: float = 0.045
+const STEP_LIFT: float = 0.06
 const RELEASE_TIME: float = 0.09
 const ENGAGE_TIME: float = 0.012      # a foot that touches down stops at once (contact), it does not ease in
 ## The animated ball moving faster than this along the floor (world space,
@@ -102,7 +102,12 @@ func _process_modification_with_delta(delta: float) -> void:
 		if leg["locked"]:
 			var spot: Vector3 = leg["spot"]
 			want = Vector3(spot.x - ball_w.x, 0.0, spot.z - ball_w.z)
-			if want.length() > MAX_OFFSET:
+			# a leg that cannot reach the locked spot any more (the body walked on
+			# past it) would be stretched to its full length and the foot dragged:
+			# it steps instead (D-145, walk start: 4-5 cm a frame for 5 frames)
+			var ankle_t: Vector3 = g_foot.origin + to_skel.basis * want
+			var reach: float = (float(leg["l1"]) + float(leg["l2"])) * 0.985
+			if want.length() > MAX_OFFSET or (ankle_t - g_up.origin).length() > reach:
 				leg["locked"] = false
 				leg["step"] = true          # catch up in the air, not along the floor
 				want = want.normalized() * MAX_OFFSET
@@ -118,7 +123,7 @@ func _process_modification_with_delta(delta: float) -> void:
 		var off: Vector3 = (want if leg["locked"] else leg.get("last", Vector3.ZERO)) * float(leg["w"])
 		if not leg["locked"] and leg.get("step", false):
 			# 0 -> lift -> 0 over the catch-up: w runs 1 -> 0
-			off.y += STEP_LIFT * sin(PI * (1.0 - float(leg["w"])))
+			off.y += STEP_LIFT * sqrt(sin(PI * (1.0 - float(leg["w"]))))   # up at once, down at the end: the catch-up travels in the air
 		if off.length_squared() < 1e-8:
 			continue
 		# the ankle moves with the ball (the foot keeps its animated orientation)
