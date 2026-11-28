@@ -2790,7 +2790,7 @@ def kairo_keys(moves, base, g, S):
             return (lf0[0] + ball_d * (math.sin(y0) - math.sin(y1)), lf0[1] + ball_d * (math.cos(y0) - math.cos(y1)))
         # sample the toe track every frame and key the matching mark, so both follow one curve
         spin_mark = [(k, ball_kept(curve(k, spin_toe))) for k in range(0, a1 + 15)]
-        out["FORWARD_HEAVY"] = dict(_recover=1.25, _hold=3, _lag=LAG, _impact=0.5, **head(a0, a1, T, 4.0), **{
+        out["FORWARD_HEAVY"] = dict(_recover=1.25, _hold=3, _lag=LAG, _impact=0.5, _air=(5, 9), **head(a0, a1, T, 4.0), **{   # D-146 _air: the skip-step is not grounded away
             "lead_palm": "auto", "rear_palm": "auto",
             "_feet_abs": (0, T - 1),
             # the spin: shoulders first, hips a few frames behind, held while the leg is out
@@ -2812,6 +2812,11 @@ def kairo_keys(moves, base, g, S):
             # foot about the ankle, so the ball swung round on an arc. The ankle mark now
             # moves against the turn so the ball of the foot stays on its spot.
             "lead_foot": spin_mark,
+            # D-146 (measured on the game model: the ball of the pivot foot travelled 22 cm
+            # along the floor, 2.5 cm up, on frames 6-10 as the body turned over it: a slide).
+            # It is now a skip-step: the foot leaves the floor as the turn starts and lands
+            # on its new spot as the back comes round, the way a spinning back kick steps in.
+            "lead_hop": [(0, 0.0), (4, 0.0), (6, 0.05, "out"), (8, 0.055), (10, 0.0, "in")],
             "lead_heel": [(0, 0.0), (3, 0.04), (9, 0.05), (a0, 0.03), (a1 + 6, 0.03), (a1 + 13, 0.0)],
             "hips": [(0, (hips0, 0)), (4, (hips0 + 0.10, 0)), (9, (hips0 + 0.22, 0)), (a0 - 2, (hips0 + 0.36, 0)), (a0, (hips0 + 0.50, 0), "in"), (a1, (hips0 + 0.50, 0)), (a1 + 8, (hips0 + 0.26, 0)), (a1 + 13, (hips0, 0), "io")],   # over the standing (lead) foot, whose ankle the pivot carries 26 cm forward (D-144)
             "pelvis_h": [(0, ph0), (3, low(0.05), "io"), (9, low(0.03)), (a0, ph0 + 0.01, "in"), (a1, ph0 + 0.01)] + settle(T, a1 + 12, ph0, 0.015),
@@ -4355,8 +4360,8 @@ def build(rig_obj, moves, fid, height, clip_dir):
                     if isinstance(trk, list) and fk_ + "_foot_abs" not in ps and not trv:
                         sp = float(np.linalg.norm(np.asarray(curve(warp(f + 1.5), trk), float)
                                                   - np.asarray(curve(warp(max(0.0, f - 1.5)), trk), float))) / 3.0
-                        if sp > 0.004:
-                            ps[fk_ + "_hop"] = min(0.05, 0.01 + 0.9 * sp)
+                        if sp > 0.004:   # a keyed hop (the spin kick's skip-step, D-146) is kept if it is higher
+                            ps[fk_ + "_hop"] = max(float(ps.get(fk_ + "_hop", 0.0)), min(0.05, 0.01 + 0.9 * sp))
                 # `_impact` (D-131): the body takes the blow. On the frames after the
                 # contact the hips and trunk carry on a little (follow-through), give
                 # back (recoil) and settle, while the striking fist or foot stays where

@@ -3111,3 +3111,22 @@ the ball of the foot — a keyframe fix), the ultimate's travel steps, and the s
 **Checked:** tests 223/223 (finished, exit 0); build flags unchanged (no new
 flags); motion report; before/after video, checked frame by frame, not
 watched. Not verified on a phone.
+
+## D-147 — 2026-11-28 — Spinning back kick: the pivot foot skip-steps instead of sliding
+
+Measured on the game model (ball of the lead foot, clip sampled frame by
+frame): on frames 6–10, as the back turns to the opponent, the ball of the
+pivot foot travelled 22 cm along the floor only 2.5 cm up — a slide (the
+D-144 ankle-mark correction did not hold it, and the runtime foot lock lets go
+of a foot the clip moves this fast). It is now a skip-step: `lead_hop` lifts
+the foot about 9 cm on frames 6–10 and it lands on its new spot as the back
+comes round (`_air=(5, 9)`, so the grounding pass does not flatten the hop).
+`keyed_frames` keeps a keyed `*_hop` when it is higher than the automatic
+travel hop (it used to overwrite it).
+
+Process note: one build in this session failed on a Python syntax error and
+`build_fighter.sh` still printed "NEW flags (0)" from the previous log; check
+for a Traceback in the build output and the .glb timestamp after every build.
+
+Checked: tests 223/223 (finished, exit 0); pivot-foot trace; frame strip;
+before/after video, checked frame by frame, not watched. Not verified on a phone.
