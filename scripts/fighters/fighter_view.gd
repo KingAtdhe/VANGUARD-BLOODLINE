@@ -46,6 +46,8 @@ var _fist_rest: Vector3
 ## Made the first time they are needed.
 var _limb_fire: Dictionary = {}       # bone name -> fire source
 var _trails: Dictionary = {}          # bone name -> StrikeTrail (D-141)
+var _foot_lock: FootLockModifier3D = null    # D-145: planted feet stay put in the world
+var _hit_react: HitReactModifier3D = null    # D-145: the struck part snaps away on the impact frame
 var _burn_fire: Array[Node3D] = []
 var _burn_left: float = 0.0
 ## Knockdown landing watch (D-102): after a knockdown or KO the hips are
@@ -94,6 +96,15 @@ func setup(def: FighterDefinition, recolor_accent: bool = true) -> void:
 	_model_root.add_child(model)
 	for n: Node in model.find_children("*", "Skeleton3D", true, false):
 		skeleton = n as Skeleton3D
+	if skeleton != null and _foot_lock == null and OS.get_environment("NO_FOOT_LOCK") == "":   # the env switch: before/after measurements
+		_foot_lock = FootLockModifier3D.new()
+		_foot_lock.name = "FootLock"
+		skeleton.add_child(_foot_lock)
+	if skeleton != null and _hit_react == null:
+		_hit_react = HitReactModifier3D.new()
+		_hit_react.name = "HitReact"
+		skeleton.add_child(_hit_react)
+		skeleton.move_child(_hit_react, 0)      # before the foot lock: modifiers run in child order
 	var ap: AnimationPlayer = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if ap != null:
 		animator = FighterAnimator.new(ap, def)
@@ -264,11 +275,22 @@ func sync(previous: FighterState, current: FighterState, alpha: float,
 	_update_flash(delta)
 	_update_fire(current, delta)
 	_update_trails(current, delta if not frozen else 0.0, delta)
+	_update_foot_lock(current)
 	_update_landing(delta)
 
 
 func flash() -> void:
 	_flash_left = FLASH_SECONDS
+
+
+## D-145: the impact recoil of a landed hit. [param damage] scales it (a jab
+## ~0.3, a heavy ~0.6, the ultimate's finisher 1); [param height] is the hit's
+## height above this fighter's floor in metres.
+func impact(damage: int, height: float, counter: bool = false) -> void:
+	if _hit_react == null:
+		return
+	var strength: float = clampf(0.18 + float(damage) / 160.0, 0.0, 1.0) * (1.35 if counter else 1.0)
+	_hit_react.impact(strength, height)
 
 
 func _update_capsule_pose(s: FighterState) -> void:
@@ -374,6 +396,22 @@ func _attach_fire(bone: String, size: float, amount: int, radius: float, offset:
 	src.position = offset
 	att.add_child(src)
 	return src
+
+
+# --- planted feet (D-145) -----------------------------------------------------
+
+## Feet lock to the floor only while he stands on it: not in the air, not
+## lying down, not while a throw holds him.
+func _update_foot_lock(s: FighterState) -> void:
+	if _foot_lock == null:
+		return
+	var grounded: bool = s.height <= 0.001 and s.launch_height() <= 0.001 and s.held_by < 0
+	match s.action:
+		FighterState.Action.JUMP, FighterState.Action.LAUNCHED, FighterState.Action.KNOCKDOWN, \
+				FighterState.Action.KO, FighterState.Action.WAKEUP:
+			grounded = false
+	_foot_lock.lock_enabled = grounded
+	_foot_lock.floor_y = global_position.y - position.y
 
 
 # --- strike trails (D-141) ----------------------------------------------------

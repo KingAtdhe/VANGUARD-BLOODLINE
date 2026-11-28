@@ -3,6 +3,8 @@
 Branch: `arena-severed-line`, last work: D-144 (2026-11-28). Read `CLAUDE.md` first (it now has a standing rule: every animation
 change goes to the owner with a real-speed review video).
 
+## Latest (2026-11-28, D-145): runtime foot lock + impact recoil modifiers (scripts/fighters/foot_lock_modifier.gd, hit_react_modifier.gd), gameplay audit tool (tools/godot/gameplay_audit.gd), jab and cross rebuilt. See DECISION_LOG D-145 for what is still to do.
+
 ## Latest (2026-11-25, D-107 … D-122) — read this first
 
 - Kairo fixes from the owner's in-game test (D-107): stance arm, face shear,

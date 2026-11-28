@@ -380,6 +380,7 @@ func _present_new_events() -> void:
 				_effects.spawn_for(ev, _attack_dir(ev), m)
 				_fighter_views[ev.target].flash()
 				_camera_rig.add_shake((0.015 + ev.damage / 2500.0) * (1.6 if ev.counter_hit else 1.0))
+				_fighter_views[ev.target].impact(ev.damage, ev.point.y, ev.counter_hit)
 				_fire_hit(m, ev)
 				if m != null and m.tags.has("ultimate"):
 					var mid: float = (simulation.fighters[0].position_x + simulation.fighters[1].position_x) * 0.5

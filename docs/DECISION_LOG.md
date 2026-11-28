@@ -3021,3 +3021,65 @@ bent ~104 deg (a straight line needs a 40+ deg lean the owner rejected);
 spinal flex on the jab, counter and kicks; the jab's parallel forearms;
 crumple / wall bounce; intro / taunt / win / lose; hair and sash bones.
 Not verified on a phone; videos checked frame by frame, not watched.
+
+## D-145 — 2026-11-28 — Runtime animation layer (foot lock, impact recoil), gameplay audit, jab and cross rebuilt
+
+**Owner:** "Follow everything carefully to detail do not skip anything, use godot
+in full capabilities, the fighting mechanics look pale against other fighting
+games … fully rebuild them."
+
+**Measured in play first** (`tools/godot/gameplay_audit.gd`: the real training
+scene, scripted inputs, P1's joints sampled every frame *after* all skeleton
+modifiers via `tools/godot/pose_probe_modifier.gd` — `get_bone_global_pose()`
+outside the modifier stack does not see modifier results). Measured on the
+ball of the foot: 135 frames of a planted foot sliding > 1.2 cm (walk start /
+stop 4–6 cm a frame for ~5 frames, every step landing, the jab 5.4 cm, the
+cross 3.5, Rift Break 3.9, the ultimate 6.3).
+
+**Godot runtime layer (presentation only; the simulation never reads it):**
+- `scripts/fighters/foot_lock_modifier.gd` (`FootLockModifier3D`, a
+  `SkeletonModifier3D`): two-bone IK per leg in the knee's own plane. A ball of
+  the foot under 3 cm locks to its world spot (instant engage), lets go above
+  4.2 cm or when the clip moves the foot faster than 3.6 m/s (a pivot), and an
+  offset past 8 cm is released as a lifted catch-up step (4.5 cm sine arc)
+  rather than a drag or a snap. Off in the air, launched, knocked down, held.
+  `NO_FOOT_LOCK=1` turns it off for before/after audits, `DEBUG_FOOT_LOCK=1`
+  traces it.
+- `scripts/fighters/hit_react_modifier.gd` (`HitReactModifier3D`): a damped
+  spring (k 420, c 18, one small overshoot, ~0.25 s) kicked on the impact
+  frame; head hits throw neck and head, body hits fold spine and chest;
+  strength from damage (jab ~0.4, heavy ~0.7, counter ×1.35). It runs through
+  the global hit-stop, so the victim visibly takes the blow on the freeze
+  instead of a few frames later when the reaction clip has blended in.
+  Called from `combat_scene.gd` on every HIT.
+
+Result (same audit script): 135 → 50 slide frames; jab 5.4 → 0.8 cm, cross
+3.5 → 0.8, crouch-down 3.0 → 0.0, Rift Break 3.9 → ~0.8–4.4 (one landing
+frame). What remains: walk start (the walk clip itself drags the lead foot on
+the floor for 5 frames — a keyframe fix), single landing frames of each step,
+the spin kick's pivot foot (keyed pivot), the sweep (the sweeping leg is the
+strike).
+
+**Jab rebuilt** (anticipation → acceleration → contact → follow-through →
+recovery): frames 2–3 a visible load (knees dip 2 cm, hip and lead shoulder
+cock back 7–9°, fist drops and draws in 5 cm); the lead foot drives and the
+hip fires on frame 4, shoulder and fist last (31 then 23 cm a frame into the
+contact), overshoot 3 cm past the target and settle onto it; rear fist
+tightens to the chin. Recovery no longer uses the default hold (2) + hand lag
+(2), which kept the arm locked out for 7 frames: it now snaps home in two
+frames (17, 15 cm), past the guard by 4 cm, and settles.
+**Cross:** the chain now starts at the floor — rear heel lifts and turns out
+from a0-5, hip fires a0-3..a0-1, chest a frame later, fist last with a 4.5 cm
+overshoot; recovery returns past the guard and settles. String cross follows.
+
+**Checked:** full tests 223/223 (run finished, exit 0); build flags — no new
+pop except the cross's lead shin moving 6.4 cm on the contact frame (the
+strike); motion_report on both clips; review video before/after (real speed,
+then half speed) and a recording of real play in the training scene (spin
+kick hit: the dummy's chest snaps back and settles) — checked frame by frame,
+not watched. Not verified on a phone.
+
+**Still to do (honest):** the rest of the brief is not done in this step —
+one-two/counter hook/uppercut chains, kicks' spine flex and silhouettes,
+specials/throw/ultimate choreography, walk-start foot drag in the walk clip,
+crumple / wall bounce, intro/taunt/win/lose, hair and sash bones.
