@@ -3158,3 +3158,55 @@ Checked: tests 223/223 (finished, exit 0); body_angles (spin) and
 motion_report (counter: no pops, both elbows bent at the hit); frame strips in
 the game's side view; before/after video checked frame by frame, not watched.
 Not verified on a phone.
+
+## D-149 — 2026-11-28 — Spinning kick rebuilt from an audit: head/neck root cause, grounded pivot, horizontal sweep
+
+**Owner's brief** ("Rebuild the spinning kick — complete animation, rig and
+deformation fix"): the kick is weak, the head fails to follow the body and the
+neck sometimes deforms; audit first, find the root cause, a grounded spinning
+back-roundhouse (not a jumping spin), test from side, front, rear and in play.
+
+**Audit** (new tools: `tools/godot/spin_audit.gd` — per-frame yaw of hips,
+chest, neck and head, neck/head twist against the chest, bone stretch;
+`tools/godot/foot_trace.gd` — the ball of each foot per frame):
+- Hierarchy is correct: Root → Hips → Spine → Chest → Neck → Head; no bone
+  stretches (neck and head lengths 1.00 of rest on every frame). No runtime
+  modifier touches the head here (HitReact only on hits; FootLock legs only);
+  no IK or competing tracks.
+- **Root cause of the head and the neck deformation:** the build sets the head
+  outright to a fixed share of the chest's turn (`pose_stance`, `head_turn` 0.25,
+  "eyes on the opponent"). Fine for punches; in the spin the chest turns
+  ~220° and the head kept a quarter of it: the head was turned **134° against
+  the chest** (a neck turns 70–80°). That is the twisted, deformed neck, and
+  it is why the head looked stuck while the body spun.
+- **Pivot foot:** the ball of the supporting foot slid 22 cm (D-144's ankle
+  correction did not hold it; D-147 hid it with a hop, which the brief forbids).
+- **Kick path:** a straight thrust (not a horizontal back-roundhouse); it
+  stayed out ~9 frames (default hold 3 + lag) — a freeze at full extension.
+
+**Fixes:**
+- Head: a keyed `head_turn` track — the head leads the spin (spotting the target
+  over the shoulder) and stays within 65° of the chest on every frame (was 134),
+  then returns to the usual quarter turn as he unwinds. Shoulders still lead
+  the hips (D-148); the pelvis follows.
+- Grounded: the D-147 hop and `_air` window are removed. The ankle mark now
+  also cancels the drift measured on the game model (hips' travel + solver),
+  per key time: the ball of the pivot foot moves ≤ 1.6 cm a frame and returns
+  to its spot (was 22 cm).
+- The kick: chamber, then the leg opens out to his left side (the way the hips
+  turn), sweeps level at chest height across to the opponent (44–57 cm a frame),
+  contact at 1.40 m, carries ~25 cm past the line (follow-through), folds back
+  through the chamber and is set down; `_hold` 3 → 1.
+- In play: the runtime foot lock lifts a planted foot that a blend drags fast
+  along the floor into a step, outside attacks only (spin → walk slid 6–9 cm
+  for 3 frames: gone). The jab's body lunge was softened (head 18.6 → 15.1 cm
+  in one frame; the old jab was 14.1).
+
+**Checked:** head–chest twist ≤ 65°, bone stretch 1.00, pivot ball ≤ 1.6 cm/frame
+(models); strips from the side, front and rear; gameplay audit of spin → jab,
+spin → idle → walk, walk → spin (no slides from the spin; jab head 15.1 cm);
+gameplay recording (the spin kick hits the dummy); tests 223/223 (finished,
+exit 0); build flags unchanged. Videos checked frame by frame, not watched.
+Not verified on a phone. Left: leg_report still notes the kicking knee 3.6°
+past straight on one frame (the beyond-reach lock), and a 44 cm rise from the
+chamber to the opening frame.

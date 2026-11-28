@@ -412,6 +412,9 @@ func _update_foot_lock(s: FighterState) -> void:
 			grounded = false
 	_foot_lock.lock_enabled = grounded
 	_foot_lock.floor_y = global_position.y - position.y
+	# D-149: on the move (walk, stance) a foot the blend drags fast along the floor is
+	# lifted into a step; inside an attack the clip's own fast foot (the sweep) is the strike
+	_foot_lock.lift_fast_feet = s.action != FighterState.Action.ATTACK
 
 
 # --- strike trails (D-141) ----------------------------------------------------

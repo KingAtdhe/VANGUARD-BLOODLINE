@@ -2564,7 +2564,9 @@ def kairo_keys(moves, base, g, S):
     # snaps home. The 3 active frames are the hold; the hand leaves one frame after the hips.
     out["LIGHT"] = dict(_recover=1.35, _hold=0, _lag=LAG, **head(a0, a1, T, 5.0), **{
         "lead_palm": "auto", "rear_palm": "auto",
-        "hips": [(0, (hips0, 0)), (2, (hips0 - 0.035, 0), "out"), (a0 - 1, (hips0 + 0.07, 0), "in"), (a0, (hips0 + 0.14, 0), "in"), (a1, (hips0 + 0.13, 0)),
+        # D-149 (gameplay audit: the head travelled 18.6 cm in one frame into the contact, a pop):
+        # the hips start forward a frame earlier and arrive softer; the fist still arrives last and fast
+        "hips": [(0, (hips0, 0)), (2, (hips0 - 0.03, 0), "out"), (a0 - 1, (hips0 + 0.075, 0), "io"), (a0, (hips0 + 0.125, 0), "out"), (a1, (hips0 + 0.12, 0)),
                  (a1 + 4, (hips0 - 0.015, 0), "out"), (T - 2, (hips0, 0))],
         "pelvis": [(0, pel0), (2, pel(-7), "out"), (a0 - 1, pel(12), "in"), (a0, pel(21)), (a1, pel(20)), (a1 + 4, pel(-3), "out"), (T - 2, pel0)],
         "shoulders": [(0, sh0), (2, sho(-9), "out"), (a0 - 1, sho(6), "in"), (a0, sho(26), "in"), (a0 + 1, sho(24)), (a1, sho(23)), (a1 + 4, sho(-4), "out"), (T - 2, sh0)],
@@ -2572,7 +2574,7 @@ def kairo_keys(moves, base, g, S):
         "lead_foot": [(0, lf0), (2, lf0), (a0, (lf0[0], lf0[1] + 0.12), "in"), (a1 + 2, (lf0[0], lf0[1] + 0.12)), (a1 + 5, lf0)],
         "rear_heel": [(0, 0.03), (2, 0.015), (a0, 0.07, "in"), (a1 + 5, 0.03)],
         "curl": [(0, 0.0), (2, -3.0, "out"), (a0, 6.0, "in"), (a1, 5.0), (a1 + 4, -1.5, "out"), (T - 2, 0.0)],
-        "trunk": [(0, tr0), (2, lean(-3), "out"), (a0, lean(7), "in"), (a1, lean(6)), (a1 + 4, lean(-1.5), "out"), (T - 2, tr0)],
+        "trunk": [(0, tr0), (2, lean(-3), "out"), (a0 - 1, lean(3.5), "io"), (a0, lean(6.5), "out"), (a1, lean(6)), (a1 + 4, lean(-1.5), "out"), (T - 2, tr0)],
         "lead_hand_abs": [(0, L), (2, (L[0] + 0.01, L[1] - 0.05, L[2] - 0.02), "out"),
                           (a0 - 1, (hit[0] + 0.03, L[1] + 0.22, hit[2] - 0.01), "in"),
                           (a0, (hit[0], hit[1] + 0.03, hit[2]), "in"), (a0 + 1, hit), (a1, (hit[0], hit[1] + 0.005, hit[2])),
@@ -2792,19 +2794,53 @@ def kairo_keys(moves, base, g, S):
             return base_ + (deg - base_)                   # absolute degrees (not scaled by X)
         sp_back = 160.0                                    # back to the opponent (all but square)
         sp_ch = (FR[0] * 0.2, 0.05, 0.62, -0.5)            # knee up, heel pulled to the seat
-        sp_far = (FR[0] * 0.1, hx + 0.55, hz + 0.45, -0.95)  # beyond reach toward the opponent: the leg locks, heel first, chest height
-        sp_hold = (FR[0] * 0.1, hx + 0.57, hz + 0.43, -0.95)
-        spin_toe = [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "in"), (a1 + 5, base["lead_toe"] + 145.0),
+        # D-149 (brief: "spinning back-roundhouse ... a powerful horizontal kick", not a thrust):
+        # the leg opens out to his left side as the hips come round (the way they turn), then
+        # sweeps horizontally across to the opponent at chest height, heel leading, carries a
+        # little past the line (follow-through) and folds back in.
+        # (heights: the contact lands ~13 cm under a beyond-reach target; the whole arc is
+        # kept level at chest height, it does not rise over the head as the first try did)
+        sp_open = (0.45, 0.0, hz + 0.12, -0.85)             # opening out to the side
+        sp_arc1 = (0.55, hx * 0.45, hz + 0.18, -0.9)        # round the arc, gathering speed
+        sp_arc2 = (0.40, hx + 0.15, hz + 0.22, -0.9)
+        sp_far = (0.04, hx + 0.55, hz + 0.23, -0.95)        # the contact: beyond reach toward the opponent, the leg locks
+        sp_hold = (-0.10, hx + 0.53, hz + 0.22, -0.95)      # carrying through the line
+        sp_thru = (-0.24, hx + 0.45, hz + 0.19, -0.9)       # follow-through past the line
+        spin_toe = [(0, base["lead_toe"]), (3, base["lead_toe"]), (9, base["lead_toe"] + 150.0, "io"), (a1 + 5, base["lead_toe"] + 145.0),
                     (a1 + 14, base["lead_toe"], "out")]
-        ball_d = 0.13                                       # ankle to the ball of the foot, in stance-mark units
+        # D-149: the marks are multiplied by the stance height (~1.7), so 0.13 put the ankle's
+        # correction 23 cm from the ball instead of 13 cm: the over-correction itself slid the
+        # ball 22 cm (measured on the game model). 13 cm / 1.7.
+        ball_d = 0.076                                      # ankle to the ball of the foot, in stance-mark units
 
         def ball_kept(yaw):
             y0 = math.radians(base["lead_toe"])
             y1 = math.radians(yaw)
             return (lf0[0] + ball_d * (math.sin(y0) - math.sin(y1)), lf0[1] + ball_d * (math.cos(y0) - math.cos(y1)))
         # sample the toe track every frame and key the matching mark, so both follow one curve
-        spin_mark = [(k, ball_kept(curve(k, spin_toe))) for k in range(0, a1 + 15)]
-        out["FORWARD_HEAVY"] = dict(_recover=1.25, _hold=3, _lag=LAG, _impact=0.5, _air=(5, 9), **head(a0, a1, T, 4.0), **{   # D-146 _air: the skip-step is not grounded away
+        # D-149: what the ankle mark alone leaves (measured on the game model, ball of the
+        # lead foot, metres, x / forward, by OUTPUT frame 1..): the hips' travel and the
+        # stance solver carry the foot too. Taken off the mark so the ball stays put.
+        drift = {5: (-0.01, 0.0), 6: (-0.01, 0.05), 7: (0.02, 0.10), 8: (0.08, 0.12), 9: (0.13, 0.12)}
+        for f_ in range(10, 26):
+            drift[f_] = (0.15, 0.105)
+        drift.update({26: (0.14, 0.11), 27: (0.11, 0.12), 28: (0.07, 0.12), 29: (0.05, 0.11), 30: (0.03, 0.09),
+                      31: (0.01, 0.08), 32: (0.0, 0.06), 33: (0.0, 0.04), 34: (0.0, 0.02), 35: (0.0, 0.01)})
+        sp_hold_n, sp_slow = 3, 1.25                         # the `_hold` / `_recover` the drift was MEASURED with (it is a function of key time)
+
+        def out_frame(k):                                    # key time -> the output frame (1-based) that plays it
+            if k <= a1:
+                return k + 1
+            return int(round(a1 + sp_hold_n + (k - a1 - sp_hold_n * 0.125) * sp_slow)) + 1
+
+        def kept(k):
+            m_ = ball_kept(curve(k, spin_toe))
+            d_ = drift.get(out_frame(k), (0.0, 0.0))
+            return (m_[0] - d_[0] / H_MARK, m_[1] - d_[1] / H_MARK)
+        H_MARK = 1.0                                         # metres per stance-mark unit for Kairo (H = height / 1.8)
+        spin_mark = [(k, kept(k)) for k in range(0, a1 + 15)]
+        out["FORWARD_HEAVY"] = dict(_recover=1.25, _hold=1,   # D-149: 3 left the leg frozen out for ~9 frames; the follow-through keys carry it now
+             _lag=LAG, _impact=0.5, **head(a0, a1, T, 4.0), **{
             "lead_palm": "auto", "rear_palm": "auto",
             "_feet_abs": (0, T - 1),
             # the spin: shoulders first, hips a few frames behind, held while the leg is out
@@ -2835,11 +2871,17 @@ def kairo_keys(moves, base, g, S):
             # foot about the ankle, so the ball swung round on an arc. The ankle mark now
             # moves against the turn so the ball of the foot stays on its spot.
             "lead_foot": spin_mark,
-            # D-146 (measured on the game model: the ball of the pivot foot travelled 22 cm
-            # along the floor, 2.5 cm up, on frames 6-10 as the body turned over it: a slide).
-            # It is now a skip-step: the foot leaves the floor as the turn starts and lands
-            # on its new spot as the back comes round, the way a spinning back kick steps in.
-            "lead_hop": [(0, 0.0), (4, 0.0), (6, 0.05, "out"), (8, 0.055), (10, 0.0, "in")],
+            # D-149 (owner's brief: "NOT a jumping spin ... grounded, pivot the supporting foot
+            # naturally"): the D-147 skip-step is gone; the foot pivots on its ball (ball_d fixed).
+            # Head (brief: "the head fails to follow the body and the neck deforms"). Measured:
+            # the head kept a quarter of the chest's turn (pose_stance `head_turn` 0.25), so with
+            # the chest at 175 the head was turned 134 deg against the chest: that twist is the
+            # neck deformation, and the head looked stuck while the body spun. A neck turns about
+            # 70-80 deg. Now the head LEADS the spin (the fighter spots the target over his
+            # shoulder): it stays within ~60-70 deg ahead of the chest, and comes back to the
+            # usual quarter turn as he unwinds into the stance.
+            "head_turn": [(0, 0.25), (3, 0.25), (6, 1.12, "io"), (9, 1.26), (a0 - 3, 1.28), (a1, 1.30), (a1 + 5, 1.20),
+                          (a1 + 10, 0.70, "io"), (a1 + 14, 0.25, "out")],
             "lead_heel": [(0, 0.0), (3, 0.04), (9, 0.05), (a0, 0.03), (a1 + 6, 0.03), (a1 + 13, 0.0)],
             "hips": [(0, (hips0, 0)), (4, (hips0 + 0.10, 0)), (9, (hips0 + 0.22, 0)), (a0 - 2, (hips0 + 0.36, 0)), (a0, (hips0 + 0.50, 0), "in"), (a1, (hips0 + 0.50, 0)), (a1 + 8, (hips0 + 0.26, 0)), (a1 + 13, (hips0, 0), "io")],   # over the standing (lead) foot, whose ankle the pivot carries 26 cm forward (D-144)
             "pelvis_h": [(0, ph0), (3, low(0.05), "io"), (9, low(0.03)), (a0, ph0 + 0.01, "in"), (a1, ph0 + 0.01)] + settle(T, a1 + 12, ph0, 0.015),
@@ -2849,9 +2891,9 @@ def kairo_keys(moves, base, g, S):
             "curl": [(0, 0.0), (5, 6.0), (a0 - 2, 10.0), (a0, 2.0, "in"), (a1, 2.0), (a1 + 6, 6.0), (a1 + 12, 0.0)],
             "rear_hinge": [(0, 0.0), (6, 1.0), (a1 + 8, 1.0), (a1 + 12, 0.0)],
             "rear_toe": [(0, base["rear_toe"]), (6, 0.0), (a1 + 8, 0.0), (a1 + 12, base["rear_toe"])],
-            "rear_foot_abs": [(0, FR + (0.0,)), (3, FR + (0.0,)), (5, (FR[0] * 0.9, FR[1] * 0.85, FR[2] + 0.08, 0.4), "in"), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 4, (FR[0] * 0.35, 0.10, 0.50, -0.3)), (a0 - 3, sp_ch, "out"),
-                              (a0 - 2, (FR[0] * 0.16, 0.28, 0.84, -0.7), "in"), (a0 - 1, (FR[0] * 0.12, 0.56, 1.00, -0.85)), (a0, sp_far), (a0 + 1, sp_hold), (a1, sp_hold),
-                              (a1 + 2, (FR[0] * 0.15, hx + 0.20, hz + 0.20, -0.8)), (a1 + 4, (FR[0] * 0.2, hx - 0.15, hz - 0.02, -0.6)), (a1 + 6, (FR[0] * 0.2, 0.30, 0.80, -0.55)), (a1 + 7, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
+            "rear_foot_abs": [(0, FR + (0.0,)), (3, FR + (0.0,)), (5, (FR[0] * 0.9, FR[1] * 0.85, FR[2] + 0.08, 0.4), "in"), (8, (FR[0] * 0.6, FR[1] * 0.6, 0.30, 0.0), "io"), (a0 - 5, (FR[0] * 0.35, 0.10, 0.50, -0.3)), (a0 - 4, sp_ch, "out"), (a0 - 3, sp_open, "in"),
+                              (a0 - 2, sp_arc1), (a0 - 1, sp_arc2), (a0, sp_far, "in"), (a0 + 1, sp_hold), (a1, sp_thru, "out"),
+                              (a1 + 2, (-0.20, hx + 0.20, hz + 0.20, -0.8)), (a1 + 4, (FR[0] * 0.2, hx - 0.15, hz - 0.02, -0.6)), (a1 + 6, (FR[0] * 0.2, 0.30, 0.80, -0.55)), (a1 + 7, sp_ch), (a1 + 8, (FR[0] * 0.7, FR[1] * 0.6, 0.25, 0.0)),
                               (a1 + 11, (FR[0] * 0.95, FR[1] * 0.95, FR[2] + 0.04, 0.0)), (a1 + 12, FR + (0.0,), "in")],
             # guard tight to the body through the spin; the arms stay in
             # D-147: the lead arm swings out with the whip of the turn (it was tucked and still,

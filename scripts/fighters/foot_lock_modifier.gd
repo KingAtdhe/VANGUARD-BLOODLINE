@@ -38,6 +38,9 @@ const STEP_SPEED: float = 3.6
 ## Set by FighterView every frame: false in the air, lying down or when a
 ## clip moves the whole body on purpose.
 var lock_enabled: bool = true
+## Set by FighterView: a planted foot let go because the clip moves it fast along
+## the floor (a blend, walk -> stance) is lifted into a catch-up step (D-149).
+var lift_fast_feet: bool = true
 ## The floor height in world space (the arena floor).
 var floor_y: float = 0.0
 
@@ -97,7 +100,8 @@ func _process_modification_with_delta(delta: float) -> void:
 			leg["spot"] = ball_w
 		elif leg["locked"] and (not lock_enabled or h > LIFT_Y or stepping):
 			leg["locked"] = false
-			leg["step"] = false
+			# a foot dragged fast along the floor by a blend steps instead (D-149)
+			leg["step"] = stepping and lock_enabled and lift_fast_feet and h <= LIFT_Y
 		var want: Vector3 = Vector3.ZERO
 		if leg["locked"]:
 			var spot: Vector3 = leg["spot"]

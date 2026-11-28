@@ -57,7 +57,7 @@ func _initialize() -> void:
 		root.add_child(mark)
 	var model: Node3D = def.model_scene.instantiate()
 	ModelUtil.prepare(model)
-	model.rotation.y = deg_to_rad(90.0)       # faces +X, like P1 in a match
+	model.rotation.y = deg_to_rad(90.0 + float(OS.get_environment("CLIP_VIEW_YAW")))       # faces +X, like P1 in a match; CLIP_VIEW_YAW turns him for front (-90) / rear (90) checks (D-149)
 	root.add_child(model)
 	var ap: AnimationPlayer = model.find_child("AnimationPlayer", true, false)
 	var cam := Camera3D.new()
